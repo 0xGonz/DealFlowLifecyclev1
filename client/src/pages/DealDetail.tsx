@@ -39,6 +39,7 @@ import {
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { getDealStageBadgeClass } from "@/lib/utils/format";
+import { Deal, MiniMemo } from "@/lib/types";
 
 export default function DealDetail() {
   const [match, params] = useRoute("/deals/:id");
@@ -46,7 +47,7 @@ export default function DealDetail() {
   
   const { toast } = useToast();
   
-  const { data: deal, isLoading } = useQuery({
+  const { data: deal, isLoading } = useQuery<Deal>({
     queryKey: [`/api/deals/${params?.id}`],
     enabled: !!params?.id,
   });

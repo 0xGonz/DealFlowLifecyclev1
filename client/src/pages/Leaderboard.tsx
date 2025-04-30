@@ -58,14 +58,14 @@ export default function Leaderboard() {
                             Loading leaderboard data...
                           </TableCell>
                         </TableRow>
-                      ) : leaderboardData?.length === 0 ? (
+                      ) : leaderboardData.length === 0 ? (
                         <TableRow>
                           <TableCell colSpan={5} className="text-center py-10 text-neutral-500">
                             No deals found for the leaderboard.
                           </TableCell>
                         </TableRow>
                       ) : (
-                        leaderboardData?.map((deal, index) => (
+                        leaderboardData.map((deal: LeaderboardItem, index: number) => (
                           <TableRow 
                             key={deal.id} 
                             className="cursor-pointer hover:bg-neutral-50"
@@ -98,7 +98,7 @@ export default function Leaderboard() {
                               </div>
                             </TableCell>
                             <TableCell>
-                              <span className={`deal-stage-badge ${getStageColorClass(deal.stage)}`}>
+                              <span className={`deal-stage-badge ${getDealStageBadgeClass(deal.stage)}`}>
                                 {deal.stageLabel}
                               </span>
                             </TableCell>
@@ -129,7 +129,7 @@ export default function Leaderboard() {
                             Loading leaderboard data...
                           </TableCell>
                         </TableRow>
-                      ) : leaderboardData?.length === 0 ? (
+                      ) : leaderboardData.length === 0 ? (
                         <TableRow>
                           <TableCell colSpan={5} className="text-center py-10 text-neutral-500">
                             No deals found for the leaderboard.
@@ -137,7 +137,7 @@ export default function Leaderboard() {
                         </TableRow>
                       ) : (
                         // Sort by star count for this tab
-                        [...leaderboardData].sort((a, b) => b.starCount - a.starCount).map((deal, index) => (
+                        [...leaderboardData].sort((a, b) => b.starCount - a.starCount).map((deal: LeaderboardItem, index: number) => (
                           <TableRow 
                             key={deal.id} 
                             className="cursor-pointer hover:bg-neutral-50"
@@ -157,7 +157,7 @@ export default function Leaderboard() {
                               </div>
                             </TableCell>
                             <TableCell>
-                              <span className={`deal-stage-badge ${getStageColorClass(deal.stage)}`}>
+                              <span className={`deal-stage-badge ${getDealStageBadgeClass(deal.stage)}`}>
                                 {deal.stageLabel}
                               </span>
                             </TableCell>
