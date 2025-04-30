@@ -63,7 +63,7 @@ export default function FundDetail() {
     dealId: null,
     amount: 0,
     securityType: "",
-    allocationDate: format(new Date(), "yyyy-MM-dd"),
+    allocationDate: new Date().toISOString().split('T')[0], // format as YYYY-MM-DD
     notes: ""
   });
   
@@ -89,7 +89,7 @@ export default function FundDetail() {
   // Create allocation mutation
   const createAllocation = useMutation({
     mutationFn: async (data) => {
-      return apiRequest("POST", "/api/fund-allocations", data);
+      return apiRequest("POST", "/api/allocations", data);
     },
     onSuccess: () => {
       toast({
@@ -103,7 +103,7 @@ export default function FundDetail() {
         dealId: null,
         amount: 0,
         securityType: "",
-        allocationDate: format(new Date(), "yyyy-MM-dd"),
+        allocationDate: new Date().toISOString().split('T')[0],
         notes: ""
       });
       setIsNewAllocationDialogOpen(false);
@@ -204,7 +204,7 @@ export default function FundDetail() {
                     <div>
                       <p className="text-sm text-neutral-600 mb-1">Created Date</p>
                       <p className="text-lg font-medium">
-                        {format(new Date(fund?.createdAt), "PPP")}
+                        {fund?.createdAt ? format(new Date(fund.createdAt), "PPP") : "Unknown"}
                       </p>
                     </div>
                   </div>
@@ -414,7 +414,11 @@ export default function FundDetail() {
                               {allocation.securityType === "other" && "Other"}
                             </TableCell>
                             <TableCell>
-                              {allocation.allocationDate ? format(new Date(allocation.allocationDate), "PP") : "-"}
+                              {allocation.allocationDate ? 
+                                new Date(allocation.allocationDate).toString() !== "Invalid Date" 
+                                  ? format(new Date(allocation.allocationDate), "PP") 
+                                  : "-" 
+                                : "-"}
                             </TableCell>
                             <TableCell className="text-right">
                               <Button variant="ghost" size="sm" asChild>
