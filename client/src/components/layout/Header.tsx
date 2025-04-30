@@ -3,7 +3,8 @@ import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import NewDealModal from "@/components/deals/NewDealModal";
-import { Bell, Plus, Search } from "lucide-react";
+import { Plus, Search } from "lucide-react";
+import NotificationDropdown from "@/components/notifications/NotificationDropdown";
 
 export default function Header() {
   const [location] = useLocation();
@@ -53,10 +54,7 @@ export default function Header() {
           </Button>
           
           <div className="relative">
-            <Button variant="ghost" className="relative text-neutral-600 hover:text-neutral-800 h-10 w-10 p-0">
-              <Bell className="h-6 w-6" />
-              <span className="absolute -top-1 -right-1 bg-accent text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">3</span>
-            </Button>
+            <NotificationDropdown />
           </div>
         </div>
       </div>

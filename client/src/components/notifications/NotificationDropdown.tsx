@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, UseQueryOptions } from '@tanstack/react-query';
 import { Bell, Check, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -20,7 +20,8 @@ import {
 import { formatDistanceToNow } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 
-type Notification = {
+// Define notification type for frontend use
+interface Notification {
   id: number;
   userId: number;
   title: string;
@@ -29,7 +30,12 @@ type Notification = {
   relatedId?: number;
   isRead: boolean;
   createdAt: string;
-};
+}
+
+// Define unread count response type
+interface UnreadCountResponse {
+  count: number;
+}
 
 export default function NotificationDropdown() {
   const [open, setOpen] = useState(false);
@@ -37,27 +43,16 @@ export default function NotificationDropdown() {
   const queryClient = useQueryClient();
 
   // Fetch notifications
-  const { data: notifications = [] } = useQuery<Notification[]>({
+  const { data: notifications = [] } = useQuery<Notification[], Error, Notification[]>({
     queryKey: ['/api/notifications'],
-    onError: () => {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to load notifications',
-      });
-    },
+    staleTime: 60000, // 1 minute,
+    select: (data) => data as Notification[]
   });
 
   // Fetch unread count
-  const { data: unreadCountData } = useQuery<{count: number}>({
+  const { data: unreadCountData } = useQuery<UnreadCountResponse, Error, UnreadCountResponse>({
     queryKey: ['/api/notifications/unread-count'],
-    onError: () => {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to load unread count',
-      });
-    },
+    staleTime: 30000, // 30 seconds
   });
 
   const unreadCount = unreadCountData?.count || 0;
