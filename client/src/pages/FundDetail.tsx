@@ -153,6 +153,8 @@ export default function FundDetail() {
     }
     
     createAllocation.mutate(newAllocationData);
+    // Close the dialog immediately for better UX
+    setIsNewAllocationDialogOpen(false);
   };
   
   // Handle 404
@@ -328,11 +330,12 @@ export default function FundDetail() {
                       </div>
                       
                       <DialogFooter>
-                        <DialogClose asChild>
-                          <Button variant="outline">
-                            Cancel
-                          </Button>
-                        </DialogClose>
+                        <Button 
+                          variant="outline"
+                          onClick={() => setIsNewAllocationDialogOpen(false)}
+                        >
+                          Cancel
+                        </Button>
                         <Button 
                           onClick={handleCreateAllocation}
                           disabled={createAllocation.isPending}
@@ -413,11 +416,12 @@ export default function FundDetail() {
                       </div>
                       
                       <DialogFooter>
-                        <DialogClose asChild>
-                          <Button variant="outline">
-                            Cancel
-                          </Button>
-                        </DialogClose>
+                        <Button 
+                          variant="outline"
+                          onClick={() => setIsReportDialogOpen(false)}
+                        >
+                          Cancel
+                        </Button>
                         <Button onClick={() => {
                           toast({
                             title: "Report Generated",
