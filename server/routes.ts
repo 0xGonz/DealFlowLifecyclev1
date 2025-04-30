@@ -7,6 +7,7 @@ import authRoutes from './routes/auth';
 import dashboardRoutes from './routes/dashboard';
 import leaderboardRoutes from './routes/leaderboard';
 import activityRoutes from './routes/activity';
+import notificationsRoutes from './routes/notifications';
 import { Router } from "express";
 import { insertFundAllocationSchema } from "@shared/schema";
 import { storage } from "./storage";
@@ -95,6 +96,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/dashboard', dashboardRoutes);
   app.use('/api/leaderboard', leaderboardRoutes);
   app.use('/api/activity', activityRoutes);
+  app.use('/api/notifications', notificationsRoutes);
   
   // Catch-all route for 404s
   app.use('/api/*', (req: Request, res: Response) => {
