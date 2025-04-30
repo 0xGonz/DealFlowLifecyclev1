@@ -1,0 +1,352 @@
+import { Router, Request, Response } from "express";
+import { storage } from "../storage";
+import { 
+  insertDealSchema, 
+  insertTimelineEventSchema, 
+  insertDealStarSchema,
+  insertMiniMemoSchema,
+  DealStageLabels
+} from "@shared/schema";
+import { z } from "zod";
+
+const router = Router();
+
+// Get all deals or filter by stage
+router.get('/', async (req: Request, res: Response) => {
+  try {
+    let deals;
+    
+    if (req.query.stage) {
+      deals = await storage.getDealsByStage(req.query.stage as string);
+    } else {
+      deals = await storage.getDeals();
+    }
+    
+    // For each deal, get the assignments and stars
+    const dealsWithExtras = await Promise.all(deals.map(async (deal) => {
+      const assignments = await storage.getDealAssignments(deal.id);
+      const stars = await storage.getDealStars(deal.id);
+      const miniMemos = await storage.getMiniMemosByDeal(deal.id);
+      
+      // Calculate score from mini memos
+      let score = 0;
+      if (miniMemos.length > 0) {
+        score = Math.floor(miniMemos.reduce((sum, memo) => sum + memo.score, 0) / miniMemos.length);
+      }
+      
+      return {
+        ...deal,
+        stageLabel: DealStageLabels[deal.stage],
+        assignedUsers: assignments.map(a => a.userId),
+        starCount: stars.length,
+        score
+      };
+    }));
+    
+    res.json(dealsWithExtras);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch deals' });
+  }
+});
+
+// Get a specific deal by ID
+router.get('/:id', async (req: Request, res: Response) => {
+  try {
+    const deal = await storage.getDeal(Number(req.params.id));
+    
+    if (!deal) {
+      return res.status(404).json({ message: 'Deal not found' });
+    }
+    
+    const assignments = await storage.getDealAssignments(deal.id);
+    const stars = await storage.getDealStars(deal.id);
+    const timelineEvents = await storage.getTimelineEventsByDeal(deal.id);
+    const miniMemos = await storage.getMiniMemosByDeal(deal.id);
+    const allocations = await storage.getAllocationsByDeal(deal.id);
+    
+    // Get assigned users with details
+    const assignedUserIds = assignments.map(a => a.userId);
+    const users = await storage.getUsers();
+    const assignedUsers = users.filter(user => assignedUserIds.includes(user.id))
+      .map(user => ({
+        id: user.id,
+        fullName: user.fullName,
+        initials: user.initials,
+        avatarColor: user.avatarColor,
+        role: user.role
+      }));
+    
+    // Calculate score from mini memos
+    let score = 0;
+    if (miniMemos.length > 0) {
+      score = Math.floor(miniMemos.reduce((sum, memo) => sum + memo.score, 0) / miniMemos.length);
+    }
+    
+    res.json({
+      ...deal,
+      stageLabel: DealStageLabels[deal.stage],
+      assignedUsers,
+      starCount: stars.length,
+      timelineEvents,
+      miniMemos,
+      allocations,
+      score
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch deal' });
+  }
+});
+
+// Create a new deal
+router.post('/', async (req: Request, res: Response) => {
+  try {
+    const user = (req as any).user;
+    const dealData = insertDealSchema.parse({
+      ...req.body,
+      createdBy: user.id
+    });
+    
+    const newDeal = await storage.createDeal(dealData);
+    
+    // Automatically assign creator to the deal
+    await storage.assignUserToDeal({
+      dealId: newDeal.id,
+      userId: user.id
+    });
+    
+    res.status(201).json(newDeal);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: 'Invalid deal data', errors: error.errors });
+    }
+    res.status(500).json({ message: 'Failed to create deal' });
+  }
+});
+
+// Update a deal
+router.patch('/:id', async (req: Request, res: Response) => {
+  try {
+    const dealId = Number(req.params.id);
+    const user = (req as any).user;
+    
+    // Make sure deal exists
+    const deal = await storage.getDeal(dealId);
+    if (!deal) {
+      return res.status(404).json({ message: 'Deal not found' });
+    }
+    
+    // Validate the partial update data
+    const updateSchema = insertDealSchema.partial();
+    const dealUpdate = updateSchema.parse({
+      ...req.body,
+      // If stage is updated, record who changed it
+      ...(req.body.stage && { createdBy: user.id })
+    });
+    
+    const updatedDeal = await storage.updateDeal(dealId, dealUpdate);
+    res.json(updatedDeal);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: 'Invalid deal data', errors: error.errors });
+    }
+    res.status(500).json({ message: 'Failed to update deal' });
+  }
+});
+
+// Get timeline events for a deal
+router.get('/:dealId/timeline', async (req: Request, res: Response) => {
+  try {
+    const dealId = Number(req.params.dealId);
+    
+    // Make sure deal exists
+    const deal = await storage.getDeal(dealId);
+    if (!deal) {
+      return res.status(404).json({ message: 'Deal not found' });
+    }
+    
+    const events = await storage.getTimelineEventsByDeal(dealId);
+    
+    // Get user info for each event
+    const userIds = [...new Set(events.map(e => e.createdBy))];
+    const users = await Promise.all(userIds.map(id => storage.getUser(id)));
+    
+    const eventsWithUserInfo = events.map(event => {
+      const user = users.find(u => u?.id === event.createdBy);
+      return {
+        ...event,
+        user: user ? {
+          id: user.id,
+          fullName: user.fullName,
+          initials: user.initials,
+          avatarColor: user.avatarColor
+        } : null
+      };
+    });
+    
+    res.json(eventsWithUserInfo);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch timeline events' });
+  }
+});
+
+// Create a timeline event for a deal
+router.post('/:dealId/timeline', async (req: Request, res: Response) => {
+  try {
+    const dealId = Number(req.params.dealId);
+    const user = (req as any).user;
+    
+    // Make sure deal exists
+    const deal = await storage.getDeal(dealId);
+    if (!deal) {
+      return res.status(404).json({ message: 'Deal not found' });
+    }
+    
+    const eventData = insertTimelineEventSchema.parse({
+      ...req.body,
+      dealId,
+      createdBy: user.id
+    });
+    
+    const newEvent = await storage.createTimelineEvent(eventData);
+    
+    // Return with user info
+    const userInfo = await storage.getUser(user.id);
+    res.status(201).json({
+      ...newEvent,
+      user: userInfo ? {
+        id: userInfo.id,
+        fullName: userInfo.fullName,
+        initials: userInfo.initials,
+        avatarColor: userInfo.avatarColor
+      } : null
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: 'Invalid event data', errors: error.errors });
+    }
+    res.status(500).json({ message: 'Failed to create timeline event' });
+  }
+});
+
+// Star a deal
+router.post('/:dealId/star', async (req: Request, res: Response) => {
+  try {
+    const dealId = Number(req.params.dealId);
+    const user = (req as any).user;
+    
+    // Make sure deal exists
+    const deal = await storage.getDeal(dealId);
+    if (!deal) {
+      return res.status(404).json({ message: 'Deal not found' });
+    }
+    
+    const starData = insertDealStarSchema.parse({
+      dealId,
+      userId: user.id
+    });
+    
+    const star = await storage.starDeal(starData);
+    res.status(201).json(star);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: 'Invalid star data', errors: error.errors });
+    }
+    res.status(500).json({ message: 'Failed to star deal' });
+  }
+});
+
+// Unstar a deal
+router.delete('/:dealId/star', async (req: Request, res: Response) => {
+  try {
+    const dealId = Number(req.params.dealId);
+    const user = (req as any).user;
+    
+    const success = await storage.unstarDeal(dealId, user.id);
+    if (!success) {
+      return res.status(404).json({ message: 'Star not found' });
+    }
+    
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to unstar deal' });
+  }
+});
+
+// Get mini memos for a deal
+router.get('/:dealId/memos', async (req: Request, res: Response) => {
+  try {
+    const dealId = Number(req.params.dealId);
+    
+    // Make sure deal exists
+    const deal = await storage.getDeal(dealId);
+    if (!deal) {
+      return res.status(404).json({ message: 'Deal not found' });
+    }
+    
+    const memos = await storage.getMiniMemosByDeal(dealId);
+    
+    // Get user info for each memo
+    const userIds = [...new Set(memos.map(m => m.userId))];
+    const users = await Promise.all(userIds.map(id => storage.getUser(id)));
+    
+    const memosWithUserInfo = memos.map(memo => {
+      const user = users.find(u => u?.id === memo.userId);
+      return {
+        ...memo,
+        user: user ? {
+          id: user.id,
+          fullName: user.fullName,
+          initials: user.initials,
+          avatarColor: user.avatarColor,
+          role: user.role
+        } : null
+      };
+    });
+    
+    res.json(memosWithUserInfo);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch mini memos' });
+  }
+});
+
+// Create a mini memo for a deal
+router.post('/:dealId/memos', async (req: Request, res: Response) => {
+  try {
+    const dealId = Number(req.params.dealId);
+    const user = (req as any).user;
+    
+    // Make sure deal exists
+    const deal = await storage.getDeal(dealId);
+    if (!deal) {
+      return res.status(404).json({ message: 'Deal not found' });
+    }
+    
+    const memoData = insertMiniMemoSchema.parse({
+      ...req.body,
+      dealId,
+      userId: user.id
+    });
+    
+    const newMemo = await storage.createMiniMemo(memoData);
+    
+    // Return with user info
+    const userInfo = await storage.getUser(user.id);
+    res.status(201).json({
+      ...newMemo,
+      user: userInfo ? {
+        id: userInfo.id,
+        fullName: userInfo.fullName,
+        initials: userInfo.initials,
+        avatarColor: userInfo.avatarColor,
+        role: userInfo.role
+      } : null
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: 'Invalid memo data', errors: error.errors });
+    }
+    res.status(500).json({ message: 'Failed to create mini memo' });
+  }
+});
+
+export default router;
