@@ -290,6 +290,43 @@ export class MemStorage implements IStorage {
     this.assignUserToDeal({ dealId: 2, userId: 3 });
     this.assignUserToDeal({ dealId: 2, userId: 4 });
     this.assignUserToDeal({ dealId: 3, userId: 2 });
+    
+    // Create sample notifications
+    this.createNotification({
+      userId: 1, // Admin user
+      title: 'New deal added',
+      message: 'TechFusion AI was added to the pipeline',
+      type: 'deal',
+      relatedId: 1,
+      isRead: false
+    });
+    
+    this.createNotification({
+      userId: 1, // Admin user
+      title: 'Deal moved to due diligence',
+      message: 'TechFusion AI deal moved to due diligence stage',
+      type: 'deal',
+      relatedId: 1,
+      isRead: false
+    });
+    
+    this.createNotification({
+      userId: 1, // Admin user
+      title: 'You were assigned to a deal',
+      message: 'You were assigned to the GreenScale Renewables deal',
+      type: 'assignment',
+      relatedId: 2,
+      isRead: true
+    });
+    
+    this.createNotification({
+      userId: 1, // Admin user
+      title: 'New memo added',
+      message: 'A new memo was added to QuantumEdge Computing deal',
+      type: 'memo',
+      relatedId: 3,
+      isRead: false
+    });
   }
 
   async getUser(id: number): Promise<User | undefined> {
