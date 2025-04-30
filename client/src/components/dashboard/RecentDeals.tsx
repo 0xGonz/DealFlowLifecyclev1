@@ -9,18 +9,19 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
+import { Deal } from "@/lib/types";
 
 export default function RecentDeals() {
   const [, navigate] = useLocation();
   const [stageFilter, setStageFilter] = useState("all");
   const [dateFilter, setDateFilter] = useState("30days");
 
-  const { data: deals, isLoading } = useQuery({
+  const { data: deals = [], isLoading } = useQuery<Deal[]>({
     queryKey: ['/api/deals'],
   });
 
   // Filter deals based on current filters and limit to most recent 3
-  const filteredDeals = deals?.filter(deal => {
+  const filteredDeals = deals.filter((deal: Deal) => {
     // Stage filter
     if (stageFilter !== "all" && deal.stage !== stageFilter) {
       return false;

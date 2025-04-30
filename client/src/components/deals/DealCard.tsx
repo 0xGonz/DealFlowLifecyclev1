@@ -13,9 +13,11 @@ import {
   Users,
   DollarSign
 } from "lucide-react";
+import { Deal, User } from "@/lib/types";
+import { getDealStageBadgeClass } from "@/lib/utils/format";
 
 interface DealCardProps {
-  deal: any;
+  deal: Deal;
   compact?: boolean;
 }
 
@@ -24,12 +26,12 @@ export default function DealCard({ deal, compact = false }: DealCardProps) {
   const { toast } = useToast();
 
   // Get users to show avatars
-  const { data: users } = useQuery({
+  const { data: users = [] } = useQuery<User[]>({
     queryKey: ['/api/users'],
   });
 
   // Get assigned user details
-  const assignedUsers = users?.filter((user: any) => 
+  const assignedUsers = users.filter((user: User) => 
     deal.assignedUsers?.includes(user.id)
   ) || [];
 
@@ -58,20 +60,7 @@ export default function DealCard({ deal, compact = false }: DealCardProps) {
     }
   };
 
-  // Get stage badge color class
-  const getStageBadgeClass = (stage: string) => {
-    const stageClasses: Record<string, string> = {
-      initial_review: "bg-neutral-200 text-neutral-700",
-      screening: "bg-neutral-200 text-neutral-700",
-      due_diligence: "bg-primary bg-opacity-15 text-primary",
-      ic_review: "bg-info bg-opacity-15 text-info",
-      closing: "bg-success bg-opacity-15 text-success",
-      closed: "bg-success bg-opacity-15 text-success",
-      passed: "bg-destructive bg-opacity-15 text-destructive"
-    };
-    
-    return stageClasses[stage] || "bg-neutral-200 text-neutral-700";
-  };
+  // getDealStageBadgeClass is imported from utils/format.ts
 
   return (
     <Card 
@@ -81,7 +70,7 @@ export default function DealCard({ deal, compact = false }: DealCardProps) {
       <CardContent className={`p-4 ${compact ? 'pb-2' : ''}`}>
         <div className="flex justify-between items-start mb-3">
           <h3 className="font-semibold text-lg">{deal.name}</h3>
-          <span className={`deal-stage-badge ${getStageBadgeClass(deal.stage)}`}>
+          <span className={`deal-stage-badge ${getDealStageBadgeClass(deal.stage)}`}>
             {deal.stageLabel}
           </span>
         </div>

@@ -15,31 +15,18 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { Star, ArrowUp, ArrowDown } from "lucide-react";
+import { LeaderboardItem } from "@/lib/types";
+import { getDealStageBadgeClass } from "@/lib/utils/format";
 
 export default function LeaderboardWidget() {
   const [, navigate] = useLocation();
   
-  const { data: leaderboardData, isLoading } = useQuery({
+  const { data: leaderboardData = [], isLoading } = useQuery<LeaderboardItem[]>({
     queryKey: ['/api/leaderboard'],
   });
 
-  // Determine color class based on stage
-  const getStageColorClass = (stage: string) => {
-    const stageMap: Record<string, string> = {
-      initial_review: "bg-neutral-200 text-neutral-700",
-      screening: "bg-neutral-200 text-neutral-700",
-      due_diligence: "bg-primary bg-opacity-15 text-primary",
-      ic_review: "bg-info bg-opacity-15 text-info",
-      closing: "bg-success bg-opacity-15 text-success",
-      closed: "bg-success bg-opacity-15 text-success",
-      passed: "bg-destructive bg-opacity-15 text-destructive"
-    };
-    
-    return stageMap[stage] || "bg-neutral-200 text-neutral-700";
-  };
-
   // Only show the top 5 deals
-  const topDeals = leaderboardData?.slice(0, 5);
+  const topDeals = leaderboardData.slice(0, 5);
 
   return (
     <Card className="bg-white rounded-lg shadow">
@@ -72,7 +59,7 @@ export default function LeaderboardWidget() {
                   </TableCell>
                 </TableRow>
               ) : (
-                topDeals?.map((deal: any) => (
+                topDeals.map((deal: LeaderboardItem) => (
                   <TableRow 
                     key={deal.id} 
                     className="hover:bg-neutral-50 cursor-pointer"
@@ -106,7 +93,7 @@ export default function LeaderboardWidget() {
                       </div>
                     </TableCell>
                     <TableCell className="py-3">
-                      <span className={`deal-stage-badge ${getStageColorClass(deal.stage)}`}>
+                      <span className={`deal-stage-badge ${getDealStageBadgeClass(deal.stage)}`}>
                         {deal.stageLabel}
                       </span>
                     </TableCell>
