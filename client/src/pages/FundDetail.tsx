@@ -60,6 +60,7 @@ export default function FundDetail() {
   const fundId = params?.id ? parseInt(params.id) : null;
   
   const [isNewAllocationDialogOpen, setIsNewAllocationDialogOpen] = useState(false);
+  const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
   const [newAllocationData, setNewAllocationData] = useState({
     fundId: fundId,
     dealId: null,
@@ -327,9 +328,11 @@ export default function FundDetail() {
                       </div>
                       
                       <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsNewAllocationDialogOpen(false)}>
-                          Cancel
-                        </Button>
+                        <DialogClose asChild>
+                          <Button variant="outline">
+                            Cancel
+                          </Button>
+                        </DialogClose>
                         <Button 
                           onClick={handleCreateAllocation}
                           disabled={createAllocation.isPending}
@@ -340,7 +343,7 @@ export default function FundDetail() {
                     </DialogContent>
                   </Dialog>
                   
-                  <Dialog>
+                  <Dialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
                     <DialogTrigger asChild>
                       <Button variant="outline" className="w-full">
                         <FileText className="h-5 w-5 mr-2" />
@@ -415,16 +418,15 @@ export default function FundDetail() {
                             Cancel
                           </Button>
                         </DialogClose>
-                        <DialogClose asChild>
-                          <Button onClick={() => {
-                            toast({
-                              title: "Report Generated",
-                              description: "Your report has been generated and is ready to download",
-                            });
-                          }}>
-                            Generate Report
-                          </Button>
-                        </DialogClose>
+                        <Button onClick={() => {
+                          toast({
+                            title: "Report Generated",
+                            description: "Your report has been generated and is ready to download",
+                          });
+                          setIsReportDialogOpen(false);
+                        }}>
+                          Generate Report
+                        </Button>
                       </DialogFooter>
                     </DialogContent>
                   </Dialog>
