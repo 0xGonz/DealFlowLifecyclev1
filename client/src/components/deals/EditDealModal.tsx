@@ -63,7 +63,7 @@ export default function EditDealModal({ isOpen, onClose, dealId }: EditDealModal
   const { toast } = useToast();
 
   // Fetch the deal data
-  const { data: deal, isLoading } = useQuery({
+  const { data: deal, isLoading } = useQuery<any>({
     queryKey: [`/api/deals/${dealId}`],
     enabled: isOpen && dealId > 0,
   });
@@ -122,7 +122,7 @@ export default function EditDealModal({ isOpen, onClose, dealId }: EditDealModal
     mutationFn: async (values: DealFormValues) => {
       return apiRequest("PATCH", `/api/deals/${dealId}`, values);
     },
-    onSuccess: async (data) => {
+    onSuccess: async (data: any) => {
       // Show success toast
       toast({
         title: "Deal updated",

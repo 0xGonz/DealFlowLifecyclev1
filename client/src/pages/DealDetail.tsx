@@ -3,6 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useRoute } from "wouter";
 import AppLayout from "@/components/layout/AppLayout";
 import Timeline from "@/components/deals/Timeline";
+import EditDealModal from "@/components/deals/EditDealModal";
 import { 
   Card, 
   CardHeader, 
@@ -44,6 +45,7 @@ import { Deal, MiniMemo } from "@/lib/types";
 export default function DealDetail() {
   const [match, params] = useRoute("/deals/:id");
   const [newNote, setNewNote] = useState("");
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   
   const { toast } = useToast();
   
@@ -125,6 +127,15 @@ export default function DealDetail() {
   return (
     <AppLayout>
       <div className="flex-1 overflow-y-auto p-6 pb-20">
+        {/* Edit Deal Modal */}
+        {deal && 
+          <EditDealModal 
+            isOpen={isEditModalOpen} 
+            onClose={() => setIsEditModalOpen(false)} 
+            dealId={Number(params?.id) || 0} 
+          />
+        }
+        
         {/* Back button and page title */}
         <div className="flex items-center mb-6">
           <Button variant="ghost" className="mr-2" asChild>
@@ -140,7 +151,7 @@ export default function DealDetail() {
               <Star className={`h-4 w-4 mr-2 ${deal?.starCount ? 'fill-accent text-accent' : ''}`} />
               {deal?.starCount ? `Starred (${deal.starCount})` : 'Star'}
             </Button>
-            <Button>
+            <Button onClick={() => setIsEditModalOpen(true)}>
               <Edit className="h-4 w-4 mr-2" />
               Edit Deal
             </Button>
