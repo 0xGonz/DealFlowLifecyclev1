@@ -4,7 +4,6 @@ import dealsRoutes from './deals';
 import fundsRoutes from './funds';
 import usersRoutes from './users';
 import authRoutes from './auth';
-import allocationsRoutes from './allocations';
 
 // Create a simple auth middleware
 const authenticate = (req: Request, res: Response, next: NextFunction) => {

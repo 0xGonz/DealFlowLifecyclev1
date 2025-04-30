@@ -52,7 +52,7 @@ allocationsRouter.post('/', async (req: Request, res: Response) => {
 });
 
 // Get allocations for a fund
-allocationsRouter.get('/fund/:fundId', async (req, res) => {
+allocationsRouter.get('/fund/:fundId', async (req: Request, res: Response) => {
   try {
     const fundId = Number(req.params.fundId);
     const allocations = await storage.getAllocationsByFund(fundId);
@@ -63,7 +63,7 @@ allocationsRouter.get('/fund/:fundId', async (req, res) => {
 });
 
 // Get allocations for a deal
-allocationsRouter.get('/deal/:dealId', async (req, res) => {
+allocationsRouter.get('/deal/:dealId', async (req: Request, res: Response) => {
   try {
     const dealId = Number(req.params.dealId);
     const allocations = await storage.getAllocationsByDeal(dealId);
@@ -97,7 +97,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/activity', activityRoutes);
   
   // Catch-all route for 404s
-  app.use('/api/*', (req, res) => {
+  app.use('/api/*', (req: Request, res: Response) => {
     res.status(404).json({ message: `Route not found: ${req.originalUrl}` });
   });
   
