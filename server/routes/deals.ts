@@ -17,7 +17,8 @@ router.get('/', async (req: Request, res: Response) => {
     let deals;
     
     if (req.query.stage) {
-      deals = await storage.getDealsByStage(req.query.stage as string);
+      // Cast to the correct type for stage
+      deals = await storage.getDealsByStage(req.query.stage as any);
     } else {
       deals = await storage.getDeals();
     }
