@@ -64,7 +64,7 @@ export default function DealCard({ deal, compact = false }: DealCardProps) {
 
   return (
     <Card 
-      className="bg-white rounded-lg shadow pipeline-card overflow-hidden"
+      className="bg-white rounded-lg shadow pipeline-card overflow-hidden cursor-pointer"
       onClick={() => navigate(`/deals/${deal.id}`)}
     >
       <CardContent className={`p-4 ${compact ? 'pb-2' : ''}`}>
