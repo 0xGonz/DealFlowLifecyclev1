@@ -38,6 +38,7 @@ import {
   BarChart4
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { getDealStageBadgeClass } from "@/lib/utils/format";
 
 export default function DealDetail() {
   const [match, params] = useRoute("/deals/:id");
@@ -150,7 +151,7 @@ export default function DealDetail() {
           <CardHeader>
             <div className="flex justify-between items-start">
               <div>
-                <Badge className={`bg-${getDealStageColor(deal?.stage)} text-white mb-2`}>
+                <Badge className={`${getDealStageBadgeClass(deal?.stage || '')} mb-2`}>
                   {deal?.stageLabel}
                 </Badge>
                 <CardTitle>{deal?.name}</CardTitle>
@@ -432,16 +433,4 @@ export default function DealDetail() {
   );
 }
 
-function getDealStageColor(stage: string): string {
-  const stageColors: Record<string, string> = {
-    initial_review: "neutral-500",
-    screening: "neutral-500",
-    due_diligence: "primary",
-    ic_review: "info",
-    closing: "success",
-    closed: "success",
-    passed: "destructive"
-  };
-  
-  return stageColors[stage] || "neutral-500";
-}
+
