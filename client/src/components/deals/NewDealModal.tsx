@@ -32,6 +32,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { generateDealNotification } from "@/lib/utils/notification-utils";
 
 // Form schema with validation rules
 const dealFormSchema = z.object({
@@ -80,11 +81,26 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
     mutationFn: async (values: DealFormValues) => {
       return apiRequest("POST", "/api/deals", values);
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
+      // Show success toast
       toast({
         title: "Deal created",
         description: "New deal has been successfully created."
       });
+      
+      // Create notification for new deal
+      try {
+        // Generate notification for all users (using admin user ID 1 for now)
+        // In a real-world scenario, we would notify relevant team members or all users
+        await generateDealNotification(1, values.name, 'created', data.id);
+        
+        // Refresh notifications in the UI
+        queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread-count'] });
+      } catch (err) {
+        console.error('Failed to create notification:', err);
+      }
+      
       form.reset(); // Reset form
       queryClient.invalidateQueries({ queryKey: ['/api/deals'] }); // Refresh deals data
       onClose(); // Close modal
