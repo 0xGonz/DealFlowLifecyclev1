@@ -20,6 +20,7 @@ import {
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -46,7 +47,8 @@ import {
   TrendingUp, 
   ArrowUpRight, 
   ChevronLeft, 
-  Calendar 
+  Calendar,
+  FileText
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/format";
 import { format } from "date-fns";
@@ -338,11 +340,94 @@ export default function FundDetail() {
                     </DialogContent>
                   </Dialog>
                   
-                  <Button variant="outline" className="w-full" asChild>
-                    <a href="#">
-                      Generate Report
-                    </a>
-                  </Button>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" className="w-full">
+                        <FileText className="h-5 w-5 mr-2" />
+                        Generate Report
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Fund Report</DialogTitle>
+                        <DialogDescription>
+                          Generate a performance report for {fund?.name}
+                        </DialogDescription>
+                      </DialogHeader>
+                      
+                      <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="reportType">Report Type</Label>
+                          <Select defaultValue="performance">
+                            <SelectTrigger id="reportType">
+                              <SelectValue placeholder="Select report type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="performance">Performance Metrics</SelectItem>
+                              <SelectItem value="allocation">Allocation Summary</SelectItem>
+                              <SelectItem value="comprehensive">Comprehensive Report</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="reportFormat">Format</Label>
+                          <Select defaultValue="pdf">
+                            <SelectTrigger id="reportFormat">
+                              <SelectValue placeholder="Select format" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="pdf">PDF Document</SelectItem>
+                              <SelectItem value="excel">Excel Spreadsheet</SelectItem>
+                              <SelectItem value="csv">CSV File</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="dateRange">Date Range</Label>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="relative">
+                              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-500" />
+                              <Input 
+                                id="startDate"
+                                type="date"
+                                className="pl-10"
+                                defaultValue={new Date(new Date().setMonth(new Date().getMonth() - 3)).toISOString().split('T')[0]}
+                              />
+                            </div>
+                            <div className="relative">
+                              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-500" />
+                              <Input 
+                                id="endDate"
+                                type="date"
+                                className="pl-10"
+                                defaultValue={new Date().toISOString().split('T')[0]}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <DialogFooter>
+                        <DialogClose asChild>
+                          <Button variant="outline">
+                            Cancel
+                          </Button>
+                        </DialogClose>
+                        <DialogClose asChild>
+                          <Button onClick={() => {
+                            toast({
+                              title: "Report Generated",
+                              description: "Your report has been generated and is ready to download",
+                            });
+                          }}>
+                            Generate Report
+                          </Button>
+                        </DialogClose>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
                 </CardContent>
               </Card>
             </div>
