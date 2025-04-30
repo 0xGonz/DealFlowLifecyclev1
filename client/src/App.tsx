@@ -8,6 +8,7 @@ import Dashboard from "@/pages/Dashboard";
 import Pipeline from "@/pages/Pipeline";
 import Leaderboard from "@/pages/Leaderboard";
 import Funds from "@/pages/Funds";
+import FundDetail from "@/pages/FundDetail";
 import DealDetail from "@/pages/DealDetail";
 import { AuthProvider } from "@/lib/context/auth-context";
 
@@ -18,6 +19,7 @@ function Router() {
       <Route path="/pipeline" component={Pipeline} />
       <Route path="/leaderboard" component={Leaderboard} />
       <Route path="/funds" component={Funds} />
+      <Route path="/funds/:id" component={FundDetail} />
       <Route path="/deals/:id" component={DealDetail} />
       <Route component={NotFound} />
     </Switch>
