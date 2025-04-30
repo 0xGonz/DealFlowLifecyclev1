@@ -4,6 +4,11 @@ import dealsRoutes from './deals';
 import fundsRoutes from './funds';
 import usersRoutes from './users';
 import authRoutes from './auth';
+import allocationsRoutes from './allocations';
+import activityRoutes from './activity';
+import dashboardRoutes from './dashboard';
+import leaderboardRoutes from './leaderboard';
+import notificationsRoutes from './notifications';
 
 // Create a simple auth middleware
 const authenticate = (req: Request, res: Response, next: NextFunction) => {
@@ -32,6 +37,11 @@ export function registerRoutes(app: Express): Server {
   app.use('/api/funds', fundsRoutes);
   app.use('/api/users', usersRoutes);
   app.use('/api/auth', authRoutes);
+  app.use('/api/allocations', allocationsRoutes);
+  app.use('/api/activity', activityRoutes);
+  app.use('/api/dashboard', dashboardRoutes);
+  app.use('/api/leaderboard', leaderboardRoutes);
+  app.use('/api/notifications', notificationsRoutes);
   
   // Catch-all route for 404s
   app.use('/api/*', (req, res) => {

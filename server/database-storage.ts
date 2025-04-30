@@ -6,7 +6,8 @@ import {
   miniMemos, type MiniMemo, type InsertMiniMemo,
   funds, type Fund, type InsertFund,
   fundAllocations, type FundAllocation, type InsertFundAllocation,
-  dealAssignments, type DealAssignment, type InsertDealAssignment
+  dealAssignments, type DealAssignment, type InsertDealAssignment,
+  notifications, type Notification, type InsertNotification
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
@@ -247,6 +248,50 @@ export class DatabaseStorage implements IStorage {
           eq(dealAssignments.userId, userId)
         )
       );
+    return !!result;
+  }
+
+  // Notifications
+  async createNotification(notification: InsertNotification): Promise<Notification> {
+    const [newNotification] = await db.insert(notifications).values(notification).returning();
+    return newNotification;
+  }
+
+  async getUserNotifications(userId: number): Promise<Notification[]> {
+    return db
+      .select()
+      .from(notifications)
+      .where(eq(notifications.userId, userId))
+      .orderBy(desc(notifications.createdAt));
+  }
+
+  async getUnreadNotificationsCount(userId: number): Promise<number> {
+    const unreadNotifications = await db
+      .select()
+      .from(notifications)
+      .where(
+        and(
+          eq(notifications.userId, userId),
+          eq(notifications.isRead, false)
+        )
+      );
+    return unreadNotifications.length;
+  }
+
+  async markNotificationAsRead(id: number): Promise<boolean> {
+    const result = await db
+      .update(notifications)
+      .set({ isRead: true })
+      .where(eq(notifications.id, id))
+      .returning();
+    return result.length > 0;
+  }
+
+  async markAllNotificationsAsRead(userId: number): Promise<boolean> {
+    const result = await db
+      .update(notifications)
+      .set({ isRead: true })
+      .where(eq(notifications.userId, userId));
     return !!result;
   }
 }
