@@ -6,7 +6,8 @@ import {
   MiniMemo, InsertMiniMemo,
   Fund, InsertFund,
   FundAllocation, InsertFundAllocation,
-  DealAssignment, InsertDealAssignment
+  DealAssignment, InsertDealAssignment,
+  Notification, InsertNotification
 } from "@shared/schema";
 
 // Interface for storage operations
