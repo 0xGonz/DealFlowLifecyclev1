@@ -137,6 +137,25 @@ export const insertDealAssignmentSchema = createInsertSchema(dealAssignments).om
   createdAt: true,
 });
 
+// Notifications
+export const notifications = pgTable("notifications", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  type: text("type", { 
+    enum: ["deal", "memo", "assignment", "system"] 
+  }).notNull().default("system"),
+  relatedId: integer("related_id"),
+  isRead: boolean("is_read").default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertNotificationSchema = createInsertSchema(notifications).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Type definitions
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -161,6 +180,9 @@ export type InsertFundAllocation = z.infer<typeof insertFundAllocationSchema>;
 
 export type DealAssignment = typeof dealAssignments.$inferSelect;
 export type InsertDealAssignment = z.infer<typeof insertDealAssignmentSchema>;
+
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 
 // Helper enum for stages display
 export const DealStageLabels: Record<Deal['stage'], string> = {

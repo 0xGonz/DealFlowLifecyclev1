@@ -57,6 +57,13 @@ export interface IStorage {
   getDealAssignments(dealId: number): Promise<DealAssignment[]>;
   getUserAssignments(userId: number): Promise<DealAssignment[]>;
   unassignUserFromDeal(dealId: number, userId: number): Promise<boolean>;
+  
+  // Notifications
+  createNotification(notification: InsertNotification): Promise<Notification>;
+  getUserNotifications(userId: number): Promise<Notification[]>;
+  getUnreadNotificationsCount(userId: number): Promise<number>;
+  markNotificationAsRead(id: number): Promise<boolean>;
+  markAllNotificationsAsRead(userId: number): Promise<boolean>;
 }
 
 // In-memory storage implementation
@@ -69,6 +76,7 @@ export class MemStorage implements IStorage {
   private funds: Map<number, Fund>;
   private fundAllocations: Map<number, FundAllocation>;
   private dealAssignments: Map<number, DealAssignment>;
+  private notifications: Map<number, Notification>;
   
   private userIdCounter: number;
   private dealIdCounter: number;
@@ -78,6 +86,7 @@ export class MemStorage implements IStorage {
   private fundIdCounter: number;
   private allocationIdCounter: number;
   private assignmentIdCounter: number;
+  private notificationIdCounter: number;
 
   constructor() {
     this.users = new Map();
@@ -88,6 +97,7 @@ export class MemStorage implements IStorage {
     this.funds = new Map();
     this.fundAllocations = new Map();
     this.dealAssignments = new Map();
+    this.notifications = new Map();
     
     this.userIdCounter = 1;
     this.dealIdCounter = 1;
@@ -97,6 +107,7 @@ export class MemStorage implements IStorage {
     this.fundIdCounter = 1;
     this.allocationIdCounter = 1;
     this.assignmentIdCounter = 1;
+    this.notificationIdCounter = 1;
     
     // Initialize with some sample data
     this.initSampleData();
@@ -545,6 +556,48 @@ export class MemStorage implements IStorage {
     
     if (!assignment) return false;
     return this.dealAssignments.delete(assignment.id);
+  }
+
+  // Notifications
+  async createNotification(notification: InsertNotification): Promise<Notification> {
+    const id = this.notificationIdCounter++;
+    const createdAt = new Date();
+    const newNotification: Notification = { ...notification, id, createdAt };
+    this.notifications.set(id, newNotification);
+    return newNotification;
+  }
+
+  async getUserNotifications(userId: number): Promise<Notification[]> {
+    return Array.from(this.notifications.values())
+      .filter(notification => notification.userId === userId)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }
+
+  async getUnreadNotificationsCount(userId: number): Promise<number> {
+    return Array.from(this.notifications.values())
+      .filter(notification => notification.userId === userId && !notification.isRead)
+      .length;
+  }
+
+  async markNotificationAsRead(id: number): Promise<boolean> {
+    const notification = this.notifications.get(id);
+    if (!notification) return false;
+    
+    notification.isRead = true;
+    this.notifications.set(id, notification);
+    return true;
+  }
+
+  async markAllNotificationsAsRead(userId: number): Promise<boolean> {
+    const userNotifications = Array.from(this.notifications.values())
+      .filter(notification => notification.userId === userId);
+    
+    userNotifications.forEach(notification => {
+      notification.isRead = true;
+      this.notifications.set(notification.id, notification);
+    });
+    
+    return true;
   }
 }
 
