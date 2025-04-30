@@ -1,0 +1,131 @@
+import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
+import { 
+  Card, 
+  CardHeader, 
+  CardTitle, 
+  CardContent 
+} from "@/components/ui/card";
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from "@/components/ui/table";
+import { Star, ArrowUp, ArrowDown } from "lucide-react";
+
+export default function LeaderboardWidget() {
+  const [, navigate] = useLocation();
+  
+  const { data: leaderboardData, isLoading } = useQuery({
+    queryKey: ['/api/leaderboard'],
+  });
+
+  // Determine color class based on stage
+  const getStageColorClass = (stage: string) => {
+    const stageMap: Record<string, string> = {
+      initial_review: "bg-neutral-200 text-neutral-700",
+      screening: "bg-neutral-200 text-neutral-700",
+      due_diligence: "bg-primary bg-opacity-15 text-primary",
+      ic_review: "bg-info bg-opacity-15 text-info",
+      closing: "bg-success bg-opacity-15 text-success",
+      closed: "bg-success bg-opacity-15 text-success",
+      passed: "bg-destructive bg-opacity-15 text-destructive"
+    };
+    
+    return stageMap[stage] || "bg-neutral-200 text-neutral-700";
+  };
+
+  // Only show the top 5 deals
+  const topDeals = leaderboardData?.slice(0, 5);
+
+  return (
+    <Card className="bg-white rounded-lg shadow">
+      <CardHeader className="pb-3">
+        <CardTitle>Deal Leaderboard</CardTitle>
+      </CardHeader>
+      
+      <CardContent>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[40%]">Deal</TableHead>
+                <TableHead className="w-[20%]">Score</TableHead>
+                <TableHead className="w-[20%]">Stars</TableHead>
+                <TableHead className="w-[20%]">Stage</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center py-4 text-neutral-500">
+                    Loading leaderboard...
+                  </TableCell>
+                </TableRow>
+              ) : topDeals?.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center py-4 text-neutral-500">
+                    No deals to display.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                topDeals?.map((deal: any) => (
+                  <TableRow 
+                    key={deal.id} 
+                    className="hover:bg-neutral-50 cursor-pointer"
+                    onClick={() => navigate(`/deals/${deal.id}`)}
+                  >
+                    <TableCell className="py-3 text-sm text-neutral-800 font-medium">
+                      {deal.name}
+                    </TableCell>
+                    <TableCell className="py-3">
+                      <div className="flex items-center">
+                        <span className="text-lg font-semibold text-neutral-800">{deal.score}</span>
+                        {deal.change > 0 ? (
+                          <span className="ml-1 text-success text-xs flex items-center">
+                            <ArrowUp className="h-3 w-3" />
+                            {deal.change}
+                          </span>
+                        ) : deal.change < 0 ? (
+                          <span className="ml-1 text-destructive text-xs flex items-center">
+                            <ArrowDown className="h-3 w-3" />
+                            {Math.abs(deal.change)}
+                          </span>
+                        ) : (
+                          <span className="ml-1 text-neutral-500 text-xs">-</span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="py-3">
+                      <div className="flex items-center text-accent">
+                        <Star className="h-4 w-4 fill-current" />
+                        <span className="ml-1 text-sm">{deal.starCount}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="py-3">
+                      <span className={`deal-stage-badge ${getStageColorClass(deal.stage)}`}>
+                        {deal.stageLabel}
+                      </span>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+        
+        <div className="mt-4 text-center">
+          <button 
+            className="text-sm text-primary hover:text-primary-dark"
+            onClick={() => navigate("/leaderboard")}
+          >
+            View Full Leaderboard
+          </button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
