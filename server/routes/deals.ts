@@ -168,7 +168,7 @@ router.get('/:dealId/timeline', async (req: Request, res: Response) => {
     const events = await storage.getTimelineEventsByDeal(dealId);
     
     // Get user info for each event
-    const userIds = [...new Set(events.map(e => e.createdBy))];
+    const userIds = Array.from(new Set(events.map(e => e.createdBy)));
     const users = await Promise.all(userIds.map(id => storage.getUser(id)));
     
     const eventsWithUserInfo = events.map(event => {
@@ -287,7 +287,7 @@ router.get('/:dealId/memos', async (req: Request, res: Response) => {
     const memos = await storage.getMiniMemosByDeal(dealId);
     
     // Get user info for each memo
-    const userIds = [...new Set(memos.map(m => m.userId))];
+    const userIds = Array.from(new Set(memos.map(m => m.userId)));
     const users = await Promise.all(userIds.map(id => storage.getUser(id)));
     
     const memosWithUserInfo = memos.map(memo => {

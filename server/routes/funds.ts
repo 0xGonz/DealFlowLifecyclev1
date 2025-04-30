@@ -31,7 +31,7 @@ router.get('/:id', async (req: Request, res: Response) => {
     const allocations = await storage.getAllocationsByFund(fund.id);
     
     // Get deal info for each allocation
-    const dealIds = [...new Set(allocations.map(a => a.dealId))];
+    const dealIds = Array.from(new Set(allocations.map(a => a.dealId)));
     const deals = await Promise.all(dealIds.map(id => storage.getDeal(id)));
     
     const allocationsWithDealInfo = allocations.map(allocation => {

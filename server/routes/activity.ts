@@ -11,7 +11,7 @@ router.get('/', async (req: Request, res: Response) => {
     
     // Get recent timeline events from all deals
     const deals = await storage.getDeals();
-    let allEvents = [];
+    const allEvents: Array<any> = [];
     
     for (const deal of deals) {
       const events = await storage.getTimelineEventsByDeal(deal.id);
@@ -25,7 +25,7 @@ router.get('/', async (req: Request, res: Response) => {
         }
       }));
       
-      allEvents = [...allEvents, ...eventsWithDealInfo];
+      allEvents.push(...eventsWithDealInfo);
     }
     
     // Sort by date (descending) and limit to latest 20
@@ -34,7 +34,7 @@ router.get('/', async (req: Request, res: Response) => {
     ).slice(0, 20);
     
     // Get user info for each event
-    const userIds = [...new Set(sortedEvents.map(e => e.createdBy))];
+    const userIds = Array.from(new Set(sortedEvents.map(e => e.createdBy)));
     const users = await Promise.all(userIds.map(id => storage.getUser(id)));
     
     const eventsWithUserInfo = sortedEvents.map(event => {

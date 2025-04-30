@@ -1,4 +1,4 @@
-import type { Express } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import dealsRoutes from './routes/deals';
 import fundsRoutes from './routes/funds';
@@ -16,7 +16,7 @@ import { z } from "zod";
 const allocationsRouter = Router();
 
 // Fund allocations
-allocationsRouter.post('/', async (req, res) => {
+allocationsRouter.post('/', async (req: Request, res: Response) => {
   try {
     const allocationData = insertFundAllocationSchema.parse(req.body);
     
@@ -75,7 +75,7 @@ allocationsRouter.get('/deal/:dealId', async (req, res) => {
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Create a simple auth middleware
-  const authenticate = (req, res, next) => {
+  const authenticate = (req: Request, res: Response, next: NextFunction) => {
     // For MVP, we're not implementing real auth
     // In a real app, this would check JWT tokens, session data, etc.
     // Just simulate a logged-in user
@@ -102,7 +102,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Apply error handling middleware
-  app.use((err, _req, res, _next) => {
+  app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
     console.error(err.stack);
     res.status(500).json({ 
       message: 'An unexpected error occurred', 
