@@ -28,6 +28,11 @@ export default function Pipeline() {
       return false;
     }
     
+    // Industry filter
+    if (industryFilter !== "all" && deal.industry !== industryFilter) {
+      return false;
+    }
+    
     // Search term
     if (searchTerm && !deal.name.toLowerCase().includes(searchTerm.toLowerCase()) && 
         !deal.description.toLowerCase().includes(searchTerm.toLowerCase())) {
@@ -42,6 +47,9 @@ export default function Pipeline() {
     
     return true;
   });
+  
+  // Get unique industries for filtering
+  const industries = deals ? Array.from(new Set(deals.map(deal => deal.industry))).sort() : [];
 
   // Group deals by stage for the kanban view
   const dealsByStage = filteredDeals?.reduce((acc, deal) => {
@@ -82,7 +90,7 @@ export default function Pipeline() {
               />
             </div>
             
-            <div className="flex gap-4">
+            <div className="flex flex-wrap gap-4">
               <Select value={stageFilter} onValueChange={setStageFilter}>
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="All Stages" />
@@ -91,6 +99,18 @@ export default function Pipeline() {
                   <SelectItem value="all">All Stages</SelectItem>
                   {Object.entries(DealStageLabels).map(([value, label]) => (
                     <SelectItem key={value} value={value}>{label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              <Select value={industryFilter} onValueChange={setIndustryFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="All Industries" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Industries</SelectItem>
+                  {industries.map((industry) => (
+                    <SelectItem key={industry} value={industry}>{industry}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

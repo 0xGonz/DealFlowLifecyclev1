@@ -162,10 +162,28 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="Technology">Technology</SelectItem>
+                        <SelectItem value="SaaS">SaaS</SelectItem>
+                        <SelectItem value="Fintech">Fintech</SelectItem>
+                        <SelectItem value="AI/ML">AI/ML</SelectItem>
+                        <SelectItem value="Cybersecurity">Cybersecurity</SelectItem>
                         <SelectItem value="Healthcare">Healthcare</SelectItem>
+                        <SelectItem value="Biotech">Biotech</SelectItem>
+                        <SelectItem value="Medtech">Medtech</SelectItem>
+                        <SelectItem value="Pharmaceuticals">Pharmaceuticals</SelectItem>
                         <SelectItem value="Financial Services">Financial Services</SelectItem>
+                        <SelectItem value="Insurance">Insurance</SelectItem>
+                        <SelectItem value="Banking">Banking</SelectItem>
                         <SelectItem value="Renewable Energy">Renewable Energy</SelectItem>
+                        <SelectItem value="Clean Tech">Clean Tech</SelectItem>
                         <SelectItem value="Consumer Goods">Consumer Goods</SelectItem>
+                        <SelectItem value="E-commerce">E-commerce</SelectItem>
+                        <SelectItem value="Retail">Retail</SelectItem>
+                        <SelectItem value="Real Estate">Real Estate</SelectItem>
+                        <SelectItem value="PropTech">PropTech</SelectItem>
+                        <SelectItem value="EdTech">EdTech</SelectItem>
+                        <SelectItem value="Transportation">Transportation</SelectItem>
+                        <SelectItem value="Logistics">Logistics</SelectItem>
+                        <SelectItem value="Manufacturing">Manufacturing</SelectItem>
                         <SelectItem value="Other">Other</SelectItem>
                       </SelectContent>
                     </Select>

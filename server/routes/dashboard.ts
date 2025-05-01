@@ -39,4 +39,33 @@ router.get('/stats', async (req: Request, res: Response) => {
   }
 });
 
+// Get industry distribution stats
+router.get('/industry-stats', async (req: Request, res: Response) => {
+  try {
+    // Get all deals to compute industry stats
+    const deals = await storage.getDeals();
+    
+    // Count deals by industry
+    const industryCount: Record<string, number> = {};
+    deals.forEach(deal => {
+      const industry = deal.industry || 'Other';
+      industryCount[industry] = (industryCount[industry] || 0) + 1;
+    });
+    
+    // Transform into array format for chart
+    const industryStats = Object.entries(industryCount).map(([industry, count]) => ({
+      industry,
+      count,
+      percentage: Math.round((count / deals.length) * 100)
+    }));
+    
+    // Sort by count (descending)
+    industryStats.sort((a, b) => b.count - a.count);
+    
+    res.json(industryStats);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch industry statistics' });
+  }
+});
+
 export default router;

@@ -11,7 +11,8 @@ import {
   Share2, 
   Star,
   Users,
-  DollarSign
+  DollarSign,
+  Tag
 } from "lucide-react";
 import { Deal, User } from "@/lib/types";
 import { getDealStageBadgeClass } from "@/lib/utils/format";
@@ -83,9 +84,18 @@ export default function DealCard({ deal, compact = false }: DealCardProps) {
           </p>
         )}
         
-        <div className="flex items-center text-sm text-neutral-500 mb-3">
-          <Users className="h-4 w-4 mr-1" />
-          {deal.round || "Unknown Round"}
+        <div className="flex flex-col gap-2 mb-3">
+          <div className="flex items-center text-sm text-neutral-500">
+            <Users className="h-4 w-4 mr-1" />
+            {deal.round || "Unknown Round"}
+          </div>
+          
+          <div className="flex items-center text-sm">
+            <Tag className="h-4 w-4 mr-1 text-primary" />
+            <span className="text-primary-dark font-medium">
+              {deal.industry}
+            </span>
+          </div>
         </div>
         
         {!compact && (
