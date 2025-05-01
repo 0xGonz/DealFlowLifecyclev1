@@ -11,6 +11,7 @@ import Funds from "@/pages/Funds";
 import FundDetail from "@/pages/FundDetail";
 import DealDetail from "@/pages/DealDetail";
 import { AuthProvider } from "@/lib/context/auth-context";
+import ErrorBoundary from "@/components/common/ErrorBoundary";
 
 function Router() {
   return (
@@ -28,14 +29,21 @@ function Router() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-        </TooltipProvider>
-      </AuthProvider>
-    </QueryClientProvider>
+    <ErrorBoundary
+      onError={(error, info) => {
+        console.error("Global error caught by ErrorBoundary:", error, info);
+        // Here we could send to an error reporting service like Sentry
+      }}
+    >
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Router />
+          </TooltipProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 
