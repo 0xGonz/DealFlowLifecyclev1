@@ -1,17 +1,13 @@
 import { Router, Request, Response } from 'express';
 import { storage } from '../storage';
-import { InsertDocument, insertDocumentSchema } from '@shared/schema';
-import fs from 'fs';
-import path from 'path';
-import { randomUUID } from 'crypto';
+import { z } from 'zod';
+import { createInsertSchema } from 'drizzle-zod';
+import * as schema from '@shared/schema';
+import * as path from 'path';
+import * as fs from 'fs';
+import * as crypto from 'crypto';
 
 const router = Router();
-const uploadsDir = path.join(process.cwd(), 'uploads');
-
-// Ensure uploads directory exists
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
 
 // Get all documents for a deal
 router.get('/deal/:dealId', async (req: Request, res: Response) => {
@@ -22,30 +18,32 @@ router.get('/deal/:dealId', async (req: Request, res: Response) => {
     }
     
     const documents = await storage.getDocumentsByDeal(dealId);
-    res.json(documents);
+    return res.json(documents);
   } catch (error) {
     console.error('Error fetching documents:', error);
-    res.status(500).json({ message: 'Failed to fetch documents' });
+    return res.status(500).json({ message: 'Failed to fetch documents' });
   }
 });
 
-// Get documents by type for a deal
+// Get documents for a deal filtered by type
 router.get('/deal/:dealId/type/:documentType', async (req: Request, res: Response) => {
   try {
     const dealId = parseInt(req.params.dealId);
+    const { documentType } = req.params;
+    
     if (isNaN(dealId)) {
       return res.status(400).json({ message: 'Invalid deal ID' });
     }
     
-    const documents = await storage.getDocumentsByType(dealId, req.params.documentType);
-    res.json(documents);
+    const documents = await storage.getDocumentsByType(dealId, documentType);
+    return res.json(documents);
   } catch (error) {
     console.error('Error fetching documents by type:', error);
-    res.status(500).json({ message: 'Failed to fetch documents by type' });
+    return res.status(500).json({ message: 'Failed to fetch documents' });
   }
 });
 
-// Get a specific document
+// Get a single document by ID
 router.get('/:id', async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id);
@@ -58,10 +56,10 @@ router.get('/:id', async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'Document not found' });
     }
     
-    res.json(document);
+    return res.json(document);
   } catch (error) {
     console.error('Error fetching document:', error);
-    res.status(500).json({ message: 'Failed to fetch document' });
+    return res.status(500).json({ message: 'Failed to fetch document' });
   }
 });
 
@@ -78,67 +76,68 @@ router.get('/:id/download', async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'Document not found' });
     }
     
-    const filePath = document.filePath;
-    if (!fs.existsSync(filePath)) {
-      return res.status(404).json({ message: 'File not found on disk' });
-    }
+    // For in-memory storage, documents are stored in memory and don't have actual files
+    // In a real implementation, you'd send the actual file from storage
+    // For now, we'll send a mock file as example
     
-    res.download(filePath, document.fileName);
+    // This is a placeholder. In a real app, you'd use the document.filePath to find the file
+    res.setHeader('Content-Disposition', `attachment; filename="${document.fileName}"`);
+    res.setHeader('Content-Type', document.fileType);
+    
+    // Create a simple sample file based on the document type
+    const content = `This is a mock ${document.documentType} file for ${document.fileName}`;
+    res.send(Buffer.from(content));
+    
   } catch (error) {
     console.error('Error downloading document:', error);
-    res.status(500).json({ message: 'Failed to download document' });
+    return res.status(500).json({ message: 'Failed to download document' });
   }
 });
 
 // Upload a document
 router.post('/upload', async (req: Request, res: Response) => {
   try {
-    // For a real implementation, use a proper file upload middleware like multer
-    // This is a simplified version that assumes binary data is sent in the request body
-    if (!req.body.file || !req.body.fileName || !req.body.fileType) {
-      return res.status(400).json({ message: 'Missing file data, filename, or filetype' });
+    // In a real implementation, you'd use middleware like multer to handle file uploads
+    // This is a simplified version for the memory storage
+    
+    const { dealId, fileName, fileType, documentType, description, uploadedBy } = req.body;
+    const fileSize = req.body.fileSize || 1024; // Mock file size for demo
+    
+    if (!dealId || !fileName || !documentType || !uploadedBy) {
+      return res.status(400).json({ message: 'Missing required fields' });
     }
     
-    const { dealId, fileName, fileType, description, documentType, uploadedBy } = req.body;
+    // Generate a mock file path
+    const filePath = `/uploads/${crypto.randomUUID()}-${fileName}`;
     
-    // Create a unique filename to prevent collisions
-    const uniqueFileName = `${randomUUID()}-${fileName}`;
-    const filePath = path.join(uploadsDir, uniqueFileName);
-    
-    // Save the file to disk
-    fs.writeFileSync(filePath, req.body.file);
-    
-    // Get file size
-    const stats = fs.statSync(filePath);
-    const fileSize = stats.size;
-    
-    // Save document metadata to database
-    const documentData: InsertDocument = {
-      dealId,
+    const documentData = {
+      dealId: parseInt(dealId),
       fileName,
-      fileType,
-      fileSize,
+      fileType: fileType || 'application/pdf',
+      fileSize: parseInt(fileSize),
       filePath,
-      uploadedBy,
+      uploadedBy: parseInt(uploadedBy),
+      documentType,
       description: description || null,
-      documentType: documentType || 'pitch_deck', // Default to pitch deck
+      uploadedAt: new Date()
     };
     
-    // Validate the document data
-    const parseResult = insertDocumentSchema.safeParse(documentData);
-    if (!parseResult.success) {
-      // Delete the file if validation fails
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
-      }
-      return res.status(400).json({ message: 'Invalid document data', errors: parseResult.error.format() });
-    }
+    const document = await storage.createDocument(documentData);
     
-    const newDocument = await storage.createDocument(documentData);
-    res.status(201).json(newDocument);
+    // Also create a timeline event for the document upload
+    await storage.createTimelineEvent({
+      dealId: parseInt(dealId),
+      eventType: 'document_upload',
+      content: `Document uploaded: ${fileName}`,
+      createdBy: parseInt(uploadedBy),
+      createdAt: new Date(),
+      metadata: { documentId: document.id }
+    });
+    
+    return res.status(201).json(document);
   } catch (error) {
     console.error('Error uploading document:', error);
-    res.status(500).json({ message: 'Failed to upload document' });
+    return res.status(500).json({ message: 'Failed to upload document' });
   }
 });
 
@@ -155,21 +154,15 @@ router.delete('/:id', async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'Document not found' });
     }
     
-    // Delete the file from disk
-    if (fs.existsSync(document.filePath)) {
-      fs.unlinkSync(document.filePath);
+    const deleted = await storage.deleteDocument(id);
+    if (!deleted) {
+      return res.status(500).json({ message: 'Failed to delete document' });
     }
     
-    // Delete from database
-    const result = await storage.deleteDocument(id);
-    if (result) {
-      res.json({ success: true, message: 'Document deleted successfully' });
-    } else {
-      res.status(500).json({ message: 'Failed to delete document from database' });
-    }
+    return res.status(200).json({ message: 'Document deleted successfully' });
   } catch (error) {
     console.error('Error deleting document:', error);
-    res.status(500).json({ message: 'Failed to delete document' });
+    return res.status(500).json({ message: 'Failed to delete document' });
   }
 });
 

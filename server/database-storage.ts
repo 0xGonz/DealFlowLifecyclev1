@@ -7,7 +7,8 @@ import {
   funds, type Fund, type InsertFund,
   fundAllocations, type FundAllocation, type InsertFundAllocation,
   dealAssignments, type DealAssignment, type InsertDealAssignment,
-  notifications, type Notification, type InsertNotification
+  notifications, type Notification, type InsertNotification,
+  documents, type Document, type InsertDocument
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
@@ -292,6 +293,43 @@ export class DatabaseStorage implements IStorage {
       .update(notifications)
       .set({ isRead: true })
       .where(eq(notifications.userId, userId));
+    return !!result;
+  }
+  
+  // Document operations
+  async createDocument(document: InsertDocument): Promise<Document> {
+    const [newDocument] = await db.insert(documents).values(document).returning();
+    return newDocument;
+  }
+
+  async getDocument(id: number): Promise<Document | undefined> {
+    const [document] = await db.select().from(documents).where(eq(documents.id, id));
+    return document;
+  }
+
+  async getDocumentsByDeal(dealId: number): Promise<Document[]> {
+    return db
+      .select()
+      .from(documents)
+      .where(eq(documents.dealId, dealId))
+      .orderBy(desc(documents.uploadedAt));
+  }
+
+  async getDocumentsByType(dealId: number, documentType: string): Promise<Document[]> {
+    return db
+      .select()
+      .from(documents)
+      .where(
+        and(
+          eq(documents.dealId, dealId),
+          eq(documents.documentType, documentType)
+        )
+      )
+      .orderBy(desc(documents.uploadedAt));
+  }
+
+  async deleteDocument(id: number): Promise<boolean> {
+    const result = await db.delete(documents).where(eq(documents.id, id));
     return !!result;
   }
 }
