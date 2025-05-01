@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Dialog,
@@ -8,19 +8,11 @@ import {
   DialogHeader,
   DialogTitle
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue
-} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
-import { X } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Search, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { User } from "@/lib/types";
@@ -31,13 +23,32 @@ interface AssignUserModalProps {
   dealId: number;
 }
 
+type UserRole = "admin" | "partner" | "analyst" | "observer";
+
+const roleOrder: UserRole[] = ["admin", "partner", "analyst", "observer"];
+
+const roleLabels: Record<UserRole, string> = {
+  admin: "Administrators",
+  partner: "Partners",
+  analyst: "Analysts",
+  observer: "Observers"
+};
+
+const roleBadgeColors: Record<UserRole, string> = {
+  admin: "bg-red-100 text-red-800",
+  partner: "bg-blue-100 text-blue-800",
+  analyst: "bg-green-100 text-green-800",
+  observer: "bg-purple-100 text-purple-800"
+};
+
 export default function AssignUserModal({ isOpen, onClose, dealId }: AssignUserModalProps) {
   const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
   // Fetch all users
-  const { data: users, isLoading: isLoadingUsers } = useQuery<User[]>({
+  const { data: users = [], isLoading: isLoadingUsers } = useQuery<User[]>({
     queryKey: ["/api/users"],
     enabled: isOpen,
   });
@@ -49,7 +60,7 @@ export default function AssignUserModal({ isOpen, onClose, dealId }: AssignUserM
   });
   
   // Pre-select currently assigned users
-  useState(() => {
+  useEffect(() => {
     if (dealData?.assignedUsers) {
       setSelectedUsers(dealData.assignedUsers.map((user: any) => user.id));
     }
@@ -116,6 +127,23 @@ export default function AssignUserModal({ isOpen, onClose, dealId }: AssignUserM
     onClose();
   };
   
+  // Filter users by search term
+  const filteredUsers = users.filter(user => {
+    if (!searchTerm) return true;
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      user.fullName.toLowerCase().includes(searchLower) ||
+      user.username.toLowerCase().includes(searchLower) ||
+      user.role.toLowerCase().includes(searchLower)
+    );
+  });
+  
+  // Group users by role
+  const usersByRole = roleOrder.reduce<Record<string, User[]>>((acc, role) => {
+    acc[role] = filteredUsers.filter(user => user.role === role);
+    return acc;
+  }, {});
+  
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
@@ -126,34 +154,73 @@ export default function AssignUserModal({ isOpen, onClose, dealId }: AssignUserM
           </DialogDescription>
         </DialogHeader>
         
-        <div className="space-y-4 my-4 max-h-[300px] overflow-y-auto">
+        {/* Search input */}
+        <div className="relative mb-4">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Search className="h-4 w-4 text-neutral-400" />
+          </div>
+          <input
+            type="text"
+            placeholder="Search users..."
+            className="w-full pl-10 pr-4 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        
+        <div className="space-y-6 my-4 max-h-[350px] overflow-y-auto pr-2">
           {isLoadingUsers ? (
             <div className="py-4 text-center text-neutral-500">Loading users...</div>
           ) : (
-            users?.map(user => (
-              <div key={user.id} className="flex items-center space-x-3 p-2 hover:bg-neutral-100 rounded-md">
-                <Checkbox
-                  id={`user-${user.id}`}
-                  checked={selectedUsers.includes(user.id)}
-                  onCheckedChange={() => toggleUserSelection(user.id)}
-                />
-                <div className="flex items-center space-x-3 flex-1">
-                  <Avatar>
-                    <AvatarFallback style={{ backgroundColor: user.avatarColor }}>
-                      {user.initials}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="text-sm font-medium">{user.fullName}</p>
-                    <p className="text-xs text-neutral-500 capitalize">{user.role}</p>
+            roleOrder.map(role => {
+              const usersInRole = usersByRole[role] || [];
+              if (usersInRole.length === 0) return null;
+              
+              return (
+                <div key={role} className="space-y-2">
+                  <div className="flex items-center">
+                    <h3 className="text-sm font-medium text-neutral-700">{roleLabels[role]}</h3>
+                    <Badge variant="outline" className={`ml-2 ${roleBadgeColors[role]}`}>
+                      {usersInRole.length}
+                    </Badge>
+                  </div>
+                  
+                  <div className="space-y-1 ml-2">
+                    {usersInRole.map(user => (
+                      <div key={user.id} className="flex items-center space-x-3 p-2 hover:bg-neutral-100 rounded-md">
+                        <Checkbox
+                          id={`user-${user.id}`}
+                          checked={selectedUsers.includes(user.id)}
+                          onCheckedChange={() => toggleUserSelection(user.id)}
+                        />
+                        <div className="flex items-center space-x-3 flex-1">
+                          <Avatar>
+                            <AvatarFallback style={{ backgroundColor: user.avatarColor }}>
+                              {user.initials}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="text-sm font-medium">{user.fullName}</p>
+                            <p className="text-xs text-neutral-500">{user.username}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
           
-          {users?.length === 0 && (
-            <div className="py-4 text-center text-neutral-500">No users found</div>
+          {filteredUsers.length === 0 && (
+            <div className="py-8 text-center text-neutral-500">
+              <Users className="h-12 w-12 mx-auto mb-3 opacity-30" />
+              {searchTerm ? (
+                <p>No users found matching "{searchTerm}"</p>
+              ) : (
+                <p>No users found</p>
+              )}
+            </div>
           )}
         </div>
         

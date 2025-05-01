@@ -278,6 +278,7 @@ router.post('/:dealId/assignments', async (req: Request, res: Response) => {
   try {
     const dealId = Number(req.params.dealId);
     const { userId } = req.body;
+    const currentUser = (req as any).user;
     
     if (!userId) {
       return res.status(400).json({ message: 'User ID is required' });
@@ -295,13 +296,31 @@ router.post('/:dealId/assignments', async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'User not found' });
     }
     
+    // Check role-based permissions
+    // Only admins and partners can assign admins or partners
+    // Everyone can assign analysts and observers
+    if ((user.role === 'admin' || user.role === 'partner') && 
+        !(currentUser.role === 'admin' || currentUser.role === 'partner')) {
+      return res.status(403).json({ 
+        message: 'You do not have permission to assign users with this role'
+      });
+    }
+    
     const assignment = await storage.assignUserToDeal({
       dealId,
       userId
     });
     
+    // Create a timeline event for the assignment
+    await storage.createTimelineEvent({
+      dealId,
+      eventType: 'note',
+      content: `${user.fullName} (${user.role}) was assigned to this deal by ${currentUser.fullName}`,
+      createdBy: currentUser.id,
+      metadata: { assignedUserId: userId }
+    });
+    
     // Create a notification for the assigned user
-    const assigningUser = (req as any).user;
     await storage.createNotification({
       userId,
       title: 'New assignment',
@@ -367,6 +386,7 @@ router.delete('/:dealId/assignments/:userId', async (req: Request, res: Response
   try {
     const dealId = Number(req.params.dealId);
     const userId = Number(req.params.userId);
+    const currentUser = (req as any).user;
     
     // Make sure deal exists
     const deal = await storage.getDeal(dealId);
@@ -374,10 +394,40 @@ router.delete('/:dealId/assignments/:userId', async (req: Request, res: Response
       return res.status(404).json({ message: 'Deal not found' });
     }
     
+    // Make sure user exists
+    const user = await storage.getUser(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    // Check role-based permissions
+    // Only admins and partners can unassign admins or partners
+    // Everyone can unassign analysts and observers
+    if ((user.role === 'admin' || user.role === 'partner') && 
+        !(currentUser.role === 'admin' || currentUser.role === 'partner')) {
+      return res.status(403).json({ 
+        message: 'You do not have permission to unassign users with this role'
+      });
+    }
+    
+    // Users can unassign themselves regardless of role
+    const isSelfUnassign = userId === currentUser.id;
+    
     const success = await storage.unassignUserFromDeal(dealId, userId);
     if (!success) {
       return res.status(404).json({ message: 'Assignment not found' });
     }
+    
+    // Create a timeline event for the unassignment
+    await storage.createTimelineEvent({
+      dealId,
+      eventType: 'note',
+      content: isSelfUnassign 
+        ? `${user.fullName} left the deal team` 
+        : `${user.fullName} was removed from the deal team by ${currentUser.fullName}`,
+      createdBy: currentUser.id,
+      metadata: { unassignedUserId: userId }
+    });
     
     res.json({ success: true });
   } catch (error) {
