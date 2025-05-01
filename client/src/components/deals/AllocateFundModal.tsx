@@ -40,7 +40,7 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
   });
 
   // Fetch funds for dropdown
-  const { data: funds, isLoading: isFundsLoading } = useQuery({
+  const { data: funds = [], isLoading: isFundsLoading } = useQuery<any[]>({
     queryKey: ['/api/funds'],
   });
 

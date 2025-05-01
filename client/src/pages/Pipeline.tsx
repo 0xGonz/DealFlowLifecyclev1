@@ -485,6 +485,19 @@ export default function Pipeline() {
             dealId={selectedDealId} 
           />
         )}
+        
+        {/* Allocate Fund Modal */}
+        {selectedDealId && (
+          <AllocateFundModal
+            isOpen={isAllocateFundModalOpen}
+            onClose={() => {
+              setIsAllocateFundModalOpen(false);
+              setSelectedDealId(null);
+            }}
+            dealId={selectedDealId}
+            dealName={selectedDealName}
+          />
+        )}
       </div>
     </AppLayout>
   );
