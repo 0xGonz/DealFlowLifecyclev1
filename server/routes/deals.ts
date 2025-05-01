@@ -147,7 +147,8 @@ router.post('/', async (req: Request, res: Response) => {
 router.patch('/:id', async (req: Request, res: Response) => {
   try {
     const dealId = Number(req.params.id);
-    const user = (req as any).user;
+    // Get user from request if available, or use a default system user ID if not
+    const user = (req as any).user || { id: 1 }; // Default to admin user if no user in request
     
     const storage = getStorage();
     // Make sure deal exists
@@ -164,34 +165,49 @@ router.patch('/:id', async (req: Request, res: Response) => {
       ...(req.body.stage && { createdBy: user.id })
     });
     
-    // Handle rejection workflow
-    if (dealUpdate.stage === 'rejected') {
-      // Add rejected timestamp
-      dealUpdate = {
-        ...dealUpdate,
-        rejectedAt: new Date()
-      };
-      
-      // Create a timeline event for rejection
-      if (dealUpdate.rejectionReason) {
-        await storage.createTimelineEvent({
-          dealId,
-          eventType: 'stage_change',
-          content: `Deal rejected: ${dealUpdate.rejectionReason}`,
-          createdBy: user.id,
-          metadata: {
-            previousStage: deal.stage,
-            newStage: 'rejected'
-          }
-        });
+    // Handle stage changes
+    if (dealUpdate.stage && dealUpdate.stage !== deal.stage) {
+      // If changing to rejected stage
+      if (dealUpdate.stage === 'rejected') {
+        // Add rejected timestamp
+        dealUpdate = {
+          ...dealUpdate,
+          rejectedAt: new Date()
+        };
+        
+        // Create a timeline event for rejection
+        if (dealUpdate.rejectionReason) {
+          await storage.createTimelineEvent({
+            dealId,
+            eventType: 'stage_change',
+            content: `Deal rejected: ${dealUpdate.rejectionReason}`,
+            createdBy: user.id,
+            metadata: {
+              previousStage: deal.stage,
+              newStage: 'rejected'
+            }
+          });
+        }
+      } else if (deal.stage === 'rejected' && dealUpdate.stage !== 'rejected') {
+        // If moving from rejected to another stage, clear rejection fields
+        dealUpdate = {
+          ...dealUpdate,
+          rejectionReason: null,
+          rejectedAt: null
+        };
       }
-    } else if (deal.stage === 'rejected' && dealUpdate.stage !== 'rejected') {
-      // If moving from rejected to another stage, clear rejection fields
-      dealUpdate = {
-        ...dealUpdate,
-        rejectionReason: null,
-        rejectedAt: null
-      };
+      
+      // Add a timeline event for any stage change
+      await storage.createTimelineEvent({
+        dealId,
+        eventType: 'stage_change',
+        content: `Deal moved from ${DealStageLabels[deal.stage]} to ${DealStageLabels[dealUpdate.stage as keyof typeof DealStageLabels]}`,
+        createdBy: user.id,
+        metadata: {
+          previousStage: deal.stage,
+          newStage: dealUpdate.stage
+        }
+      });
     }
     
     const updatedDeal = await storage.updateDeal(dealId, dealUpdate);
