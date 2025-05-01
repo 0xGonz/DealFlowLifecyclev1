@@ -14,8 +14,19 @@ import {
   DollarSign 
 } from "lucide-react";
 
+interface DashboardStats {
+  activeDeals: number;
+  activeDealsTrend: number;
+  newDeals: number;
+  newDealsTrend: number;
+  inIcReview: number;
+  icReviewTrend: number;
+  totalAum: number;
+  aumTrend: number;
+}
+
 export default function Dashboard() {
-  const { data: stats, isLoading: statsLoading } = useQuery({
+  const { data: stats = {} as DashboardStats, isLoading: statsLoading } = useQuery<DashboardStats>({
     queryKey: ['/api/dashboard/stats'],
   });
 

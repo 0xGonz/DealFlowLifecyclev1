@@ -158,9 +158,6 @@ export default function SectorDistributionChart() {
                   iconSize={10}
                   wrapperStyle={{ right: 0, top: 20 }}
                   formatter={(value) => <span className="text-sm font-medium">{value}</span>}
-                  marginTop={5}
-                  marginBottom={5}
-                  marginRight={0}
                 />
               </PieChart>
             </ResponsiveContainer>
