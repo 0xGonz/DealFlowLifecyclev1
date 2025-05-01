@@ -273,6 +273,29 @@ router.delete('/:dealId/star', async (req: Request, res: Response) => {
   }
 });
 
+// Delete a deal
+router.delete('/:id', async (req: Request, res: Response) => {
+  try {
+    const dealId = Number(req.params.id);
+    
+    // Make sure deal exists
+    const deal = await storage.getDeal(dealId);
+    if (!deal) {
+      return res.status(404).json({ message: 'Deal not found' });
+    }
+    
+    // Delete the deal
+    const success = await storage.deleteDeal(dealId);
+    if (!success) {
+      return res.status(500).json({ message: 'Failed to delete deal' });
+    }
+    
+    res.json({ success: true, message: 'Deal deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to delete deal' });
+  }
+});
+
 // Get mini memos for a deal
 router.get('/:dealId/memos', async (req: Request, res: Response) => {
   try {

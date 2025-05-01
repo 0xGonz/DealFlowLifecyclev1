@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useRoute } from "wouter";
+import { useRoute, useLocation } from "wouter";
 import AppLayout from "@/components/layout/AppLayout";
 import Timeline from "@/components/deals/Timeline";
 import EditDealModal from "@/components/deals/EditDealModal";
@@ -22,6 +22,17 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -36,7 +47,8 @@ import {
   Building, 
   Calendar, 
   Mail,
-  BarChart4
+  BarChart4,
+  Trash2
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { getDealStageBadgeClass } from "@/lib/utils/format";
