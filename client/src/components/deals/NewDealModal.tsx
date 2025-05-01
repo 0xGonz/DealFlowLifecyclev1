@@ -1,3 +1,4 @@
+import { useState, useRef } from 'react';
 import { useMutation } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -33,6 +34,8 @@ import { Label } from "@/components/ui/label";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { generateDealNotification } from "@/lib/utils/notification-utils";
+import { FileUp, File } from "lucide-react";
+import { Card } from "@/components/ui/card";
 
 // Form schema with validation rules
 const dealFormSchema = z.object({
@@ -58,6 +61,8 @@ interface NewDealModalProps {
 
 export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
   const { toast } = useToast();
+  const [pitchDeck, setPitchDeck] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Initialize form with default values
   const form = useForm<DealFormValues>({
@@ -76,23 +81,76 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
       tags: []
     }
   });
+  
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setPitchDeck(e.target.files[0]);
+    }
+  };
+
+  const uploadDocumentMutation = useMutation({
+    mutationFn: async (formData: FormData) => {
+      return apiRequest('POST', '/api/documents/upload', formData, true);
+    },
+    onSuccess: (_, variables) => {
+      toast({
+        title: 'Pitch deck uploaded',
+        description: 'The pitch deck was successfully uploaded.',
+      });
+      setPitchDeck(null);
+      // File input needs to be cleared manually
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    },
+    onError: () => {
+      toast({
+        title: 'Upload failed',
+        description: 'There was an error uploading the pitch deck. Please try again.',
+        variant: 'destructive',
+      });
+    },
+  });
 
   const createDealMutation = useMutation({
     mutationFn: async (values: DealFormValues) => {
       return apiRequest("POST", "/api/deals", values);
     },
-    onSuccess: async (data) => {
+    onSuccess: async (response) => {
+      // Extract the created deal data from the response
+      const dealData = response as any; // Cast to any for now to access id
+      const dealId = dealData.id;
+      const dealName = form.getValues('name'); // Get the deal name from the form
+      
       // Show success toast
       toast({
         title: "Deal created",
         description: "New deal has been successfully created."
       });
       
+      // Upload pitch deck if available
+      if (pitchDeck && dealId) {
+        const formData = new FormData();
+        formData.append('file', pitchDeck);
+        formData.append('fileName', pitchDeck.name);
+        formData.append('fileType', pitchDeck.type);
+        formData.append('dealId', dealId.toString());
+        formData.append('documentType', 'pitch_deck');
+        formData.append('uploadedBy', '1'); // Admin user ID
+        formData.append('description', 'Initial pitch deck');
+        
+        try {
+          await uploadDocumentMutation.mutateAsync(formData);
+        } catch (err) {
+          console.error('Failed to upload pitch deck:', err);
+        }
+      }
+      
       // Create notification for new deal
       try {
         // Generate notification for all users (using admin user ID 1 for now)
         // In a real-world scenario, we would notify relevant team members or all users
-        await generateDealNotification(1, values.name, 'created', data.id);
+        await generateDealNotification(1, dealName, 'created', dealId);
         
         // Refresh notifications in the UI
         queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
@@ -102,6 +160,10 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
       }
       
       form.reset(); // Reset form
+      setPitchDeck(null); // Reset pitch deck
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
       queryClient.invalidateQueries({ queryKey: ['/api/deals'] }); // Refresh deals data
       onClose(); // Close modal
     },
