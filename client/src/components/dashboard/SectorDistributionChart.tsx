@@ -9,24 +9,20 @@ interface SectorStatItem {
   percentage: number;
 }
 
-// Predefined colors for sectors
+// Predefined colors for sectors matching the reference design
 const SECTOR_COLORS = [
-  '#8884d8', // Purple
-  '#82ca9d', // Green
-  '#ffc658', // Yellow
-  '#ff8042', // Orange
-  '#0088fe', // Blue
-  '#00C49F', // Teal
-  '#FFBB28', // Gold
-  '#FF8042', // Coral
+  '#4e87f6', // Blue (Real Estate)
+  '#f9bf4c', // Orange (Venture)
+  '#f4736d', // Red (Private Credit)
+  '#4cb8a8', // Teal (Buyout)
+  '#9f7cf5', // Purple (Energy)
+  '#f47fa7', // Pink (GP Stakes)
+  '#6dcff6', // Light Blue (Crypto)
+  '#f7d877', // Yellow (Other)
   '#a4de6c', // Light Green
-  '#d0ed57', // Lime
   '#83a6ed', // Light Blue
   '#8dd1e1', // Sky Blue
-  '#a4d4ae', // Mint
   '#d6c1dd', // Lavender
-  '#e9b8c2', // Rose
-  '#fadfa7', // Beige
 ];
 
 const renderCustomizedLabel = ({
@@ -54,14 +50,17 @@ const renderCustomizedLabel = ({
   );
 };
 
-const CustomTooltip = ({ active, payload }: any) => {
+const CustomTooltip = ({ active, payload, sectorData }: any) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
+    const totalCount = sectorData.reduce((sum: number, item: any) => sum + item.count, 0);
+    const percentage = (data.count / totalCount * 100).toFixed(0);
+    
     return (
       <div className="bg-white p-2 border border-neutral-200 rounded-md shadow-sm">
         <p className="font-medium">{data.sector}</p>
         <p><span className="font-medium">Count:</span> {data.count}</p>
-        <p><span className="font-medium">Percentage:</span> {data.percentage}%</p>
+        <p><span className="font-medium">Percentage:</span> {percentage}%</p>
       </div>
     );
   }
@@ -116,7 +115,8 @@ export default function SectorDistributionChart() {
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={renderCustomizedLabel}
+                  label={false}
+                  innerRadius={60}
                   outerRadius={100}
                   fill="#8884d8"
                   dataKey="count"
@@ -128,8 +128,20 @@ export default function SectorDistributionChart() {
                     />
                   ))}
                 </Pie>
-                <Tooltip content={<CustomTooltip />} />
-                <Legend verticalAlign="bottom" height={36} />
+                <Tooltip content={<CustomTooltip sectorData={processedData} />} />
+                <Legend 
+                  verticalAlign="bottom" 
+                  height={36} 
+                  formatter={(value, entry, index) => {
+                    const totalCount = processedData.reduce((sum, item) => sum + item.count, 0);
+                    const item = processedData[index];
+                    const percentage = (item.count / totalCount * 100).toFixed(0);
+                    return `${value} (${percentage}%)`;
+                  }}
+                  iconType="circle"
+                  layout="horizontal"
+                  align="center"
+                />
               </PieChart>
             </ResponsiveContainer>
           </div>
