@@ -64,7 +64,7 @@ export function formatDealStage(stage: string): string {
   const stageMap: Record<string, string> = {
     initial_review: "Initial Review",
     screening: "Screening",
-    due_diligence: "Diligence",
+    diligence: "Diligence",
     ic_review: "IC Review",
     closing: "Closing",
     closed: "Closed",

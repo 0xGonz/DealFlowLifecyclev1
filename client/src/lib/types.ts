@@ -14,8 +14,8 @@ export interface Deal {
   id: number;
   name: string;
   description: string;
-  industry: string;
-  stage: "initial_review" | "screening" | "due_diligence" | "ic_review" | "closing" | "closed" | "passed";
+  sector: string;
+  stage: "initial_review" | "screening" | "diligence" | "ic_review" | "closing" | "closed" | "passed";
   stageLabel: string;
   round: string;
   targetRaise?: string;

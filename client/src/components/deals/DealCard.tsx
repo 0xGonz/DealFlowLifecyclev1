@@ -93,7 +93,7 @@ export default function DealCard({ deal, compact = false }: DealCardProps) {
           <div className="flex items-center text-sm">
             <Tag className="h-4 w-4 mr-1 text-primary" />
             <span className="text-primary-dark font-medium">
-              {deal.industry}
+              {deal.sector}
             </span>
           </div>
         </div>
