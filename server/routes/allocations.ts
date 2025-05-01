@@ -1,7 +1,7 @@
-import { Router, Request, Response } from "express";
-import { storage } from "../storage";
-import { insertFundAllocationSchema } from "@shared/schema";
-import { z } from "zod";
+import { Router, Request, Response } from 'express';
+import { insertFundAllocationSchema } from '@shared/schema';
+import { storage } from '../storage';
+import { z } from 'zod';
 
 const router = Router();
 

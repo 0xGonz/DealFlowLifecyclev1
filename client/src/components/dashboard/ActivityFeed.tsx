@@ -7,11 +7,31 @@ import {
   FileEdit,
   Info,
   DollarSign,
-  Star
+  Star,
+  FileText
 } from "lucide-react";
 
+interface ActivityItem {
+  id: number;
+  dealId: number;
+  eventType: 'stage_change' | 'memo_added' | 'note' | 'star_added' | 'document_upload' | 'fund_allocation' | 'ai_analysis';
+  content: string;
+  createdAt: string;
+  deal?: {
+    id: number;
+    name: string;
+    stageLabel?: string;
+  };
+  user?: {
+    id: number;
+    fullName: string;
+    initials: string;
+    avatarColor: string;
+  };
+}
+
 export default function ActivityFeed() {
-  const { data: activities, isLoading } = useQuery({
+  const { data: activities = [] as ActivityItem[], isLoading } = useQuery<ActivityItem[]>({
     queryKey: ['/api/activity'],
   });
 
@@ -42,10 +62,22 @@ export default function ActivityFeed() {
             <Star className="h-3 w-3 text-white" />
           </div>
         );
+      case 'document_upload':
+        return (
+          <div className="absolute left-0 top-0 w-6 h-6 rounded-full bg-info flex items-center justify-center z-10">
+            <FileText className="h-3 w-3 text-white" />
+          </div>
+        );
       case 'fund_allocation':
         return (
           <div className="absolute left-0 top-0 w-6 h-6 rounded-full bg-success flex items-center justify-center z-10">
             <DollarSign className="h-3 w-3 text-white" />
+          </div>
+        );
+      case 'ai_analysis':
+        return (
+          <div className="absolute left-0 top-0 w-6 h-6 rounded-full bg-primary flex items-center justify-center z-10">
+            <Info className="h-3 w-3 text-white" />
           </div>
         );
       default:
@@ -73,7 +105,7 @@ export default function ActivityFeed() {
             No recent activity to display.
           </div>
         ) : (
-          activities?.map((activity: any) => (
+          activities.map((activity) => (
             <div key={activity.id} className="timeline-dot relative pl-8 pb-6">
               {getEventIcon(activity.eventType)}
               <div>
@@ -110,7 +142,7 @@ export default function ActivityFeed() {
 }
 
 // Helper function to generate a readable title for each activity type
-function getActivityTitle(activity: any) {
+function getActivityTitle(activity: ActivityItem) {
   switch (activity.eventType) {
     case 'stage_change':
       return `moved to ${activity.deal?.stageLabel || 'new stage'}`;
