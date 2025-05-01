@@ -72,19 +72,7 @@ export default function Pipeline() {
   return (
     <AppLayout>
       <div className="flex-1 overflow-y-auto p-6 pb-20">
-        <div className="flex justify-between items-center mb-6">
-          {/* <h1 className="text-2xl font-semibold text-neutral-800">Deal Pipeline</h1> */}
-          
-          <div></div> {/* Empty div to maintain flex spacing */}
-          
-          <Button 
-            onClick={() => setIsNewDealModalOpen(true)}
-            className="bg-primary hover:bg-primary-dark text-white"
-          >
-            <Plus className="h-5 w-5 mr-2" />
-            New Deal
-          </Button>
-        </div>
+        {/* Removed redundant header and New Deal button as they're already in the main Header component */}
         
         {/* Filters */}
         <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
