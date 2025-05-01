@@ -104,7 +104,7 @@ export default function Pipeline() {
                 <SelectValue placeholder="Expected Return" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Any Return</SelectItem>
+                <SelectItem value="all">All Returns</SelectItem>
                 <SelectItem value="high">15%+</SelectItem>
                 <SelectItem value="medium">10-15%</SelectItem>
                 <SelectItem value="low">5-10%</SelectItem>
