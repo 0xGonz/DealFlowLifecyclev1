@@ -9,6 +9,7 @@ import {
   Settings, 
   Users 
 } from "lucide-react";
+import doliverLogo from "../../assets/doliver-logo.png";
 
 export default function Sidebar() {
   const [location] = useLocation();
@@ -56,10 +57,7 @@ export default function Sidebar() {
         {/* Logo & Brand */}
         <div className="p-4 border-b border-neutral-200">
           <a href="/" className="flex items-center cursor-pointer">
-            <div className="w-8 h-8 bg-primary rounded flex items-center justify-center text-white font-bold">
-              D
-            </div>
-            <span className="ml-3 font-semibold text-lg">Doliver Capital</span>
+            <img src={doliverLogo} alt="Doliver Advisors" className="h-10" />
           </a>
         </div>
         
