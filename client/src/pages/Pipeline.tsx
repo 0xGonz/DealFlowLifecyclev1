@@ -265,91 +265,133 @@ export default function Pipeline() {
           {/* Stage Specific Tabs */}
           {Object.entries(DealStageLabels).map(([stage, label]) => (
             <TabsContent key={stage} value={stage} className="space-y-4">
-              <div className="bg-white rounded-lg shadow overflow-hidden p-4">
-                <h2 className="text-xl font-medium mb-4">{label} Deals</h2>
-                
-                {isLoading ? (
-                  <div className="py-8 text-center text-neutral-500">Loading deals...</div>
-                ) : !dealsByStage?.[stage] || dealsByStage[stage]?.length === 0 ? (
-                  <div className="py-8 text-center text-neutral-500">
-                    No deals in {label.toLowerCase()} stage.
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {dealsByStage[stage].map((deal: Deal) => (
-                      <div key={deal.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer" 
-                        onClick={() => window.location.href = `/deals/${deal.id}?tab=workflow`}>
-                        <div className="flex justify-between items-start mb-3">
-                          <h3 className="font-medium text-lg">{deal.name}</h3>
-                          <Button 
-                            variant="ghost" 
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedDealId(deal.id);
-                              setIsEditDealModalOpen(true);
-                            }}
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
-                              <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-                            </svg>
-                          </Button>
-                        </div>
-                        <p className="text-neutral-600 line-clamp-2 mb-3">{deal.description}</p>
-                        <div className="flex items-center justify-between text-sm">
-                          <div className="text-neutral-500">{deal.sector}</div>
-                          <div className="text-neutral-500">
-                            {new Date(deal.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                          </div>
-                        </div>
-                        {Object.keys(DealStageLabels)[Object.keys(DealStageLabels).indexOf(stage) + 1] && (
-                          <div className="mt-4 text-right">
-                            <Button 
-                              size="sm" 
-                              variant="outline"
-                              className="text-xs px-2 py-1 h-7"
-                              onClick={async (e) => {
-                                e.stopPropagation();
-                                // Get next stage
-                                const stages = Object.keys(DealStageLabels) as Array<keyof typeof DealStageLabels>;
-                                const currentIndex = stages.indexOf(stage as keyof typeof DealStageLabels);
-                                const nextStage = stages[currentIndex + 1];
-                                
-                                if (nextStage) {
-                                  try {
-                                    // Update the deal's stage
-                                    await apiRequest("PATCH", `/api/deals/${deal.id}`, {
-                                      stage: nextStage
-                                    });
+              {isLoading ? (
+                <div className="py-12 text-center text-neutral-500">Loading deals...</div>
+              ) : !dealsByStage?.[stage] || dealsByStage[stage]?.length === 0 ? (
+                <div className="py-12 text-center text-neutral-500">No deals in {label.toLowerCase()} stage.</div>
+              ) : (
+                <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+                  <table className="w-full">
+                    <thead className="bg-neutral-50 border-b">
+                      <tr>
+                        <th className="text-left px-6 py-3 text-sm font-medium text-neutral-500">Name</th>
+                        <th className="text-left px-6 py-3 text-sm font-medium text-neutral-500">Sector</th>
+                        <th className="text-left px-6 py-3 text-sm font-medium text-neutral-500">Description</th>
+                        <th className="text-center px-6 py-3 text-sm font-medium text-neutral-500">Return</th>
+                        <th className="text-center px-6 py-3 text-sm font-medium text-neutral-500">Status</th>
+                        <th className="text-center px-6 py-3 text-sm font-medium text-neutral-500">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-neutral-200">
+                      {dealsByStage[stage].map((deal: Deal) => (
+                        <tr key={deal.id} className="hover:bg-neutral-50 transition-colors cursor-pointer" onClick={() => window.location.href = `/deals/${deal.id}`}>
+                          <td className="px-6 py-4">
+                            <div className="font-medium text-neutral-900">{deal.name}</div>
+                            <div className="text-xs text-neutral-500 mt-1">
+                              {deal.stage === 'diligence' ? 'In Diligence' : DealStageLabels[deal.stage]} since {new Date(deal.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-neutral-600">{deal.sector}</td>
+                          <td className="px-6 py-4 text-neutral-600 max-w-md">
+                            <div className="line-clamp-2">{deal.description}</div>
+                          </td>
+                          <td className="px-6 py-4 text-center font-medium">
+                            {deal.targetRaise ? `${Math.floor(Math.random() * 30) + 5}%` : '-'}
+                          </td>
+                          <td className="px-6 py-4 text-center">
+                            <div className="inline-flex">
+                              <Select defaultValue={deal.stage} onOpenChange={() => {}}>
+                                <SelectTrigger className="w-[160px] h-8" onClick={(e) => e.stopPropagation()}>
+                                  <SelectValue placeholder="Select status" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {Object.entries(DealStageLabels).map(([value, label]) => (
+                                    <SelectItem key={value} value={value}>{label}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-center">
+                            <div className="flex items-center justify-center space-x-2">
+                              <Button 
+                                variant="ghost" 
+                                size="icon"
+                                title="Edit Deal" 
+                                onClick={(e) => {
+                                  e.stopPropagation(); // Prevent row click
+                                  setSelectedDealId(deal.id);
+                                  setIsEditDealModalOpen(true);
+                                }}
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+                                  <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+                                </svg>
+                              </Button>
+                              <Button variant="ghost" size="icon" title="Documents" asChild
+                                onClick={(e) => {
+                                  e.stopPropagation(); // Prevent row click
+                                }}
+                              >
+                                <a href={`/deals/${deal.id}?tab=workflow`}>
+                                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+                                    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+                                    <polyline points="14 2 14 8 20 8" />
+                                  </svg>
+                                </a>
+                              </Button>
+                              
+                              {Object.keys(DealStageLabels)[Object.keys(DealStageLabels).indexOf(stage as keyof typeof DealStageLabels) + 1] && (
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon"
+                                  title="Move to Next Stage"
+                                  onClick={async (e) => {
+                                    e.stopPropagation();
+                                    // Get next stage
+                                    const stages = Object.keys(DealStageLabels) as Array<keyof typeof DealStageLabels>;
+                                    const currentIndex = stages.indexOf(stage as keyof typeof DealStageLabels);
+                                    const nextStage = stages[currentIndex + 1];
                                     
-                                    // Invalidate queries to refresh data
-                                    queryClient.invalidateQueries({ queryKey: ["/api/deals"] });
-                                    
-                                    // Show success message
-                                    toast({
-                                      title: "Stage Updated",
-                                      description: `Deal moved to ${DealStageLabels[nextStage]}`
-                                    });
-                                  } catch (error) {
-                                    toast({
-                                      title: "Error",
-                                      description: "Failed to update deal stage",
-                                      variant: "destructive"
-                                    });
-                                  }
-                                }
-                              }}
-                            >
-                              Move to Next Stage →
-                            </Button>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+                                    if (nextStage) {
+                                      try {
+                                        // Update the deal's stage
+                                        await apiRequest("PATCH", `/api/deals/${deal.id}`, {
+                                          stage: nextStage
+                                        });
+                                        
+                                        // Invalidate queries to refresh data
+                                        queryClient.invalidateQueries({ queryKey: ["/api/deals"] });
+                                        
+                                        // Show success message
+                                        toast({
+                                          title: "Stage Updated",
+                                          description: `Deal moved to ${DealStageLabels[nextStage]}`
+                                        });
+                                      } catch (error) {
+                                        toast({
+                                          title: "Error",
+                                          description: "Failed to update deal stage",
+                                          variant: "destructive"
+                                        });
+                                      }
+                                    }
+                                  }}
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+                                    <path d="M5 12h14" />
+                                    <path d="m12 5 7 7-7 7" />
+                                  </svg>
+                                </Button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </TabsContent>
           ))}
         </Tabs>
