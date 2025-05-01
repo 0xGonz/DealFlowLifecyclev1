@@ -101,7 +101,7 @@ export default function Pipeline() {
             
             <Select value={dateFilter} onValueChange={setDateFilter}>
               <SelectTrigger className="w-[180px] bg-white border-neutral-300">
-                <SelectValue placeholder="Expected Return" />
+                <SelectValue placeholder="All Returns" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Returns</SelectItem>
