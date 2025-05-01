@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import AppLayout from "@/components/layout/AppLayout";
 import DealCard from "@/components/deals/DealCard";
 import NewDealModal from "@/components/deals/NewDealModal";
+import EditDealModal from "@/components/deals/EditDealModal";
 import { Button } from "@/components/ui/button";
 import { Select, SelectItem, SelectTrigger, SelectValue, SelectContent } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
@@ -12,6 +13,8 @@ import { Plus, Search } from "lucide-react";
 
 export default function Pipeline() {
   const [isNewDealModalOpen, setIsNewDealModalOpen] = useState(false);
+  const [isEditDealModalOpen, setIsEditDealModalOpen] = useState(false);
+  const [selectedDealId, setSelectedDealId] = useState<number | null>(null);
   const [stageFilter, setStageFilter] = useState("all");
   const [sectorFilter, setSectorFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
@@ -197,12 +200,19 @@ export default function Pipeline() {
                         </td>
                         <td className="px-6 py-4 text-center">
                           <div className="flex items-center justify-center space-x-2">
-                            <Button variant="ghost" size="icon" asChild>
-                              <a href={`/deals/${deal.id}`} title="Edit Deal">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
-                                  <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-                                </svg>
-                              </a>
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              title="Edit Deal" 
+                              onClick={(e) => {
+                                e.stopPropagation(); // Prevent row click
+                                setSelectedDealId(deal.id);
+                                setIsEditDealModalOpen(true);
+                              }}
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+                                <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+                              </svg>
                             </Button>
                             <Button variant="ghost" size="icon" title="Download Documents">
                               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
@@ -263,6 +273,18 @@ export default function Pipeline() {
           isOpen={isNewDealModalOpen} 
           onClose={() => setIsNewDealModalOpen(false)} 
         />
+        
+        {/* Edit Deal Modal */}
+        {selectedDealId && (
+          <EditDealModal 
+            isOpen={isEditDealModalOpen} 
+            onClose={() => {
+              setIsEditDealModalOpen(false);
+              setSelectedDealId(null);
+            }} 
+            dealId={selectedDealId} 
+          />
+        )}
       </div>
     </AppLayout>
   );
