@@ -103,9 +103,9 @@ export default function SectorDistributionChart() {
   }, [sectorStats]);
 
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-lg">Sector Distribution</CardTitle>
+    <Card className="h-full w-full flex flex-col">
+      <CardHeader className="pb-3">
+        <CardTitle>Sector Distribution</CardTitle>
       </CardHeader>
       <CardContent>
         {isLoading ? (
@@ -157,8 +157,10 @@ export default function SectorDistributionChart() {
                   }
                   iconSize={10}
                   wrapperStyle={{ right: 0, top: 20 }}
-                  itemStyle={{ marginTop: 5, marginBottom: 5, marginRight: 0 }}
                   formatter={(value) => <span className="text-sm font-medium">{value}</span>}
+                  marginTop={5}
+                  marginBottom={5}
+                  marginRight={0}
                 />
               </PieChart>
             </ResponsiveContainer>

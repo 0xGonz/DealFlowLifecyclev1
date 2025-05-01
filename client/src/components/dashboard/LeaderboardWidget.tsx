@@ -29,7 +29,7 @@ export default function LeaderboardWidget() {
   const topDeals = leaderboardData.slice(0, 5);
 
   return (
-    <Card className="bg-white rounded-lg shadow">
+    <Card className="bg-white rounded-lg shadow h-full w-full flex flex-col">
       <CardHeader className="pb-3">
         <CardTitle>Deal Leaderboard</CardTitle>
       </CardHeader>

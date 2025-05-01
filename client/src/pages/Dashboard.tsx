@@ -72,22 +72,22 @@ export default function Dashboard() {
         
         {/* Sector Distribution and Recent Deals */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mt-8">
-          <div className="md:col-span-5">
+          <div className="md:col-span-5 flex">
             <SectorDistributionChart />
           </div>
           
-          <div className="md:col-span-7">
+          <div className="md:col-span-7 flex">
             <RecentDeals />
           </div>
         </div>
         
         {/* Activity Feed and Leaderboard */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mt-8">
-          <div className="md:col-span-7">
+          <div className="md:col-span-7 flex">
             <ActivityFeed />
           </div>
           
-          <div className="md:col-span-5">
+          <div className="md:col-span-5 flex">
             <LeaderboardWidget />
           </div>
         </div>

@@ -58,7 +58,7 @@ export default function ActivityFeed() {
   };
 
   return (
-    <Card className="bg-white rounded-lg shadow">
+    <Card className="bg-white rounded-lg shadow h-full w-full flex flex-col">
       <CardHeader className="pb-3">
         <CardTitle>Recent Activity</CardTitle>
       </CardHeader>
