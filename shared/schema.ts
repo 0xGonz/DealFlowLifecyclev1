@@ -25,7 +25,7 @@ export const deals = pgTable("deals", {
   description: text("description").notNull(),
   industry: text("industry").notNull(),
   stage: text("stage", { 
-    enum: ["initial_review", "screening", "due_diligence", "ic_review", "closing", "closed", "passed"]
+    enum: ["initial_review", "screening", "diligence", "ic_review", "closing", "closed", "passed"]
   }).notNull().default("initial_review"),
   round: text("round").notNull(),
   targetRaise: text("target_raise"),
@@ -188,7 +188,7 @@ export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export const DealStageLabels: Record<Deal['stage'], string> = {
   initial_review: "Initial Review",
   screening: "Screening",
-  due_diligence: "Diligence",
+  diligence: "Diligence",
   ic_review: "IC Review",
   closing: "Closing",
   closed: "Closed",
@@ -199,7 +199,7 @@ export const DealStageLabels: Record<Deal['stage'], string> = {
 export const DealStageColors: Record<Deal['stage'], string> = {
   initial_review: "neutral",
   screening: "neutral",
-  due_diligence: "primary",
+  diligence: "primary",
   ic_review: "info",
   closing: "success",
   closed: "success",
