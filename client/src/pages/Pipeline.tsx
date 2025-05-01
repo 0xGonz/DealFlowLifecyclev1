@@ -4,19 +4,22 @@ import AppLayout from "@/components/layout/AppLayout";
 import DealCard from "@/components/deals/DealCard";
 import NewDealModal from "@/components/deals/NewDealModal";
 import EditDealModal from "@/components/deals/EditDealModal";
+import AllocateFundModal from "@/components/deals/AllocateFundModal";
 import { Button } from "@/components/ui/button";
 import { Select, SelectItem, SelectTrigger, SelectValue, SelectContent } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { DealStageLabels } from "@shared/schema";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, DollarSign } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 
 export default function Pipeline() {
   const [isNewDealModalOpen, setIsNewDealModalOpen] = useState(false);
   const [isEditDealModalOpen, setIsEditDealModalOpen] = useState(false);
+  const [isAllocateFundModalOpen, setIsAllocateFundModalOpen] = useState(false);
   const [selectedDealId, setSelectedDealId] = useState<number | null>(null);
+  const [selectedDealName, setSelectedDealName] = useState<string>("");
   const [stageFilter, setStageFilter] = useState("all");
   const [sectorFilter, setSectorFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
@@ -391,6 +394,25 @@ export default function Pipeline() {
                                 </a>
                               </Button>
                               
+                              {/* Show Allocate Fund button when in Invested stage */}
+                              {stage === 'invested' && (
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon"
+                                  title="Allocate to Fund"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    // Open allocate fund modal
+                                    setSelectedDealId(deal.id);
+                                    setSelectedDealName(deal.name);
+                                    setIsAllocateFundModalOpen(true);
+                                  }}
+                                >
+                                  <DollarSign className="w-4 h-4" />
+                                </Button>
+                              )}
+                              
+                              {/* Show Next Stage button when applicable */}
                               {Object.keys(DealStageLabels)[Object.keys(DealStageLabels).indexOf(stage as keyof typeof DealStageLabels) + 1] && (
                                 <Button 
                                   variant="ghost" 
