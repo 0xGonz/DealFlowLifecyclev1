@@ -196,7 +196,7 @@ export default function DealDetail() {
           <EditDealModal 
             isOpen={isEditModalOpen} 
             onClose={() => setIsEditModalOpen(false)} 
-            dealId={Number(params?.id) || 0} 
+            dealId={Number(dealId)} 
           />
         }
         
@@ -205,7 +205,7 @@ export default function DealDetail() {
           <AssignUserModal
             isOpen={isAssignModalOpen}
             onClose={() => setIsAssignModalOpen(false)}
-            dealId={Number(params?.id) || 0}
+            dealId={Number(dealId)}
           />
         }
         
