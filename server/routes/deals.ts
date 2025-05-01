@@ -8,13 +8,19 @@ import {
   DealStageLabels
 } from "@shared/schema";
 import { z } from "zod";
+import { IStorage } from "../storage";
 
 const router = Router();
+
+// Helper function to get a fresh storage instance in each request
+function getStorage(): IStorage {
+  return StorageFactory.getStorage();
+}
 
 // Get all deals or filter by stage
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const storage = StorageFactory.getStorage();
+    const storage = getStorage();
     let deals;
     
     if (req.query.stage) {
@@ -64,6 +70,7 @@ router.get('/:id', async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'Invalid deal ID format' });
     }
     
+    const storage = StorageFactory.getStorage();
     const deal = await storage.getDeal(dealId);
     
     if (!deal) {
@@ -118,6 +125,7 @@ router.post('/', async (req: Request, res: Response) => {
       createdBy: user.id
     });
     
+    const storage = StorageFactory.getStorage();
     const newDeal = await storage.createDeal(dealData);
     
     // Automatically assign creator to the deal
