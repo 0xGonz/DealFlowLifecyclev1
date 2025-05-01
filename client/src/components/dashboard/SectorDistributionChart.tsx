@@ -3,6 +3,8 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 
+// Define interfaces for our component
+
 interface SectorStatItem {
   sector: string;
   count: number;
@@ -25,9 +27,22 @@ const SECTOR_COLORS = [
   '#d6c1dd', // Lavender
 ];
 
+interface LabelProps {
+  cx: number;
+  cy: number;
+  midAngle: number;
+  innerRadius: number;
+  outerRadius: number;
+  percent: number;
+  index: number;
+  name?: string;
+  value?: number;
+  payload?: any;
+}
+
 const renderCustomizedLabel = ({
-  cx, cy, midAngle, innerRadius, outerRadius, percent, index, name, value, payload
-}: any) => {
+  cx, cy, midAngle, innerRadius, outerRadius, percent
+}: LabelProps) => {
   // Only show label if segment is large enough (> 5%)
   if (percent < 0.05) return null;
   
@@ -50,10 +65,16 @@ const renderCustomizedLabel = ({
   );
 };
 
-const CustomTooltip = ({ active, payload, sectorData }: any) => {
+interface TooltipProps {
+  active?: boolean;
+  payload?: Array<{payload: SectorStatItem}>;
+  sectorData: SectorStatItem[];
+}
+
+const CustomTooltip = ({ active, payload, sectorData }: TooltipProps) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
-    const totalCount = sectorData.reduce((sum: number, item: any) => sum + item.count, 0);
+    const totalCount = sectorData.reduce((sum: number, item: SectorStatItem) => sum + item.count, 0);
     const percentage = (data.count / totalCount * 100).toFixed(0);
     
     return (
