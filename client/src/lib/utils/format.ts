@@ -79,14 +79,14 @@ export function formatDealStage(stage: string): string {
  */
 export function getDealStageBadgeClass(stage: string): string {
   const stageClasses: Record<string, string> = {
-    initial_review: "bg-neutral-200 text-neutral-700",
-    screening: "bg-neutral-200 text-neutral-700",
-    due_diligence: "bg-primary bg-opacity-15 text-primary",
-    ic_review: "bg-info bg-opacity-15 text-info",
-    closing: "bg-success bg-opacity-15 text-success",
-    closed: "bg-success bg-opacity-15 text-success",
-    passed: "bg-destructive bg-opacity-15 text-destructive"
+    initial_review: "bg-neutral-200 text-neutral-800 font-medium",
+    screening: "bg-sky-100 text-sky-800 font-medium",
+    due_diligence: "bg-blue-100 text-blue-800 font-medium",
+    ic_review: "bg-violet-100 text-violet-800 font-medium",
+    closing: "bg-amber-100 text-amber-800 font-medium",
+    closed: "bg-green-100 text-green-800 font-medium",
+    passed: "bg-red-100 text-red-800 font-medium"
   };
   
-  return stageClasses[stage] || "bg-neutral-200 text-neutral-700";
+  return stageClasses[stage] || "bg-neutral-200 text-neutral-700 font-medium";
 }

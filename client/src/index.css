@@ -122,6 +122,8 @@
 
 .deal-stage-badge {
   font-size: 0.7rem;
-  padding: 0.2rem 0.5rem;
+  padding: 0.25rem 0.6rem;
   border-radius: 1rem;
+  letter-spacing: 0.02em;
+  display: inline-block;
 }
