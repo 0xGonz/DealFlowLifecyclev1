@@ -9,6 +9,7 @@ import activityRoutes from './activity';
 import dashboardRoutes from './dashboard';
 import leaderboardRoutes from './leaderboard';
 import notificationsRoutes from './notifications';
+import documentsRoutes from './documents';
 
 // Create a simple auth middleware
 const authenticate = (req: Request, res: Response, next: NextFunction) => {
@@ -42,6 +43,7 @@ export function registerRoutes(app: Express): Server {
   app.use('/api/dashboard', dashboardRoutes);
   app.use('/api/leaderboard', leaderboardRoutes);
   app.use('/api/notifications', notificationsRoutes);
+  app.use('/api/documents', documentsRoutes);
   
   // Catch-all route for 404s
   app.use('/api/*', (req, res) => {

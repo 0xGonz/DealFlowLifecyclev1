@@ -523,6 +523,45 @@ export class MemStorage implements IStorage {
     return updatedMemo;
   }
   
+  // Document operations
+  async createDocument(document: InsertDocument): Promise<Document> {
+    const id = this.documentIdCounter++;
+    const uploadedAt = new Date();
+    const newDocument: Document = { ...document, id, uploadedAt };
+    this.documents.set(id, newDocument);
+    
+    // Create a timeline event for document upload
+    await this.createTimelineEvent({
+      dealId: document.dealId,
+      eventType: 'document_upload',
+      content: `New document uploaded: ${document.fileName}`,
+      createdBy: document.uploadedBy,
+      metadata: { documentId: id, documentType: document.documentType }
+    });
+    
+    return newDocument;
+  }
+  
+  async getDocument(id: number): Promise<Document | undefined> {
+    return this.documents.get(id);
+  }
+  
+  async getDocumentsByDeal(dealId: number): Promise<Document[]> {
+    return Array.from(this.documents.values())
+      .filter(doc => doc.dealId === dealId)
+      .sort((a, b) => b.uploadedAt.getTime() - a.uploadedAt.getTime());
+  }
+  
+  async getDocumentsByType(dealId: number, documentType: string): Promise<Document[]> {
+    return Array.from(this.documents.values())
+      .filter(doc => doc.dealId === dealId && doc.documentType === documentType)
+      .sort((a, b) => b.uploadedAt.getTime() - a.uploadedAt.getTime());
+  }
+  
+  async deleteDocument(id: number): Promise<boolean> {
+    return this.documents.delete(id);
+  }
+  
   // Funds
   async createFund(fund: InsertFund): Promise<Fund> {
     const id = this.fundIdCounter++;
