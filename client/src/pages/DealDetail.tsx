@@ -4,6 +4,7 @@ import { useRoute, useLocation } from "wouter";
 import AppLayout from "@/components/layout/AppLayout";
 import Timeline from "@/components/deals/Timeline";
 import EditDealModal from "@/components/deals/EditDealModal";
+import DocumentList from "@/components/documents/DocumentList";
 import { 
   Card, 
   CardHeader, 
@@ -472,14 +473,7 @@ export default function DealDetail() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="text-center py-8 text-neutral-500">
-                  <FileText className="h-12 w-12 mx-auto mb-3 opacity-30" />
-                  <p>No documents uploaded yet.</p>
-                  <Button className="mt-4">
-                    <FileText className="h-4 w-4 mr-2" />
-                    Upload Document
-                  </Button>
-                </div>
+                {deal && <DocumentList dealId={deal.id} />}
               </CardContent>
             </Card>
           </TabsContent>

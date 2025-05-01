@@ -82,6 +82,7 @@ export function getDealStageBadgeClass(stage: string): string {
     initial_review: "bg-neutral-200 text-neutral-800 font-medium",
     screening: "bg-sky-100 text-sky-800 font-medium",
     due_diligence: "bg-blue-100 text-blue-800 font-medium",
+    diligence: "bg-blue-100 text-blue-800 font-medium",
     ic_review: "bg-violet-100 text-violet-800 font-medium",
     closing: "bg-amber-100 text-amber-800 font-medium",
     closed: "bg-green-100 text-green-800 font-medium",
@@ -89,4 +90,19 @@ export function getDealStageBadgeClass(stage: string): string {
   };
   
   return stageClasses[stage] || "bg-neutral-200 text-neutral-700 font-medium";
+}
+
+/**
+ * Format bytes to a human-readable string (KB, MB, GB)
+ */
+export function formatBytes(bytes: number, decimals = 2): string {
+  if (bytes === 0) return '0 Bytes';
+  
+  const k = 1024;
+  const dm = decimals < 0 ? 0 : decimals;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+  
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 }

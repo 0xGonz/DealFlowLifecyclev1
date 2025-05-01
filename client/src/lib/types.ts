@@ -119,3 +119,17 @@ export interface LeaderboardItem {
   starCount: number;
   change: number;
 }
+
+// Document types
+export interface Document {
+  id: number;
+  dealId: number;
+  fileName: string;
+  fileType: string;
+  fileSize: number;
+  filePath: string;
+  uploadedBy: number;
+  uploadedAt: string;
+  documentType: string;
+  description?: string;
+}
