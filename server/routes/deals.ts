@@ -70,7 +70,7 @@ router.get('/:id', async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'Invalid deal ID format' });
     }
     
-    const storage = StorageFactory.getStorage();
+    const storage = getStorage();
     const deal = await storage.getDeal(dealId);
     
     if (!deal) {
@@ -125,7 +125,7 @@ router.post('/', async (req: Request, res: Response) => {
       createdBy: user.id
     });
     
-    const storage = StorageFactory.getStorage();
+    const storage = getStorage();
     const newDeal = await storage.createDeal(dealData);
     
     // Automatically assign creator to the deal
@@ -149,6 +149,7 @@ router.patch('/:id', async (req: Request, res: Response) => {
     const dealId = Number(req.params.id);
     const user = (req as any).user;
     
+    const storage = getStorage();
     // Make sure deal exists
     const deal = await storage.getDeal(dealId);
     if (!deal) {
@@ -178,6 +179,7 @@ router.get('/:dealId/timeline', async (req: Request, res: Response) => {
   try {
     const dealId = Number(req.params.dealId);
     
+    const storage = getStorage();
     // Make sure deal exists
     const deal = await storage.getDeal(dealId);
     if (!deal) {
@@ -215,6 +217,7 @@ router.post('/:dealId/timeline', async (req: Request, res: Response) => {
     const dealId = Number(req.params.dealId);
     const user = (req as any).user;
     
+    const storage = getStorage();
     // Make sure deal exists
     const deal = await storage.getDeal(dealId);
     if (!deal) {
@@ -254,6 +257,7 @@ router.post('/:dealId/star', async (req: Request, res: Response) => {
     const dealId = Number(req.params.dealId);
     const user = (req as any).user;
     
+    const storage = getStorage();
     // Make sure deal exists
     const deal = await storage.getDeal(dealId);
     if (!deal) {
@@ -281,6 +285,7 @@ router.delete('/:dealId/star', async (req: Request, res: Response) => {
     const dealId = Number(req.params.dealId);
     const user = (req as any).user;
     
+    const storage = getStorage();
     const success = await storage.unstarDeal(dealId, user.id);
     if (!success) {
       return res.status(404).json({ message: 'Star not found' });
@@ -303,6 +308,7 @@ router.post('/:dealId/assignments', async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'User ID is required' });
     }
     
+    const storage = getStorage();
     // Make sure deal exists
     const deal = await storage.getDeal(dealId);
     if (!deal) {
@@ -368,6 +374,7 @@ router.get('/:dealId/assignments', async (req: Request, res: Response) => {
   try {
     const dealId = Number(req.params.dealId);
     
+    const storage = getStorage();
     // Make sure deal exists
     const deal = await storage.getDeal(dealId);
     if (!deal) {
