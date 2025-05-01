@@ -158,11 +158,41 @@ router.patch('/:id', async (req: Request, res: Response) => {
     
     // Validate the partial update data
     const updateSchema = insertDealSchema.partial();
-    const dealUpdate = updateSchema.parse({
+    let dealUpdate = updateSchema.parse({
       ...req.body,
       // If stage is updated, record who changed it
       ...(req.body.stage && { createdBy: user.id })
     });
+    
+    // Handle rejection workflow
+    if (dealUpdate.stage === 'rejected') {
+      // Add rejected timestamp
+      dealUpdate = {
+        ...dealUpdate,
+        rejectedAt: new Date()
+      };
+      
+      // Create a timeline event for rejection
+      if (dealUpdate.rejectionReason) {
+        await storage.createTimelineEvent({
+          dealId,
+          eventType: 'stage_change',
+          content: `Deal rejected: ${dealUpdate.rejectionReason}`,
+          createdBy: user.id,
+          metadata: {
+            previousStage: deal.stage,
+            newStage: 'rejected'
+          }
+        });
+      }
+    } else if (deal.stage === 'rejected' && dealUpdate.stage !== 'rejected') {
+      // If moving from rejected to another stage, clear rejection fields
+      dealUpdate = {
+        ...dealUpdate,
+        rejectionReason: null,
+        rejectedAt: null
+      };
+    }
     
     const updatedDeal = await storage.updateDeal(dealId, dealUpdate);
     res.json(updatedDeal);
