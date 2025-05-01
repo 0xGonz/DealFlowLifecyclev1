@@ -449,7 +449,15 @@ router.delete('/:dealId/assignments/:userId', async (req: Request, res: Response
 // Delete a deal
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
+    // Check if the ID is valid
+    if (req.params.id === 'undefined' || req.params.id === 'null') {
+      return res.status(400).json({ message: 'Invalid deal ID' });
+    }
+    
     const dealId = Number(req.params.id);
+    if (isNaN(dealId)) {
+      return res.status(400).json({ message: 'Invalid deal ID format' });
+    }
     
     // Make sure deal exists
     const deal = await storage.getDeal(dealId);

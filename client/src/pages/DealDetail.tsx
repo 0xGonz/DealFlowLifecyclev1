@@ -65,14 +65,29 @@ export default function DealDetail() {
   
   const { toast } = useToast();
   
+  // Safety check - redirect if ID is invalid
+  const dealId = params?.id;
+  if (!dealId || dealId === 'undefined' || dealId === 'null' || isNaN(Number(dealId))) {
+    // Do a client-side redirect if the ID is missing or invalid
+    setTimeout(() => {
+      toast({
+        title: "Error",
+        description: "Invalid deal ID. Redirecting to pipeline.",
+        variant: "destructive"
+      });
+      setLocation("/pipeline");
+    }, 0);
+    return <AppLayout><div className="p-6">Redirecting...</div></AppLayout>;
+  }
+  
   const { data: deal, isLoading } = useQuery<Deal>({
-    queryKey: [`/api/deals/${params?.id}`],
-    enabled: !!params?.id,
+    queryKey: [`/api/deals/${dealId}`],
+    enabled: !!dealId,
   });
   
   const addNoteMutation = useMutation({
     mutationFn: async (content: string) => {
-      return apiRequest("POST", `/api/deals/${params?.id}/timeline`, {
+      return apiRequest("POST", `/api/deals/${dealId}/timeline`, {
         eventType: "note",
         content,
         metadata: {}
@@ -84,8 +99,8 @@ export default function DealDetail() {
         title: "Note added",
         description: "Your note has been added to the timeline."
       });
-      await queryClient.invalidateQueries({ queryKey: [`/api/deals/${params?.id}`] });
-      await queryClient.invalidateQueries({ queryKey: [`/api/deals/${params?.id}/timeline`] });
+      await queryClient.invalidateQueries({ queryKey: [`/api/deals/${dealId}`] });
+      await queryClient.invalidateQueries({ queryKey: [`/api/deals/${dealId}/timeline`] });
     },
     onError: () => {
       toast({
@@ -98,14 +113,14 @@ export default function DealDetail() {
   
   const starDealMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest("POST", `/api/deals/${params?.id}/star`, {});
+      return apiRequest("POST", `/api/deals/${dealId}/star`, {});
     },
     onSuccess: async () => {
       toast({
         title: "Deal starred",
         description: "This deal has been added to your starred deals."
       });
-      await queryClient.invalidateQueries({ queryKey: [`/api/deals/${params?.id}`] });
+      await queryClient.invalidateQueries({ queryKey: [`/api/deals/${dealId}`] });
       await queryClient.invalidateQueries({ queryKey: ['/api/leaderboard'] });
     },
     onError: () => {
@@ -128,7 +143,7 @@ export default function DealDetail() {
   
   const deleteDealMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest("DELETE", `/api/deals/${params?.id}`, {});
+      return apiRequest("DELETE", `/api/deals/${dealId}`, {});
     },
     onSuccess: async () => {
       toast({
@@ -154,15 +169,8 @@ export default function DealDetail() {
   });
   
   const handleDeleteDeal = () => {
-    // Only proceed if we have a valid deal ID
-    if (!params?.id) {
-      toast({
-        title: "Error",
-        description: "Cannot delete deal: Invalid deal ID",
-        variant: "destructive"
-      });
-      return;
-    }
+    // Deal ID should already be validated with our early return guard
+    // at the beginning of the component
     deleteDealMutation.mutate();
   };
   
