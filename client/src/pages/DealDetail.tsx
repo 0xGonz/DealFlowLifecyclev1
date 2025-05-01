@@ -238,13 +238,17 @@ export default function DealDetail() {
               </div>
               <div className="flex items-center">
                 <div className="flex -space-x-2 mr-4">
-                  {deal?.assignedUsers?.map(user => (
+                  {deal?.assignedUsers ? deal.assignedUsers.map(user => (
                     <Avatar key={user.id} className="border-2 border-white">
                       <AvatarFallback style={{ backgroundColor: user.avatarColor }}>
                         {user.initials}
                       </AvatarFallback>
                     </Avatar>
-                  ))}
+                  )) : (
+                    <Avatar className="border-2 border-white">
+                      <AvatarFallback>NA</AvatarFallback>
+                    </Avatar>
+                  )}
                 </div>
                 <Button variant="outline" size="sm">
                   <Users className="h-4 w-4 mr-2" />
@@ -261,8 +265,8 @@ export default function DealDetail() {
                   <div className="flex items-start">
                     <Building className="h-4 w-4 text-neutral-500 mt-0.5 mr-2" />
                     <div>
-                      <p className="text-sm font-medium">Industry</p>
-                      <p className="text-sm text-neutral-600">{deal?.industry || 'Not specified'}</p>
+                      <p className="text-sm font-medium">Sector</p>
+                      <p className="text-sm text-neutral-600">{deal?.sector || 'Not specified'}</p>
                     </div>
                   </div>
                   <div className="flex items-start">
@@ -304,7 +308,7 @@ export default function DealDetail() {
                     <div>
                       <p className="text-sm font-medium">Added</p>
                       <p className="text-sm text-neutral-600">
-                        {formatDistanceToNow(new Date(deal?.createdAt), { addSuffix: true })}
+                        {deal?.createdAt ? formatDistanceToNow(new Date(deal.createdAt), { addSuffix: true }) : 'Recently'}
                       </p>
                     </div>
                   </div>
