@@ -23,7 +23,7 @@ export const deals = pgTable("deals", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   description: text("description").notNull(),
-  industry: text("industry").notNull(),
+  sector: text("sector").notNull(),
   stage: text("stage", { 
     enum: ["initial_review", "screening", "diligence", "ic_review", "closing", "closed", "passed"]
   }).notNull().default("initial_review"),

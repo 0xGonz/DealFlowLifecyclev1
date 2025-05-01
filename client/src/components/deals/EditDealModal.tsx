@@ -202,10 +202,10 @@ export default function EditDealModal({ isOpen, onClose, dealId }: EditDealModal
 
                 <FormField
                   control={form.control}
-                  name="industry"
+                  name="sector"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Industry *</FormLabel>
+                      <FormLabel>Sector *</FormLabel>
                       <Select 
                         onValueChange={field.onChange} 
                         defaultValue={field.value}
@@ -213,7 +213,7 @@ export default function EditDealModal({ isOpen, onClose, dealId }: EditDealModal
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select industry" />
+                            <SelectValue placeholder="Select sector" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>

@@ -39,30 +39,59 @@ router.get('/stats', async (req: Request, res: Response) => {
   }
 });
 
-// Get industry distribution stats
-router.get('/industry-stats', async (req: Request, res: Response) => {
+// Get sector distribution stats
+router.get('/sector-stats', async (req: Request, res: Response) => {
   try {
-    // Get all deals to compute industry stats
+    // Get all deals to compute sector stats
     const deals = await storage.getDeals();
     
-    // Count deals by industry
-    const industryCount: Record<string, number> = {};
+    // Count deals by sector
+    const sectorCount: Record<string, number> = {};
     deals.forEach(deal => {
-      const industry = deal.industry || 'Other';
-      industryCount[industry] = (industryCount[industry] || 0) + 1;
+      const sector = deal.sector || 'Other';
+      sectorCount[sector] = (sectorCount[sector] || 0) + 1;
     });
     
     // Transform into array format for chart
-    const industryStats = Object.entries(industryCount).map(([industry, count]) => ({
-      industry,
+    const sectorStats = Object.entries(sectorCount).map(([sector, count]) => ({
+      sector,
       count,
       percentage: Math.round((count / deals.length) * 100)
     }));
     
     // Sort by count (descending)
-    industryStats.sort((a, b) => b.count - a.count);
+    sectorStats.sort((a, b) => b.count - a.count);
     
-    res.json(industryStats);
+    res.json(sectorStats);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch sector statistics' });
+  }
+});
+
+// Keeping the old endpoint for backward compatibility
+router.get('/industry-stats', async (req: Request, res: Response) => {
+  try {
+    // Get all deals to compute sector stats
+    const deals = await storage.getDeals();
+    
+    // Count deals by sector
+    const sectorCount: Record<string, number> = {};
+    deals.forEach(deal => {
+      const sector = deal.sector || 'Other';
+      sectorCount[sector] = (sectorCount[sector] || 0) + 1;
+    });
+    
+    // Transform into array format for chart
+    const sectorStats = Object.entries(sectorCount).map(([sector, count]) => ({
+      industry: sector, // Using 'industry' key for backward compatibility
+      count,
+      percentage: Math.round((count / deals.length) * 100)
+    }));
+    
+    // Sort by count (descending)
+    sectorStats.sort((a, b) => b.count - a.count);
+    
+    res.json(sectorStats);
   } catch (error) {
     res.status(500).json({ message: 'Failed to fetch industry statistics' });
   }

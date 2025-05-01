@@ -147,17 +147,17 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
 
               <FormField
                 control={form.control}
-                name="industry"
+                name="sector"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Industry *</FormLabel>
+                    <FormLabel>Sector *</FormLabel>
                     <Select 
                       onValueChange={field.onChange} 
                       defaultValue={field.value}
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select industry" />
+                          <SelectValue placeholder="Select sector" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
