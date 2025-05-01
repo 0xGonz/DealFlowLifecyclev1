@@ -117,12 +117,12 @@ export default function SectorDistributionChart() {
             <p className="text-neutral-500">No sector data available</p>
           </div>
         ) : (
-          <div className="h-[300px]">
+          <div className="h-[350px] pr-[150px] relative">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
                   data={processedData}
-                  cx="50%"
+                  cx="40%"
                   cy="50%"
                   labelLine={false}
                   label={renderCustomizedLabel}
@@ -140,8 +140,9 @@ export default function SectorDistributionChart() {
                 </Pie>
                 <Tooltip content={<CustomTooltip sectorData={processedData} />} />
                 <Legend 
-                  verticalAlign="bottom" 
-                  height={80} 
+                  verticalAlign="middle" 
+                  align="right"
+                  layout="vertical"
                   payload={
                     processedData.map((item, index) => {
                       const totalCount = processedData.reduce((sum, i) => sum + i.count, 0);
@@ -154,11 +155,10 @@ export default function SectorDistributionChart() {
                       };
                     })
                   }
-                  layout="horizontal"
-                  align="center"
-                  wrapperStyle={{ paddingTop: 20 }}
                   iconSize={10}
-                  formatter={(value) => <span className="text-base font-medium">{value}</span>}
+                  wrapperStyle={{ right: 0, top: 20 }}
+                  itemStyle={{ marginTop: 5, marginBottom: 5, marginRight: 0 }}
+                  formatter={(value) => <span className="text-sm font-medium">{value}</span>}
                 />
               </PieChart>
             </ResponsiveContainer>
