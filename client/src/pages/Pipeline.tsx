@@ -205,7 +205,32 @@ export default function Pipeline() {
                         </td>
                         <td className="px-6 py-4 text-center">
                           <div className="inline-flex">
-                            <Select defaultValue={deal.stage} onOpenChange={() => {}}>
+                            <Select 
+                              defaultValue={deal.stage} 
+                              onValueChange={async (newStage) => {
+                                try {
+                                  // Update the deal's stage
+                                  await apiRequest("PATCH", `/api/deals/${deal.id}`, {
+                                    stage: newStage
+                                  });
+                                  
+                                  // Invalidate queries to refresh data
+                                  queryClient.invalidateQueries({ queryKey: ["/api/deals"] });
+                                  
+                                  // Show success message
+                                  toast({
+                                    title: "Stage Updated",
+                                    description: `Deal moved to ${DealStageLabels[newStage as keyof typeof DealStageLabels]}`
+                                  });
+                                } catch (error) {
+                                  toast({
+                                    title: "Error",
+                                    description: "Failed to update deal stage",
+                                    variant: "destructive"
+                                  });
+                                }
+                              }}
+                            >
                               <SelectTrigger className="w-[160px] h-8" onClick={(e) => e.stopPropagation()}>
                                 <SelectValue placeholder="Select status" />
                               </SelectTrigger>
@@ -300,7 +325,32 @@ export default function Pipeline() {
                           </td>
                           <td className="px-6 py-4 text-center">
                             <div className="inline-flex">
-                              <Select defaultValue={deal.stage} onOpenChange={() => {}}>
+                              <Select 
+                                defaultValue={deal.stage} 
+                                onValueChange={async (newStage) => {
+                                  try {
+                                    // Update the deal's stage
+                                    await apiRequest("PATCH", `/api/deals/${deal.id}`, {
+                                      stage: newStage
+                                    });
+                                    
+                                    // Invalidate queries to refresh data
+                                    queryClient.invalidateQueries({ queryKey: ["/api/deals"] });
+                                    
+                                    // Show success message
+                                    toast({
+                                      title: "Stage Updated",
+                                      description: `Deal moved to ${DealStageLabels[newStage as keyof typeof DealStageLabels]}`
+                                    });
+                                  } catch (error) {
+                                    toast({
+                                      title: "Error",
+                                      description: "Failed to update deal stage",
+                                      variant: "destructive"
+                                    });
+                                  }
+                                }}
+                              >
                                 <SelectTrigger className="w-[160px] h-8" onClick={(e) => e.stopPropagation()}>
                                   <SelectValue placeholder="Select status" />
                                 </SelectTrigger>
