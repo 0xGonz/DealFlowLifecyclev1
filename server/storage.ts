@@ -11,6 +11,9 @@ import {
   Document, InsertDocument
 } from "@shared/schema";
 
+// Import database storage implementation
+import { DatabaseStorage } from './database-storage';
+
 // Interface for storage operations
 export interface IStorage {
   // User operations
@@ -690,7 +693,9 @@ export class MemStorage implements IStorage {
   }
 }
 
-import { DatabaseStorage } from './database-storage';
-
-// Temporarily switching back to MemStorage for now
+// We're using MemStorage for now for development
+// In production, you should use DatabaseStorage with PostgreSQL
 export const storage = new MemStorage();
+
+// Uncomment to use database storage
+// export const storage = new DatabaseStorage();
