@@ -31,11 +31,8 @@ export default function Header() {
 
   return (
     <header className="bg-white shadow-sm z-20 relative">
-      <div className="px-6 py-3 flex items-center justify-between">
-        <div>
-          <h1 className="text-lg font-semibold text-neutral-800">{getPageTitle()}</h1>
-        </div>
-        <div className="flex items-center space-x-4">
+      <div className="px-6 py-3">
+        <div className="flex items-center space-x-4 justify-end">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-500 h-4 w-4" />
             <Input 
