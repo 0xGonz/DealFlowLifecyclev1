@@ -51,8 +51,8 @@ export default function DocumentList({ dealId }: DocumentListProps) {
   });
 
   const uploadMutation = useMutation({
-    mutationFn: async (formData: FormData) => {
-      return apiRequest('POST', '/api/documents/upload', formData, true);
+    mutationFn: async (data: any) => {
+      return apiRequest('POST', '/api/documents/upload', data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/documents/deal/${dealId}`] });
@@ -104,19 +104,18 @@ export default function DocumentList({ dealId }: DocumentListProps) {
   const handleUpload = async () => {
     if (!uploadingFile) return;
 
-    const formData = new FormData();
-    formData.append('file', uploadingFile);
-    formData.append('fileName', uploadingFile.name);
-    formData.append('fileType', uploadingFile.type);
-    formData.append('dealId', dealId.toString());
-    formData.append('documentType', documentType);
-    formData.append('uploadedBy', '2'); // Current user ID (John Doe)
-    
-    if (description) {
-      formData.append('description', description);
-    }
+    // Instead of FormData, let's use a regular JSON object since our server expects JSON
+    const uploadData = {
+      fileName: uploadingFile.name,
+      fileType: uploadingFile.type,
+      fileSize: uploadingFile.size,
+      dealId: dealId.toString(),
+      documentType,
+      uploadedBy: '2', // Current user ID (John Doe)
+      description: description || null
+    };
 
-    uploadMutation.mutate(formData);
+    uploadMutation.mutate(uploadData);
   };
 
   const getDocumentTypeLabel = (type: string) => {

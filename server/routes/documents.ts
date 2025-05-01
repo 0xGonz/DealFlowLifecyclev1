@@ -101,18 +101,19 @@ router.get('/:id/download', async (req: Request, res: Response) => {
 // Upload a document
 router.post('/upload', async (req: Request, res: Response) => {
   try {
-    // In a real implementation, you'd use middleware like multer to handle file uploads
-    // This is a simplified version for the memory storage
+    // This works with both FormData and JSON payload
     const storage = StorageFactory.getStorage();
+    console.log('Received document upload request:', req.body);
     
     const { dealId, fileName, fileType, documentType, description, uploadedBy } = req.body;
-    const fileSize = req.body.fileSize || 1024; // Mock file size for demo
+    const fileSize = req.body.fileSize || 1024; // Default file size if not provided
     
     if (!dealId || !fileName || !documentType || !uploadedBy) {
+      console.error('Missing required fields:', { dealId, fileName, documentType, uploadedBy });
       return res.status(400).json({ message: 'Missing required fields' });
     }
     
-    // Generate a mock file path
+    // Generate a file path
     const filePath = `/uploads/${crypto.randomUUID()}-${fileName}`;
     
     const documentData = {
@@ -127,7 +128,9 @@ router.post('/upload', async (req: Request, res: Response) => {
       uploadedAt: new Date()
     };
     
+    console.log('Creating document with data:', documentData);
     const document = await storage.createDocument(documentData);
+    console.log('Document created successfully:', document);
     
     // Also create a timeline event for the document upload
     await storage.createTimelineEvent({
