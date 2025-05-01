@@ -57,8 +57,8 @@ async function main() {
       const deal1 = await db.insert(schema.deals).values({
         name: "TechFusion AI",
         description: "AI-powered data analytics platform for enterprise",
-        industry: "Software & AI",
-        stage: "due_diligence",
+        sector: "Software & AI",
+        stage: "diligence",
         round: "Series B",
         targetRaise: "$20M",
         valuation: "$100M",
@@ -73,7 +73,7 @@ async function main() {
       const deal2 = await db.insert(schema.deals).values({
         name: "GreenScale Renewables",
         description: "Scalable green hydrogen production technology",
-        industry: "Clean Energy",
+        sector: "Clean Energy",
         stage: "ic_review",
         round: "Series A",
         targetRaise: "$15M",
@@ -89,7 +89,7 @@ async function main() {
       const deal3 = await db.insert(schema.deals).values({
         name: "MediSync Health",
         description: "Connected medical devices platform for remote patient monitoring",
-        industry: "Healthcare",
+        sector: "Healthcare",
         stage: "screening",
         round: "Seed",
         targetRaise: "$5M",
@@ -122,7 +122,7 @@ async function main() {
           createdBy: 1,
           metadata: { 
             fromStage: "screening", 
-            toStage: "due_diligence" 
+            toStage: "diligence" 
           }
         },
         {
@@ -138,7 +138,7 @@ async function main() {
           content: "Advancing to IC review",
           createdBy: 1,
           metadata: { 
-            fromStage: "due_diligence", 
+            fromStage: "diligence", 
             toStage: "ic_review" 
           }
         }
