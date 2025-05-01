@@ -131,16 +131,24 @@ export default function SectorDistributionChart() {
                 <Tooltip content={<CustomTooltip sectorData={processedData} />} />
                 <Legend 
                   verticalAlign="bottom" 
-                  height={36} 
+                  height={80} 
                   formatter={(value, entry, index) => {
                     const totalCount = processedData.reduce((sum, item) => sum + item.count, 0);
                     const item = processedData[index];
                     const percentage = (item.count / totalCount * 100).toFixed(0);
-                    return `${value} (${percentage}%)`;
+                    return (
+                      <span className="text-base font-medium flex items-center">
+                        <span>{value}</span> 
+                        <span className="ml-1 font-bold text-gray-700">({percentage}%)</span>
+                      </span>
+                    );
                   }}
                   iconType="circle"
                   layout="horizontal"
                   align="center"
+                  wrapperStyle={{ paddingTop: 20 }}
+                  itemStyle={{ marginRight: 20 }}
+                  iconSize={10}
                 />
               </PieChart>
             </ResponsiveContainer>
