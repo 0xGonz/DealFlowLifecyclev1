@@ -273,6 +273,118 @@ router.delete('/:dealId/star', async (req: Request, res: Response) => {
   }
 });
 
+// Assign a user to a deal
+router.post('/:dealId/assignments', async (req: Request, res: Response) => {
+  try {
+    const dealId = Number(req.params.dealId);
+    const { userId } = req.body;
+    
+    if (!userId) {
+      return res.status(400).json({ message: 'User ID is required' });
+    }
+    
+    // Make sure deal exists
+    const deal = await storage.getDeal(dealId);
+    if (!deal) {
+      return res.status(404).json({ message: 'Deal not found' });
+    }
+    
+    // Make sure user exists
+    const user = await storage.getUser(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    const assignment = await storage.assignUserToDeal({
+      dealId,
+      userId
+    });
+    
+    // Create a notification for the assigned user
+    const assigningUser = (req as any).user;
+    await storage.createNotification({
+      userId,
+      title: 'New assignment',
+      message: `You've been assigned to deal: ${deal.name}`,
+      type: 'assignment',
+      relatedId: dealId
+    });
+    
+    // Get assigned user details
+    const assignedUser = {
+      id: user.id,
+      fullName: user.fullName,
+      initials: user.initials,
+      avatarColor: user.avatarColor,
+      role: user.role
+    };
+    
+    res.status(201).json({ ...assignment, user: assignedUser });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to assign user to deal' });
+  }
+});
+
+// Get assignments for a deal
+router.get('/:dealId/assignments', async (req: Request, res: Response) => {
+  try {
+    const dealId = Number(req.params.dealId);
+    
+    // Make sure deal exists
+    const deal = await storage.getDeal(dealId);
+    if (!deal) {
+      return res.status(404).json({ message: 'Deal not found' });
+    }
+    
+    const assignments = await storage.getDealAssignments(dealId);
+    
+    // Get user details for each assignment
+    const assignedUsers = await Promise.all(
+      assignments.map(async (assignment) => {
+        const user = await storage.getUser(assignment.userId);
+        return user ? {
+          assignment,
+          user: {
+            id: user.id,
+            fullName: user.fullName,
+            initials: user.initials,
+            avatarColor: user.avatarColor,
+            role: user.role
+          }
+        } : null;
+      })
+    );
+    
+    // Filter out null values (if any user wasn't found)
+    res.json(assignedUsers.filter(Boolean));
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch deal assignments' });
+  }
+});
+
+// Unassign a user from a deal
+router.delete('/:dealId/assignments/:userId', async (req: Request, res: Response) => {
+  try {
+    const dealId = Number(req.params.dealId);
+    const userId = Number(req.params.userId);
+    
+    // Make sure deal exists
+    const deal = await storage.getDeal(dealId);
+    if (!deal) {
+      return res.status(404).json({ message: 'Deal not found' });
+    }
+    
+    const success = await storage.unassignUserFromDeal(dealId, userId);
+    if (!success) {
+      return res.status(404).json({ message: 'Assignment not found' });
+    }
+    
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to unassign user from deal' });
+  }
+});
+
 // Delete a deal
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
