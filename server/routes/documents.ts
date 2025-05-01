@@ -103,6 +103,7 @@ router.post('/upload', async (req: Request, res: Response) => {
   try {
     // In a real implementation, you'd use middleware like multer to handle file uploads
     // This is a simplified version for the memory storage
+    const storage = StorageFactory.getStorage();
     
     const { dealId, fileName, fileType, documentType, description, uploadedBy } = req.body;
     const fileSize = req.body.fileSize || 1024; // Mock file size for demo
@@ -148,6 +149,7 @@ router.post('/upload', async (req: Request, res: Response) => {
 // Delete a document
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
+    const storage = StorageFactory.getStorage();
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
       return res.status(400).json({ message: 'Invalid document ID' });

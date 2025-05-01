@@ -1,7 +1,4 @@
 import { db } from './db';
-if (!db) {
-  throw new Error('Database client not initialized');
-}
 import { IStorage } from './storage';
 import {
   User, InsertUser,
@@ -25,6 +22,9 @@ import { eq, and } from 'drizzle-orm';
 export class DatabaseStorage implements IStorage {
   // User operations
   async getUser(id: number): Promise<User | undefined> {
+    if (!db) {
+      throw new Error('Database not initialized');
+    }
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user || undefined;
   }

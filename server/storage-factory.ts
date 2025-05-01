@@ -14,12 +14,18 @@ export class StorageFactory {
    */
   public static getStorage(): IStorage {
     if (!this.instance) {
-      // Check if database is available
-      if (db) {
-        console.log('Using DatabaseStorage');
-        this.instance = new DatabaseStorage();
-      } else {
-        console.log('Using MemStorage (database not available)');
+      try {
+        // Check if database is available
+        if (db) {
+          console.log('Using DatabaseStorage');
+          this.instance = new DatabaseStorage();
+        } else {
+          console.log('Using MemStorage (database not available)');
+          this.instance = new MemStorage();
+        }
+      } catch (error) {
+        console.error('Error initializing database storage:', error);
+        console.log('Falling back to MemStorage');
         this.instance = new MemStorage();
       }
     }
