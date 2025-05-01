@@ -28,20 +28,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
-  // In a real app, check for existing session on load
+  // Check for existing session on load
   useEffect(() => {
-    // For demo purposes, set a default user
-    // In a real app, this would check for an existing auth token and validate it
-    setUser({
-      id: 2, // This matches the hard-coded user in server/routes.ts
-      username: "john",
-      fullName: "John Doe",
-      initials: "JD",
-      email: "john@doliver.com",
-      role: "partner",
-      avatarColor: "#0E4DA4"
-    });
-    setIsLoading(false);
+    const checkAuthStatus = async () => {
+      try {
+        // Try to get the current user from the server
+        const data = await apiService.auth.getCurrentUser();
+        setUser(data.user);
+      } catch (error) {
+        // If it fails, user is not authenticated
+        console.log('No active session found');
+        setUser(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    checkAuthStatus();
   }, []);
 
   const login = async (username: string, password: string) => {
@@ -69,14 +72,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    // In a real app, remove the token
-    // localStorage.removeItem('authToken');
-    toast({
-      title: "Logged out",
-      description: "You have been logged out successfully"
-    });
+  const logout = async () => {
+    try {
+      await apiService.auth.logout();
+      setUser(null);
+      toast({
+        title: "Logged out",
+        description: "You have been logged out successfully"
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+      toast({
+        title: "Logout failed",
+        description: "Could not log out properly",
+        variant: "destructive"
+      });
+    }
   };
 
   return (

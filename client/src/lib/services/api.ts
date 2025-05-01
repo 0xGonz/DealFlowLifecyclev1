@@ -13,6 +13,14 @@ export const apiService = {
       const response = await apiRequest('POST', '/api/auth/login', { username, password });
       return response.json();
     },
+    logout: async () => {
+      const response = await apiRequest('POST', '/api/auth/logout');
+      return response.json();
+    },
+    getCurrentUser: async () => {
+      const response = await apiRequest('GET', '/api/auth/me');
+      return response.json();
+    },
   },
 
   // Users
