@@ -63,6 +63,17 @@ export default function DealDetail() {
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [, setLocation] = useLocation();
   
+  // Get the active tab from URL query parameter
+  const getActiveTab = () => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const tab = searchParams.get('tab');
+    return tab === 'timeline' || tab === 'memos' || tab === 'documents' || tab === 'allocation' 
+      ? tab 
+      : 'timeline'; // Default tab
+  };
+  
+  const [activeTab, setActiveTab] = useState(getActiveTab());
+  
   const { toast } = useToast();
   
   // Safety check - redirect if ID is invalid
@@ -379,7 +390,17 @@ export default function DealDetail() {
         </Card>
         
         {/* Main content tabs */}
-        <Tabs defaultValue="timeline" className="space-y-4">
+        <Tabs 
+          value={activeTab} 
+          onValueChange={(value) => {
+            setActiveTab(value);
+            // Update the URL query parameter without page refresh
+            const url = new URL(window.location.href);
+            url.searchParams.set('tab', value);
+            window.history.pushState({}, '', url);
+          }} 
+          className="space-y-4"
+        >
           <TabsList>
             <TabsTrigger value="timeline">Timeline</TabsTrigger>
             <TabsTrigger value="memos">Mini-Memos</TabsTrigger>
