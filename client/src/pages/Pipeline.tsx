@@ -10,6 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { DealStageLabels } from "@shared/schema";
 import { Plus, Search } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 
 export default function Pipeline() {
   const [isNewDealModalOpen, setIsNewDealModalOpen] = useState(false);
@@ -19,6 +21,7 @@ export default function Pipeline() {
   const [sectorFilter, setSectorFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [dateFilter, setDateFilter] = useState("all");
+  const { toast } = useToast();
 
   const { data: deals, isLoading } = useQuery({
     queryKey: ['/api/deals'],
@@ -140,15 +143,22 @@ export default function Pipeline() {
           </div>
         </div>
         
-        {/* Pipeline Views - List and Kanban */}
-        <Tabs defaultValue="list" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="list">List View</TabsTrigger>
-            <TabsTrigger value="kanban">Kanban View</TabsTrigger>
+        {/* Pipeline Views - Deal Stages as Tabs */}
+        <Tabs defaultValue="all" className="space-y-4">
+          <TabsList className="overflow-x-auto flex-wrap">
+            <TabsTrigger value="all">All Deals</TabsTrigger>
+            {Object.entries(DealStageLabels).map(([stage, label]) => (
+              <TabsTrigger key={stage} value={stage}>
+                {label}
+                <span className="ml-2 text-xs bg-neutral-100 px-2 py-0.5 rounded-full">
+                  {dealsByStage?.[stage]?.length || 0}
+                </span>
+              </TabsTrigger>
+            ))}
           </TabsList>
           
-          {/* List View */}
-          <TabsContent value="list" className="space-y-4">
+          {/* All Deals Tab */}
+          <TabsContent value="all" className="space-y-4">
             {isLoading ? (
               <div className="py-12 text-center text-neutral-500">Loading deals...</div>
             ) : filteredDeals?.length === 0 ? (
@@ -184,9 +194,7 @@ export default function Pipeline() {
                         </td>
                         <td className="px-6 py-4 text-center">
                           <div className="inline-flex">
-                            <Select defaultValue={deal.stage} onOpenChange={(open) => {
-                              // No need to prevent propagation here
-                            }}>
+                            <Select defaultValue={deal.stage} onOpenChange={(open) => {}}>
                               <SelectTrigger className="w-[160px] h-8" onClick={(e) => e.stopPropagation()}>
                                 <SelectValue placeholder="Select status" />
                               </SelectTrigger>
@@ -219,7 +227,7 @@ export default function Pipeline() {
                                 e.stopPropagation(); // Prevent row click
                               }}
                             >
-                              <a href={`/deals/${deal.id}?tab=documents`}>
+                              <a href={`/deals/${deal.id}?tab=workflow`}>
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
                                   <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
                                   <polyline points="14 2 14 8 20 8" />
@@ -243,35 +251,96 @@ export default function Pipeline() {
             )}
           </TabsContent>
           
-          {/* Kanban View */}
-          <TabsContent value="kanban">
-            <div className="grid grid-cols-1 lg:grid-cols-4 xl:grid-cols-5 gap-4 overflow-x-auto">
-              {Object.entries(DealStageLabels).map(([stage, label]) => (
-                <div key={stage} className="bg-white rounded-lg shadow min-w-[280px]">
-                  <div className="p-3 border-b border-neutral-200">
-                    <h3 className="font-medium text-neutral-800 flex items-center justify-between">
-                      {label}
-                      <span className="text-sm bg-neutral-100 px-2 py-1 rounded-full">
-                        {dealsByStage?.[stage]?.length || 0}
-                      </span>
-                    </h3>
+          {/* Stage Specific Tabs */}
+          {Object.entries(DealStageLabels).map(([stage, label]) => (
+            <TabsContent key={stage} value={stage} className="space-y-4">
+              <div className="bg-white rounded-lg shadow overflow-hidden p-4">
+                <h2 className="text-xl font-medium mb-4">{label} Deals</h2>
+                
+                {isLoading ? (
+                  <div className="py-8 text-center text-neutral-500">Loading deals...</div>
+                ) : !dealsByStage?.[stage] || dealsByStage[stage]?.length === 0 ? (
+                  <div className="py-8 text-center text-neutral-500">
+                    No deals in {label.toLowerCase()} stage.
                   </div>
-                  
-                  <div className="p-3 space-y-3 max-h-[calc(100vh-240px)] overflow-y-auto scrollbar-thin">
-                    {dealsByStage?.[stage]?.map(deal => (
-                      <DealCard key={deal.id} deal={deal} compact />
-                    ))}
-                    
-                    {(!dealsByStage?.[stage] || dealsByStage[stage].length === 0) && (
-                      <div className="py-8 text-center text-neutral-400 text-sm">
-                        No deals in this stage
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {dealsByStage[stage].map(deal => (
+                      <div key={deal.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer" 
+                        onClick={() => window.location.href = `/deals/${deal.id}?tab=workflow`}>
+                        <div className="flex justify-between items-start mb-3">
+                          <h3 className="font-medium text-lg">{deal.name}</h3>
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedDealId(deal.id);
+                              setIsEditDealModalOpen(true);
+                            }}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+                              <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+                            </svg>
+                          </Button>
+                        </div>
+                        <p className="text-neutral-600 line-clamp-2 mb-3">{deal.description}</p>
+                        <div className="flex items-center justify-between text-sm">
+                          <div className="text-neutral-500">{deal.sector}</div>
+                          <div className="text-neutral-500">
+                            {new Date(deal.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                          </div>
+                        </div>
+                        {Object.keys(DealStageLabels)[Object.keys(DealStageLabels).indexOf(stage) + 1] && (
+                          <div className="mt-4 text-right">
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              className="text-xs px-2 py-1 h-7"
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                // Get next stage
+                                const stages = Object.keys(DealStageLabels);
+                                const currentIndex = stages.indexOf(stage);
+                                const nextStage = stages[currentIndex + 1];
+                                
+                                if (nextStage) {
+                                  try {
+                                    // Update the deal's stage
+                                    await apiRequest("PATCH", `/api/deals/${deal.id}`, {
+                                      stage: nextStage
+                                    });
+                                    
+                                    // Invalidate queries to refresh data
+                                    queryClient.invalidateQueries({ queryKey: ["/api/deals"] });
+                                    
+                                    // Show success message
+                                    toast({
+                                      title: "Stage Updated",
+                                      description: `Deal moved to ${DealStageLabels[nextStage]}`
+                                    });
+                                  } catch (error) {
+                                    toast({
+                                      title: "Error",
+                                      description: "Failed to update deal stage",
+                                      variant: "destructive"
+                                    });
+                                  }
+                                }
+                              }}
+                            >
+                              Move to Next Stage →
+                            </Button>
+                          </div>
+                        )}
                       </div>
-                    )}
+                    ))}
                   </div>
-                </div>
-              ))}
-            </div>
-          </TabsContent>
+                )}
+              </div>
+            </TabsContent>
+          ))}
         </Tabs>
         
         {/* New Deal Modal */}
