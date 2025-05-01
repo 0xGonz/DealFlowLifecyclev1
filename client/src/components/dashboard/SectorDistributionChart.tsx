@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 
 // Define interfaces for our component
+// We'll use Recharts' own type system
 
 interface SectorStatItem {
   sector: string;
@@ -178,7 +179,7 @@ export default function SectorDistributionChart() {
                   }
                   iconSize={10}
                   wrapperStyle={{ right: 0, top: 20 }}
-                  formatter={(value) => <span className="text-sm font-medium">{value}</span>}
+                  formatter={(value: string) => <span className="text-sm font-medium">{value}</span>}
                 />
               </PieChart>
             </ResponsiveContainer>
