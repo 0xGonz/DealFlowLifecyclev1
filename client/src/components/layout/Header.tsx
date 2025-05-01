@@ -14,7 +14,7 @@ export default function Header() {
   const getPageTitle = () => {
     const pathMap: Record<string, string> = {
       "/": "Dashboard",
-      "/pipeline": "Deal Pipeline",
+      "/pipeline": "Pipeline",
       "/leaderboard": "Deal Leaderboard",
       "/funds": "Funds",
       "/settings": "Settings",
