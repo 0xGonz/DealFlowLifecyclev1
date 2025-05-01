@@ -175,7 +175,7 @@ export class MemStorage implements IStorage {
       name: 'TechFusion AI',
       description: 'AI-powered enterprise solutions for manufacturing optimization',
       industry: 'Technology',
-      stage: 'due_diligence',
+      stage: 'diligence',
       round: 'Series B',
       targetRaise: '$25M',
       valuation: '$150M valuation',
@@ -222,7 +222,7 @@ export class MemStorage implements IStorage {
       eventType: 'stage_change',
       content: 'Deal moved from Screening to Diligence',
       createdBy: 2,
-      metadata: { prevStage: 'screening', newStage: 'due_diligence' }
+      metadata: { prevStage: 'screening', newStage: 'diligence' }
     });
     
     this.createTimelineEvent({
@@ -238,7 +238,7 @@ export class MemStorage implements IStorage {
       eventType: 'stage_change',
       content: 'Deal moved from Diligence to IC Review',
       createdBy: 3,
-      metadata: { prevStage: 'due_diligence', newStage: 'ic_review' }
+      metadata: { prevStage: 'diligence', newStage: 'ic_review' }
     });
     
     this.createTimelineEvent({
