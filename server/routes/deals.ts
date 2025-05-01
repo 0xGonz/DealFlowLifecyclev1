@@ -54,7 +54,17 @@ router.get('/', async (req: Request, res: Response) => {
 // Get a specific deal by ID
 router.get('/:id', async (req: Request, res: Response) => {
   try {
-    const deal = await storage.getDeal(Number(req.params.id));
+    // Check if the ID is valid
+    if (req.params.id === 'undefined' || req.params.id === 'null') {
+      return res.status(400).json({ message: 'Invalid deal ID' });
+    }
+    
+    const dealId = Number(req.params.id);
+    if (isNaN(dealId)) {
+      return res.status(400).json({ message: 'Invalid deal ID format' });
+    }
+    
+    const deal = await storage.getDeal(dealId);
     
     if (!deal) {
       return res.status(404).json({ message: 'Deal not found' });
