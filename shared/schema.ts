@@ -188,7 +188,7 @@ export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export const DealStageLabels: Record<Deal['stage'], string> = {
   initial_review: "Initial Review",
   screening: "Screening",
-  due_diligence: "Due Diligence",
+  due_diligence: "Diligence",
   ic_review: "IC Review",
   closing: "Closing",
   closed: "Closed",

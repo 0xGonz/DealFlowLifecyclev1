@@ -50,7 +50,7 @@ export default function RecentDeals() {
               <SelectItem value="all">All Stages</SelectItem>
               <SelectItem value="initial_review">Initial Review</SelectItem>
               <SelectItem value="screening">Screening</SelectItem>
-              <SelectItem value="due_diligence">Due Diligence</SelectItem>
+              <SelectItem value="due_diligence">Diligence</SelectItem>
               <SelectItem value="ic_review">IC Review</SelectItem>
               <SelectItem value="closing">Closing</SelectItem>
             </SelectContent>
