@@ -4,6 +4,7 @@ import { useRoute, useLocation } from "wouter";
 import AppLayout from "@/components/layout/AppLayout";
 import Timeline from "@/components/deals/Timeline";
 import EditDealModal from "@/components/deals/EditDealModal";
+import AssignUserModal from "@/components/deals/AssignUserModal";
 import DocumentList from "@/components/documents/DocumentList";
 import { 
   Card, 
@@ -59,6 +60,7 @@ export default function DealDetail() {
   const [match, params] = useRoute("/deals/:id");
   const [newNote, setNewNote] = useState("");
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [, setLocation] = useLocation();
   
   const { toast } = useToast();
@@ -181,6 +183,15 @@ export default function DealDetail() {
           />
         }
         
+        {/* Assign User Modal */}
+        {deal && 
+          <AssignUserModal
+            isOpen={isAssignModalOpen}
+            onClose={() => setIsAssignModalOpen(false)}
+            dealId={Number(params?.id) || 0}
+          />
+        }
+        
         {/* Back button and page title */}
         <div className="flex items-center mb-6">
           <Button variant="ghost" className="mr-2" asChild>
@@ -251,7 +262,11 @@ export default function DealDetail() {
                     </Avatar>
                   )}
                 </div>
-                <Button variant="outline" size="sm">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setIsAssignModalOpen(true)}
+                >
                   <Users className="h-4 w-4 mr-2" />
                   Assign
                 </Button>
