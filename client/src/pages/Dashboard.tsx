@@ -5,6 +5,7 @@ import QuickActions from "@/components/dashboard/QuickActions";
 import RecentDeals from "@/components/dashboard/RecentDeals";
 import ActivityFeed from "@/components/dashboard/ActivityFeed";
 import LeaderboardWidget from "@/components/dashboard/LeaderboardWidget";
+import IndustryDistributionChart from "@/components/dashboard/IndustryDistributionChart";
 import { formatCurrency } from "@/lib/utils/format";
 import { 
   Activity, 
@@ -69,8 +70,16 @@ export default function Dashboard() {
           </div>
         </div>
         
-        {/* Recent Deals */}
-        <RecentDeals />
+        {/* Industry Distribution and Recent Deals */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mt-8">
+          <div className="md:col-span-5">
+            <IndustryDistributionChart />
+          </div>
+          
+          <div className="md:col-span-7">
+            <RecentDeals />
+          </div>
+        </div>
         
         {/* Activity Feed and Leaderboard */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mt-8">
