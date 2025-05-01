@@ -26,7 +26,7 @@ const SECTOR_COLORS = [
 ];
 
 const renderCustomizedLabel = ({
-  cx, cy, midAngle, innerRadius, outerRadius, percent, index, payload
+  cx, cy, midAngle, innerRadius, outerRadius, percent, index, name, value, payload
 }: any) => {
   // Only show label if segment is large enough (> 5%)
   if (percent < 0.05) return null;
@@ -45,7 +45,7 @@ const renderCustomizedLabel = ({
       fontSize={12}
       fontWeight="bold"
     >
-      {`${payload.sector} (${(percent * 100).toFixed(0)}%)`}
+      {`${(percent * 100).toFixed(0)}%`}
     </text>
   );
 };
@@ -72,12 +72,22 @@ export default function SectorDistributionChart() {
     queryKey: ['/api/dashboard/sector-stats'],
   });
 
-  // Limit to top 8 sectors for better visualization, combine others
+  // Sort stats by count (descending) and limit to top 8 sectors
   const processedData = React.useMemo(() => {
-    if (sectorStats.length <= 8) return sectorStats;
+    // Create a copy of the array to avoid mutating the original data
+    const sortedStats = [...sectorStats].sort((a, b) => b.count - a.count);
     
-    const topSectors = sectorStats.slice(0, 7);
-    const otherSectors = sectorStats.slice(7);
+    // Map specific sectors to friendly display names if needed
+    const mappedStats = sortedStats.map(item => ({
+      ...item,
+      // You can map sector names here if needed
+      // sector: sectorNameMapping[item.sector] || item.sector
+    }));
+    
+    if (mappedStats.length <= 8) return mappedStats;
+    
+    const topSectors = mappedStats.slice(0, 7);
+    const otherSectors = mappedStats.slice(7);
     
     const otherCount = otherSectors.reduce((sum, item) => sum + item.count, 0);
     const otherPercentage = otherSectors.reduce((sum, item) => sum + item.percentage, 0);
@@ -114,17 +124,8 @@ export default function SectorDistributionChart() {
                   data={processedData}
                   cx="50%"
                   cy="50%"
-                  labelLine={true}
-                  label={{
-                    position: 'outside',
-                    offset: 20,
-                    fill: '#000',
-                    formatter: (entry: any) => {
-                      const totalCount = processedData.reduce((sum, item) => sum + item.count, 0);
-                      const percentage = (entry.count / totalCount * 100).toFixed(0);
-                      return `${entry.sector} (${percentage}%)`;
-                    },
-                  }}
+                  labelLine={false}
+                  label={renderCustomizedLabel}
                   innerRadius={60}
                   outerRadius={100}
                   fill="#8884d8"
@@ -156,8 +157,8 @@ export default function SectorDistributionChart() {
                   layout="horizontal"
                   align="center"
                   wrapperStyle={{ paddingTop: 20 }}
-                  itemMarginRight={20}
                   iconSize={10}
+                  formatter={(value) => <span className="text-base font-medium">{value}</span>}
                 />
               </PieChart>
             </ResponsiveContainer>
