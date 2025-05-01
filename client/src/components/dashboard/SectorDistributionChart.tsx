@@ -114,8 +114,17 @@ export default function SectorDistributionChart() {
                   data={processedData}
                   cx="50%"
                   cy="50%"
-                  labelLine={false}
-                  label={false}
+                  labelLine={true}
+                  label={{
+                    position: 'outside',
+                    offset: 20,
+                    fill: '#000',
+                    formatter: (entry: any) => {
+                      const totalCount = processedData.reduce((sum, item) => sum + item.count, 0);
+                      const percentage = (entry.count / totalCount * 100).toFixed(0);
+                      return `${entry.sector} (${percentage}%)`;
+                    },
+                  }}
                   innerRadius={60}
                   outerRadius={100}
                   fill="#8884d8"
@@ -132,22 +141,22 @@ export default function SectorDistributionChart() {
                 <Legend 
                   verticalAlign="bottom" 
                   height={80} 
-                  formatter={(value, entry, index) => {
-                    const totalCount = processedData.reduce((sum, item) => sum + item.count, 0);
-                    const item = processedData[index];
-                    const percentage = (item.count / totalCount * 100).toFixed(0);
-                    return (
-                      <span className="text-base font-medium flex items-center">
-                        <span>{value}</span> 
-                        <span className="ml-1 font-bold text-gray-700">({percentage}%)</span>
-                      </span>
-                    );
-                  }}
-                  iconType="circle"
+                  payload={
+                    processedData.map((item, index) => {
+                      const totalCount = processedData.reduce((sum, i) => sum + i.count, 0);
+                      const percentage = (item.count / totalCount * 100).toFixed(0);
+                      return {
+                        value: `${item.sector} (${percentage}%)`,
+                        type: 'circle',
+                        id: item.sector,
+                        color: SECTOR_COLORS[index % SECTOR_COLORS.length],
+                      };
+                    })
+                  }
                   layout="horizontal"
                   align="center"
                   wrapperStyle={{ paddingTop: 20 }}
-                  itemStyle={{ marginRight: 20 }}
+                  itemMarginRight={20}
                   iconSize={10}
                 />
               </PieChart>
