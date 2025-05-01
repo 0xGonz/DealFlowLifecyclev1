@@ -6,18 +6,23 @@ const router = Router();
 // Get dashboard stats
 router.get('/stats', async (req: Request, res: Response) => {
   try {
+    console.log('Dashboard stats: Getting storage instance');
     const storage = StorageFactory.getStorage();
+    console.log('Dashboard stats: Fetching deals');
     const deals = await storage.getDeals();
+    console.log(`Dashboard stats: Retrieved ${deals ? deals.length : 0} deals`);
+    console.log('Dashboard stats: Fetching funds');
     const funds = await storage.getFunds();
+    console.log(`Dashboard stats: Retrieved ${funds ? funds.length : 0} funds`);
     
     // Calculate dashboard stats
-    const totalDeals = deals.length;
-    const activeDeals = deals.filter(deal => deal.stage !== 'closed' && deal.stage !== 'passed').length;
-    const newDeals = deals.length; // In a real app, this would filter by recent date
-    const inIcReview = deals.filter(deal => deal.stage === 'ic_review').length;
+    const totalDeals = deals ? deals.length : 0;
+    const activeDeals = deals ? deals.filter(deal => deal.stage !== 'closed' && deal.stage !== 'passed').length : 0;
+    const newDeals = totalDeals; // In a real app, this would filter by recent date
+    const inIcReview = deals ? deals.filter(deal => deal.stage === 'ic_review').length : 0;
     
     // Calculate total AUM
-    const totalAum = funds.reduce((sum, fund) => sum + (fund.aum || 0), 0);
+    const totalAum = funds ? funds.reduce((sum, fund) => sum + (fund.aum || 0), 0) : 0;
     
     // Mock trends (would be calculated from historical data in a real app)
     const activeDealsTrend = 10; // +10%
@@ -25,7 +30,7 @@ router.get('/stats', async (req: Request, res: Response) => {
     const icReviewTrend = 5;   // +5%
     const aumTrend = 15;       // +15%
     
-    res.json({
+    const response = {
       activeDeals,
       newDeals,
       inIcReview,
@@ -34,8 +39,12 @@ router.get('/stats', async (req: Request, res: Response) => {
       newDealsTrend,
       icReviewTrend,
       aumTrend
-    });
+    };
+    
+    console.log('Dashboard stats: Sending response', response);
+    res.json(response);
   } catch (error) {
+    console.error('Error fetching dashboard stats:', error);
     res.status(500).json({ message: 'Failed to fetch dashboard stats' });
   }
 });
@@ -43,9 +52,17 @@ router.get('/stats', async (req: Request, res: Response) => {
 // Get sector distribution stats
 router.get('/sector-stats', async (req: Request, res: Response) => {
   try {
+    console.log('Sector stats: Getting storage instance');
     // Get all deals to compute sector stats
     const storage = StorageFactory.getStorage();
+    console.log('Sector stats: Fetching deals');
     const deals = await storage.getDeals();
+    console.log(`Sector stats: Retrieved ${deals ? deals.length : 0} deals`);
+    
+    if (!deals || deals.length === 0) {
+      console.log('Sector stats: No deals found, returning empty array');
+      return res.json([]);
+    }
     
     // Count deals by sector
     const sectorCount: Record<string, number> = {};
@@ -64,8 +81,10 @@ router.get('/sector-stats', async (req: Request, res: Response) => {
     // Sort by count (descending)
     sectorStats.sort((a, b) => b.count - a.count);
     
+    console.log('Sector stats: Sending response', sectorStats);
     res.json(sectorStats);
   } catch (error) {
+    console.error('Error fetching sector statistics:', error);
     res.status(500).json({ message: 'Failed to fetch sector statistics' });
   }
 });
@@ -73,9 +92,17 @@ router.get('/sector-stats', async (req: Request, res: Response) => {
 // Redirect old endpoint to new one for backward compatibility
 router.get('/industry-stats', async (req: Request, res: Response) => {
   try {
+    console.log('Industry stats: Getting storage instance');
     // Get sector statistics formatted to match the old industry-stats endpoint
     const storage = StorageFactory.getStorage();
+    console.log('Industry stats: Fetching deals');
     const deals = await storage.getDeals();
+    console.log(`Industry stats: Retrieved ${deals ? deals.length : 0} deals`);
+    
+    if (!deals || deals.length === 0) {
+      console.log('Industry stats: No deals found, returning empty array');
+      return res.json([]);
+    }
     
     // Count deals by sector
     const sectorCount: Record<string, number> = {};
@@ -94,8 +121,10 @@ router.get('/industry-stats', async (req: Request, res: Response) => {
     // Sort by count (descending)
     sectorStats.sort((a, b) => b.count - a.count);
     
+    console.log('Industry stats: Sending response', sectorStats);
     res.json(sectorStats);
   } catch (error) {
+    console.error('Error fetching industry statistics:', error);
     res.status(500).json({ message: 'Failed to fetch industry statistics' });
   }
 });

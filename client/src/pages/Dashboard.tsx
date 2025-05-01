@@ -39,7 +39,7 @@ export default function Dashboard() {
           <div className="md:col-span-9 grid grid-cols-1 md:grid-cols-4 gap-4">
             <StatsCard
               title="Active Deals"
-              value={statsLoading ? "Loading..." : stats?.activeDeals.toString() || "0"}
+              value={statsLoading ? "Loading..." : (stats?.activeDeals !== undefined ? stats.activeDeals.toString() : "0")}
               icon={<Activity className="h-6 w-6 text-primary" />}
               trend={statsLoading ? 0 : stats?.activeDealsTrend || 0}
               trendLabel="from last month"
@@ -48,7 +48,7 @@ export default function Dashboard() {
             
             <StatsCard
               title="New Deals (30d)"
-              value={statsLoading ? "Loading..." : stats?.newDeals.toString() || "0"}
+              value={statsLoading ? "Loading..." : (stats?.newDeals !== undefined ? stats.newDeals.toString() : "0")}
               icon={<TrendingUp className="h-6 w-6 text-accent" />}
               trend={statsLoading ? 0 : stats?.newDealsTrend || 0}
               trendLabel="from last month"
@@ -57,7 +57,7 @@ export default function Dashboard() {
             
             <StatsCard
               title="In IC Review"
-              value={statsLoading ? "Loading..." : stats?.inIcReview.toString() || "0"}
+              value={statsLoading ? "Loading..." : (stats?.inIcReview !== undefined ? stats.inIcReview.toString() : "0")}
               icon={<Users className="h-6 w-6 text-info" />}
               trend={statsLoading ? 0 : stats?.icReviewTrend || 0}
               trendLabel="new this week"
@@ -67,7 +67,7 @@ export default function Dashboard() {
             
             <StatsCard
               title="Total AUM"
-              value={statsLoading ? "Loading..." : formatCurrency(stats?.totalAum || 0, true) || "$0"}
+              value={statsLoading ? "Loading..." : (stats?.totalAum !== undefined ? formatCurrency(stats.totalAum, true) : "$0")}
               icon={<DollarSign className="h-6 w-6 text-success" />}
               trend={statsLoading ? 0 : stats?.aumTrend || 0}
               trendLabel="Q2 performance"
