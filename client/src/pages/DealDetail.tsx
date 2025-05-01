@@ -58,6 +58,7 @@ export default function DealDetail() {
   const [match, params] = useRoute("/deals/:id");
   const [newNote, setNewNote] = useState("");
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [, setLocation] = useLocation();
   
   const { toast } = useToast();
   
@@ -122,6 +123,37 @@ export default function DealDetail() {
     starDealMutation.mutate();
   };
   
+  const deleteDealMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest("DELETE", `/api/deals/${params?.id}`, {});
+    },
+    onSuccess: async () => {
+      toast({
+        title: "Deal deleted",
+        description: "The deal has been permanently deleted."
+      });
+      
+      // Invalidate relevant queries
+      await queryClient.invalidateQueries({ queryKey: ["/api/deals"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/leaderboard"] });
+      
+      // Redirect to pipeline page
+      setLocation("/pipeline");
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete deal. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+  
+  const handleDeleteDeal = () => {
+    deleteDealMutation.mutate();
+  };
+  
   if (isLoading) {
     return (
       <AppLayout>
@@ -167,6 +199,29 @@ export default function DealDetail() {
               <Edit className="h-4 w-4 mr-2" />
               Edit Deal
             </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive">
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you sure you want to delete this deal?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete the deal
+                    and all its associated data including timeline events, memos, and allocations.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDeleteDeal}>
+                    {deleteDealMutation.isPending ? "Deleting..." : "Delete Deal"}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
         
