@@ -154,6 +154,15 @@ export default function DealDetail() {
   });
   
   const handleDeleteDeal = () => {
+    // Only proceed if we have a valid deal ID
+    if (!params?.id) {
+      toast({
+        title: "Error",
+        description: "Cannot delete deal: Invalid deal ID",
+        variant: "destructive"
+      });
+      return;
+    }
     deleteDealMutation.mutate();
   };
   
