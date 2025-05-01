@@ -97,7 +97,7 @@ export function useDeal(dealId: number | null) {
     error,
     refetch,
   } = useQuery({
-    queryKey: dealId ? [`/api/deals/${dealId}`] : null,
+    queryKey: dealId ? [`/api/deals/${dealId}`] : ['/api/deals/null'],
     enabled: !!dealId,
     staleTime: 60000, // 1 minute
   });
@@ -109,7 +109,7 @@ export function useDeal(dealId: number | null) {
     error: timelineError,
     refetch: refetchTimeline,
   } = useQuery({
-    queryKey: dealId ? [`/api/deals/${dealId}/timeline`] : null,
+    queryKey: dealId ? [`/api/deals/${dealId}/timeline`] : ['/api/deals/timeline/null'],
     enabled: !!dealId,
     staleTime: 30000, // 30 seconds
   });
@@ -121,7 +121,7 @@ export function useDeal(dealId: number | null) {
     error: memosError,
     refetch: refetchMemos,
   } = useQuery({
-    queryKey: dealId ? [`/api/deals/${dealId}/memos`] : null,
+    queryKey: dealId ? [`/api/deals/${dealId}/memos`] : ['/api/deals/memos/null'],
     enabled: !!dealId,
   });
 
@@ -132,7 +132,7 @@ export function useDeal(dealId: number | null) {
     error: documentsError,
     refetch: refetchDocuments,
   } = useQuery({
-    queryKey: dealId ? [`/api/documents/deal/${dealId}`] : null,
+    queryKey: dealId ? [`/api/documents/deal/${dealId}`] : ['/api/documents/deal/null'],
     enabled: !!dealId,
   });
 
