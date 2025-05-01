@@ -13,7 +13,7 @@ import { Plus, Search } from "lucide-react";
 export default function Pipeline() {
   const [isNewDealModalOpen, setIsNewDealModalOpen] = useState(false);
   const [stageFilter, setStageFilter] = useState("all");
-  const [industryFilter, setIndustryFilter] = useState("all");
+  const [sectorFilter, setSectorFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [dateFilter, setDateFilter] = useState("30days");
 
@@ -28,8 +28,8 @@ export default function Pipeline() {
       return false;
     }
     
-    // Industry filter
-    if (industryFilter !== "all" && deal.industry !== industryFilter) {
+    // Sector filter
+    if (sectorFilter !== "all" && deal.sector !== sectorFilter) {
       return false;
     }
     
@@ -48,8 +48,16 @@ export default function Pipeline() {
     return true;
   });
   
-  // Get unique industries for filtering
-  const industries = deals ? Array.from(new Set(deals.map(deal => deal.industry))).sort() : [];
+  // Get unique sectors for filtering
+  const sectors = deals ? Array.from(new Set(deals.map(deal => deal.sector))).sort() : [];
+  
+  // Predefined sector list (in case we want to show all options)
+  const predefinedSectors = [
+    "Private Credit", "Buyout", "Crypto", "GP Stakes", "Energy", "Venture",
+    "Technology", "SaaS", "Fintech", "AI/ML", "Cybersecurity", "Healthcare", 
+    "Biotech", "Renewable Energy", "Clean Tech", "Consumer Goods", "E-commerce", 
+    "Retail", "Real Estate", "Other"
+  ];
 
   // Group deals by stage for the kanban view
   const dealsByStage = filteredDeals?.reduce((acc, deal) => {
@@ -103,14 +111,14 @@ export default function Pipeline() {
                 </SelectContent>
               </Select>
               
-              <Select value={industryFilter} onValueChange={setIndustryFilter}>
+              <Select value={sectorFilter} onValueChange={setSectorFilter}>
                 <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="All Industries" />
+                  <SelectValue placeholder="All Sectors" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Industries</SelectItem>
-                  {industries.map((industry) => (
-                    <SelectItem key={industry} value={industry}>{industry}</SelectItem>
+                  <SelectItem value="all">All Sectors</SelectItem>
+                  {predefinedSectors.map((sector) => (
+                    <SelectItem key={sector} value={sector}>{sector}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

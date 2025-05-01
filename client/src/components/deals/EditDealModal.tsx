@@ -217,6 +217,12 @@ export default function EditDealModal({ isOpen, onClose, dealId }: EditDealModal
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
+                          <SelectItem value="Private Credit">Private Credit</SelectItem>
+                          <SelectItem value="Buyout">Buyout</SelectItem>
+                          <SelectItem value="Crypto">Crypto</SelectItem>
+                          <SelectItem value="GP Stakes">GP Stakes</SelectItem>
+                          <SelectItem value="Energy">Energy</SelectItem>
+                          <SelectItem value="Venture">Venture</SelectItem>
                           <SelectItem value="Technology">Technology</SelectItem>
                           <SelectItem value="SaaS">SaaS</SelectItem>
                           <SelectItem value="Fintech">Fintech</SelectItem>
@@ -224,22 +230,12 @@ export default function EditDealModal({ isOpen, onClose, dealId }: EditDealModal
                           <SelectItem value="Cybersecurity">Cybersecurity</SelectItem>
                           <SelectItem value="Healthcare">Healthcare</SelectItem>
                           <SelectItem value="Biotech">Biotech</SelectItem>
-                          <SelectItem value="Medtech">Medtech</SelectItem>
-                          <SelectItem value="Pharmaceuticals">Pharmaceuticals</SelectItem>
-                          <SelectItem value="Financial Services">Financial Services</SelectItem>
-                          <SelectItem value="Insurance">Insurance</SelectItem>
-                          <SelectItem value="Banking">Banking</SelectItem>
                           <SelectItem value="Renewable Energy">Renewable Energy</SelectItem>
                           <SelectItem value="Clean Tech">Clean Tech</SelectItem>
                           <SelectItem value="Consumer Goods">Consumer Goods</SelectItem>
                           <SelectItem value="E-commerce">E-commerce</SelectItem>
                           <SelectItem value="Retail">Retail</SelectItem>
                           <SelectItem value="Real Estate">Real Estate</SelectItem>
-                          <SelectItem value="PropTech">PropTech</SelectItem>
-                          <SelectItem value="EdTech">EdTech</SelectItem>
-                          <SelectItem value="Transportation">Transportation</SelectItem>
-                          <SelectItem value="Logistics">Logistics</SelectItem>
-                          <SelectItem value="Manufacturing">Manufacturing</SelectItem>
                           <SelectItem value="Other">Other</SelectItem>
                         </SelectContent>
                       </Select>
