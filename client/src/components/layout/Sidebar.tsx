@@ -55,12 +55,12 @@ export default function Sidebar() {
       <div className="flex flex-col h-full">
         {/* Logo & Brand */}
         <div className="p-4 border-b border-neutral-200">
-          <div className="flex items-center">
+          <a href="/" className="flex items-center cursor-pointer">
             <div className="w-8 h-8 bg-primary rounded flex items-center justify-center text-white font-bold">
               D
             </div>
             <span className="ml-3 font-semibold text-lg">Doliver Capital</span>
-          </div>
+          </a>
         </div>
         
         {/* User Profile */}
