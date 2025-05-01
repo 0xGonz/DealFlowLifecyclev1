@@ -6,7 +6,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, ChevronRight, FileEdit, FileCheck } from "lucide-react";
+import { Eye, RotateCcw, FileText } from "lucide-react";
 import { Deal } from "@/lib/types";
 import { formatDistanceToNow } from "date-fns";
 import { getDealStageBadgeClass } from "@/lib/utils/format";
@@ -24,28 +24,37 @@ export default function DiligencePage() {
     return deals.filter(deal => deal.stage === "diligence");
   }, [deals]);
   
-  // Calculate stage metrics
+  // Calculate metrics for the stage
   const metrics = useMemo(() => {
+    // Count deals
     const totalDeals = diligenceDeals.length;
-    const avgDaysInStage = diligenceDeals.reduce((sum, deal) => {
+    
+    // Group by sector
+    const sectorCounts = diligenceDeals.reduce((acc, deal) => {
+      acc[deal.sector] = (acc[deal.sector] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    
+    // Convert to chart data for visualization
+    const sectorData = Object.entries(sectorCounts)
+      .sort((a, b) => b[1] - a[1])
+      .map(([name, value]) => ({ name, value }));
+    
+    // Calculate average time in days
+    const now = new Date();
+    const totalAgeInDays = diligenceDeals.reduce((sum, deal) => {
       const createdAt = new Date(deal.createdAt);
-      const now = new Date();
-      const daysInStage = Math.floor((now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
-      return sum + daysInStage;
-    }, 0) / (totalDeals || 1);
+      const ageInDays = Math.floor((now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
+      return sum + ageInDays;
+    }, 0);
     
-    // Calculate how many deals have at least one document
-    const dealsWithDocuments = diligenceDeals.filter(deal => 
-      deal.documents && deal.documents.length > 0
-    ).length;
-    
-    const documentCompletionRate = totalDeals ? 
-      Math.round((dealsWithDocuments / totalDeals) * 100) : 0;
+    const averageAgeInDays = totalDeals > 0 ? Math.round(totalAgeInDays / totalDeals) : 0;
     
     return {
       totalDeals,
-      avgDaysInStage: avgDaysInStage.toFixed(1),
-      documentCompletionRate,
+      sectorData,
+      averageAgeInDays,
+      topSectors: sectorData.slice(0, 3)
     };
   }, [diligenceDeals]);
   
@@ -68,8 +77,8 @@ export default function DiligencePage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Total Deals</CardTitle>
-              <CardDescription>Deals in Diligence stage</CardDescription>
+              <CardTitle className="text-lg">Total in Diligence</CardTitle>
+              <CardDescription>Current number of deals in diligence</CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold">{metrics.totalDeals}</p>
@@ -78,21 +87,30 @@ export default function DiligencePage() {
           
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Avg. Time in Stage</CardTitle>
-              <CardDescription>Average days in Diligence</CardDescription>
+              <CardTitle className="text-lg">Average Time in Diligence</CardTitle>
+              <CardDescription>How long deals are spending in diligence</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold">{metrics.avgDaysInStage} days</p>
+              <p className="text-3xl font-bold">{metrics.averageAgeInDays} days</p>
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Document Completion</CardTitle>
-              <CardDescription>Deals with diligence documents</CardDescription>
+              <CardTitle className="text-lg">Top Sectors</CardTitle>
+              <CardDescription>Most common sectors in diligence</CardDescription>
             </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold">{metrics.documentCompletionRate}%</p>
+            <CardContent className="space-y-2">
+              {metrics.topSectors.length > 0 ? (
+                metrics.topSectors.map((item, index) => (
+                  <div key={index} className="flex items-center justify-between">
+                    <span className="text-sm">{item.name}</span>
+                    <Badge variant="outline">{item.value}</Badge>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground">No sector data available</p>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -102,7 +120,7 @@ export default function DiligencePage() {
           <CardHeader>
             <CardTitle>Deals in Diligence</CardTitle>
             <CardDescription>
-              These deals are currently undergoing detailed due diligence
+              These deals are undergoing thorough due diligence including financial analysis and risk assessment
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -112,7 +130,7 @@ export default function DiligencePage() {
               </div>
             ) : diligenceDeals.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
-                <p>No deals in Diligence stage</p>
+                <p>No deals in diligence</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -121,19 +139,14 @@ export default function DiligencePage() {
                     <TableRow>
                       <TableHead>Company</TableHead>
                       <TableHead>Sector</TableHead>
-                      <TableHead>Target Raise</TableHead>
-                      <TableHead>Documents</TableHead>
-                      <TableHead>Days in Stage</TableHead>
+                      <TableHead>Round</TableHead>
+                      <TableHead>Valuation</TableHead>
+                      <TableHead>Lead Investor</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {diligenceDeals.map((deal) => {
-                      const createdAt = new Date(deal.createdAt);
-                      const now = new Date();
-                      const daysInStage = Math.floor((now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
-                      const documentCount = deal.documents?.length || 0;
-                      
                       return (
                         <TableRow 
                           key={deal.id} 
@@ -151,15 +164,13 @@ export default function DiligencePage() {
                             {deal.sector}
                           </TableCell>
                           <TableCell onClick={() => handleRowClick(deal.id)}>
-                            {deal.targetRaise || 'Not specified'}
+                            {deal.round}
                           </TableCell>
                           <TableCell onClick={() => handleRowClick(deal.id)}>
-                            <Badge variant={documentCount > 0 ? "default" : "outline"}>
-                              {documentCount} document{documentCount !== 1 ? 's' : ''}
-                            </Badge>
+                            {deal.valuation || 'N/A'}
                           </TableCell>
                           <TableCell onClick={() => handleRowClick(deal.id)}>
-                            {daysInStage} day{daysInStage !== 1 ? 's' : ''}
+                            {deal.leadInvestor || 'N/A'}
                           </TableCell>
                           <TableCell>
                             <div className="flex space-x-2">
@@ -175,20 +186,20 @@ export default function DiligencePage() {
                                 size="icon"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  setLocation(`/deals/${deal.id}?tab=documents`);
+                                  setLocation(`/deals/${deal.id}?tab=workflow`);
                                 }}
                               >
-                                <FileCheck className="h-4 w-4" />
+                                <RotateCcw className="h-4 w-4" />
                               </Button>
                               <Button 
                                 variant="ghost" 
                                 size="icon"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  setLocation(`/deals/${deal.id}?tab=workflow`);
+                                  setLocation(`/deals/${deal.id}?tab=documents`);
                                 }}
                               >
-                                <ChevronRight className="h-4 w-4" />
+                                <FileText className="h-4 w-4" />
                               </Button>
                             </div>
                           </TableCell>

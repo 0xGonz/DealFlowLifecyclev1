@@ -6,10 +6,11 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, DollarSign, PiggyBank } from "lucide-react";
+import { Eye, FileText, PiggyBank } from "lucide-react";
 import { Deal } from "@/lib/types";
-import { formatDistanceToNow } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
 import { getDealStageBadgeClass } from "@/lib/utils/format";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 export default function ClosedPage() {
   const [, setLocation] = useLocation();
@@ -19,49 +20,51 @@ export default function ClosedPage() {
     queryKey: ["/api/deals"],
   });
   
-  // Fetch all funds
-  const { data: funds = [] } = useQuery({
-    queryKey: ["/api/funds"],
-  });
-  
   // Filter deals to only show Closed stage
   const closedDeals = useMemo(() => {
     return deals.filter(deal => deal.stage === "closed");
   }, [deals]);
   
-  // Calculate stage metrics
+  // Calculate metrics for the stage
   const metrics = useMemo(() => {
+    // Count deals
     const totalDeals = closedDeals.length;
     
     // Calculate total invested amount
     const totalInvested = closedDeals.reduce((sum, deal) => {
-      // Sum up all allocations for the deal
-      const allocations = deal.allocations || [];
-      const dealTotal = allocations.reduce((dealSum, allocation) => dealSum + allocation.amount, 0);
-      return sum + dealTotal;
+      if (deal.committedAmount) {
+        // Remove any non-numeric characters and parse as float
+        const cleanedValue = deal.committedAmount.replace(/[^0-9.]/g, '');
+        const numValue = parseFloat(cleanedValue);
+        return isNaN(numValue) ? sum : sum + numValue;
+      }
+      return sum;
     }, 0);
     
-    // Count how many deals have fund allocations
-    const dealsWithAllocations = closedDeals.filter(deal => 
-      deal.allocations && deal.allocations.length > 0
-    ).length;
+    // Group by sector
+    const sectorCounts = closedDeals.reduce((acc, deal) => {
+      acc[deal.sector] = (acc[deal.sector] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    
+    // Convert to chart data
+    const sectorData = Object.entries(sectorCounts).map(([name, value]) => ({ name, value }));
     
     return {
       totalDeals,
-      totalInvested: (totalInvested / 1000000).toFixed(2), // Convert to millions
-      allocationRate: totalDeals ? Math.round((dealsWithAllocations / totalDeals) * 100) : 0,
+      totalInvested: new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        maximumFractionDigits: 0,
+        minimumFractionDigits: 0
+      }).format(totalInvested * 1000000), // Assuming values are in millions
+      sectorData
     };
   }, [closedDeals]);
   
   // Handle row click to navigate to deal detail
   const handleRowClick = (dealId: number) => {
     setLocation(`/deals/${dealId}`);
-  };
-  
-  // Helper to find fund name
-  const getFundName = (fundId: number) => {
-    const fund = funds.find(f => f.id === fundId);
-    return fund ? fund.name : 'Unknown Fund';
   };
   
   return (
@@ -75,11 +78,11 @@ export default function ClosedPage() {
         </div>
         
         {/* Stage Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Total Investments</CardTitle>
-              <CardDescription>Number of closed deals</CardDescription>
+              <CardTitle className="text-lg">Total Closed Deals</CardTitle>
+              <CardDescription>Number of deals that have closed</CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold">{metrics.totalDeals}</p>
@@ -88,21 +91,46 @@ export default function ClosedPage() {
           
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Total Invested</CardTitle>
-              <CardDescription>Total invested capital</CardDescription>
+              <CardTitle className="text-lg">Total Investment</CardTitle>
+              <CardDescription>Total amount committed to closed deals</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold">${metrics.totalInvested}M</p>
+              <p className="text-3xl font-bold">{metrics.totalInvested}</p>
             </CardContent>
           </Card>
           
-          <Card>
+          <Card className="md:col-span-2">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Fund Allocation</CardTitle>
-              <CardDescription>Deals allocated to funds</CardDescription>
+              <CardTitle className="text-lg">Investments by Sector</CardTitle>
+              <CardDescription>Distribution of closed deals by sector</CardDescription>
             </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold">{metrics.allocationRate}%</p>
+            <CardContent className="h-[300px]">
+              {metrics.sectorData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    width={500}
+                    height={300}
+                    data={metrics.sectorData}
+                    margin={{
+                      top: 5,
+                      right: 30,
+                      left: 20,
+                      bottom: 5,
+                    }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="value" name="Deals Closed" fill="#146C3C" />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <p className="text-center text-muted-foreground h-full flex items-center justify-center">
+                  No sector data available
+                </p>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -110,9 +138,9 @@ export default function ClosedPage() {
         {/* Deals Table */}
         <Card>
           <CardHeader>
-            <CardTitle>Closed Investments</CardTitle>
+            <CardTitle>Closed Deals</CardTitle>
             <CardDescription>
-              These deals have been successfully closed and invested
+              These deals have successfully completed the investment process
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -122,7 +150,7 @@ export default function ClosedPage() {
               </div>
             ) : closedDeals.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
-                <p>No closed investments</p>
+                <p>No closed deals</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -132,25 +160,13 @@ export default function ClosedPage() {
                       <TableHead>Company</TableHead>
                       <TableHead>Sector</TableHead>
                       <TableHead>Investment Amount</TableHead>
-                      <TableHead>Allocated To</TableHead>
-                      <TableHead>Closed Date</TableHead>
+                      <TableHead>Closing Date</TableHead>
+                      <TableHead>Status</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {closedDeals.map((deal) => {
-                      const allocations = deal.allocations || [];
-                      const totalAmount = allocations.reduce((sum, allocation) => sum + allocation.amount, 0);
-                      const formattedAmount = new Intl.NumberFormat('en-US', {
-                        style: 'currency',
-                        currency: 'USD',
-                        maximumFractionDigits: 0,
-                        notation: 'compact',
-                      }).format(totalAmount);
-                      
-                      // Get unique funds allocated to
-                      const fundIds = [...new Set(allocations.map(a => a.fundId))];
-                      
                       return (
                         <TableRow 
                           key={deal.id} 
@@ -168,27 +184,19 @@ export default function ClosedPage() {
                             {deal.sector}
                           </TableCell>
                           <TableCell onClick={() => handleRowClick(deal.id)}>
-                            <span className="font-medium">{formattedAmount}</span>
+                            {deal.committedAmount || deal.targetRaise || 'N/A'}
                           </TableCell>
                           <TableCell onClick={() => handleRowClick(deal.id)}>
-                            {fundIds.length > 0 ? (
-                              <div>
-                                {fundIds.map((fundId) => (
-                                  <Badge key={fundId} variant="outline" className="mr-1">
-                                    {getFundName(fundId)}
-                                  </Badge>
-                                ))}
-                              </div>
+                            {deal.closedAt ? (
+                              format(new Date(deal.closedAt), 'MMM d, yyyy')
                             ) : (
-                              <span className="text-muted-foreground">Not allocated</span>
+                              format(new Date(deal.updatedAt), 'MMM d, yyyy')
                             )}
                           </TableCell>
                           <TableCell onClick={() => handleRowClick(deal.id)}>
-                            {deal.updatedAt ? (
-                              formatDistanceToNow(new Date(deal.updatedAt), { addSuffix: true })
-                            ) : (
-                              'Unknown'
-                            )}
+                            <Badge variant="outline" className="bg-green-100 text-green-800 hover:bg-green-100">
+                              Closed
+                            </Badge>
                           </TableCell>
                           <TableCell>
                             <div className="flex space-x-2">
@@ -204,10 +212,20 @@ export default function ClosedPage() {
                                 size="icon"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  setLocation(`/deals/${deal.id}?tab=allocation`);
+                                  setLocation(`/deals/${deal.id}?tab=documents`);
                                 }}
                               >
-                                <DollarSign className="h-4 w-4" />
+                                <FileText className="h-4 w-4" />
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="icon"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setLocation(`/deals/${deal.id}?tab=performance`);
+                                }}
+                              >
+                                <PiggyBank className="h-4 w-4" />
                               </Button>
                             </div>
                           </TableCell>

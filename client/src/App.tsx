@@ -13,6 +13,16 @@ import DealDetail from "@/pages/DealDetail";
 import { AuthProvider } from "@/lib/context/auth-context";
 import ErrorBoundary from "@/components/common/ErrorBoundary";
 
+// Import stage pages
+import InitialReview from "@/pages/stages/InitialReview";
+import Screening from "@/pages/stages/Screening";
+import Diligence from "@/pages/stages/Diligence";
+import ICReview from "@/pages/stages/ICReview";
+import Closing from "@/pages/stages/Closing";
+import Closed from "@/pages/stages/Closed";
+import Rejected from "@/pages/stages/Rejected";
+import Passed from "@/pages/stages/Passed";
+
 function Router() {
   return (
     <Switch>
@@ -22,6 +32,17 @@ function Router() {
       <Route path="/funds" component={Funds} />
       <Route path="/funds/:id" component={FundDetail} />
       <Route path="/deals/:id" component={DealDetail} />
+      
+      {/* Stage specific routes */}
+      <Route path="/stages/initial-review" component={InitialReview} />
+      <Route path="/stages/screening" component={Screening} />
+      <Route path="/stages/diligence" component={Diligence} />
+      <Route path="/stages/ic-review" component={ICReview} />
+      <Route path="/stages/closing" component={Closing} />
+      <Route path="/stages/closed" component={Closed} />
+      <Route path="/stages/rejected" component={Rejected} />
+      <Route path="/stages/passed" component={Passed} />
+      
       <Route component={NotFound} />
     </Switch>
   );

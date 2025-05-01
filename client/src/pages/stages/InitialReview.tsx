@@ -6,10 +6,11 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, ChevronRight, FileEdit } from "lucide-react";
+import { Eye, RotateCcw } from "lucide-react";
 import { Deal } from "@/lib/types";
 import { formatDistanceToNow } from "date-fns";
 import { getDealStageBadgeClass } from "@/lib/utils/format";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
 
 export default function InitialReviewPage() {
   const [, setLocation] = useLocation();
@@ -24,21 +25,39 @@ export default function InitialReviewPage() {
     return deals.filter(deal => deal.stage === "initial_review");
   }, [deals]);
   
-  // Calculate stage metrics
+  // Calculate metrics for the stage
   const metrics = useMemo(() => {
+    // Count deals
     const totalDeals = initialReviewDeals.length;
-    const avgDaysInStage = initialReviewDeals.reduce((sum, deal) => {
+    
+    // Group by sector
+    const sectorCounts = initialReviewDeals.reduce((acc, deal) => {
+      acc[deal.sector] = (acc[deal.sector] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    
+    // Convert to chart data
+    const sectorData = Object.entries(sectorCounts).map(([name, value]) => ({ name, value }));
+    
+    // Calculate average age in days
+    const now = new Date();
+    const totalAgeInDays = initialReviewDeals.reduce((sum, deal) => {
       const createdAt = new Date(deal.createdAt);
-      const now = new Date();
-      const daysInStage = Math.floor((now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
-      return sum + daysInStage;
-    }, 0) / (totalDeals || 1);
+      const ageInDays = Math.floor((now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
+      return sum + ageInDays;
+    }, 0);
+    
+    const averageAgeInDays = totalDeals > 0 ? Math.round(totalAgeInDays / totalDeals) : 0;
     
     return {
       totalDeals,
-      avgDaysInStage: avgDaysInStage.toFixed(1),
+      sectorData,
+      averageAgeInDays
     };
   }, [initialReviewDeals]);
+  
+  // Chart colors
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'];
   
   // Handle row click to navigate to deal detail
   const handleRowClick = (dealId: number) => {
@@ -59,8 +78,8 @@ export default function InitialReviewPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Total Deals</CardTitle>
-              <CardDescription>Deals in Initial Review stage</CardDescription>
+              <CardTitle className="text-lg">Total in Initial Review</CardTitle>
+              <CardDescription>Current number of deals in initial review</CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold">{metrics.totalDeals}</p>
@@ -69,21 +88,47 @@ export default function InitialReviewPage() {
           
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Avg. Time in Stage</CardTitle>
-              <CardDescription>Average days in Initial Review</CardDescription>
+              <CardTitle className="text-lg">Average Age</CardTitle>
+              <CardDescription>Average time in initial review</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold">{metrics.avgDaysInStage} days</p>
+              <p className="text-3xl font-bold">{metrics.averageAgeInDays} days</p>
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Stage Conversion</CardTitle>
-              <CardDescription>Progression rate to next stage</CardDescription>
+              <CardTitle className="text-lg">Sector Breakdown</CardTitle>
+              <CardDescription>Distribution by sector</CardDescription>
             </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold">75%</p> {/* This would be dynamic in a real implementation */}
+            <CardContent className="h-[150px]">
+              {metrics.sectorData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={metrics.sectorData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={30}
+                      outerRadius={60}
+                      fill="#8884d8"
+                      paddingAngle={5}
+                      dataKey="value"
+                      label
+                    >
+                      {metrics.sectorData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <p className="text-center text-muted-foreground h-full flex items-center justify-center">
+                  No sector data available
+                </p>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -93,7 +138,7 @@ export default function InitialReviewPage() {
           <CardHeader>
             <CardTitle>Deals in Initial Review</CardTitle>
             <CardDescription>
-              These deals are currently being evaluated for basic fit and requirements
+              These deals are being initially assessed for potential fit with investment criteria
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -103,7 +148,7 @@ export default function InitialReviewPage() {
               </div>
             ) : initialReviewDeals.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
-                <p>No deals in Initial Review stage</p>
+                <p>No deals in initial review</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -113,60 +158,58 @@ export default function InitialReviewPage() {
                       <TableHead>Company</TableHead>
                       <TableHead>Sector</TableHead>
                       <TableHead>Round</TableHead>
-                      <TableHead>Target Raise</TableHead>
-                      <TableHead>Date Added</TableHead>
+                      <TableHead>Submitted Date</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {initialReviewDeals.map((deal) => (
-                      <TableRow 
-                        key={deal.id} 
-                        className="cursor-pointer hover:bg-muted"
-                      >
-                        <TableCell onClick={() => handleRowClick(deal.id)}>
-                          <div>
-                            <p className="font-medium">{deal.name}</p>
-                            <p className="text-sm text-muted-foreground truncate max-w-[250px]">
-                              {deal.description}
-                            </p>
-                          </div>
-                        </TableCell>
-                        <TableCell onClick={() => handleRowClick(deal.id)}>
-                          {deal.sector}
-                        </TableCell>
-                        <TableCell onClick={() => handleRowClick(deal.id)}>
-                          {deal.round}
-                        </TableCell>
-                        <TableCell onClick={() => handleRowClick(deal.id)}>
-                          {deal.targetRaise || 'Not specified'}
-                        </TableCell>
-                        <TableCell onClick={() => handleRowClick(deal.id)}>
-                          {formatDistanceToNow(new Date(deal.createdAt), { addSuffix: true })}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex space-x-2">
-                            <Button 
-                              variant="ghost" 
-                              size="icon"
-                              onClick={() => handleRowClick(deal.id)}
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="icon"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setLocation(`/deals/${deal.id}?tab=workflow`);
-                              }}
-                            >
-                              <ChevronRight className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    {initialReviewDeals.map((deal) => {
+                      return (
+                        <TableRow 
+                          key={deal.id} 
+                          className="cursor-pointer hover:bg-muted"
+                        >
+                          <TableCell onClick={() => handleRowClick(deal.id)}>
+                            <div>
+                              <p className="font-medium">{deal.name}</p>
+                              <p className="text-sm text-muted-foreground truncate max-w-[250px]">
+                                {deal.description}
+                              </p>
+                            </div>
+                          </TableCell>
+                          <TableCell onClick={() => handleRowClick(deal.id)}>
+                            {deal.sector}
+                          </TableCell>
+                          <TableCell onClick={() => handleRowClick(deal.id)}>
+                            {deal.round}
+                          </TableCell>
+                          <TableCell onClick={() => handleRowClick(deal.id)}>
+                            {formatDistanceToNow(new Date(deal.createdAt), { addSuffix: true })}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex space-x-2">
+                              <Button 
+                                variant="ghost" 
+                                size="icon"
+                                onClick={() => handleRowClick(deal.id)}
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="icon"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setLocation(`/deals/${deal.id}?tab=workflow`);
+                                }}
+                              >
+                                <RotateCcw className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </div>

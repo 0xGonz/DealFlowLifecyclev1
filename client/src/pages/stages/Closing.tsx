@@ -6,7 +6,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, ChevronRight, DollarSign } from "lucide-react";
+import { Eye, RotateCcw, FileText, LucideCalendar, Users, Clock } from "lucide-react";
 import { Deal } from "@/lib/types";
 import { formatDistanceToNow } from "date-fns";
 import { getDealStageBadgeClass } from "@/lib/utils/format";
@@ -24,37 +24,41 @@ export default function ClosingPage() {
     return deals.filter(deal => deal.stage === "closing");
   }, [deals]);
   
-  // Calculate stage metrics
+  // Calculate metrics for the stage
   const metrics = useMemo(() => {
+    // Count deals
     const totalDeals = closingDeals.length;
-    const avgDaysInStage = closingDeals.reduce((sum, deal) => {
-      const createdAt = new Date(deal.createdAt);
-      const now = new Date();
-      const daysInStage = Math.floor((now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
-      return sum + daysInStage;
-    }, 0) / (totalDeals || 1);
     
-    // Calculate total expected investment amount
-    const totalAmount = closingDeals.reduce((sum, deal) => {
+    // Calculate total investment amount
+    const totalInvestment = closingDeals.reduce((sum, deal) => {
       if (deal.targetRaise) {
-        // Extract numerical value from targetRaise (assuming format like "$5M" or "10M")
-        const match = deal.targetRaise.match(/\$?(\d+(\.\d+)?)[mM]?/);
-        if (match) {
-          let amount = parseFloat(match[1]);
-          // If the amount is in millions (contains 'M' or 'm')
-          if (deal.targetRaise.toLowerCase().includes('m')) {
-            amount *= 1000000;
-          }
-          return sum + amount;
-        }
+        // Remove any non-numeric characters and parse as float
+        const cleanedValue = deal.targetRaise.replace(/[^0-9.]/g, '');
+        const numValue = parseFloat(cleanedValue);
+        return isNaN(numValue) ? sum : sum + numValue;
       }
       return sum;
     }, 0);
     
+    // Calculate average age in days
+    const now = new Date();
+    const totalAgeInDays = closingDeals.reduce((sum, deal) => {
+      const createdAt = new Date(deal.createdAt);
+      const ageInDays = Math.floor((now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
+      return sum + ageInDays;
+    }, 0);
+    
+    const averageAgeInDays = totalDeals > 0 ? Math.round(totalAgeInDays / totalDeals) : 0;
+    
     return {
       totalDeals,
-      avgDaysInStage: avgDaysInStage.toFixed(1),
-      totalAmount: (totalAmount / 1000000).toFixed(2), // Convert to millions
+      totalInvestment: new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        maximumFractionDigits: 0,
+        minimumFractionDigits: 0
+      }).format(totalInvestment * 1000000), // Assuming values are in millions
+      averageAgeInDays,
     };
   }, [closingDeals]);
   
@@ -77,8 +81,8 @@ export default function ClosingPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Total Deals</CardTitle>
-              <CardDescription>Deals in Closing stage</CardDescription>
+              <CardTitle className="text-lg">Deals in Closing</CardTitle>
+              <CardDescription>Current number of deals in closing stage</CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold">{metrics.totalDeals}</p>
@@ -88,20 +92,20 @@ export default function ClosingPage() {
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-lg">Total Investment</CardTitle>
-              <CardDescription>Expected investment amount</CardDescription>
+              <CardDescription>Total investment amount in closing</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold">${metrics.totalAmount}M</p>
+              <p className="text-3xl font-bold">{metrics.totalInvestment}</p>
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Avg. Time to Close</CardTitle>
-              <CardDescription>Average days in Closing stage</CardDescription>
+              <CardTitle className="text-lg">Average Closing Time</CardTitle>
+              <CardDescription>Average time in closing stage</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold">{metrics.avgDaysInStage} days</p>
+              <p className="text-3xl font-bold">{metrics.averageAgeInDays} days</p>
             </CardContent>
           </Card>
         </div>
@@ -111,7 +115,7 @@ export default function ClosingPage() {
           <CardHeader>
             <CardTitle>Deals in Closing</CardTitle>
             <CardDescription>
-              These deals are in the final stages of closing the investment
+              These deals are in the final closing process with documentation and fund allocations
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -121,7 +125,7 @@ export default function ClosingPage() {
               </div>
             ) : closingDeals.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
-                <p>No deals in Closing stage</p>
+                <p>No deals in closing</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -129,19 +133,15 @@ export default function ClosingPage() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Company</TableHead>
-                      <TableHead>Target Raise</TableHead>
-                      <TableHead>Valuation</TableHead>
-                      <TableHead>Lead Investor</TableHead>
-                      <TableHead>Days in Stage</TableHead>
+                      <TableHead>Sector</TableHead>
+                      <TableHead>Target Investment</TableHead>
+                      <TableHead>Expected Closing</TableHead>
+                      <TableHead>Status</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {closingDeals.map((deal) => {
-                      const createdAt = new Date(deal.createdAt);
-                      const now = new Date();
-                      const daysInStage = Math.floor((now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
-                      
                       return (
                         <TableRow 
                           key={deal.id} 
@@ -156,16 +156,22 @@ export default function ClosingPage() {
                             </div>
                           </TableCell>
                           <TableCell onClick={() => handleRowClick(deal.id)}>
-                            {deal.targetRaise || 'Not specified'}
+                            {deal.sector}
                           </TableCell>
                           <TableCell onClick={() => handleRowClick(deal.id)}>
-                            {deal.valuation || 'Not specified'}
+                            {deal.targetRaise || 'N/A'}
                           </TableCell>
                           <TableCell onClick={() => handleRowClick(deal.id)}>
-                            {deal.leadInvestor || 'Not specified'}
+                            {deal.expectedClosingDate ? (
+                              new Date(deal.expectedClosingDate).toLocaleDateString()
+                            ) : (
+                              'Not scheduled'
+                            )}
                           </TableCell>
                           <TableCell onClick={() => handleRowClick(deal.id)}>
-                            {daysInStage} day{daysInStage !== 1 ? 's' : ''}
+                            <Badge variant="outline" className="bg-amber-100 text-amber-800 hover:bg-amber-100">
+                              In progress
+                            </Badge>
                           </TableCell>
                           <TableCell>
                             <div className="flex space-x-2">
@@ -181,20 +187,20 @@ export default function ClosingPage() {
                                 size="icon"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  setLocation(`/deals/${deal.id}?tab=allocation`);
+                                  setLocation(`/deals/${deal.id}?tab=workflow`);
                                 }}
                               >
-                                <DollarSign className="h-4 w-4" />
+                                <RotateCcw className="h-4 w-4" />
                               </Button>
                               <Button 
                                 variant="ghost" 
                                 size="icon"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  setLocation(`/deals/${deal.id}?tab=workflow`);
+                                  setLocation(`/deals/${deal.id}?tab=documents`);
                                 }}
                               >
-                                <ChevronRight className="h-4 w-4" />
+                                <FileText className="h-4 w-4" />
                               </Button>
                             </div>
                           </TableCell>
