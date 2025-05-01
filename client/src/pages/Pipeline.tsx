@@ -169,7 +169,7 @@ export default function Pipeline() {
                         <td className="px-6 py-4">
                           <div className="font-medium text-neutral-900">{deal.name}</div>
                           <div className="text-xs text-neutral-500 mt-1">
-                            In DD since {new Date(deal.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                            {deal.stage === 'diligence' ? 'In Diligence' : DealStageLabels[deal.stage]} since {new Date(deal.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                           </div>
                         </td>
                         <td className="px-6 py-4 text-neutral-600">{deal.sector}</td>
