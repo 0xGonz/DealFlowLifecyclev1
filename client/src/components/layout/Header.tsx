@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import NewDealModal from "@/components/deals/NewDealModal";
 import { Plus, Search } from "lucide-react";
 import NotificationDropdown from "@/components/notifications/NotificationDropdown";
@@ -52,6 +53,17 @@ export default function Header() {
           
           <div className="relative">
             <NotificationDropdown />
+          </div>
+          
+          {/* User Profile Avatar */}
+          <div className="relative cursor-pointer group">
+            <Avatar>
+              <AvatarFallback className="bg-primary text-white">JD</AvatarFallback>
+            </Avatar>
+            <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 hidden group-hover:block">
+              <a href="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Manage Profile</a>
+              <a href="/logout" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Logout</a>
+            </div>
           </div>
         </div>
       </div>
