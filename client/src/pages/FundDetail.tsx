@@ -80,7 +80,7 @@ export default function FundDetail() {
   
   // Fetch allocations for this fund
   const { data: allocations, isLoading: isAllocationsLoading } = useQuery({
-    queryKey: ['/api/funds', fundId, 'allocations'],
+    queryKey: [`/api/allocations/fund/${fundId}`],
     enabled: !!fundId,
   });
   
@@ -112,7 +112,7 @@ export default function FundDetail() {
       setIsNewAllocationDialogOpen(false);
       
       // Invalidate queries to refresh data
-      queryClient.invalidateQueries({ queryKey: ['/api/funds', fundId, 'allocations'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/allocations/fund/${fundId}`] });
       queryClient.invalidateQueries({ queryKey: ['/api/funds', fundId] }); // Refresh fund details (AUM might change)
     },
     onError: () => {
