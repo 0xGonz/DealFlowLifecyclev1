@@ -7,7 +7,8 @@ import {
   Fund, InsertFund,
   FundAllocation, InsertFundAllocation,
   DealAssignment, InsertDealAssignment,
-  Notification, InsertNotification
+  Notification, InsertNotification,
+  Document, InsertDocument
 } from "@shared/schema";
 
 // Interface for storage operations
@@ -42,6 +43,13 @@ export interface IStorage {
   getMiniMemosByDeal(dealId: number): Promise<MiniMemo[]>;
   updateMiniMemo(id: number, memo: Partial<InsertMiniMemo>): Promise<MiniMemo | undefined>;
   
+  // Documents
+  createDocument(document: InsertDocument): Promise<Document>;
+  getDocument(id: number): Promise<Document | undefined>;
+  getDocumentsByDeal(dealId: number): Promise<Document[]>;
+  getDocumentsByType(dealId: number, documentType: string): Promise<Document[]>;
+  deleteDocument(id: number): Promise<boolean>;
+  
   // Funds
   createFund(fund: InsertFund): Promise<Fund>;
   getFund(id: number): Promise<Fund | undefined>;
@@ -74,6 +82,7 @@ export class MemStorage implements IStorage {
   private timelineEvents: Map<number, TimelineEvent>;
   private dealStars: Map<number, DealStar>;
   private miniMemos: Map<number, MiniMemo>;
+  private documents: Map<number, Document>;
   private funds: Map<number, Fund>;
   private fundAllocations: Map<number, FundAllocation>;
   private dealAssignments: Map<number, DealAssignment>;
@@ -84,6 +93,7 @@ export class MemStorage implements IStorage {
   private eventIdCounter: number;
   private starIdCounter: number;
   private memoIdCounter: number;
+  private documentIdCounter: number;
   private fundIdCounter: number;
   private allocationIdCounter: number;
   private assignmentIdCounter: number;
@@ -95,6 +105,7 @@ export class MemStorage implements IStorage {
     this.timelineEvents = new Map();
     this.dealStars = new Map();
     this.miniMemos = new Map();
+    this.documents = new Map();
     this.funds = new Map();
     this.fundAllocations = new Map();
     this.dealAssignments = new Map();
@@ -105,6 +116,7 @@ export class MemStorage implements IStorage {
     this.eventIdCounter = 1;
     this.starIdCounter = 1;
     this.memoIdCounter = 1;
+    this.documentIdCounter = 1;
     this.fundIdCounter = 1;
     this.allocationIdCounter = 1;
     this.assignmentIdCounter = 1;
