@@ -68,10 +68,10 @@ router.get('/sector-stats', async (req: Request, res: Response) => {
   }
 });
 
-// Keeping the old endpoint for backward compatibility
+// Redirect old endpoint to new one for backward compatibility
 router.get('/industry-stats', async (req: Request, res: Response) => {
   try {
-    // Get all deals to compute sector stats
+    // Get sector statistics formatted to match the old industry-stats endpoint
     const deals = await storage.getDeals();
     
     // Count deals by sector
