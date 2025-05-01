@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { apiService } from "@/lib/services/api";
+import { apiRequest } from "@/lib/queryClient";
 
 interface User {
   id: number;
@@ -46,8 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (username: string, password: string) => {
     try {
       setIsLoading(true);
-      const response = await apiRequest("POST", "/api/auth/login", { username, password });
-      const data = await response.json();
+      const data = await apiService.auth.login(username, password);
       setUser(data.user);
       
       // In a real app, store the token
