@@ -1,32 +1,46 @@
-import { Router, Request, Response } from "express";
-import { storage } from "../storage";
+import express, { Request, Response } from 'express';
+import { asyncHandler } from '../utils/errorHandlers';
+import { login, logout, getCurrentUser } from '../utils/auth';
+import { z } from 'zod';
 
-const router = Router();
+const router = express.Router();
 
-// Auth routes (simplified for MVP)
-router.post('/login', async (req: Request, res: Response) => {
-  try {
-    const { username, password } = req.body;
-    
-    if (!username || !password) {
-      return res.status(400).json({ message: 'Username and password required' });
-    }
-    
-    const user = await storage.getUserByUsername(username);
-    
-    if (!user || user.password !== password) {
-      return res.status(401).json({ message: 'Invalid credentials' });
-    }
-    
-    // In a real app, you'd create a JWT token here
-    const { password: _, ...userWithoutPassword } = user;
-    res.json({ 
-      user: userWithoutPassword,
-      token: 'fake-jwt-token'
-    });
-  } catch (error) {
-    res.status(500).json({ message: 'Login failed' });
-  }
+// Login validation schema
+const loginSchema = z.object({
+  username: z.string().min(3, 'Username must be at least 3 characters'),
+  password: z.string().min(6, 'Password must be at least 6 characters')
 });
+
+// Login route
+router.post('/login', asyncHandler(async (req: Request, res: Response) => {
+  // Validate request body
+  const { username, password } = loginSchema.parse(req.body);
+  
+  // Attempt login
+  const user = await login(req, username, password);
+  
+  // Return user info (without password)
+  const { password: _, ...userWithoutPassword } = user;
+  return res.json(userWithoutPassword);
+}));
+
+// Logout route
+router.post('/logout', asyncHandler(async (req: Request, res: Response) => {
+  await logout(req);
+  return res.json({ success: true, message: 'Logged out successfully' });
+}));
+
+// Get current user route
+router.get('/me', asyncHandler(async (req: Request, res: Response) => {
+  const user = await getCurrentUser(req);
+  
+  if (!user) {
+    return res.status(401).json({ message: 'Not authenticated' });
+  }
+  
+  // Return user info (without password)
+  const { password: _, ...userWithoutPassword } = user;
+  return res.json(userWithoutPassword);
+}));
 
 export default router;

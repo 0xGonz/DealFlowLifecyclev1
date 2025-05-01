@@ -3,10 +3,30 @@ import session from "express-session";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { errorHandler } from "./utils/errorHandlers";
+import { pool } from "./db";
+
+// Setup PostgreSQL session store
+const pgSession = require('connect-pg-simple')(session);
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Configure session middleware
+app.use(session({
+  store: new pgSession({
+    pool,
+    tableName: 'session', // Use this table to store session data
+    createTableIfMissing: true // Automatically create the session table if it doesn't exist
+  }),
+  secret: process.env.SESSION_SECRET || 'investment-tracker-secret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  }
+}));
 
 app.use((req, res, next) => {
   const start = Date.now();
