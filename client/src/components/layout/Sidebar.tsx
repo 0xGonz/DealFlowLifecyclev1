@@ -61,18 +61,7 @@ export default function Sidebar() {
           </a>
         </div>
         
-        {/* User Profile */}
-        <div className="p-4 border-b border-neutral-200">
-          <div className="flex items-center">
-            <Avatar>
-              <AvatarFallback className="bg-primary text-white">JD</AvatarFallback>
-            </Avatar>
-            <div className="ml-3">
-              <p className="font-semibold text-sm">John Doe</p>
-              <p className="text-xs text-neutral-600">Partner / IC</p>
-            </div>
-          </div>
-        </div>
+        {/* User Profile moved to bottom */}
         
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto scrollbar-thin py-4">
@@ -117,7 +106,18 @@ export default function Sidebar() {
           </ul>
         </nav>
         
+        {/* User Profile */}
         <div className="p-4 border-t border-neutral-200">
+          <div className="flex items-center mb-4">
+            <Avatar>
+              <AvatarFallback className="bg-primary text-white">JD</AvatarFallback>
+            </Avatar>
+            <div className="ml-3">
+              <p className="font-semibold text-sm">John Doe</p>
+              <p className="text-xs text-neutral-600">Partner / IC</p>
+            </div>
+          </div>
+          
           <a href="/logout" className="flex items-center text-neutral-700 hover:text-neutral-900">
             <LogOut className="h-5 w-5 mr-3" />
             Logout
