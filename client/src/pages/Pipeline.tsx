@@ -15,7 +15,7 @@ export default function Pipeline() {
   const [stageFilter, setStageFilter] = useState("all");
   const [sectorFilter, setSectorFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
-  const [dateFilter, setDateFilter] = useState("30days");
+  const [dateFilter, setDateFilter] = useState("all");
 
   const { data: deals, isLoading } = useQuery({
     queryKey: ['/api/deals'],
@@ -123,7 +123,7 @@ export default function Pipeline() {
               </SelectContent>
             </Select>
             
-            <Select defaultValue="30days">
+            <Select value="all" onValueChange={() => {}}>
               <SelectTrigger className="w-[150px] bg-white border-neutral-300">
                 <SelectValue placeholder="Any Time" />
               </SelectTrigger>
