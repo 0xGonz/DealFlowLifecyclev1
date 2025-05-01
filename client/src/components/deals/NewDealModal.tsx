@@ -41,7 +41,7 @@ import { Card } from "@/components/ui/card";
 const dealFormSchema = z.object({
   name: z.string().min(1, "Company name is required"),
   description: z.string().min(1, "Description is required"),
-  industry: z.string().min(1, "Industry is required"),
+  sector: z.string().min(1, "Sector is required"),
   round: z.string().optional(),
   targetRaise: z.string().optional(),
   valuation: z.string().optional(),
@@ -70,7 +70,7 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
     defaultValues: {
       name: "",
       description: "",
-      industry: "",
+      sector: "",
       round: "",
       targetRaise: "",
       valuation: "",
@@ -90,7 +90,15 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
 
   const uploadDocumentMutation = useMutation({
     mutationFn: async (formData: FormData) => {
-      return apiRequest('POST', '/api/documents/upload', formData, true);
+      // Using standard fetch for FormData upload
+      const response = await fetch('/api/documents/upload', {
+        method: 'POST',
+        body: formData
+      });
+      if (!response.ok) {
+        throw new Error('Failed to upload document');
+      }
+      return response.json();
     },
     onSuccess: (_, variables) => {
       toast({
@@ -424,6 +432,51 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
                 </FormItem>
               )}
             />
+            
+            <div className="space-y-2">
+              <Label>Pitch Deck (Optional)</Label>
+              <div className="flex flex-col gap-2">
+                {pitchDeck ? (
+                  <Card className="p-3 flex items-center justify-between">
+                    <div className="flex items-center">
+                      <File className="h-5 w-5 mr-2 text-neutral-500" />
+                      <div>
+                        <p className="font-medium text-sm">{pitchDeck.name}</p>
+                        <p className="text-xs text-neutral-500">{(pitchDeck.size / 1024).toFixed(1)} KB</p>
+                      </div>
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => {
+                        setPitchDeck(null);
+                        if (fileInputRef.current) {
+                          fileInputRef.current.value = '';
+                        }
+                      }}
+                    >
+                      Remove
+                    </Button>
+                  </Card>
+                ) : (
+                  <div 
+                    className="border border-dashed rounded-md p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-neutral-50 transition-colors"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <FileUp className="h-8 w-8 mb-2 text-neutral-400" />
+                    <p className="text-sm font-medium">Click to upload a pitch deck</p>
+                    <p className="text-xs text-neutral-500">PDF, PPT, or PPTX (max 10MB)</p>
+                  </div>
+                )}
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  className="hidden" 
+                  onChange={handleFileChange}
+                  accept=".pdf,.ppt,.pptx,application/pdf,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+                />
+              </div>
+            </div>
 
             <DialogFooter>
               <Button variant="outline" type="button" onClick={onClose}>
