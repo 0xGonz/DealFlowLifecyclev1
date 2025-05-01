@@ -5,20 +5,12 @@ import { setupVite, serveStatic, log } from "./vite";
 import { errorHandler } from "./utils/errorHandlers";
 import { pool } from "./db";
 
-// Setup PostgreSQL session store
-const pgSession = require('connect-pg-simple')(session);
-
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Configure session middleware
+// Configure session middleware with memory store (for now)
 app.use(session({
-  store: new pgSession({
-    pool,
-    tableName: 'session', // Use this table to store session data
-    createTableIfMissing: true // Automatically create the session table if it doesn't exist
-  }),
   secret: process.env.SESSION_SECRET || 'investment-tracker-secret',
   resave: false,
   saveUninitialized: false,
@@ -59,6 +51,8 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // We're using in-memory session store for now to simplify setup
+  
   const server = await registerRoutes(app);
 
   // Error handling is centralized in routes.ts

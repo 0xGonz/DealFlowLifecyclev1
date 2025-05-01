@@ -165,7 +165,7 @@ export default function Pipeline() {
                   </thead>
                   <tbody className="divide-y divide-neutral-200">
                     {filteredDeals?.map(deal => (
-                      <tr key={deal.id} className="hover:bg-neutral-50 transition-colors">
+                      <tr key={deal.id} className="hover:bg-neutral-50 transition-colors cursor-pointer" onClick={() => window.location.href = `/deals/${deal.id}`}>
                         <td className="px-6 py-4">
                           <div className="font-medium text-neutral-900">{deal.name}</div>
                           <div className="text-xs text-neutral-500 mt-1">
@@ -181,8 +181,10 @@ export default function Pipeline() {
                         </td>
                         <td className="px-6 py-4 text-center">
                           <div className="inline-flex">
-                            <Select defaultValue={deal.stage}>
-                              <SelectTrigger className="w-[160px] h-8">
+                            <Select defaultValue={deal.stage} onOpenChange={(open) => {
+                              // No need to prevent propagation here
+                            }}>
+                              <SelectTrigger className="w-[160px] h-8" onClick={(e) => e.stopPropagation()}>
                                 <SelectValue placeholder="Select status" />
                               </SelectTrigger>
                               <SelectContent>
@@ -195,14 +197,6 @@ export default function Pipeline() {
                         </td>
                         <td className="px-6 py-4 text-center">
                           <div className="flex items-center justify-center space-x-2">
-                            <Button variant="ghost" size="icon" asChild>
-                              <a href={`/deals/${deal.id}`} title="View Deal">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
-                                  <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-                                  <circle cx="12" cy="12" r="3" />
-                                </svg>
-                              </a>
-                            </Button>
                             <Button variant="ghost" size="icon" asChild>
                               <a href={`/deals/${deal.id}`} title="Edit Deal">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
