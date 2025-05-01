@@ -72,13 +72,6 @@ export default function Pipeline() {
   return (
     <AppLayout>
       <div className="flex-1 overflow-y-auto p-6 pb-20">
-        {/* Page header with title and button */}
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-semibold">Deal Pipeline</h1>
-          <Button onClick={() => setIsNewDealModalOpen(true)} className="bg-[#146c3c] hover:bg-[#0d5c2f]">
-            <Plus className="h-4 w-4 mr-2" /> Add Deal
-          </Button>
-        </div>
         
         {/* Filters */}
         <div className="flex items-center justify-between mb-6 gap-4 flex-wrap">
