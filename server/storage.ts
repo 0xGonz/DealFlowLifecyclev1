@@ -174,7 +174,7 @@ export class MemStorage implements IStorage {
     const deal1 = this.createDeal({
       name: 'TechFusion AI',
       description: 'AI-powered enterprise solutions for manufacturing optimization',
-      industry: 'Technology',
+      sector: 'Technology',
       stage: 'diligence',
       round: 'Series B',
       targetRaise: '$25M',
@@ -189,7 +189,7 @@ export class MemStorage implements IStorage {
     const deal2 = this.createDeal({
       name: 'GreenScale Renewables',
       description: 'Modular solar integration platform for commercial buildings',
-      industry: 'Renewable Energy',
+      sector: 'Renewable Energy',
       stage: 'ic_review',
       round: 'Series A',
       targetRaise: '$12M',
@@ -204,7 +204,7 @@ export class MemStorage implements IStorage {
     const deal3 = this.createDeal({
       name: 'QuantumEdge Computing',
       description: 'Quantum computing infrastructure for financial services',
-      industry: 'Technology',
+      sector: 'Technology',
       stage: 'screening',
       round: 'Seed Extension',
       targetRaise: '$5M',
