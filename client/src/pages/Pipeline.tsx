@@ -13,6 +13,7 @@ import { Plus, Search } from "lucide-react";
 export default function Pipeline() {
   const [isNewDealModalOpen, setIsNewDealModalOpen] = useState(false);
   const [stageFilter, setStageFilter] = useState("all");
+  const [industryFilter, setIndustryFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [dateFilter, setDateFilter] = useState("30days");
 
