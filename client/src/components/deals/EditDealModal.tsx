@@ -40,14 +40,15 @@ import { DealStageLabels } from "@shared/schema";
 const dealFormSchema = z.object({
   name: z.string().min(1, "Company name is required"),
   description: z.string().min(1, "Description is required"),
-  industry: z.string().min(1, "Industry is required"),
+  industry: z.string().min(1, "Sector is required"),
   round: z.string().optional(),
   targetRaise: z.string().optional(),
   valuation: z.string().optional(),
   leadInvestor: z.string().optional(),
   contactEmail: z.string().email("Invalid email address").optional().or(z.literal("")),
   notes: z.string().optional(),
-  stage: z.enum(["initial_review", "screening", "due_diligence", "ic_review", "closing", "closed", "passed"]),
+  stage: z.enum(["initial_review", "screening", "diligence", "ic_review", "closing", "closed", "passed", "rejected"]),
+  rejectionReason: z.string().optional(),
   tags: z.array(z.string()).optional()
 });
 
@@ -401,7 +402,13 @@ export default function EditDealModal({ isOpen, onClose, dealId }: EditDealModal
                     <FormLabel>Deal Stage</FormLabel>
                     <FormControl>
                       <RadioGroup
-                        onValueChange={field.onChange}
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                          // If moving away from rejected, clear rejection reason
+                          if (value !== "rejected" && form.getValues().rejectionReason) {
+                            form.setValue("rejectionReason", "");
+                          }
+                        }}
                         defaultValue={field.value}
                         value={field.value}
                         className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4"
@@ -418,6 +425,26 @@ export default function EditDealModal({ isOpen, onClose, dealId }: EditDealModal
                   </FormItem>
                 )}
               />
+              
+              {form.watch("stage") === "rejected" && (
+                <FormField
+                  control={form.control}
+                  name="rejectionReason"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Rejection Reason</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="Please provide a reason for rejecting this deal" 
+                          rows={3} 
+                          {...field} 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
 
               <DialogFooter>
                 <Button variant="outline" type="button" onClick={onClose}>

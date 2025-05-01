@@ -25,8 +25,10 @@ export const deals = pgTable("deals", {
   description: text("description").notNull(),
   sector: text("industry").notNull(), // DB column is 'industry' but we use 'sector' in our code
   stage: text("stage", { 
-    enum: ["initial_review", "screening", "diligence", "ic_review", "closing", "closed", "passed"]
+    enum: ["initial_review", "screening", "diligence", "ic_review", "closing", "closed", "passed", "rejected"]
   }).notNull().default("initial_review"),
+  rejectionReason: text("rejection_reason"),
+  rejectedAt: timestamp("rejected_at"),
   round: text("round").notNull(),
   targetRaise: text("target_raise"),
   valuation: text("valuation"),
@@ -213,7 +215,8 @@ export const DealStageLabels: Record<Deal['stage'], string> = {
   ic_review: "IC Review",
   closing: "Closing",
   closed: "Closed",
-  passed: "Passed"
+  passed: "Passed",
+  rejected: "Rejected"
 };
 
 // Helper for stage colors
@@ -224,5 +227,6 @@ export const DealStageColors: Record<Deal['stage'], string> = {
   ic_review: "info",
   closing: "success",
   closed: "success",
-  passed: "danger"
+  passed: "danger",
+  rejected: "danger"
 };
