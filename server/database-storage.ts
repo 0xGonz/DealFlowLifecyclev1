@@ -1,108 +1,100 @@
-import { 
-  users, type User, type InsertUser,
-  deals, type Deal, type InsertDeal,
-  timelineEvents, type TimelineEvent, type InsertTimelineEvent,
-  dealStars, type DealStar, type InsertDealStar,
-  miniMemos, type MiniMemo, type InsertMiniMemo,
-  funds, type Fund, type InsertFund,
-  fundAllocations, type FundAllocation, type InsertFundAllocation,
-  dealAssignments, type DealAssignment, type InsertDealAssignment,
-  notifications, type Notification, type InsertNotification,
-  documents, type Document, type InsertDocument
-} from "@shared/schema";
-import { db } from "./db";
-import { eq, and, desc } from "drizzle-orm";
-import { IStorage } from "./storage";
+import { db } from './db';
+if (!db) {
+  throw new Error('Database client not initialized');
+}
+import { IStorage } from './storage';
+import {
+  User, InsertUser,
+  Deal, InsertDeal,
+  TimelineEvent, InsertTimelineEvent,
+  DealStar, InsertDealStar,
+  MiniMemo, InsertMiniMemo,
+  Document, InsertDocument,
+  Fund, InsertFund,
+  FundAllocation, InsertFundAllocation,
+  DealAssignment, InsertDealAssignment,
+  Notification, InsertNotification,
+  users, deals, timelineEvents, dealStars, miniMemos, documents,
+  funds, fundAllocations, dealAssignments, notifications
+} from '@shared/schema';
+import { eq, and } from 'drizzle-orm';
 
+/**
+ * PostgreSQL database implementation of the storage interface
+ */
 export class DatabaseStorage implements IStorage {
   // User operations
   async getUser(id: number): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user;
+    return user || undefined;
   }
-
+  
   async getUserByUsername(username: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
+  }
+  
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db.insert(users).values(insertUser).returning();
     return user;
   }
-
-  async createUser(user: InsertUser): Promise<User> {
-    const [newUser] = await db.insert(users).values(user).returning();
-    return newUser;
-  }
-
+  
   async getUsers(): Promise<User[]> {
-    return db.select().from(users);
+    return await db.select().from(users);
   }
-
+  
   // Deal operations
   async createDeal(deal: InsertDeal): Promise<Deal> {
     const [newDeal] = await db.insert(deals).values(deal).returning();
     return newDeal;
   }
-
+  
   async getDeal(id: number): Promise<Deal | undefined> {
     const [deal] = await db.select().from(deals).where(eq(deals.id, id));
-    return deal;
+    return deal || undefined;
   }
-
+  
   async getDeals(): Promise<Deal[]> {
-    return db.select().from(deals).orderBy(desc(deals.createdAt));
+    return await db.select().from(deals);
   }
-
+  
   async getDealsByStage(stage: Deal['stage']): Promise<Deal[]> {
-    return db.select().from(deals).where(eq(deals.stage, stage)).orderBy(desc(deals.createdAt));
+    return await db.select().from(deals).where(eq(deals.stage, stage));
   }
-
+  
   async updateDeal(id: number, dealUpdate: Partial<InsertDeal>): Promise<Deal | undefined> {
     const [updatedDeal] = await db
       .update(deals)
-      .set({ ...dealUpdate, updatedAt: new Date() })
+      .set(dealUpdate)
       .where(eq(deals.id, id))
       .returning();
-    return updatedDeal;
+    return updatedDeal || undefined;
   }
-
+  
   async deleteDeal(id: number): Promise<boolean> {
     const result = await db.delete(deals).where(eq(deals.id, id));
     return !!result;
   }
-
+  
   // Timeline events
   async createTimelineEvent(event: InsertTimelineEvent): Promise<TimelineEvent> {
     const [newEvent] = await db.insert(timelineEvents).values(event).returning();
     return newEvent;
   }
-
+  
   async getTimelineEventsByDeal(dealId: number): Promise<TimelineEvent[]> {
-    return db
+    return await db
       .select()
       .from(timelineEvents)
-      .where(eq(timelineEvents.dealId, dealId))
-      .orderBy(desc(timelineEvents.createdAt));
+      .where(eq(timelineEvents.dealId, dealId));
   }
   
-  // Deal stars (leaderboard)
+  // Deal stars
   async starDeal(starData: InsertDealStar): Promise<DealStar> {
-    const [existingStar] = await db
-      .select()
-      .from(dealStars)
-      .where(
-        and(
-          eq(dealStars.dealId, starData.dealId),
-          eq(dealStars.userId, starData.userId)
-        )
-      );
-      
-    // If star already exists, return it
-    if (existingStar) {
-      return existingStar;
-    }
-    
-    const [newStar] = await db.insert(dealStars).values(starData).returning();
-    return newStar;
+    const [star] = await db.insert(dealStars).values(starData).returning();
+    return star;
   }
-
+  
   async unstarDeal(dealId: number, userId: number): Promise<boolean> {
     const result = await db
       .delete(dealStars)
@@ -114,21 +106,19 @@ export class DatabaseStorage implements IStorage {
       );
     return !!result;
   }
-
+  
   async getDealStars(dealId: number): Promise<DealStar[]> {
-    return db
+    return await db
       .select()
       .from(dealStars)
-      .where(eq(dealStars.dealId, dealId))
-      .orderBy(desc(dealStars.createdAt));
+      .where(eq(dealStars.dealId, dealId));
   }
-
+  
   async getUserStars(userId: number): Promise<DealStar[]> {
-    return db
+    return await db
       .select()
       .from(dealStars)
-      .where(eq(dealStars.userId, userId))
-      .orderBy(desc(dealStars.createdAt));
+      .where(eq(dealStars.userId, userId));
   }
   
   // Mini memos
@@ -136,27 +126,61 @@ export class DatabaseStorage implements IStorage {
     const [newMemo] = await db.insert(miniMemos).values(memo).returning();
     return newMemo;
   }
-
+  
   async getMiniMemo(id: number): Promise<MiniMemo | undefined> {
     const [memo] = await db.select().from(miniMemos).where(eq(miniMemos.id, id));
-    return memo;
+    return memo || undefined;
   }
-
+  
   async getMiniMemosByDeal(dealId: number): Promise<MiniMemo[]> {
-    return db
+    return await db
       .select()
       .from(miniMemos)
-      .where(eq(miniMemos.dealId, dealId))
-      .orderBy(desc(miniMemos.createdAt));
+      .where(eq(miniMemos.dealId, dealId));
   }
-
+  
   async updateMiniMemo(id: number, memoUpdate: Partial<InsertMiniMemo>): Promise<MiniMemo | undefined> {
     const [updatedMemo] = await db
       .update(miniMemos)
-      .set({ ...memoUpdate, updatedAt: new Date() })
+      .set(memoUpdate)
       .where(eq(miniMemos.id, id))
       .returning();
-    return updatedMemo;
+    return updatedMemo || undefined;
+  }
+  
+  // Documents
+  async createDocument(document: InsertDocument): Promise<Document> {
+    const [newDocument] = await db.insert(documents).values(document).returning();
+    return newDocument;
+  }
+  
+  async getDocument(id: number): Promise<Document | undefined> {
+    const [document] = await db.select().from(documents).where(eq(documents.id, id));
+    return document || undefined;
+  }
+  
+  async getDocumentsByDeal(dealId: number): Promise<Document[]> {
+    return await db
+      .select()
+      .from(documents)
+      .where(eq(documents.dealId, dealId));
+  }
+  
+  async getDocumentsByType(dealId: number, documentType: string): Promise<Document[]> {
+    return await db
+      .select()
+      .from(documents)
+      .where(
+        and(
+          eq(documents.dealId, dealId),
+          eq(documents.documentType, documentType)
+        )
+      );
+  }
+  
+  async deleteDocument(id: number): Promise<boolean> {
+    const result = await db.delete(documents).where(eq(documents.id, id));
+    return !!result;
   }
   
   // Funds
@@ -164,23 +188,23 @@ export class DatabaseStorage implements IStorage {
     const [newFund] = await db.insert(funds).values(fund).returning();
     return newFund;
   }
-
+  
   async getFund(id: number): Promise<Fund | undefined> {
     const [fund] = await db.select().from(funds).where(eq(funds.id, id));
-    return fund;
+    return fund || undefined;
   }
-
+  
   async getFunds(): Promise<Fund[]> {
-    return db.select().from(funds).orderBy(desc(funds.createdAt));
+    return await db.select().from(funds);
   }
-
+  
   async updateFund(id: number, fundUpdate: Partial<InsertFund>): Promise<Fund | undefined> {
     const [updatedFund] = await db
       .update(funds)
       .set(fundUpdate)
       .where(eq(funds.id, id))
       .returning();
-    return updatedFund;
+    return updatedFund || undefined;
   }
   
   // Fund allocations
@@ -188,16 +212,16 @@ export class DatabaseStorage implements IStorage {
     const [newAllocation] = await db.insert(fundAllocations).values(allocation).returning();
     return newAllocation;
   }
-
+  
   async getAllocationsByFund(fundId: number): Promise<FundAllocation[]> {
-    return db
+    return await db
       .select()
       .from(fundAllocations)
       .where(eq(fundAllocations.fundId, fundId));
   }
-
+  
   async getAllocationsByDeal(dealId: number): Promise<FundAllocation[]> {
-    return db
+    return await db
       .select()
       .from(fundAllocations)
       .where(eq(fundAllocations.dealId, dealId));
@@ -205,41 +229,24 @@ export class DatabaseStorage implements IStorage {
   
   // Deal assignments
   async assignUserToDeal(assignment: InsertDealAssignment): Promise<DealAssignment> {
-    const [existingAssignment] = await db
-      .select()
-      .from(dealAssignments)
-      .where(
-        and(
-          eq(dealAssignments.dealId, assignment.dealId),
-          eq(dealAssignments.userId, assignment.userId)
-        )
-      );
-      
-    // If assignment already exists, return it
-    if (existingAssignment) {
-      return existingAssignment;
-    }
-    
     const [newAssignment] = await db.insert(dealAssignments).values(assignment).returning();
     return newAssignment;
   }
-
+  
   async getDealAssignments(dealId: number): Promise<DealAssignment[]> {
-    return db
+    return await db
       .select()
       .from(dealAssignments)
-      .where(eq(dealAssignments.dealId, dealId))
-      .orderBy(desc(dealAssignments.createdAt));
+      .where(eq(dealAssignments.dealId, dealId));
   }
-
+  
   async getUserAssignments(userId: number): Promise<DealAssignment[]> {
-    return db
+    return await db
       .select()
       .from(dealAssignments)
-      .where(eq(dealAssignments.userId, userId))
-      .orderBy(desc(dealAssignments.createdAt));
+      .where(eq(dealAssignments.userId, userId));
   }
-
+  
   async unassignUserFromDeal(dealId: number, userId: number): Promise<boolean> {
     const result = await db
       .delete(dealAssignments)
@@ -251,21 +258,20 @@ export class DatabaseStorage implements IStorage {
       );
     return !!result;
   }
-
+  
   // Notifications
   async createNotification(notification: InsertNotification): Promise<Notification> {
     const [newNotification] = await db.insert(notifications).values(notification).returning();
     return newNotification;
   }
-
+  
   async getUserNotifications(userId: number): Promise<Notification[]> {
-    return db
+    return await db
       .select()
       .from(notifications)
-      .where(eq(notifications.userId, userId))
-      .orderBy(desc(notifications.createdAt));
+      .where(eq(notifications.userId, userId));
   }
-
+  
   async getUnreadNotificationsCount(userId: number): Promise<number> {
     const unreadNotifications = await db
       .select()
@@ -278,58 +284,20 @@ export class DatabaseStorage implements IStorage {
       );
     return unreadNotifications.length;
   }
-
+  
   async markNotificationAsRead(id: number): Promise<boolean> {
     const result = await db
       .update(notifications)
       .set({ isRead: true })
-      .where(eq(notifications.id, id))
-      .returning();
-    return result.length > 0;
+      .where(eq(notifications.id, id));
+    return !!result;
   }
-
+  
   async markAllNotificationsAsRead(userId: number): Promise<boolean> {
     const result = await db
       .update(notifications)
       .set({ isRead: true })
       .where(eq(notifications.userId, userId));
-    return !!result;
-  }
-  
-  // Document operations
-  async createDocument(document: InsertDocument): Promise<Document> {
-    const [newDocument] = await db.insert(documents).values(document).returning();
-    return newDocument;
-  }
-
-  async getDocument(id: number): Promise<Document | undefined> {
-    const [document] = await db.select().from(documents).where(eq(documents.id, id));
-    return document;
-  }
-
-  async getDocumentsByDeal(dealId: number): Promise<Document[]> {
-    return db
-      .select()
-      .from(documents)
-      .where(eq(documents.dealId, dealId))
-      .orderBy(desc(documents.uploadedAt));
-  }
-
-  async getDocumentsByType(dealId: number, documentType: string): Promise<Document[]> {
-    return db
-      .select()
-      .from(documents)
-      .where(
-        and(
-          eq(documents.dealId, dealId),
-          eq(documents.documentType, documentType)
-        )
-      )
-      .orderBy(desc(documents.uploadedAt));
-  }
-
-  async deleteDocument(id: number): Promise<boolean> {
-    const result = await db.delete(documents).where(eq(documents.id, id));
     return !!result;
   }
 }

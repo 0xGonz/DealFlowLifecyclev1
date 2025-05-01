@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { insertFundAllocationSchema } from '@shared/schema';
-import { storage } from '../storage';
+import { StorageFactory } from '../storage-factory';
 import { z } from 'zod';
 
 const router = Router();
@@ -8,6 +8,7 @@ const router = Router();
 // Fund allocations
 router.post('/', async (req: Request, res: Response) => {
   try {
+    const storage = StorageFactory.getStorage();
     const allocationData = insertFundAllocationSchema.parse(req.body);
     
     // Make sure fund and deal exist
@@ -44,6 +45,7 @@ router.post('/', async (req: Request, res: Response) => {
 // Get allocations for a fund
 router.get('/fund/:fundId', async (req: Request, res: Response) => {
   try {
+    const storage = StorageFactory.getStorage();
     const fundId = Number(req.params.fundId);
     const allocations = await storage.getAllocationsByFund(fundId);
     res.json(allocations);
@@ -55,6 +57,7 @@ router.get('/fund/:fundId', async (req: Request, res: Response) => {
 // Get allocations for a deal
 router.get('/deal/:dealId', async (req: Request, res: Response) => {
   try {
+    const storage = StorageFactory.getStorage();
     const dealId = Number(req.params.dealId);
     const allocations = await storage.getAllocationsByDeal(dealId);
     res.json(allocations);

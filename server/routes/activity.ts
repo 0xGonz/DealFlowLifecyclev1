@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import { storage } from "../storage";
+import { StorageFactory } from "../storage-factory";
 
 const router = Router();
 
@@ -10,6 +10,7 @@ router.get('/', async (req: Request, res: Response) => {
     // For MVP, we're returning a simplified feed
     
     // Get recent timeline events from all deals
+    const storage = StorageFactory.getStorage();
     const deals = await storage.getDeals();
     const allEvents: Array<any> = [];
     

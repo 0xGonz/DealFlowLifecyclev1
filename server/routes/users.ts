@@ -1,11 +1,12 @@
 import { Router, Request, Response } from "express";
-import { storage } from "../storage";
+import { StorageFactory } from "../storage-factory";
 
 const router = Router();
 
 // Get all users
 router.get('/', async (req: Request, res: Response) => {
   try {
+    const storage = StorageFactory.getStorage();
     const users = await storage.getUsers();
     res.json(users.map(user => ({
       id: user.id,
@@ -24,6 +25,7 @@ router.get('/', async (req: Request, res: Response) => {
 // Get a specific user by ID
 router.get('/:id', async (req: Request, res: Response) => {
   try {
+    const storage = StorageFactory.getStorage();
     const user = await storage.getUser(Number(req.params.id));
     if (!user) {
       return res.status(404).json({ message: 'User not found' });

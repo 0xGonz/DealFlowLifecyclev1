@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import { storage } from "../storage";
+import { StorageFactory } from "../storage-factory";
 import { DealStageLabels } from "@shared/schema";
 
 const router = Router();
@@ -7,6 +7,7 @@ const router = Router();
 // Get leaderboard data
 router.get('/', async (req: Request, res: Response) => {
   try {
+    const storage = StorageFactory.getStorage();
     const deals = await storage.getDeals();
     
     // For each deal, get stars and memos to calculate rankings

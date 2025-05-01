@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import { storage } from "../storage";
+import { StorageFactory } from "../storage-factory";
 import { 
   insertDealSchema, 
   insertTimelineEventSchema, 
@@ -14,6 +14,7 @@ const router = Router();
 // Get all deals or filter by stage
 router.get('/', async (req: Request, res: Response) => {
   try {
+    const storage = StorageFactory.getStorage();
     let deals;
     
     if (req.query.stage) {

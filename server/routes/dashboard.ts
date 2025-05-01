@@ -1,11 +1,12 @@
 import { Router, Request, Response } from "express";
-import { storage } from "../storage";
+import { StorageFactory } from "../storage-factory";
 
 const router = Router();
 
 // Get dashboard stats
 router.get('/stats', async (req: Request, res: Response) => {
   try {
+    const storage = StorageFactory.getStorage();
     const deals = await storage.getDeals();
     const funds = await storage.getFunds();
     
@@ -43,6 +44,7 @@ router.get('/stats', async (req: Request, res: Response) => {
 router.get('/sector-stats', async (req: Request, res: Response) => {
   try {
     // Get all deals to compute sector stats
+    const storage = StorageFactory.getStorage();
     const deals = await storage.getDeals();
     
     // Count deals by sector
@@ -72,6 +74,7 @@ router.get('/sector-stats', async (req: Request, res: Response) => {
 router.get('/industry-stats', async (req: Request, res: Response) => {
   try {
     // Get sector statistics formatted to match the old industry-stats endpoint
+    const storage = StorageFactory.getStorage();
     const deals = await storage.getDeals();
     
     // Count deals by sector

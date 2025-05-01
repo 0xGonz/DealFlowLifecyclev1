@@ -11,8 +11,9 @@ import {
   Document, InsertDocument
 } from "@shared/schema";
 
-// Import database storage implementation
-import { DatabaseStorage } from './database-storage';
+// This file defines the storage interface and in-memory implementation
+// For database storage, see database-storage.ts
+// For factory pattern to choose storage type, see storage-factory.ts
 
 // Interface for storage operations
 export interface IStorage {
@@ -695,7 +696,8 @@ export class MemStorage implements IStorage {
 
 // We're using MemStorage for now for development
 // In production, you should use DatabaseStorage with PostgreSQL
-export const storage = new MemStorage();
+// Export a storage instance for backward compatibility
+// This will be replaced by the StorageFactory
 
 // Uncomment to use database storage
 // export const storage = new DatabaseStorage();

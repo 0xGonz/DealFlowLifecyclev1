@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { storage } from '../storage';
+import { StorageFactory } from '../storage-factory';
 import { insertNotificationSchema } from '@shared/schema';
 import { z } from 'zod';
 
@@ -10,6 +10,7 @@ router.get('/', async (req: Request, res: Response) => {
   try {
     // We'd normally use req.session.userId but for demo purposes let's use a fixed user
     const userId = 1; // Using the first user (admin) for demo
+    const storage = StorageFactory.getStorage();
     const notifications = await storage.getUserNotifications(userId);
     return res.json(notifications);
   } catch (error) {
@@ -23,6 +24,7 @@ router.get('/unread-count', async (req: Request, res: Response) => {
   try {
     // We'd normally use req.session.userId but for demo purposes let's use a fixed user
     const userId = 1; // Using the first user (admin) for demo
+    const storage = StorageFactory.getStorage();
     const count = await storage.getUnreadNotificationsCount(userId);
     return res.json({ count });
   } catch (error) {
@@ -39,6 +41,7 @@ router.patch('/:id/read', async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'Invalid notification ID' });
     }
 
+    const storage = StorageFactory.getStorage();
     const success = await storage.markNotificationAsRead(id);
     if (!success) {
       return res.status(404).json({ message: 'Notification not found' });
@@ -56,6 +59,7 @@ router.post('/mark-all-read', async (req: Request, res: Response) => {
   try {
     // We'd normally use req.session.userId but for demo purposes let's use a fixed user
     const userId = 1; // Using the first user (admin) for demo
+    const storage = StorageFactory.getStorage();
     const success = await storage.markAllNotificationsAsRead(userId);
     return res.json({ success });
   } catch (error) {
@@ -75,6 +79,7 @@ router.post('/', async (req: Request, res: Response) => {
       });
     }
 
+    const storage = StorageFactory.getStorage();
     const notification = await storage.createNotification(validationResult.data);
     return res.status(201).json(notification);
   } catch (error) {

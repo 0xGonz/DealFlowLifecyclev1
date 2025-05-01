@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { storage } from '../storage';
+import { StorageFactory } from '../storage-factory';
 import { z } from 'zod';
 import { createInsertSchema } from 'drizzle-zod';
 import * as schema from '@shared/schema';
@@ -17,6 +17,7 @@ router.get('/deal/:dealId', async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'Invalid deal ID' });
     }
     
+    const storage = StorageFactory.getStorage();
     const documents = await storage.getDocumentsByDeal(dealId);
     return res.json(documents);
   } catch (error) {
@@ -35,6 +36,7 @@ router.get('/deal/:dealId/type/:documentType', async (req: Request, res: Respons
       return res.status(400).json({ message: 'Invalid deal ID' });
     }
     
+    const storage = StorageFactory.getStorage();
     const documents = await storage.getDocumentsByType(dealId, documentType);
     return res.json(documents);
   } catch (error) {
@@ -51,6 +53,7 @@ router.get('/:id', async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'Invalid document ID' });
     }
     
+    const storage = StorageFactory.getStorage();
     const document = await storage.getDocument(id);
     if (!document) {
       return res.status(404).json({ message: 'Document not found' });
@@ -71,6 +74,7 @@ router.get('/:id/download', async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'Invalid document ID' });
     }
     
+    const storage = StorageFactory.getStorage();
     const document = await storage.getDocument(id);
     if (!document) {
       return res.status(404).json({ message: 'Document not found' });

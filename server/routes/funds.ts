@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import { storage } from "../storage";
+import { StorageFactory } from "../storage-factory";
 import { 
   insertFundSchema,
   insertFundAllocationSchema,
@@ -12,6 +12,7 @@ const router = Router();
 // Get all funds
 router.get('/', async (req: Request, res: Response) => {
   try {
+    const storage = StorageFactory.getStorage();
     const funds = await storage.getFunds();
     res.json(funds);
   } catch (error) {
@@ -22,6 +23,7 @@ router.get('/', async (req: Request, res: Response) => {
 // Get a specific fund by ID
 router.get('/:id', async (req: Request, res: Response) => {
   try {
+    const storage = StorageFactory.getStorage();
     const fund = await storage.getFund(Number(req.params.id));
     
     if (!fund) {
@@ -59,6 +61,7 @@ router.get('/:id', async (req: Request, res: Response) => {
 // Create a new fund
 router.post('/', async (req: Request, res: Response) => {
   try {
+    const storage = StorageFactory.getStorage();
     const fundData = insertFundSchema.parse(req.body);
     const newFund = await storage.createFund(fundData);
     res.status(201).json(newFund);
@@ -73,6 +76,7 @@ router.post('/', async (req: Request, res: Response) => {
 // Update a fund
 router.patch('/:id', async (req: Request, res: Response) => {
   try {
+    const storage = StorageFactory.getStorage();
     const fundId = Number(req.params.id);
     
     // Make sure fund exists

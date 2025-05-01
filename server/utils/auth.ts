@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { AppError } from './errorHandlers';
-import { storage } from '../storage';
+import { StorageFactory } from '../storage-factory';
 
 // Types for session data
 declare module 'express-session' {
@@ -43,15 +43,18 @@ export async function getCurrentUser(req: Request) {
   }
   
   try {
+    const storage = StorageFactory.getStorage();
     const user = await storage.getUser(req.session.userId);
     return user || null;
   } catch (error) {
+    console.error('Error getting current user:', error);
     return null;
   }
 }
 
 // Login helper
 export async function login(req: Request, username: string, password: string) {
+  const storage = StorageFactory.getStorage();
   const user = await storage.getUserByUsername(username);
   
   if (!user || user.password !== password) { // In production, use proper password hashing
