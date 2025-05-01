@@ -220,7 +220,7 @@ export class MemStorage implements IStorage {
     this.createTimelineEvent({
       dealId: 1,
       eventType: 'stage_change',
-      content: 'Deal moved from Screening to Due Diligence',
+      content: 'Deal moved from Screening to Diligence',
       createdBy: 2,
       metadata: { prevStage: 'screening', newStage: 'due_diligence' }
     });
@@ -236,7 +236,7 @@ export class MemStorage implements IStorage {
     this.createTimelineEvent({
       dealId: 2,
       eventType: 'stage_change',
-      content: 'Deal moved from Due Diligence to IC Review',
+      content: 'Deal moved from Diligence to IC Review',
       createdBy: 3,
       metadata: { prevStage: 'due_diligence', newStage: 'ic_review' }
     });
@@ -304,8 +304,8 @@ export class MemStorage implements IStorage {
     
     this.createNotification({
       userId: 1, // Admin user
-      title: 'Deal moved to due diligence',
-      message: 'TechFusion AI deal moved to due diligence stage',
+      title: 'Deal moved to diligence',
+      message: 'TechFusion AI deal moved to diligence stage',
       type: 'deal',
       relatedId: 1,
       isRead: false

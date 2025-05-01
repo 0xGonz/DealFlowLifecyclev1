@@ -64,7 +64,7 @@ async function main() {
         valuation: "$100M",
         contactEmail: "founder@techfusion.ai",
         createdBy: 1,
-        stageLabel: "Due Diligence",
+        stageLabel: "Diligence",
         score: 85,
         starCount: 3,
         tags: ["AI", "Enterprise", "Data Analytics"]
@@ -118,7 +118,7 @@ async function main() {
         {
           dealId: deal1[0].id,
           eventType: "stage_change",
-          content: "Moving to due diligence after positive team review",
+          content: "Moving to diligence after positive team review",
           createdBy: 1,
           metadata: { 
             fromStage: "screening", 
