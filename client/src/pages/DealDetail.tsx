@@ -5,6 +5,7 @@ import AppLayout from "@/components/layout/AppLayout";
 import Timeline from "@/components/deals/Timeline";
 import EditDealModal from "@/components/deals/EditDealModal";
 import AssignUserModal from "@/components/deals/AssignUserModal";
+import StageProgression from "@/components/deals/StageProgression";
 import DocumentList from "@/components/documents/DocumentList";
 import { 
   Card, 
@@ -67,9 +68,9 @@ export default function DealDetail() {
   const getActiveTab = () => {
     const searchParams = new URLSearchParams(window.location.search);
     const tab = searchParams.get('tab');
-    return tab === 'timeline' || tab === 'memos' || tab === 'documents' || tab === 'allocation' 
+    return tab === 'workflow' || tab === 'timeline' || tab === 'memos' || tab === 'documents' || tab === 'allocation' 
       ? tab 
-      : 'timeline'; // Default tab
+      : 'workflow'; // Default tab
   };
   
   const [activeTab, setActiveTab] = useState(getActiveTab());
@@ -402,11 +403,34 @@ export default function DealDetail() {
           className="space-y-4"
         >
           <TabsList>
+            <TabsTrigger value="workflow">Workflow</TabsTrigger>
             <TabsTrigger value="timeline">Timeline</TabsTrigger>
             <TabsTrigger value="memos">Mini-Memos</TabsTrigger>
             <TabsTrigger value="documents">Documents</TabsTrigger>
             <TabsTrigger value="allocation">Fund Allocation</TabsTrigger>
           </TabsList>
+          
+          <TabsContent value="workflow">
+            <Card>
+              <CardHeader>
+                <CardTitle>Deal Stage Progression</CardTitle>
+                <CardDescription>
+                  Track and update the investment lifecycle stage for this deal
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {deal && (
+                  <StageProgression 
+                    deal={deal} 
+                    onStageUpdated={() => {
+                      // Refresh deal data when stage is updated
+                      queryClient.invalidateQueries({ queryKey: [`/api/deals/${dealId}`] });
+                    }}
+                  />
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
           
           <TabsContent value="timeline">
             <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
