@@ -414,6 +414,7 @@ router.delete('/:dealId/assignments/:userId', async (req: Request, res: Response
     const userId = Number(req.params.userId);
     const currentUser = (req as any).user;
     
+    const storage = getStorage();
     // Make sure deal exists
     const deal = await storage.getDeal(dealId);
     if (!deal) {
@@ -474,6 +475,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'Invalid deal ID format' });
     }
     
+    const storage = getStorage();
     // Make sure deal exists
     const deal = await storage.getDeal(dealId);
     if (!deal) {
@@ -497,6 +499,7 @@ router.get('/:dealId/memos', async (req: Request, res: Response) => {
   try {
     const dealId = Number(req.params.dealId);
     
+    const storage = getStorage();
     // Make sure deal exists
     const deal = await storage.getDeal(dealId);
     if (!deal) {
@@ -535,6 +538,7 @@ router.post('/:dealId/memos', async (req: Request, res: Response) => {
     const dealId = Number(req.params.dealId);
     const user = (req as any).user;
     
+    const storage = getStorage();
     // Make sure deal exists
     const deal = await storage.getDeal(dealId);
     if (!deal) {
