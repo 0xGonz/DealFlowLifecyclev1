@@ -14,13 +14,13 @@ import documentsRoutes from './routes/documents';
 import allocationsRoutes from './routes/allocations';
 
 // Utils
-import { errorHandlerMiddleware, NotFoundError } from './utils/errorHandlers';
-import { authenticate } from './utils/auth';
+import { errorHandler, notFoundHandler, AppError } from './utils/errorHandlers';
+import { requireAuth } from './utils/auth';
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
-  // Apply authentication middleware to all API routes
-  app.use('/api', authenticate);
+  // Uncomment to require authentication for all API routes
+  // app.use('/api/*', requireAuth);
   
   // Register route modules
   app.use('/api/deals', dealsRoutes);
@@ -34,13 +34,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/notifications', notificationsRoutes);
   app.use('/api/documents', documentsRoutes);
   
-  // Catch-all route for 404s - more elegant approach with error handling
-  app.use('/api/*', (req: Request, _res: Response, next: NextFunction) => {
-    next(new NotFoundError(`Route not found: ${req.originalUrl}`));
-  });
+  // Catch-all route for 404s
+  app.use('/api/*', notFoundHandler);
   
   // Apply centralized error handling middleware
-  app.use(errorHandlerMiddleware);
+  app.use(errorHandler);
 
   const httpServer = createServer(app);
   return httpServer;
