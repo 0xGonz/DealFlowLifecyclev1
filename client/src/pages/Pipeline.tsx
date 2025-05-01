@@ -73,7 +73,9 @@ export default function Pipeline() {
     <AppLayout>
       <div className="flex-1 overflow-y-auto p-6 pb-20">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-semibold text-neutral-800">Deal Pipeline</h1>
+          {/* <h1 className="text-2xl font-semibold text-neutral-800">Deal Pipeline</h1> */}
+          
+          <div></div> {/* Empty div to maintain flex spacing */}
           
           <Button 
             onClick={() => setIsNewDealModalOpen(true)}
