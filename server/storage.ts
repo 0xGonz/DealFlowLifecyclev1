@@ -16,7 +16,10 @@ import {
 // For factory pattern to choose storage type, see storage-factory.ts
 
 // Interface for storage operations
+import session from 'express-session';
+
 export interface IStorage {
+  sessionStore: session.Store;
   // User operations
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
@@ -81,6 +84,8 @@ export interface IStorage {
 
 // In-memory storage implementation
 export class MemStorage implements IStorage {
+  sessionStore: session.Store;
+  
   private users: Map<number, User>;
   private deals: Map<number, Deal>;
   private timelineEvents: Map<number, TimelineEvent>;
@@ -104,6 +109,12 @@ export class MemStorage implements IStorage {
   private notificationIdCounter: number;
 
   constructor() {
+    // Initialize session store for memory storage
+    const MemoryStore = require('memorystore')(session);
+    this.sessionStore = new MemoryStore({
+      checkPeriod: 86400000 // prune expired entries every 24h
+    });
+
     this.users = new Map();
     this.deals = new Map();
     this.timelineEvents = new Map();

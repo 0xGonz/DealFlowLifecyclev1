@@ -1,22 +1,10 @@
-import { useState } from 'react';
-import { useLocation } from 'wouter';
-import { z } from 'zod';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useAuth } from '@/hooks/use-auth';
-import { useToast } from '@/hooks/use-toast';
-import { insertUserSchema } from "@shared/schema";
-
-// UI Components
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/use-auth";
+import { useLocation } from "wouter";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Form,
   FormControl,
@@ -26,211 +14,257 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowRight, UserPlus, KeyRound, LucideChevronRight } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { CircleUserRound, KeyRound, Loader2 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
-const colors = [
-  { name: "Blue", value: "#0E4DA4" },
-  { name: "Green", value: "#2E7D32" },
-  { name: "Purple", value: "#5E35B1" },
-  { name: "Orange", value: "#E65100" },
-  { name: "Red", value: "#C62828" },
-  { name: "Teal", value: "#00796B" },
-  { name: "Pink", value: "#AD1457" },
-  { name: "Indigo", value: "#3949AB" },
+const roleOptions = [
+  { value: "analyst", label: "Analyst" },
+  { value: "partner", label: "Partner" },
+  { value: "admin", label: "Admin" },
+  { value: "observer", label: "Observer" },
 ];
 
-// Enhanced schema with validation for registration
-const registerFormSchema = insertUserSchema.extend({
-  password: z.string().min(6, "Password must be at least 6 characters"),
-  confirmPassword: z.string(),
-}).refine(data => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"]
-});
+const colorOptions = [
+  { value: "#0E4DA4", label: "Blue", bg: "bg-blue-500" },
+  { value: "#16A34A", label: "Green", bg: "bg-green-500" },
+  { value: "#DC2626", label: "Red", bg: "bg-red-500" },
+  { value: "#7E22CE", label: "Purple", bg: "bg-purple-500" },
+  { value: "#F97316", label: "Orange", bg: "bg-orange-500" },
+  { value: "#14B8A6", label: "Teal", bg: "bg-teal-500" },
+  { value: "#6366F1", label: "Indigo", bg: "bg-indigo-500" },
+  { value: "#EC4899", label: "Pink", bg: "bg-pink-500" },
+];
 
-// Login form schema
-const loginFormSchema = z.object({
+const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
   password: z.string().min(1, "Password is required"),
 });
 
-// TypeScript types for our form values
-type RegisterFormValues = z.infer<typeof registerFormSchema>;
-type LoginFormValues = z.infer<typeof loginFormSchema>;
+const registerSchema = z.object({
+  username: z.string().min(3, "Username must be at least 3 characters"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  fullName: z.string().min(1, "Full name is required"),
+  email: z.string().email("Invalid email address"),
+  role: z.string(),
+  initials: z.string().max(3, "Initials must be 1-3 characters"),
+  avatarColor: z.string(),
+});
 
-export default function AuthPage() {
+function AuthPage() {
   const [activeTab, setActiveTab] = useState("login");
-  const [, setLocation] = useLocation();
-  const { toast } = useToast();
-  const { user, loginMutation, registerMutation } = useAuth();
-  
-  // If user is already logged in, redirect to home
-  if (user) {
-    setLocation("/");
-    return null;
-  }
-  
-  // Setup register form
-  const registerForm = useForm<RegisterFormValues>({
-    resolver: zodResolver(registerFormSchema),
+  const [location, setLocation] = useLocation();
+  const { user, isLoading, loginMutation, registerMutation } = useAuth();
+
+  const loginForm = useForm({
+    resolver: zodResolver(loginSchema),
     defaultValues: {
       username: "",
+      password: "",
+    },
+  });
+
+  const registerForm = useForm({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      username: "",
+      password: "",
       fullName: "",
       email: "",
-      password: "",
-      confirmPassword: "",
+      role: "analyst",
       initials: "",
-      role: "analyst", // Default role
-      avatarColor: "#0E4DA4" // Default color
+      avatarColor: "#0E4DA4",
     },
   });
-  
-  // Setup login form
-  const loginForm = useForm<LoginFormValues>({
-    resolver: zodResolver(loginFormSchema),
-    defaultValues: {
-      username: "",
-      password: ""
-    },
-  });
-  
-  // Handle registration form submission
-  const onRegisterSubmit = (data: RegisterFormValues) => {
-    const { confirmPassword, ...userData } = data;
-    
-    // Set initials if not provided
-    if (!userData.initials) {
-      const nameParts = userData.fullName.split(' ');
-      userData.initials = nameParts.length > 1 
-        ? `${nameParts[0][0]}${nameParts[nameParts.length - 1][0]}`
-        : userData.fullName.substring(0, 2);
-      userData.initials = userData.initials.toUpperCase();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      setLocation("/");
     }
-    
-    registerMutation.mutate(userData, {
-      onSuccess: () => {
-        toast({
-          title: "Registration successful",
-          description: "Your account has been created.",
-        });
-        setLocation("/");
-      }
-    });
+  }, [user, setLocation]);
+
+  const onLoginSubmit = (values: z.infer<typeof loginSchema>) => {
+    loginMutation.mutate(values);
   };
-  
-  // Handle login form submission
-  const onLoginSubmit = (data: LoginFormValues) => {
-    loginMutation.mutate(data, {
-      onSuccess: () => {
-        toast({
-          title: "Login successful",
-          description: "Welcome back!",
-        });
-        setLocation("/");
-      }
-    });
+
+  const onRegisterSubmit = (values: z.infer<typeof registerSchema>) => {
+    registerMutation.mutate(values);
   };
-  
+
+  // Auto-populate initials when full name changes
+  useEffect(() => {
+    const fullName = registerForm.watch("fullName");
+    if (fullName) {
+      const nameParts = fullName.split(" ");
+      let initials = "";
+      
+      if (nameParts.length === 1) {
+        // Just use first two letters of single name
+        initials = nameParts[0].substring(0, 2).toUpperCase();
+      } else {
+        // Use first letter of first and last name
+        initials = `${nameParts[0][0]}${nameParts[nameParts.length - 1][0]}`.toUpperCase();
+      }
+      
+      registerForm.setValue("initials", initials);
+    }
+  }, [registerForm.watch("fullName")]);
+
   return (
-    <div className="flex min-h-screen bg-neutral-50 p-0">
-      {/* Left side - Authentication forms */}
-      <div className="w-full md:w-1/2 flex items-center justify-center p-4 sm:p-8">
-        <Card className="w-full max-w-md mx-auto shadow-lg border-0 overflow-hidden">
-          <CardHeader className="pb-3 bg-primary-50">
-            <CardTitle className="text-2xl font-bold text-primary-900">
-              {activeTab === "login" ? "Welcome Back" : "Create Account"}
-            </CardTitle>
-            <CardDescription className="text-primary-700">
-              {activeTab === "login" 
-                ? "Sign in to access your investments" 
-                : "Join the investment tracking platform"}
-            </CardDescription>
-          </CardHeader>
-          
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid grid-cols-2 mx-6 mt-2">
+    <div className="flex min-h-screen">
+      {/* Left Side - Login/Register Form */}
+      <div className="flex flex-col items-center justify-center w-full md:w-1/2 px-6 py-12">
+        <div className="w-full max-w-md space-y-8">
+          <div className="text-center">
+            <h1 className="text-3xl font-extrabold tracking-tight">
+              <span className="bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent">
+                Doliver
+              </span>{" "}
+              Investment Tracker
+            </h1>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Manage your investment workflow seamlessly
+            </p>
+          </div>
+
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="login">Login</TabsTrigger>
               <TabsTrigger value="register">Register</TabsTrigger>
             </TabsList>
-            
-            {/* Login Form */}
-            <TabsContent value="login" className="p-0 m-0">
-              <CardContent className="p-6">
-                <Form {...loginForm}>
-                  <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
-                    <FormField
-                      control={loginForm.control}
-                      name="username"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Username</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Enter your username" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={loginForm.control}
-                      name="password"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Password</FormLabel>
-                          <FormControl>
-                            <Input type="password" placeholder="••••••••" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <Button 
-                      type="submit" 
-                      className="w-full" 
-                      size="lg"
-                      disabled={loginMutation.isPending}
+
+            <TabsContent value="login">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Login</CardTitle>
+                  <CardDescription>
+                    Enter your credentials to access your account
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Form {...loginForm}>
+                    <form
+                      onSubmit={loginForm.handleSubmit(onLoginSubmit)}
+                      className="space-y-4"
                     >
-                      {loginMutation.isPending ? "Signing in..." : "Sign In"}
-                      <KeyRound className="ml-2 h-4 w-4" />
-                    </Button>
-                  </form>
-                </Form>
-              </CardContent>
-              
-              <CardFooter className="flex justify-center pb-6 pt-2 text-center">
-                <p className="text-sm text-neutral-600">
-                  Don't have an account?{" "}
-                  <Button variant="link" className="p-0" onClick={() => setActiveTab("register")}>
-                    Register now
-                  </Button>
-                </p>
-              </CardFooter>
-            </TabsContent>
-            
-            {/* Registration Form */}
-            <TabsContent value="register" className="p-0 m-0">
-              <CardContent className="p-6">
-                <Form {...registerForm}>
-                  <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <FormField
-                        control={registerForm.control}
+                        control={loginForm.control}
                         name="username"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Username</FormLabel>
                             <FormControl>
-                              <Input placeholder="johndoe" {...field} />
+                              <Input
+                                placeholder="Username"
+                                {...field}
+                                className="w-full"
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
-                      
+                      <FormField
+                        control={loginForm.control}
+                        name="password"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Password</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="password"
+                                placeholder="Password"
+                                {...field}
+                                className="w-full"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <Button
+                        type="submit"
+                        className="w-full"
+                        disabled={loginMutation.isPending}
+                      >
+                        {loginMutation.isPending ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Logging in...
+                          </>
+                        ) : (
+                          <>
+                            <KeyRound className="mr-2 h-4 w-4" />
+                            Login
+                          </>
+                        )}
+                      </Button>
+                    </form>
+                  </Form>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="register">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Create an account</CardTitle>
+                  <CardDescription>
+                    Register for a new account to track investments
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Form {...registerForm}>
+                    <form
+                      onSubmit={registerForm.handleSubmit(onRegisterSubmit)}
+                      className="space-y-4"
+                    >
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                          control={registerForm.control}
+                          name="username"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Username</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="Username"
+                                  {...field}
+                                  className="w-full"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={registerForm.control}
+                          name="password"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Password</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="password"
+                                  placeholder="Password"
+                                  {...field}
+                                  className="w-full"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
                       <FormField
                         control={registerForm.control}
                         name="fullName"
@@ -238,202 +272,190 @@ export default function AuthPage() {
                           <FormItem>
                             <FormLabel>Full Name</FormLabel>
                             <FormControl>
-                              <Input placeholder="John Doe" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    
-                    <FormField
-                      control={registerForm.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Email</FormLabel>
-                          <FormControl>
-                            <Input type="email" placeholder="john@example.com" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <FormField
-                        control={registerForm.control}
-                        name="password"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Password</FormLabel>
-                            <FormControl>
-                              <Input type="password" placeholder="••••••••" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={registerForm.control}
-                        name="confirmPassword"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Confirm Password</FormLabel>
-                            <FormControl>
-                              <Input type="password" placeholder="••••••••" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <FormField
-                        control={registerForm.control}
-                        name="role"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Role</FormLabel>
-                            <Select 
-                              onValueChange={field.onChange} 
-                              defaultValue={field.value}
-                            >
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select role" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="analyst">Analyst</SelectItem>
-                                <SelectItem value="partner">Partner</SelectItem>
-                                <SelectItem value="observer">Observer</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={registerForm.control}
-                        name="initials"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Initials (Optional)</FormLabel>
-                            <FormControl>
-                              <Input placeholder="JD" maxLength={2} {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    
-                    <FormField
-                      control={registerForm.control}
-                      name="avatarColor"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Avatar Color</FormLabel>
-                          <div className="flex flex-wrap gap-2">
-                            {colors.map((color) => (
-                              <div 
-                                key={color.value}
-                                className={`w-8 h-8 rounded-full cursor-pointer transition-all ${field.value === color.value ? 'ring-2 ring-offset-2 ring-primary' : ''}`}
-                                style={{ backgroundColor: color.value }}
-                                onClick={() => field.onChange(color.value)}
-                                title={color.name}
+                              <Input
+                                placeholder="Full Name"
+                                {...field}
+                                className="w-full"
                               />
-                            ))}
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={registerForm.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Email</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="email"
+                                placeholder="email@company.com"
+                                {...field}
+                                className="w-full"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                          control={registerForm.control}
+                          name="role"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Role</FormLabel>
+                              <Select
+                                onValueChange={field.onChange}
+                                defaultValue={field.value}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select role" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {roleOptions.map((role) => (
+                                    <SelectItem key={role.value} value={role.value}>
+                                      {role.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={registerForm.control}
+                          name="initials"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Initials</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="Initials"
+                                  maxLength={3}
+                                  {...field}
+                                  className="w-full"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <FormField
+                        control={registerForm.control}
+                        name="avatarColor"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Avatar Color</FormLabel>
+                            <div className="grid grid-cols-4 md:grid-cols-8 gap-2">
+                              {colorOptions.map((color) => (
+                                <div
+                                  key={color.value}
+                                  className={`h-10 w-10 rounded-full cursor-pointer flex items-center justify-center transition-all ${color.bg} ${field.value === color.value ? 'ring-2 ring-offset-2 ring-primary' : ''}`}
+                                  onClick={() => {
+                                    field.onChange(color.value);
+                                  }}
+                                  title={color.label}
+                                >
+                                  {field.value === color.value && (
+                                    <div className="text-white text-xs">✓</div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <div className="flex mt-6">
+                        <div className="flex-grow">
+                          <div className="font-semibold">Preview:</div>
+                          <div className="flex items-center mt-2">
+                            <div 
+                              className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-medium"
+                              style={{ backgroundColor: registerForm.watch("avatarColor") }}
+                            >
+                              {registerForm.watch("initials")}
+                            </div>
+                            <div className="ml-3">
+                              <div className="font-medium">{registerForm.watch("fullName") || "Your Name"}</div>
+                              <div className="text-sm text-muted-foreground">
+                                {roleOptions.find(r => r.value === registerForm.watch("role"))?.label || "Role"}
+                              </div>
+                            </div>
                           </div>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <Button 
-                      type="submit" 
-                      className="w-full" 
-                      size="lg"
-                      disabled={registerMutation.isPending}
-                    >
-                      {registerMutation.isPending ? "Creating Account..." : "Create Account"}
-                      <UserPlus className="ml-2 h-4 w-4" />
-                    </Button>
-                  </form>
-                </Form>
-              </CardContent>
-              
-              <CardFooter className="flex justify-center pb-6 pt-2 text-center">
-                <p className="text-sm text-neutral-600">
-                  Already have an account?{" "}
-                  <Button variant="link" className="p-0" onClick={() => setActiveTab("login")}>
-                    Sign in
-                  </Button>
-                </p>
-              </CardFooter>
+                        </div>
+                      </div>
+
+                      <Button
+                        type="submit"
+                        className="w-full"
+                        disabled={registerMutation.isPending}
+                      >
+                        {registerMutation.isPending ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Creating account...
+                          </>
+                        ) : (
+                          <>
+                            <CircleUserRound className="mr-2 h-4 w-4" />
+                            Create Account
+                          </>
+                        )}
+                      </Button>
+                    </form>
+                  </Form>
+                </CardContent>
+              </Card>
             </TabsContent>
           </Tabs>
-        </Card>
+        </div>
       </div>
-      
-      {/* Right side - Hero section */}
-      <div className="hidden md:block md:w-1/2 bg-gradient-to-br from-primary-600 to-primary-900 text-white p-8 lg:p-12">
-        <div className="h-full flex flex-col justify-between max-w-md mx-auto">
-          <div>
-            <h1 className="text-3xl lg:text-4xl font-bold mb-4">Investment Lifecycle Tracking</h1>
-            <p className="text-lg lg:text-xl opacity-90 mb-6">
-              A collaborative platform to manage your investment process from deal sourcing to portfolio monitoring.
-            </p>
-            
-            <div className="space-y-6 mt-8">
-              <FeatureItem icon={<ArrowRight />} title="Deal Tracking">
-                Monitor your deal pipeline from initial review to investment
-              </FeatureItem>
-              
-              <FeatureItem icon={<ArrowRight />} title="Fund Management">
-                Track fund allocations, performance metrics, and sector distributions
-              </FeatureItem>
-              
-              <FeatureItem icon={<ArrowRight />} title="Team Collaboration">
-                Work together with customizable user roles and permissions
-              </FeatureItem>
-            </div>
-          </div>
-          
-          <div className="pt-10">
-            <p className="text-sm opacity-80">
-              © {new Date().getFullYear()} Doliver Capital. All rights reserved.
-            </p>
-          </div>
+
+      {/* Right Side - Hero Section */}
+      <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-primary to-primary-foreground items-center justify-center">
+        <div className="max-w-md p-8 text-white">
+          <h2 className="text-3xl font-bold mb-6">
+            Complete Investment Lifecycle Tracking
+          </h2>
+          <ul className="space-y-4">
+            <li className="flex items-start">
+              <span className="mr-2">✓</span>
+              <span>Manage the complete deal evaluation process</span>
+            </li>
+            <li className="flex items-start">
+              <span className="mr-2">✓</span>
+              <span>Track performance with real-time metrics</span>
+            </li>
+            <li className="flex items-start">
+              <span className="mr-2">✓</span>
+              <span>Collaborate with your team on deal analysis</span>
+            </li>
+            <li className="flex items-start">
+              <span className="mr-2">✓</span>
+              <span>Document management for all investment assets</span>
+            </li>
+            <li className="flex items-start">
+              <span className="mr-2">✓</span>
+              <span>Allocation tracking across multiple funds</span>
+            </li>
+          </ul>
         </div>
       </div>
     </div>
   );
 }
 
-// Feature item with icon component
-function FeatureItem({ 
-  icon, 
-  title, 
-  children 
-}: { 
-  icon: React.ReactNode; 
-  title: string; 
-  children: React.ReactNode 
-}) {
-  return (
-    <div className="flex items-start space-x-4">
-      <div className="bg-white/20 p-2 rounded-full">
-        {icon}
-      </div>
-      <div>
-        <h3 className="font-medium text-lg">{title}</h3>
-        <p className="opacity-90">{children}</p>
-      </div>
-    </div>
-  );
-}
+export default AuthPage;
