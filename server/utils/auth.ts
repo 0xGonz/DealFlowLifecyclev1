@@ -1,6 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
 import { AppError } from './errorHandlers';
 import { StorageFactory } from '../storage-factory';
+import { User, InsertUser } from '@shared/schema';
+import { scrypt, randomBytes, timingSafeEqual } from 'crypto';
+import { promisify } from 'util';
 
 // Types for session data
 declare module 'express-session' {
@@ -57,7 +60,7 @@ export async function login(req: Request, username: string, password: string) {
   const storage = StorageFactory.getStorage();
   const user = await storage.getUserByUsername(username);
   
-  if (!user || user.password !== password) { // In production, use proper password hashing
+  if (!user || !(await verifyPassword(password, user.password))) {
     throw new AppError('Invalid username or password', 401);
   }
   
@@ -79,4 +82,37 @@ export function logout(req: Request) {
       resolve();
     });
   });
+}
+
+// Password utilities
+const scryptAsync = promisify(scrypt);
+
+// Hash a password
+async function hashPassword(password: string): Promise<string> {
+  const salt = randomBytes(16).toString('hex');
+  const hash = (await scryptAsync(password, salt, 64)) as Buffer;
+  return `${hash.toString('hex')}.${salt}`;
+}
+
+// Verify a password against a hash
+async function verifyPassword(password: string, hashedPassword: string): Promise<boolean> {
+  const [storedHash, salt] = hashedPassword.split('.');
+  const hash = (await scryptAsync(password, salt, 64)) as Buffer;
+  const hashBuffer = Buffer.from(storedHash, 'hex');
+  return timingSafeEqual(hashBuffer, hash);
+}
+
+// Register a new user
+export async function register(userData: InsertUser): Promise<User> {
+  // Hash the password
+  const hashedPassword = await hashPassword(userData.password);
+  
+  // Create user with hashed password
+  const storage = StorageFactory.getStorage();
+  const user = await storage.createUser({
+    ...userData,
+    password: hashedPassword
+  });
+  
+  return user;
 }
