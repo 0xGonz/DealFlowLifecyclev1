@@ -2,21 +2,35 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { StorageFactory } from '../storage-factory';
 import * as z from 'zod';
 import { AppError, asyncHandler } from '../utils/errorHandlers';
-import { requireAuth, requireRole } from '../utils/auth';
+import { generatePasswordHash, requireAuth, requireAdmin, comparePassword } from '../utils/auth';
+import { generateInitials, generateRandomColor } from '../utils/string';
 
 export const usersRouter = Router();
 
-// Validation schema for updating user
+// Validation schema for updating a user
 const updateUserSchema = z.object({
   fullName: z.string().min(2, 'Full name must be at least 2 characters').optional(),
   email: z.string().email('Invalid email format').optional(),
+  // Allowing role updates only by admins in the route handler
+  role: z.enum(['admin', 'partner', 'analyst', 'observer']).optional(),
+  // Allow password update with validation
+  currentPassword: z.string().optional(),
+  newPassword: z.string().min(8, 'New password must be at least 8 characters').optional(),
+}).refine(data => {
+  // If new password is provided, current password must also be provided
+  if (data.newPassword && !data.currentPassword) {
+    return false;
+  }
+  return true;
+}, {
+  message: 'Current password is required to set a new password',
+  path: ['currentPassword']
 });
 
 // Get all users (admin only)
 usersRouter.get(
   '/',
-  requireAuth,
-  requireRole(['admin']),
+  requireAdmin,
   asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const storage = StorageFactory.getStorage();
     const users = await storage.getUsers();
@@ -31,19 +45,19 @@ usersRouter.get(
   })
 );
 
-// Get user by ID
+// Get a specific user
 usersRouter.get(
   '/:id',
   requireAuth,
   asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    const userId = parseInt(req.params.id);
+    const userId = parseInt(req.params.id, 10);
     if (isNaN(userId)) {
       return next(new AppError('Invalid user ID', 400));
     }
     
-    // Only allow admins or the user themselves to access the profile
-    if (req.session.userId !== userId && req.query.role !== 'admin') {
-      return next(new AppError('Not authorized to view this user', 403));
+    // Users can only see themselves unless they're admins
+    if (req.session.userId !== userId && !(await isUserAdmin(req.session.userId!))) {
+      return next(new AppError('Unauthorized', 403));
     }
     
     const storage = StorageFactory.getStorage();
@@ -60,141 +74,83 @@ usersRouter.get(
   })
 );
 
-// Update user profile
+// Update a user
 usersRouter.patch(
   '/:id',
   requireAuth,
   asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    const userId = parseInt(req.params.id);
-    if (isNaN(userId)) {
-      return next(new AppError('Invalid user ID', 400));
-    }
-    
-    // Only allow the user themselves to update their profile
-    if (req.session.userId !== userId) {
-      return next(new AppError('Not authorized to update this user', 403));
-    }
-    
-    // Validate request body
-    const validatedData = updateUserSchema.parse(req.body);
-    
-    const storage = StorageFactory.getStorage();
-    
-    // Check if email already exists (if being updated)
-    if (validatedData.email) {
-      const existingEmail = await storage.getUserByEmail(validatedData.email);
-      if (existingEmail && existingEmail.id !== userId) {
-        return next(new AppError('Email already registered', 400));
+    try {
+      const userId = parseInt(req.params.id, 10);
+      if (isNaN(userId)) {
+        return next(new AppError('Invalid user ID', 400));
       }
+      
+      // Users can only update themselves unless they're admins
+      const isAdmin = await isUserAdmin(req.session.userId!);
+      if (req.session.userId !== userId && !isAdmin) {
+        return next(new AppError('Unauthorized', 403));
+      }
+      
+      // Validate request body
+      const validatedData = updateUserSchema.parse(req.body);
+      
+      const storage = StorageFactory.getStorage();
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return next(new AppError('User not found', 404));
+      }
+      
+      // Handle role updates - only admins can update roles
+      if (validatedData.role && !isAdmin) {
+        delete validatedData.role;
+      }
+      
+      // Handle password updates
+      let updateData: Partial<typeof validatedData> = { ...validatedData };
+      delete updateData.currentPassword;
+      delete updateData.newPassword;
+      
+      if (validatedData.currentPassword && validatedData.newPassword) {
+        const { currentPassword, newPassword } = validatedData;
+        const isValidPassword = await comparePassword(currentPassword, user.password);
+        
+        if (!isValidPassword) {
+          return next(new AppError('Current password is incorrect', 400));
+        }
+        
+        // Hash new password and add to update data
+        updateData.password = await generatePasswordHash(newPassword);
+      }
+      
+      // If fullName is changed, update initials
+      if (validatedData.fullName) {
+        updateData.initials = generateInitials(validatedData.fullName);
+      }
+      
+      // Update user
+      const updatedUser = await storage.updateUser(userId, updateData);
+      
+      if (!updatedUser) {
+        return next(new AppError('Failed to update user', 500));
+      }
+      
+      // Remove password from response
+      const { password, ...userWithoutPassword } = updatedUser;
+      
+      res.status(200).json(userWithoutPassword);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return next(new AppError(`Validation error: ${error.errors[0].message}`, 400));
+      }
+      next(error);
     }
-    
-    const updatedUser = await storage.updateUser(userId, validatedData);
-    
-    if (!updatedUser) {
-      return next(new AppError('User not found', 404));
-    }
-    
-    // Remove password from response
-    const { password, ...userWithoutPassword } = updatedUser;
-    
-    res.status(200).json(userWithoutPassword);
   })
 );
 
-// Get user's deal assignments
-usersRouter.get(
-  '/:id/assignments',
-  requireAuth,
-  asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    const userId = parseInt(req.params.id);
-    if (isNaN(userId)) {
-      return next(new AppError('Invalid user ID', 400));
-    }
-    
-    // Only allow admins or the user themselves to access assignments
-    if (req.session.userId !== userId && req.query.role !== 'admin') {
-      return next(new AppError('Not authorized to view these assignments', 403));
-    }
-    
-    const storage = StorageFactory.getStorage();
-    const assignments = await storage.getUserAssignments(userId);
-    
-    res.status(200).json(assignments);
-  })
-);
-
-// Get user's notifications
-usersRouter.get(
-  '/:id/notifications',
-  requireAuth,
-  asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    const userId = parseInt(req.params.id);
-    if (isNaN(userId)) {
-      return next(new AppError('Invalid user ID', 400));
-    }
-    
-    // Only allow the user themselves to access their notifications
-    if (req.session.userId !== userId) {
-      return next(new AppError('Not authorized to view these notifications', 403));
-    }
-    
-    const storage = StorageFactory.getStorage();
-    const notifications = await storage.getUserNotifications(userId);
-    
-    res.status(200).json(notifications);
-  })
-);
-
-// Mark notification as read
-usersRouter.patch(
-  '/:userId/notifications/:notificationId',
-  requireAuth,
-  asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    const userId = parseInt(req.params.userId);
-    const notificationId = parseInt(req.params.notificationId);
-    
-    if (isNaN(userId) || isNaN(notificationId)) {
-      return next(new AppError('Invalid user ID or notification ID', 400));
-    }
-    
-    // Only allow the user themselves to mark their notifications
-    if (req.session.userId !== userId) {
-      return next(new AppError('Not authorized to update this notification', 403));
-    }
-    
-    const storage = StorageFactory.getStorage();
-    const success = await storage.markNotificationAsRead(notificationId);
-    
-    if (!success) {
-      return next(new AppError('Notification not found', 404));
-    }
-    
-    res.status(200).json({ status: 'success', message: 'Notification marked as read' });
-  })
-);
-
-// Mark all notifications as read
-usersRouter.patch(
-  '/:id/notifications',
-  requireAuth,
-  asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    const userId = parseInt(req.params.id);
-    if (isNaN(userId)) {
-      return next(new AppError('Invalid user ID', 400));
-    }
-    
-    // Only allow the user themselves to mark their notifications
-    if (req.session.userId !== userId) {
-      return next(new AppError('Not authorized to update these notifications', 403));
-    }
-    
-    const storage = StorageFactory.getStorage();
-    const success = await storage.markAllNotificationsAsRead(userId);
-    
-    if (!success) {
-      return next(new AppError('Failed to update notifications', 500));
-    }
-    
-    res.status(200).json({ status: 'success', message: 'All notifications marked as read' });
-  })
-);
+// Helper function to check if a user is an admin
+async function isUserAdmin(userId: number): Promise<boolean> {
+  const storage = StorageFactory.getStorage();
+  const user = await storage.getUser(userId);
+  return user?.role === 'admin' || false;
+}

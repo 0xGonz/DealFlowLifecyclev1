@@ -1,22 +1,28 @@
 import { Request, Response, NextFunction } from 'express';
 
-// Custom application error class
+/**
+ * Custom application error class with status code
+ */
 export class AppError extends Error {
   statusCode: number;
   status: string;
   isOperational: boolean;
-
+  
   constructor(message: string, statusCode: number) {
     super(message);
     this.statusCode = statusCode;
     this.status = `${statusCode}`.startsWith('4') ? 'fail' : 'error';
     this.isOperational = true;
-
+    
+    // Capture stack trace, excluding constructor call from it
     Error.captureStackTrace(this, this.constructor);
   }
 }
 
-// Async handler to avoid try/catch blocks in route handlers
+/**
+ * Async handler to catch errors in async route handlers
+ * This eliminates the need for try/catch blocks in route handlers
+ */
 export const asyncHandler = (
   fn: (req: Request, res: Response, next: NextFunction) => Promise<any>
 ) => {
@@ -25,35 +31,41 @@ export const asyncHandler = (
   };
 };
 
-// Global error handler middleware
+/**
+ * Global error handler middleware
+ */
 export const errorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
-  console.error('Error:', err);
-
+  // Default to 500 if status code is not available
   err.statusCode = err.statusCode || 500;
   err.status = err.status || 'error';
-
-  // For development environment, send detailed error
+  
+  // Log errors in development
+  if (process.env.NODE_ENV !== 'production') {
+    console.error('Error:', err);
+  }
+  
+  // Send detailed error in development, simplified in production
   if (process.env.NODE_ENV === 'development') {
-    res.status(err.statusCode).json({
+    return res.status(err.statusCode).json({
       status: err.status,
       message: err.message,
-      stack: err.stack,
-      error: err
+      error: err,
+      stack: err.stack
     });
   } else {
-    // For production, send less detailed error
-    // Only send operational errors (ones we expect) with details
+    // For operational errors, send the error message
     if (err.isOperational) {
-      res.status(err.statusCode).json({
+      return res.status(err.statusCode).json({
         status: err.status,
         message: err.message
       });
-    } else {
-      // For unexpected errors, don't leak error details
-      res.status(500).json({
-        status: 'error',
-        message: 'Something went wrong'
-      });
     }
+    
+    // For programming or unknown errors, send generic message
+    console.error('ERROR 💥', err);
+    return res.status(500).json({
+      status: 'error',
+      message: 'Something went wrong'
+    });
   }
 };

@@ -1,11 +1,7 @@
-import { scrypt, randomBytes, timingSafeEqual } from 'crypto';
-import { promisify } from 'util';
-import { NextFunction, Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
+import * as crypto from 'crypto';
 import { AppError } from './errorHandlers';
 import { StorageFactory } from '../storage-factory';
-
-// Promisify the scrypt function for async use
-const scryptAsync = promisify(scrypt);
 
 /**
  * Generate a secure hash for a password
@@ -14,14 +10,18 @@ const scryptAsync = promisify(scrypt);
  * @returns Hashed password with salt
  */
 export async function generatePasswordHash(password: string): Promise<string> {
-  // Generate a random salt
-  const salt = randomBytes(16).toString('hex');
-  
-  // Hash the password with the salt
-  const buf = (await scryptAsync(password, salt, 64)) as Buffer;
-  
-  // Return the hash and salt combined
-  return `${buf.toString('hex')}.${salt}`;
+  return new Promise((resolve, reject) => {
+    // Generate random salt
+    const salt = crypto.randomBytes(16).toString('hex');
+    
+    // Hash the password with the salt using scrypt (more secure than bcrypt)
+    crypto.scrypt(password, salt, 64, (err, derivedKey) => {
+      if (err) return reject(err);
+      
+      // Format: hash.salt
+      resolve(`${derivedKey.toString('hex')}.${salt}`);
+    });
+  });
 }
 
 /**
@@ -32,17 +32,25 @@ export async function generatePasswordHash(password: string): Promise<string> {
  * @returns Whether the password matches
  */
 export async function comparePassword(suppliedPassword: string, storedHash: string): Promise<boolean> {
-  // Extract the hash and salt
-  const [hashedPassword, salt] = storedHash.split('.');
-  
-  // Hash the supplied password with the same salt
-  const suppliedBuf = (await scryptAsync(suppliedPassword, salt, 64)) as Buffer;
-  
-  // Compare the hashes using a timing-safe compare function
-  return timingSafeEqual(
-    Buffer.from(hashedPassword, 'hex'),
-    suppliedBuf
-  );
+  return new Promise((resolve, reject) => {
+    // Split hash and salt
+    const [hash, salt] = storedHash.split('.');
+    
+    if (!hash || !salt) {
+      return resolve(false); // Invalid stored hash format
+    }
+    
+    // Hash the supplied password with the same salt
+    crypto.scrypt(suppliedPassword, salt, 64, (err, derivedKey) => {
+      if (err) return reject(err);
+      
+      // Compare the generated hash with the stored hash
+      resolve(crypto.timingSafeEqual(
+        Buffer.from(hash, 'hex'),
+        derivedKey
+      ));
+    });
+  });
 }
 
 /**
@@ -50,7 +58,7 @@ export async function comparePassword(suppliedPassword: string, storedHash: stri
  */
 export function requireAuth(req: Request, res: Response, next: NextFunction) {
   if (!req.session.userId) {
-    return next(new AppError('Not authenticated', 401));
+    return next(new AppError('Authentication required', 401));
   }
   next();
 }
@@ -63,7 +71,7 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
 export function requireRoles(roles: string[]) {
   return async (req: Request, res: Response, next: NextFunction) => {
     if (!req.session.userId) {
-      return next(new AppError('Not authenticated', 401));
+      return next(new AppError('Authentication required', 401));
     }
     
     const storage = StorageFactory.getStorage();
