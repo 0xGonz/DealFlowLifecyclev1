@@ -1,48 +1,54 @@
 /**
  * Generate initials from a full name
- * @param fullName The full name to generate initials from
- * @returns The initials (usually 2 characters)
+ * 
+ * @param fullName Full name to generate initials from
+ * @returns Initials (2 characters)
  */
 export function generateInitials(fullName: string): string {
-  if (!fullName) return "XX";
+  if (!fullName) return 'NA';
   
   const names = fullName.trim().split(' ');
   
   if (names.length === 1) {
-    // For single names, take the first two characters
-    return (names[0].substring(0, 2) || "X").toUpperCase();
+    // If only one name, use first two characters of that name
+    return names[0].slice(0, 2).toUpperCase();
   }
   
-  // For multiple names, take the first character of the first and last names
-  const firstInitial = names[0][0] || "X";
-  const lastInitial = names[names.length - 1][0] || "X";
+  // Use first character of first name and first character of last name
+  const firstInitial = names[0][0] || '';
+  const lastInitial = names[names.length - 1][0] || '';
   
   return (firstInitial + lastInitial).toUpperCase();
 }
 
 /**
  * Generate a random color for user avatars
- * @returns A hex color string
+ * 
+ * @returns Hex color code
  */
 export function generateRandomColor(): string {
-  // Define a list of nice, professional colors that work well as backgrounds
+  // Array of professional, visually appealing colors
   const colors = [
-    "#0E4DA4", // Primary blue
-    "#2563EB", // Royal blue
-    "#8B5CF6", // Purple
-    "#EC4899", // Pink
-    "#F43F5E", // Rose
-    "#EF4444", // Red
-    "#F97316", // Orange
-    "#F59E0B", // Amber
-    "#10B981", // Emerald
-    "#14B8A6", // Teal
-    "#06B6D4", // Cyan
-    "#0EA5E9", // Light blue
-    "#6366F1", // Indigo
-    "#3B82F6", // Blue
-    "#8B5CF6", // Violet
-    "#A855F7", // Purple
+    '#0E4DA4', // Dark Blue
+    '#2D87BB', // Medium Blue
+    '#5E35B1', // Purple
+    '#00796B', // Teal
+    '#388E3C', // Green
+    '#689F38', // Light Green
+    '#AFB42B', // Lime Green
+    '#FBC02D', // Amber
+    '#FFA000', // Orange
+    '#F57C00', // Dark Orange
+    '#E64A19', // Deep Orange
+    '#D32F2F', // Red
+    '#C2185B', // Pink
+    '#7B1FA2', // Purple
+    '#512DA8', // Deep Purple
+    '#303F9F', // Indigo
+    '#0288D1', // Light Blue
+    '#0097A7', // Cyan
+    '#00796B', // Teal
+    '#388E3C', // Green
   ];
   
   return colors[Math.floor(Math.random() * colors.length)];
