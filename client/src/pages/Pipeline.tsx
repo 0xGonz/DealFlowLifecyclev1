@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { generateDealNotification } from "@/lib/utils/notification-utils";
 import AppLayout from "@/components/layout/AppLayout";
 import DealCard from "@/components/deals/DealCard";
 import DealsTable from "@/components/deals/DealsTable";
@@ -32,6 +33,40 @@ export default function Pipeline() {
   const [dateFilter, setDateFilter] = useState("all");
   const { toast } = useToast();
 
+  // Mutation for updating deal status
+  const updateDealStatusMutation = useMutation({
+    mutationFn: async ({ dealId, stage }: { dealId: number; stage: string }) => {
+      return apiRequest("PATCH", `/api/deals/${dealId}`, { stage });
+    },
+    onSuccess: async (data: any) => {
+      // Show success toast
+      toast({
+        title: "Status updated",
+        description: `Deal has been moved to ${DealStageLabels[data.stage as keyof typeof DealStageLabels]}`,
+      });
+      
+      // Create notification for stage change
+      try {
+        await generateDealNotification(1, data.name, 'moved', data.id);
+        
+        // Refresh notifications in the UI
+        queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/notifications/unread-count"] });
+      } catch (err) {
+        console.error('Failed to create notification:', err);
+      }
+      
+      // Refresh deals data
+      queryClient.invalidateQueries({ queryKey: ["/api/deals"] });
+    },
+    onError: (error: unknown) => {
+      toast({
+        title: "Error",
+        description: "Failed to update deal status. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
 
   const { data: rawDeals, isLoading } = useQuery<Deal[]>({
     queryKey: ["/api/deals"],
@@ -200,6 +235,9 @@ export default function Pipeline() {
                     setSelectedDealName(dealName);
                     setIsAllocateFundModalOpen(true);
                   }}
+                  onUpdateStatus={(dealId, stage) => {
+                    updateDealStatusMutation.mutate({ dealId, stage });
+                  }}
                 />
               </>
             )}
@@ -233,6 +271,9 @@ export default function Pipeline() {
                       setSelectedDealId(dealId);
                       setSelectedDealName(dealName);
                       setIsAllocateFundModalOpen(true);
+                    }}
+                    onUpdateStatus={(dealId, stage) => {
+                      updateDealStatusMutation.mutate({ dealId, stage });
                     }}
                   />
                 </>
