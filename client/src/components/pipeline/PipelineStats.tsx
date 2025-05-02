@@ -97,22 +97,7 @@ export default function PipelineStats({ deals, filteredDeals, stage }: PipelineS
               <span className="text-base sm:text-xl md:text-2xl font-bold mr-1 sm:mr-2 truncate max-w-full">
                 {stat.value}
               </span>
-              
-              {stat.trend && (
-                <div className={`flex items-center ${stat.trend > 0 ? 'text-emerald-600' : 'text-red-500'} text-[10px] sm:text-xs font-medium whitespace-nowrap`}>
-                  {stat.trend > 0 ? (
-                    <>
-                      <TrendingUp className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5 sm:mr-1" />
-                      +{stat.trend}%
-                    </>
-                  ) : (
-                    <>
-                      <TrendingDown className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5 sm:mr-1" />
-                      {stat.trend}%
-                    </>
-                  )}
-                </div>
-              )}
+
             </div>
           </CardContent>
         </Card>

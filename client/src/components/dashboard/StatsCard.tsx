@@ -46,22 +46,12 @@ export default function StatsCard({
         </div>
       </div>
       
-      {trend !== undefined && (
+      {trendLabel && (
         <div className="mt-1 sm:mt-1.5 flex items-center text-[9px] xs:text-2xs">
           {isLoading ? (
             <Skeleton className="h-2.5 sm:h-3 w-10 sm:w-12" />
           ) : (
-            <>
-              <span className={`flex items-center ${trendColorClass}`}>
-                {isTrendUp ? (
-                  <ArrowUp className="h-2.5 sm:h-3 w-2.5 sm:w-3 mr-0.5" />
-                ) : (
-                  <ArrowDown className="h-2.5 sm:h-3 w-2.5 sm:w-3 mr-0.5" />
-                )}
-                {Math.abs(trend)} 
-              </span>
-              {trendLabel && <span className="text-neutral-500 ml-0.5 text-[9px] xs:text-2xs">{trendLabel}</span>}
-            </>
+            <span className="text-neutral-500 text-[9px] xs:text-2xs">{trendLabel}</span>
           )}
         </div>
       )}

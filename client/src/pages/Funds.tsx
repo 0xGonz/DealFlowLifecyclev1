@@ -185,14 +185,6 @@ export default function Funds() {
                     <p className="text-xs sm:text-sm text-neutral-600 mb-0.5 sm:mb-1">Assets Under Management</p>
                     <p className="text-xl sm:text-2xl font-semibold flex items-center">
                       {formatCurrency(fund.aum)}
-                      {/* Calculate fund growth trend dynamically based on allocations vs AUM */}
-                      {fund.aum > 0 ? (
-                        fund.aum > 100000000 ? (
-                          <TrendingUp className="ml-1.5 sm:ml-2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-success" />
-                        ) : (
-                          <TrendingDown className="ml-1.5 sm:ml-2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-danger" />
-                        )
-                      ) : null}
                     </p>
                   </div>
                   
