@@ -7,11 +7,17 @@ import {
   FileText, 
   LogOut, 
   Settings, 
-  Users 
+  Users,
+  X
 } from "lucide-react";
 import doliverLogo from "../../assets/doliver-logo.png";
+import { Button } from "@/components/ui/button";
 
-export default function Sidebar() {
+interface SidebarProps {
+  onCloseMobile?: () => void;
+}
+
+export default function Sidebar({ onCloseMobile }: SidebarProps) {
   const [location] = useLocation();
 
   // Navigation items
@@ -52,13 +58,23 @@ export default function Sidebar() {
   ];
 
   return (
-    <aside className="fixed inset-y-0 left-0 w-64 bg-white shadow-md z-30">
+    <aside className="h-full w-64 bg-white shadow-md">
       <div className="flex flex-col h-full">
-        {/* Logo & Brand */}
-        <div className="p-4 border-b border-neutral-200">
-          <a href="/" className="flex items-center cursor-pointer">
+        {/* Logo & Brand with close button for mobile */}
+        <div className="p-4 border-b border-neutral-200 flex justify-between items-center">
+          <a href="/" className="flex items-center cursor-pointer" onClick={onCloseMobile}>
             <img src={doliverLogo} alt="Doliver Advisors" className="h-10" />
           </a>
+          {onCloseMobile && (
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="md:hidden" 
+              onClick={onCloseMobile}
+            >
+              <X className="h-5 w-5" />
+            </Button>
+          )}
         </div>
         
         {/* User Profile moved to bottom */}
@@ -75,6 +91,7 @@ export default function Sidebar() {
                       ? "active text-primary-dark"
                       : "text-neutral-700"
                   }`}
+                  onClick={() => onCloseMobile && window.innerWidth < 768 && onCloseMobile()}
                 >
                   {item.icon}
                   {item.label}
@@ -97,6 +114,7 @@ export default function Sidebar() {
                       ? "active text-primary-dark"
                       : "text-neutral-700"
                   }`}
+                  onClick={() => onCloseMobile && window.innerWidth < 768 && onCloseMobile()}
                 >
                   {item.icon}
                   {item.label}
@@ -108,7 +126,11 @@ export default function Sidebar() {
         
         {/* Logout button */}
         <div className="p-4 border-t border-neutral-200">
-          <a href="/logout" className="flex items-center text-neutral-700 hover:text-neutral-900">
+          <a 
+            href="/logout" 
+            className="flex items-center text-neutral-700 hover:text-neutral-900"
+            onClick={() => onCloseMobile && window.innerWidth < 768 && onCloseMobile()}
+          >
             <LogOut className="h-5 w-5 mr-3" />
             Logout
           </a>

@@ -32,9 +32,10 @@ export default function Header() {
 
   return (
     <header className="bg-white shadow-sm z-20 relative">
-      <div className="px-6 py-3">
-        <div className="flex items-center space-x-4 justify-end">
-          <div className="relative">
+      <div className="px-4 md:px-6 py-3">
+        <div className="flex items-center space-x-2 md:space-x-4 justify-end">
+          {/* Search box - hidden on small screens */}
+          <div className="relative hidden md:block">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-500 h-4 w-4" />
             <Input 
               type="text" 
@@ -43,12 +44,14 @@ export default function Header() {
             />
           </div>
           
+          {/* New Deal Button - smaller on mobile with just icon, text on larger screens */}
           <Button 
             onClick={() => setIsNewDealModalOpen(true)}
             className="bg-primary hover:bg-primary-dark text-white"
+            size="sm"
           >
-            <Plus className="h-5 w-5 mr-2" />
-            New Deal
+            <Plus className="h-4 w-4 md:h-5 md:w-5 md:mr-2" />
+            <span className="hidden md:inline">New Deal</span>
           </Button>
           
           <div className="relative">
@@ -57,8 +60,8 @@ export default function Header() {
           
           {/* User Profile Avatar */}
           <div className="relative cursor-pointer group">
-            <Avatar>
-              <AvatarFallback className="bg-primary text-white">JD</AvatarFallback>
+            <Avatar className="h-8 w-8 md:h-10 md:w-10">
+              <AvatarFallback className="bg-primary text-white text-xs md:text-sm">JD</AvatarFallback>
             </Avatar>
             <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 hidden group-hover:block">
               <a href="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Manage Profile</a>
