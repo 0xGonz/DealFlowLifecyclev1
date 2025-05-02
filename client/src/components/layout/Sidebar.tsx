@@ -58,17 +58,17 @@ export default function Sidebar({ onCloseMobile }: SidebarProps) {
   ];
 
   return (
-    <aside className="h-full w-56 bg-white shadow-md overflow-y-auto">
+    <aside className="h-full w-48 bg-white shadow-md overflow-y-auto">
       {/* Set fixed width for consistent sidebar rendering */}
       <div className="flex flex-col h-full">
         {/* User Profile at the top with close button for mobile */}
         <div className="p-3 border-b border-neutral-200 flex justify-between items-center">
           <div className="flex items-center space-x-2">
             <Avatar className="h-8 w-8">
-              <AvatarFallback>AU</AvatarFallback>
+              <AvatarFallback className="bg-primary text-white">JD</AvatarFallback>
             </Avatar>
             <div className="flex flex-col">
-              <span className="text-sm font-medium">Admin User</span>
+              <span className="text-sm font-medium">John Doe</span>
               <span className="text-xs text-neutral-500">Partner</span>
             </div>
           </div>
