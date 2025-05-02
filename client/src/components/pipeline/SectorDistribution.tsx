@@ -66,6 +66,27 @@ const CustomTooltip = ({ active, payload }: any) => {
 export default function SectorDistribution({ deals, stage }: SectorDistributionProps) {
   if (!deals || deals.length === 0) return null;
   
+  // Use state to track viewport size
+  const [isMobile, setIsMobile] = React.useState(false);
+  const [isSmallScreen, setIsSmallScreen] = React.useState(false);
+  
+  // Set up responsive breakpoints
+  React.useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth < 640);
+      setIsSmallScreen(window.innerWidth < 480);
+    };
+    
+    // Check initially
+    checkScreenSize();
+    
+    // Add event listener for window resize
+    window.addEventListener('resize', checkScreenSize);
+    
+    // Clean up event listener
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
+  
   // Group by sector
   const sectorCounts: Record<string, number> = {};
   deals.forEach(deal => {
@@ -109,17 +130,17 @@ export default function SectorDistribution({ deals, stage }: SectorDistributionP
         <CardTitle className="text-base sm:text-lg">{title}</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="h-[220px] w-full sm:pr-[100px] relative">
+        <div className="h-[220px] sm:h-[240px] md:h-[260px] w-full relative">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
                 data={processedData}
-                cx="40%"
+                cx="50%"
                 cy="50%"
                 labelLine={false}
                 label={renderCustomizedLabel}
-                innerRadius={60}
-                outerRadius={90}
+                innerRadius={45}
+                outerRadius={80}
                 fill="#8884d8"
                 dataKey="value"
                 nameKey="name"
@@ -133,24 +154,25 @@ export default function SectorDistribution({ deals, stage }: SectorDistributionP
               </Pie>
               <Tooltip content={<CustomTooltip />} />
               <Legend 
-                verticalAlign="middle" 
-                align="right"
-                layout="vertical"
+                verticalAlign="bottom"
+                align="center"
+                layout="horizontal"
                 payload={
                   processedData.map((item, index) => {
                     const totalCount = processedData.reduce((sum, i) => sum + i.value, 0);
                     const percentage = (item.value / totalCount * 100).toFixed(0);
+                    // Truncate long names on small screens
+                    const displayName = item.name.length > 15 ? item.name.substring(0, 12) + '...' : item.name;
                     return {
-                      value: `${item.name} (${percentage}%)`,
+                      value: `${displayName} (${percentage}%)`,
                       type: 'circle',
                       id: item.name,
                       color: SECTOR_COLORS[index % SECTOR_COLORS.length],
                     };
                   })
                 }
-                iconSize={10}
-                wrapperStyle={{ right: 0, top: 20 }}
-                formatter={(value: string) => <span className="text-sm font-medium">{value}</span>}
+                iconSize={8}
+                formatter={(value: string) => <span className="text-[10px] xs:text-xs sm:text-sm font-medium truncate max-w-[120px]">{value}</span>}
               />
             </PieChart>
           </ResponsiveContainer>
