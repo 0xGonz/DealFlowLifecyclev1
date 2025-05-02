@@ -76,7 +76,14 @@ export default function AuthPage() {
         : data.fullName.substring(0, 2).toUpperCase();
     }
 
-    registerMutation.mutate(data);
+    console.log('Registration data:', data);
+    // Make sure role is properly typed
+    const role = data.role as "admin" | "partner" | "analyst" | "observer";
+    
+    registerMutation.mutate({
+      ...data,
+      role: role
+    });
   };
 
   if (isLoading) {

@@ -86,6 +86,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
     },
     onError: (error) => {
+      console.error("Login error:", error);
       toast({
         title: "Login failed",
         description: error.message,
@@ -97,6 +98,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Register mutation
   const registerMutation = useMutation<User, Error, RegisterData>({
     mutationFn: async (userData) => {
+      console.log("Sending register data:", userData);
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: {
@@ -120,6 +122,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
     },
     onError: (error) => {
+      console.error("Registration error:", error);
       toast({
         title: "Registration failed",
         description: error.message,
