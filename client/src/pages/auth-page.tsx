@@ -22,7 +22,12 @@ const registerSchema = z.object({
   username: z.string().min(3, 'Username must be at least 3 characters'),
   email: z.string().email('Invalid email format'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
+  passwordConfirm: z.string().min(8, 'Password confirmation must be at least 8 characters'),
   fullName: z.string().min(2, 'Full name is required'),
+})
+.refine(data => data.password === data.passwordConfirm, {
+  message: 'Passwords do not match',
+  path: ['passwordConfirm'],
 });
 
 // Type inference
@@ -49,6 +54,7 @@ export default function AuthPage() {
       username: '',
       email: '',
       password: '',
+      passwordConfirm: '',
       fullName: '',
     },
   });
@@ -62,9 +68,12 @@ export default function AuthPage() {
   };
 
   const onRegisterSubmit = (values: RegisterFormValues) => {
+    // Extract passwordConfirm and create data object for submission
+    const { passwordConfirm, ...userData } = values;
+    
     // The backend will generate initials from fullName
     registerMutation.mutate({
-      ...values,
+      ...userData,
       role: 'analyst', // Default role for new users
     });
   };
@@ -202,6 +211,19 @@ export default function AuthPage() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Password</FormLabel>
+                            <FormControl>
+                              <Input type="password" placeholder="••••••••" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={registerForm.control}
+                        name="passwordConfirm"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Confirm Password</FormLabel>
                             <FormControl>
                               <Input type="password" placeholder="••••••••" {...field} />
                             </FormControl>
