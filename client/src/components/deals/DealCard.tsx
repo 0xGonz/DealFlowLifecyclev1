@@ -65,8 +65,6 @@ export default function DealCard({ deal: rawDeal, compact = false, onEdit, onAll
     }
   };
 
-  // getDealStageBadgeClass is imported from utils/format.ts
-
   return (
     <Card 
       className="bg-white rounded-lg shadow pipeline-card overflow-hidden cursor-pointer hover:shadow-md transition-shadow duration-200"
@@ -138,54 +136,54 @@ export default function DealCard({ deal: rawDeal, compact = false, onEdit, onAll
       </CardContent>
       
       <CardFooter className="border-t border-neutral-200 p-2 sm:p-3 flex flex-wrap sm:flex-nowrap justify-between gap-1">
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="text-neutral-600 hover:text-primary text-xs sm:text-sm flex-1 sm:flex-auto px-2 sm:px-3 h-7 sm:h-8"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (onEdit) onEdit();
+          }}
+        >
+          <Edit className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" />
+          <span className="whitespace-nowrap">Edit</span>
+        </Button>
+        
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className={`text-xs sm:text-sm flex-1 sm:flex-auto px-2 sm:px-3 h-7 sm:h-8 ${deal.starCount ? 'text-accent' : 'text-neutral-600 hover:text-primary'}`}
+          onClick={handleStarDeal}
+        >
+          <Star className={`h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 ${deal.starCount ? 'fill-current' : ''}`} />
+          <span className="whitespace-nowrap">{deal.starCount ? `${deal.starCount}` : 'Star'}</span>
+        </Button>
+        
+        {deal.stage === 'invested' && onAllocate ? (
           <Button 
             variant="ghost" 
             size="sm" 
             className="text-neutral-600 hover:text-primary text-xs sm:text-sm flex-1 sm:flex-auto px-2 sm:px-3 h-7 sm:h-8"
             onClick={(e) => {
               e.stopPropagation();
-              if (onEdit) onEdit();
+              onAllocate();
             }}
           >
-            <Edit className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" />
-            <span className="whitespace-nowrap">Edit</span>
+            <DollarSign className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" />
+            <span className="whitespace-nowrap">Allocate</span>
           </Button>
-          
+        ) : (
           <Button 
             variant="ghost" 
             size="sm" 
-            className={`text-xs sm:text-sm flex-1 sm:flex-auto px-2 sm:px-3 h-7 sm:h-8 ${deal.starCount ? 'text-accent' : 'text-neutral-600 hover:text-primary'}`}
-            onClick={handleStarDeal}
+            className="text-neutral-600 hover:text-primary text-xs sm:text-sm flex-1 sm:flex-auto px-2 sm:px-3 h-7 sm:h-8"
+            onClick={(e) => e.stopPropagation()}
           >
-            <Star className={`h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 ${deal.starCount ? 'fill-current' : ''}`} />
-            <span className="whitespace-nowrap">{deal.starCount ? `${deal.starCount}` : 'Star'}</span>
+            <Share2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" />
+            <span className="whitespace-nowrap">Share</span>
           </Button>
-          
-          {deal.stage === 'invested' && onAllocate ? (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="text-neutral-600 hover:text-primary text-xs sm:text-sm flex-1 sm:flex-auto px-2 sm:px-3 h-7 sm:h-8"
-              onClick={(e) => {
-                e.stopPropagation();
-                onAllocate();
-              }}
-            >
-              <DollarSign className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" />
-              <span className="whitespace-nowrap">Allocate</span>
-            </Button>
-          ) : (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="text-neutral-600 hover:text-primary text-xs sm:text-sm flex-1 sm:flex-auto px-2 sm:px-3 h-7 sm:h-8"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <Share2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" />
-              <span className="whitespace-nowrap">Share</span>
-            </Button>
-          )}
-        </CardFooter>
+        )}
+      </CardFooter>
     </Card>
   );
 }
