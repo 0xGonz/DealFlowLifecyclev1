@@ -2,8 +2,24 @@ import express, { type Request, Response, NextFunction } from "express";
 import session from "express-session";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import { errorHandler } from "./utils/errorHandlers";
+// We don't need to import errorHandlers here since it's used in routes.ts
 import { pool } from "./db";
+import { StorageFactory } from "./storage-factory";
+
+// Add user property to session
+declare module 'express-session' {
+  interface Session {
+    userId?: number;
+  }
+}
+
+declare global {
+  namespace Express {
+    interface Request {
+      user?: any; // Using any for simplicity
+    }
+  }
+}
 
 const app = express();
 app.use(express.json());
@@ -20,6 +36,28 @@ app.use(session({
   }
 }));
 
+// User deserialization middleware - must come after session middleware
+app.use(async (req: Request, res: Response, next: NextFunction) => {
+  if (req.session && req.session.userId) {
+    try {
+      const storage = StorageFactory.getStorage();
+      const user = await storage.getUser(req.session.userId);
+      if (user) {
+        // Don't include password in req.user
+        const { password, ...userWithoutPassword } = user;
+        req.user = userWithoutPassword;
+      } else {
+        // User no longer exists, clean up session
+        delete req.session.userId;
+      }
+    } catch (err) {
+      console.error('Error fetching user:', err);
+    }
+  }
+  next();
+});
+
+// Request logger middleware
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
