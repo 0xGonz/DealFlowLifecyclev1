@@ -15,14 +15,22 @@ import {
 } from "lucide-react";
 
 interface DashboardStats {
+  totalDeals: number;
+  totalDealsTrend: number;
   activeDeals: number;
-  activeDealsTrend: number;
+  activePipelinePercent: number;
+  activePipelineTrend: number;
   newDeals: number;
+  newDealsPercent: number;
   newDealsTrend: number;
   inIcReview: number;
+  icReviewPercent: number;
   icReviewTrend: number;
+  investedDeals: number;
+  investmentRate: number;
+  investmentRateTrend: number;
   totalAum: number;
-  aumTrend: number;
+  aumTrend?: number;
 }
 
 export default function Dashboard() {
@@ -38,39 +46,39 @@ export default function Dashboard() {
           {/* Quick Stats */}
           <div className="md:col-span-12 lg:col-span-9 grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <StatsCard
-              title="Active Deals"
-              value={statsLoading ? "Loading..." : (stats?.activeDeals !== undefined ? stats.activeDeals.toString() : "0")}
+              title="Total Deals"
+              value={statsLoading ? "Loading..." : (stats?.totalDeals !== undefined ? stats.totalDeals.toString() : "0")}
               icon={<Activity className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />}
-              trend={statsLoading ? 0 : stats?.activeDealsTrend || 0}
+              trend={statsLoading ? 0 : stats?.totalDealsTrend || 0}
               trendLabel="from last month"
               isLoading={statsLoading}
             />
             
             <StatsCard
-              title="New Deals (30d)"
-              value={statsLoading ? "Loading..." : (stats?.newDeals !== undefined ? stats.newDeals.toString() : "0")}
+              title="Active Pipeline"
+              value={statsLoading ? "Loading..." : (stats?.activePipelinePercent !== undefined ? `${stats.activePipelinePercent}%` : "0%")}
               icon={<TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 text-accent" />}
-              trend={statsLoading ? 0 : stats?.newDealsTrend || 0}
-              trendLabel="from last month"
+              trend={statsLoading ? 0 : stats?.activePipelineTrend || 0}
+              trendLabel="of total pipeline"
               isLoading={statsLoading}
             />
             
             <StatsCard
-              title="In IC Review"
-              value={statsLoading ? "Loading..." : (stats?.inIcReview !== undefined ? stats.inIcReview.toString() : "0")}
+              title="New Deals"
+              value={statsLoading ? "Loading..." : (stats?.newDealsPercent !== undefined ? `${stats.newDealsPercent}%` : "0%")}
               icon={<Users className="h-5 w-5 sm:h-6 sm:w-6 text-info" />}
-              trend={statsLoading ? 0 : stats?.icReviewTrend || 0}
-              trendLabel="new this week"
+              trend={statsLoading ? 0 : stats?.newDealsTrend || 0}
+              trendLabel="of total pipeline"
               trendDirection="up"
               isLoading={statsLoading}
             />
             
             <StatsCard
-              title="Total AUM"
-              value={statsLoading ? "Loading..." : (stats?.totalAum !== undefined ? formatCurrency(stats.totalAum, true) : "$0")}
+              title="Investment Rate"
+              value={statsLoading ? "Loading..." : (stats?.investmentRate !== undefined ? `${stats.investmentRate}%` : "0%")}
               icon={<DollarSign className="h-5 w-5 sm:h-6 sm:w-6 text-success" />}
-              trend={statsLoading ? 0 : stats?.aumTrend || 0}
-              trendLabel="Q2 performance"
+              trend={statsLoading ? 0 : stats?.investmentRateTrend || 0}
+              trendLabel="from last month"
               isLoading={statsLoading}
             />
           </div>

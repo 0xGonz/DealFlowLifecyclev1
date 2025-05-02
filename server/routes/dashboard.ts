@@ -18,27 +18,42 @@ router.get('/stats', async (req: Request, res: Response) => {
     // Calculate dashboard stats
     const totalDeals = deals ? deals.length : 0;
     const activeDeals = deals ? deals.filter(deal => deal.stage !== 'closed' && deal.stage !== 'passed').length : 0;
-    const newDeals = totalDeals; // In a real app, this would filter by recent date
+    const activePipelinePercent = totalDeals > 0 ? Math.round((activeDeals / totalDeals) * 100) : 0;
+    const newDeals = deals ? deals.filter(deal => ['initial_review', 'screening'].includes(deal.stage)).length : 0;
+    const newDealsPercent = totalDeals > 0 ? Math.round((newDeals / totalDeals) * 100) : 0;
     const inIcReview = deals ? deals.filter(deal => deal.stage === 'ic_review').length : 0;
+    const icReviewPercent = totalDeals > 0 ? Math.round((inIcReview / totalDeals) * 100) : 0;
+    
+    // Calculate investment rate - deals that are in 'invested' stage compared to total deals
+    const investedDeals = deals ? deals.filter(deal => deal.stage === 'invested').length : 0;
+    const investmentRate = totalDeals > 0 ? Math.round((investedDeals / totalDeals) * 100) : 0;
     
     // Calculate total AUM
     const totalAum = funds ? funds.reduce((sum, fund) => sum + (fund.aum || 0), 0) : 0;
     
     // Mock trends (would be calculated from historical data in a real app)
-    const activeDealsTrend = 10; // +10%
+    const totalDealsTrend = 15; // +15%
+    const activePipelineTrend = 10; // +10%
     const newDealsTrend = 25;  // +25%
     const icReviewTrend = 5;   // +5%
-    const aumTrend = 15;       // +15%
+    const investmentRateTrend = 8; // +8%
     
     const response = {
+      totalDeals,
       activeDeals,
+      activePipelinePercent,
       newDeals,
+      newDealsPercent,
       inIcReview,
+      icReviewPercent,
+      investedDeals,
+      investmentRate,
       totalAum,
-      activeDealsTrend,
+      totalDealsTrend,
+      activePipelineTrend,
       newDealsTrend,
       icReviewTrend,
-      aumTrend
+      investmentRateTrend
     };
     
     console.log('Dashboard stats: Sending response', response);
