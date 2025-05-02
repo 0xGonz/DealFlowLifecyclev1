@@ -190,25 +190,25 @@ export default function FundDetail() {
                   )}
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
                     <div>
-                      <p className="text-sm text-neutral-600 mb-1">Assets Under Management</p>
-                      <p className="text-2xl font-semibold flex items-center">
+                      <p className="text-xs sm:text-sm text-neutral-600 mb-1">Assets Under Management</p>
+                      <p className="text-lg sm:text-xl md:text-2xl font-semibold flex items-center">
                         {formatCurrency(fund?.aum)}
-                        <TrendingUp className="ml-2 h-4 w-4 text-success" />
+                        <TrendingUp className="ml-2 h-3 w-3 sm:h-4 sm:w-4 text-success" />
                       </p>
                     </div>
                     
                     <div>
-                      <p className="text-sm text-neutral-600 mb-1">Total Investments</p>
-                      <p className="text-2xl font-semibold">
+                      <p className="text-xs sm:text-sm text-neutral-600 mb-1">Total Investments</p>
+                      <p className="text-lg sm:text-xl md:text-2xl font-semibold">
                         {allocations?.length || 0}
                       </p>
                     </div>
                     
-                    <div>
-                      <p className="text-sm text-neutral-600 mb-1">Created Date</p>
-                      <p className="text-lg font-medium">
+                    <div className="sm:col-span-2 md:col-span-1">
+                      <p className="text-xs sm:text-sm text-neutral-600 mb-1">Created Date</p>
+                      <p className="text-base sm:text-lg font-medium">
                         {fund?.createdAt ? format(new Date(fund.createdAt), "PPP") : "Unknown"}
                       </p>
                     </div>
@@ -392,7 +392,7 @@ export default function FundDetail() {
                         
                         <div className="space-y-2">
                           <Label htmlFor="dateRange">Date Range</Label>
-                          <div className="grid grid-cols-2 gap-4">
+                          <div className="grid grid-cols-1 xs:grid-cols-2 gap-2 xs:gap-4">
                             <div className="relative">
                               <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-500" />
                               <Input 
@@ -447,17 +447,18 @@ export default function FundDetail() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Deal</TableHead>
-                      <TableHead>Stage</TableHead>
-                      <TableHead>Amount</TableHead>
-                      <TableHead>Security Type</TableHead>
-                      <TableHead>Allocation Date</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
+                <div className="overflow-x-auto -mx-6 px-6">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="whitespace-nowrap">Deal</TableHead>
+                        <TableHead className="whitespace-nowrap hidden xs:table-cell">Stage</TableHead>
+                        <TableHead className="whitespace-nowrap">Amount</TableHead>
+                        <TableHead className="whitespace-nowrap hidden sm:table-cell">Security Type</TableHead>
+                        <TableHead className="whitespace-nowrap hidden md:table-cell">Allocation Date</TableHead>
+                        <TableHead className="whitespace-nowrap text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
                   <TableBody>
                     {isAllocationsLoading ? (
                       <TableRow>
@@ -482,7 +483,7 @@ export default function FundDetail() {
                                 {deal?.name || `Deal #${allocation.dealId}`}
                               </a>
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="hidden xs:table-cell">
                               {deal?.stageLabel ? (
                                 <Badge 
                                   variant="outline" 
@@ -497,14 +498,14 @@ export default function FundDetail() {
                               ) : "-"}
                             </TableCell>
                             <TableCell>{formatCurrency(allocation.amount)}</TableCell>
-                            <TableCell>
+                            <TableCell className="hidden sm:table-cell">
                               {allocation.securityType === "common" && "Common Stock"}
                               {allocation.securityType === "preferred" && "Preferred Stock"}
                               {allocation.securityType === "safe" && "SAFE"}
                               {allocation.securityType === "convertible" && "Convertible Note"}
                               {allocation.securityType === "other" && "Other"}
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="hidden md:table-cell">
                               {allocation.allocationDate ? 
                                 new Date(allocation.allocationDate).toString() !== "Invalid Date" 
                                   ? format(new Date(allocation.allocationDate), "PP") 
@@ -525,6 +526,7 @@ export default function FundDetail() {
                     )}
                   </TableBody>
                 </Table>
+                </div>
               </CardContent>
             </Card>
             
@@ -537,29 +539,29 @@ export default function FundDetail() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-                  <div>
-                    <h3 className="text-sm font-medium text-neutral-500 mb-1">TVPI</h3>
-                    <p className="text-2xl font-semibold">1.23x</p>
-                    <p className="text-sm text-neutral-500">Total Value to Paid-In Capital</p>
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 lg:gap-8">
+                  <div className="p-2 sm:p-3">
+                    <h3 className="text-xs sm:text-sm font-medium text-neutral-500 mb-0.5 sm:mb-1">TVPI</h3>
+                    <p className="text-lg sm:text-xl md:text-2xl font-semibold">1.23x</p>
+                    <p className="text-xs sm:text-sm text-neutral-500 truncate">Total Value to Paid-In Capital</p>
                   </div>
                   
-                  <div>
-                    <h3 className="text-sm font-medium text-neutral-500 mb-1">DPI</h3>
-                    <p className="text-2xl font-semibold">0.35x</p>
-                    <p className="text-sm text-neutral-500">Distributions to Paid-In Capital</p>
+                  <div className="p-2 sm:p-3">
+                    <h3 className="text-xs sm:text-sm font-medium text-neutral-500 mb-0.5 sm:mb-1">DPI</h3>
+                    <p className="text-lg sm:text-xl md:text-2xl font-semibold">0.35x</p>
+                    <p className="text-xs sm:text-sm text-neutral-500 truncate">Distributions to Paid-In Capital</p>
                   </div>
                   
-                  <div>
-                    <h3 className="text-sm font-medium text-neutral-500 mb-1">RVPI</h3>
-                    <p className="text-2xl font-semibold">0.88x</p>
-                    <p className="text-sm text-neutral-500">Residual Value to Paid-In Capital</p>
+                  <div className="p-2 sm:p-3">
+                    <h3 className="text-xs sm:text-sm font-medium text-neutral-500 mb-0.5 sm:mb-1">RVPI</h3>
+                    <p className="text-lg sm:text-xl md:text-2xl font-semibold">0.88x</p>
+                    <p className="text-xs sm:text-sm text-neutral-500 truncate">Residual Value to Paid-In Capital</p>
                   </div>
                   
-                  <div>
-                    <h3 className="text-sm font-medium text-neutral-500 mb-1">IRR</h3>
-                    <p className="text-2xl font-semibold">14.2%</p>
-                    <p className="text-sm text-neutral-500">Internal Rate of Return</p>
+                  <div className="p-2 sm:p-3">
+                    <h3 className="text-xs sm:text-sm font-medium text-neutral-500 mb-0.5 sm:mb-1">IRR</h3>
+                    <p className="text-lg sm:text-xl md:text-2xl font-semibold">14.2%</p>
+                    <p className="text-xs sm:text-sm text-neutral-500 truncate">Internal Rate of Return</p>
                   </div>
                 </div>
               </CardContent>
