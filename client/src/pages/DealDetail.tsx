@@ -193,7 +193,7 @@ export default function DealDetail() {
   if (isLoading) {
     return (
       <AppLayout>
-        <div className="flex-1 overflow-y-auto p-6 pb-20">
+        <div className="flex-1 overflow-y-auto pb-20">
           <div className="animate-pulse">
             <div className="h-8 w-64 bg-neutral-200 rounded mb-4"></div>
             <div className="h-32 bg-white rounded-lg shadow-sm mb-6"></div>
@@ -206,7 +206,7 @@ export default function DealDetail() {
 
   return (
     <AppLayout>
-      <div className="flex-1 overflow-y-auto p-6 pb-20">
+      <div className="flex-1 overflow-y-auto pb-20">
         {/* Edit Deal Modal */}
         {deal && 
           <EditDealModal 
