@@ -22,16 +22,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication with our new implementation
   setupAuth(app);
   
-  // Register route modules
-  app.use('/api/deals', dealsRoutes);
-  app.use('/api/funds', fundsRoutes);
-  app.use('/api/users', usersRoutes);
-  app.use('/api/allocations', allocationsRoutes);
-  app.use('/api/dashboard', dashboardRoutes);
-  app.use('/api/leaderboard', leaderboardRoutes);
-  app.use('/api/activity', activityRoutes);
-  app.use('/api/notifications', notificationsRoutes);
-  app.use('/api/documents', documentsRoutes);
+  // Register route modules - require authentication for most routes
+  app.use('/api/deals', requireAuth, dealsRoutes);
+  app.use('/api/funds', requireAuth, fundsRoutes);
+  app.use('/api/users', requireAuth, usersRoutes);
+  app.use('/api/allocations', requireAuth, allocationsRoutes);
+  app.use('/api/dashboard', requireAuth, dashboardRoutes);
+  app.use('/api/leaderboard', requireAuth, leaderboardRoutes);
+  app.use('/api/activity', requireAuth, activityRoutes);
+  app.use('/api/notifications', requireAuth, notificationsRoutes);
+  app.use('/api/documents', requireAuth, documentsRoutes);
+  
+  // Debugging middleware to log all routes
+  app.use((req, res, next) => {
+    console.log(`Route requested: ${req.method} ${req.path}`);
+    next();
+  });
   
   // Catch-all route for 404s
   app.use('/api/*', notFoundHandler);
