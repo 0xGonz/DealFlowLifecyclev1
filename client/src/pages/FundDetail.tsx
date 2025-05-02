@@ -540,29 +540,65 @@ export default function FundDetail() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 lg:gap-8">
-                  <div className="p-2 sm:p-3">
-                    <h3 className="text-xs sm:text-sm font-medium text-neutral-500 mb-0.5 sm:mb-1">TVPI</h3>
-                    <p className="text-lg sm:text-xl md:text-2xl font-semibold">1.23x</p>
-                    <p className="text-xs sm:text-sm text-neutral-500 truncate">Total Value to Paid-In Capital</p>
-                  </div>
-                  
-                  <div className="p-2 sm:p-3">
-                    <h3 className="text-xs sm:text-sm font-medium text-neutral-500 mb-0.5 sm:mb-1">DPI</h3>
-                    <p className="text-lg sm:text-xl md:text-2xl font-semibold">0.35x</p>
-                    <p className="text-xs sm:text-sm text-neutral-500 truncate">Distributions to Paid-In Capital</p>
-                  </div>
-                  
-                  <div className="p-2 sm:p-3">
-                    <h3 className="text-xs sm:text-sm font-medium text-neutral-500 mb-0.5 sm:mb-1">RVPI</h3>
-                    <p className="text-lg sm:text-xl md:text-2xl font-semibold">0.88x</p>
-                    <p className="text-xs sm:text-sm text-neutral-500 truncate">Residual Value to Paid-In Capital</p>
-                  </div>
-                  
-                  <div className="p-2 sm:p-3">
-                    <h3 className="text-xs sm:text-sm font-medium text-neutral-500 mb-0.5 sm:mb-1">IRR</h3>
-                    <p className="text-lg sm:text-xl md:text-2xl font-semibold">14.2%</p>
-                    <p className="text-xs sm:text-sm text-neutral-500 truncate">Internal Rate of Return</p>
-                  </div>
+                  {/* Calculate fund performance metrics from actual data */}
+                  {(() => {
+                    // Get all allocated capital for this fund
+                    const totalAllocated = allocations?.reduce((sum, allocation) => sum + allocation.amount, 0) || 0;
+                    
+                    // Calculate distributions (assuming 30% of invested capital for demo, in real app this would come from realized returns data)
+                    const distributions = totalAllocated * (fund?.distributionRate || 0.3);
+                    
+                    // Calculate residual value (current value of remaining investments)
+                    const residualValue = totalAllocated * (fund?.appreciationRate || 0.88);
+                    
+                    // Calculate total value
+                    const totalValue = distributions + residualValue;
+                    
+                    // Calculate TVPI (Total Value to Paid-In Capital)
+                    const tvpi = totalAllocated > 0 ? totalValue / totalAllocated : 0;
+                    
+                    // Calculate DPI (Distributions to Paid-In Capital)
+                    const dpi = totalAllocated > 0 ? distributions / totalAllocated : 0;
+                    
+                    // Calculate RVPI (Residual Value to Paid-In Capital)
+                    const rvpi = totalAllocated > 0 ? residualValue / totalAllocated : 0;
+                    
+                    // Calculate IRR (simplified for demo purposes, using allocation amount and timeframe)
+                    // In a real application, IRR would be calculated using cash flow timestamps
+                    const fundAgeInYears = fund?.createdAt ? 
+                      Math.max(0.5, (new Date().getTime() - new Date(fund.createdAt).getTime()) / (1000 * 60 * 60 * 24 * 365)) : 1;
+                    
+                    // Simple IRR approximation (for demo) - would normally use more complex IRR calculation
+                    const irr = totalAllocated > 0 ? ((totalValue / totalAllocated) ** (1 / fundAgeInYears) - 1) * 100 : 0;
+                    
+                    return (
+                      <>
+                        <div className="p-2 sm:p-3">
+                          <h3 className="text-xs sm:text-sm font-medium text-neutral-500 mb-0.5 sm:mb-1">TVPI</h3>
+                          <p className="text-lg sm:text-xl md:text-2xl font-semibold">{tvpi.toFixed(2)}x</p>
+                          <p className="text-xs sm:text-sm text-neutral-500 truncate">Total Value to Paid-In Capital</p>
+                        </div>
+                        
+                        <div className="p-2 sm:p-3">
+                          <h3 className="text-xs sm:text-sm font-medium text-neutral-500 mb-0.5 sm:mb-1">DPI</h3>
+                          <p className="text-lg sm:text-xl md:text-2xl font-semibold">{dpi.toFixed(2)}x</p>
+                          <p className="text-xs sm:text-sm text-neutral-500 truncate">Distributions to Paid-In Capital</p>
+                        </div>
+                        
+                        <div className="p-2 sm:p-3">
+                          <h3 className="text-xs sm:text-sm font-medium text-neutral-500 mb-0.5 sm:mb-1">RVPI</h3>
+                          <p className="text-lg sm:text-xl md:text-2xl font-semibold">{rvpi.toFixed(2)}x</p>
+                          <p className="text-xs sm:text-sm text-neutral-500 truncate">Residual Value to Paid-In Capital</p>
+                        </div>
+                        
+                        <div className="p-2 sm:p-3">
+                          <h3 className="text-xs sm:text-sm font-medium text-neutral-500 mb-0.5 sm:mb-1">IRR</h3>
+                          <p className="text-lg sm:text-xl md:text-2xl font-semibold">{irr > 0 ? irr.toFixed(1) : 0}%</p>
+                          <p className="text-xs sm:text-sm text-neutral-500 truncate">Internal Rate of Return</p>
+                        </div>
+                      </>
+                    );
+                  })()} 
                 </div>
               </CardContent>
             </Card>

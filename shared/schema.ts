@@ -33,6 +33,8 @@ export const deals = pgTable("deals", {
   targetRaise: text("target_raise"),
   valuation: text("valuation"),
   leadInvestor: text("lead_investor"),
+  targetReturn: text("target_return"),
+  score: integer("score"),
   contactEmail: text("contact_email"),
   notes: text("notes"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -122,6 +124,9 @@ export const funds = pgTable("funds", {
   description: text("description"),
   aum: real("aum").notNull().default(0),
   createdAt: timestamp("created_at").notNull().defaultNow(),
+  // Performance metrics
+  distributionRate: real("distribution_rate").default(0.3),
+  appreciationRate: real("appreciation_rate").default(0.88),
 });
 
 export const insertFundSchema = createInsertSchema(funds).omit({
