@@ -2,18 +2,9 @@ import { Request, Response, NextFunction } from 'express';
 import { AppError } from './errorHandlers';
 import { StorageFactory } from '../storage-factory';
 
-// Types for session data
-declare module 'express-session' {
-  interface SessionData {
-    userId?: number;
-    username?: string;
-    role?: string;
-  }
-}
-
-// Authentication middleware
+// Authentication middleware for Passport.js
 export function requireAuth(req: Request, res: Response, next: NextFunction) {
-  if (!req.session.userId) {
+  if (!req.isAuthenticated()) {
     return next(new AppError('Authentication required', 401));
   }
   next();
@@ -24,11 +15,12 @@ export function requireRole(roles: string | string[]) {
   const allowedRoles = Array.isArray(roles) ? roles : [roles];
   
   return (req: Request, res: Response, next: NextFunction) => {
-    if (!req.session.userId) {
+    if (!req.isAuthenticated()) {
       return next(new AppError('Authentication required', 401));
     }
     
-    if (!req.session.role || !allowedRoles.includes(req.session.role)) {
+    const user = req.user;
+    if (!user || !user.role || !allowedRoles.includes(user.role)) {
       return next(new AppError('You do not have permission to access this resource', 403));
     }
     
@@ -36,43 +28,19 @@ export function requireRole(roles: string | string[]) {
   };
 }
 
-// Helper to get the current user from the session
-export async function getCurrentUser(req: Request) {
-  if (!req.session.userId) {
-    return null;
-  }
-  
-  try {
-    const storage = StorageFactory.getStorage();
-    const user = await storage.getUser(req.session.userId);
-    return user || null;
-  } catch (error) {
-    console.error('Error getting current user:', error);
-    return null;
-  }
+// Helper to get the current user - Passport.js already provides req.user
+export function getCurrentUser(req: Request) {
+  return req.isAuthenticated() ? req.user : null;
 }
 
-// Login helper
+// These functions are now handled by Passport.js through our auth.ts implementation
 export async function login(req: Request, username: string, password: string) {
-  const storage = StorageFactory.getStorage();
-  const user = await storage.getUserByUsername(username);
-  
-  if (!user || user.password !== password) { // In production, use proper password hashing
-    throw new AppError('Invalid username or password', 401);
-  }
-  
-  // Set session data
-  req.session.userId = user.id;
-  req.session.username = user.username;
-  req.session.role = user.role;
-  
-  return user;
+  throw new Error('Use Passport authentication instead');
 }
 
-// Logout helper
 export function logout(req: Request) {
   return new Promise<void>((resolve, reject) => {
-    req.session.destroy((err) => {
+    req.logout((err) => {
       if (err) {
         return reject(err);
       }
