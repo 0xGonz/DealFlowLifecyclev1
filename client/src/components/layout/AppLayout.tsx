@@ -12,7 +12,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="flex h-screen bg-neutral-100 relative">
+    <div className="flex h-screen bg-neutral-100 relative md:pl-64">
       {/* Mobile sidebar toggle */}
       <div className="md:hidden fixed top-5 left-5 z-50">
         <Button 
@@ -31,15 +31,15 @@ export default function AppLayout({ children }: AppLayoutProps) {
         onClick={() => setSidebarOpen(false)}
       />
 
-      {/* Sidebar - hidden on mobile unless toggled */}
-      <div className={`${sidebarOpen ? 'translate-x-0 shadow-xl' : '-translate-x-full'} md:translate-x-0 md:shadow-none transition-all duration-300 ease-in-out md:static fixed inset-y-0 left-0 z-40 h-full`}>
+      {/* Sidebar - hidden on mobile unless toggled, fixed positioning regardless of screen size */}
+      <div className={`${sidebarOpen ? 'translate-x-0 shadow-xl' : '-translate-x-full'} md:translate-x-0 md:shadow-none transition-all duration-300 ease-in-out fixed md:fixed inset-y-0 left-0 z-40 h-full`}>
         <Sidebar onCloseMobile={() => setSidebarOpen(false)} />
       </div>
 
-      {/* Main content */}
-      <div className="flex-1 flex flex-col overflow-y-auto md:pl-64">
+      {/* Main content - not using md:pl-64 anymore, instead using w-full */}
+      <div className="flex-1 flex flex-col overflow-y-auto w-full max-w-full">
         <Header />
-        <div className="flex-1 overflow-y-auto pb-16">
+        <div className="flex-1 overflow-y-auto pb-16 w-full max-w-full">
           {children}
         </div>
       </div>

@@ -59,6 +59,7 @@ export default function Sidebar({ onCloseMobile }: SidebarProps) {
 
   return (
     <aside className="h-full w-64 bg-white shadow-md overflow-y-auto">
+      {/* Set fixed width for consistent sidebar rendering */}
       <div className="flex flex-col h-full">
         {/* Logo & Brand with close button for mobile */}
         <div className="p-4 border-b border-neutral-200 flex justify-between items-center">
