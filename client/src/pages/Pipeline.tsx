@@ -132,7 +132,7 @@ export default function Pipeline() {
             </Select>
             
             <Select value={stageFilter} onValueChange={setStageFilter}>
-              <SelectTrigger className="w-full sm:w-[180px] bg-white border-neutral-300">
+              <SelectTrigger className="w-[140px] sm:w-[180px] bg-white border-neutral-300 text-xs sm:text-sm h-9">
                 <SelectValue placeholder="All Statuses" />
               </SelectTrigger>
               <SelectContent>
@@ -144,7 +144,7 @@ export default function Pipeline() {
             </Select>
             
             <Select value="all" onValueChange={() => {}}>
-              <SelectTrigger className="w-full sm:w-[150px] bg-white border-neutral-300">
+              <SelectTrigger className="w-[140px] sm:w-[150px] bg-white border-neutral-300 text-xs sm:text-sm h-9">
                 <SelectValue placeholder="Any Time" />
               </SelectTrigger>
               <SelectContent>
@@ -161,11 +161,12 @@ export default function Pipeline() {
         <Tabs defaultValue="all" className="space-y-4">
           <div className="overflow-x-auto pb-2">
             <TabsList className="flex-wrap">
-              <TabsTrigger value="all">All Deals</TabsTrigger>
+              <TabsTrigger value="all" className="text-xs sm:text-sm py-1.5 px-2.5 sm:px-3">All Deals</TabsTrigger>
               {Object.entries(DealStageLabels).map(([stage, label]) => (
-                <TabsTrigger key={stage} value={stage}>
-                  {label}
-                  <span className="ml-2 text-xs bg-neutral-100 px-2 py-0.5 rounded-full">
+                <TabsTrigger key={stage} value={stage} className="text-xs sm:text-sm py-1.5 px-2.5 sm:px-3">
+                  <span className="hidden xs:inline">{label}</span>
+                  <span className="inline xs:hidden">{label.substring(0, 3)}</span>
+                  <span className="ml-1 sm:ml-2 text-xs bg-neutral-100 px-1.5 sm:px-2 py-0.5 rounded-full">
                     {dealsByStage?.[stage]?.length || 0}
                   </span>
                 </TabsTrigger>
