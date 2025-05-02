@@ -58,16 +58,7 @@ export default function Header() {
             <NotificationDropdown />
           </div>
           
-          {/* User Profile Avatar */}
-          <div className="relative cursor-pointer group">
-            <Avatar className="h-8 w-8 md:h-10 md:w-10">
-              <AvatarFallback className="bg-primary text-white text-xs md:text-sm">JD</AvatarFallback>
-            </Avatar>
-            <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 hidden group-hover:block">
-              <a href="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Manage Profile</a>
-              <a href="/logout" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Logout</a>
-            </div>
-          </div>
+          {/* User profile moved to sidebar */}
         </div>
       </div>
 

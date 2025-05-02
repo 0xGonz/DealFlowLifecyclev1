@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useLocation } from "wouter";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { 
@@ -10,8 +11,8 @@ import {
   Users,
   X
 } from "lucide-react";
-import doliverLogo from "../../assets/doliver-logo.png";
 import { Button } from "@/components/ui/button";
+import ProfileEditModal from "@/components/profile/ProfileEditModal";
 
 interface SidebarProps {
   onCloseMobile?: () => void;
@@ -19,6 +20,7 @@ interface SidebarProps {
 
 export default function Sidebar({ onCloseMobile }: SidebarProps) {
   const [location] = useLocation();
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
   // Navigation items
   const mainNavItems = [
@@ -63,7 +65,10 @@ export default function Sidebar({ onCloseMobile }: SidebarProps) {
       <div className="flex flex-col h-full">
         {/* User Profile at the top with close button for mobile */}
         <div className="p-3 border-b border-neutral-200 flex justify-between items-center">
-          <div className="flex items-center space-x-2">
+          <div 
+            className="flex items-center space-x-2 cursor-pointer hover:bg-neutral-50 p-1 rounded-md transition-colors" 
+            onClick={() => setIsProfileModalOpen(true)}
+          >
             <Avatar className="h-8 w-8">
               <AvatarFallback className="bg-primary text-white">JD</AvatarFallback>
             </Avatar>
@@ -140,6 +145,14 @@ export default function Sidebar({ onCloseMobile }: SidebarProps) {
             Logout
           </a>
         </div>
+
+        {/* Profile Edit Modal */}
+        <ProfileEditModal
+          isOpen={isProfileModalOpen}
+          onClose={() => setIsProfileModalOpen(false)}
+          currentName="John Doe"
+          currentRole="partner"
+        />
       </div>
     </aside>
   );
