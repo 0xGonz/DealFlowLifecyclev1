@@ -3,10 +3,10 @@ import { Link } from 'wouter';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { MoreHorizontal } from "lucide-react";
+import { MoreHorizontal, ChevronDown, User, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Deal } from "@/lib/types";
-import { getDealStageBadgeClass, formatCurrency, formatDate } from "@/lib/utils/format";
+import { getDealStageBadgeClass, formatCurrency, formatDate, formatPercentage } from "@/lib/utils/format";
 import { DealStageLabels } from "@shared/schema";
 
 type DealsTableProps = {
@@ -39,12 +39,12 @@ export default function DealsTable({ deals, onEdit, onAllocate, isLoading }: Dea
       <Table>
         <TableHeader>
           <TableRow className="bg-muted/50">
-            <TableHead className="w-[200px] font-semibold">Deal</TableHead>
-            <TableHead className="font-semibold">Sector</TableHead>
-            <TableHead className="w-[300px] font-semibold">Description</TableHead>
-            <TableHead className="font-semibold">Return</TableHead>
-            <TableHead className="font-semibold">Status</TableHead>
-            <TableHead className="text-right font-semibold">Actions</TableHead>
+            <TableHead className="w-[250px] font-semibold">Deal Name</TableHead>
+            <TableHead className="w-[120px] font-semibold">Type</TableHead>
+            <TableHead className="font-semibold">Description</TableHead>
+            <TableHead className="w-[80px] font-semibold text-right">%</TableHead>
+            <TableHead className="w-[150px] font-semibold">Status</TableHead>
+            <TableHead className="w-[130px] text-center font-semibold">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -63,54 +63,52 @@ export default function DealsTable({ deals, onEdit, onAllocate, isLoading }: Dea
             return (
               <TableRow key={deal.id}>
                 <TableCell>
-                  <div className="flex items-center gap-3">
-                    <Avatar className="bg-primary-50">
-                      <AvatarFallback className="font-medium text-primary">
-                        {initials}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <Link href={`/deals/${deal.id}`} className="font-medium text-neutral-900 hover:text-primary">
-                        {deal.name}
-                      </Link>
-                    </div>
+                  <div className="flex flex-col">
+                    <div className="font-medium text-neutral-900">{deal.name}</div>
+                    <div className="text-xs text-neutral-500">In DD since {formatDate(deal.updatedAt)}</div>
                   </div>
                 </TableCell>
                 <TableCell>
-                  <span className="text-sm">{deal.sector}</span>
+                  <span className="text-sm">{deal.sector || 'Private Credit'}</span>
                 </TableCell>
                 <TableCell>
-                  <p className="text-sm line-clamp-2 max-w-[250px]">{deal.description}</p>
+                  <p className="text-sm">{deal.description}</p>
                 </TableCell>
-                <TableCell>
+                <TableCell className="text-right">
                   <span className="text-sm font-medium text-emerald-700">10-15%</span>
                 </TableCell>
                 <TableCell>
-                  <Badge variant="outline" className={stageBadgeClass}>
-                    {dealStageLabel}
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className={stageBadgeClass}>
+                      {dealStageLabel}
+                    </Badge>
+                    <ChevronDown className="h-4 w-4 text-neutral-400" />
+                  </div>
                 </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
+                <TableCell>
+                  <div className="flex justify-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                    >
+                      <User className="h-4 w-4 text-neutral-600" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                    >
+                      <FileText className="h-4 w-4 text-neutral-600" />
+                    </Button>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => onEdit(deal.id)}
                       className="h-8 w-8 p-0"
                     >
-                      <span className="sr-only">Edit</span>
-                      <MoreHorizontal className="h-4 w-4" />
+                      <MoreHorizontal className="h-4 w-4 text-neutral-600" />
                     </Button>
-                    {deal.stage === 'invested' && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => onAllocate(deal.id, deal.name)}
-                        className="h-8"
-                      >
-                        Allocate
-                      </Button>
-                    )}
                   </div>
                 </TableCell>
               </TableRow>
