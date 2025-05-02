@@ -122,7 +122,8 @@ export const funds = pgTable("funds", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   description: text("description"),
-  aum: real("aum").notNull().default(0),
+  aum: real("aum").notNull().default(0), // Will be calculated dynamically based on funded allocations
+  vintage: integer("vintage"), // The fund's vintage year
   createdAt: timestamp("created_at").notNull().defaultNow(),
   // Performance metrics
   distributionRate: real("distribution_rate").default(0.3),

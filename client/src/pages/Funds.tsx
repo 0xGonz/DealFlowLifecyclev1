@@ -40,8 +40,8 @@ export default function Funds() {
   const [isNewFundDialogOpen, setIsNewFundDialogOpen] = useState(false);
   const [newFundData, setNewFundData] = useState({
     name: "",
-    description: "",
-    aum: 0
+    vintage: new Date().getFullYear(),
+    description: ""
   });
   
   const { toast } = useToast();
@@ -60,6 +60,15 @@ export default function Funds() {
         });
         return;
       }
+
+      if (!newFundData.vintage || newFundData.vintage < 1980 || newFundData.vintage > new Date().getFullYear() + 1) {
+        toast({
+          title: "Error",
+          description: "Please enter a valid vintage year",
+          variant: "destructive"
+        });
+        return;
+      }
       
       await apiRequest("POST", "/api/funds", newFundData);
       
@@ -71,8 +80,8 @@ export default function Funds() {
       // Reset form and close dialog
       setNewFundData({
         name: "",
-        description: "",
-        aum: 0
+        vintage: new Date().getFullYear(),
+        description: ""
       });
       setIsNewFundDialogOpen(false);
       
@@ -133,18 +142,16 @@ export default function Funds() {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="aum">Initial AUM</Label>
-                  <div className="relative">
-                    <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-500" />
-                    <Input 
-                      id="aum"
-                      type="number"
-                      className="pl-10"
-                      value={newFundData.aum}
-                      onChange={(e) => setNewFundData({...newFundData, aum: parseFloat(e.target.value)})}
-                      placeholder="0.00"
-                    />
-                  </div>
+                  <Label htmlFor="vintage">Vintage Year *</Label>
+                  <Input 
+                    id="vintage"
+                    type="number"
+                    value={newFundData.vintage}
+                    onChange={(e) => setNewFundData({...newFundData, vintage: parseInt(e.target.value)})}
+                    placeholder="e.g. 2025"
+                    min={1980}
+                    max={new Date().getFullYear() + 1}
+                  />
                 </div>
               </div>
               
@@ -181,11 +188,19 @@ export default function Funds() {
                   <CardTitle className="text-base sm:text-lg font-semibold truncate">{fund.name}</CardTitle>
                 </CardHeader>
                 <CardContent className="pt-3 sm:pt-4">
-                  <div className="mb-3 sm:mb-4">
-                    <p className="text-xs sm:text-sm text-neutral-600 mb-0.5 sm:mb-1">Assets Under Management</p>
-                    <p className="text-xl sm:text-2xl font-semibold flex items-center">
-                      {formatCurrency(fund.aum)}
-                    </p>
+                  <div className="grid grid-cols-2 gap-4 mb-3 sm:mb-4">
+                    <div>
+                      <p className="text-xs sm:text-sm text-neutral-600 mb-0.5 sm:mb-1">Assets Under Management</p>
+                      <p className="text-xl sm:text-2xl font-semibold flex items-center">
+                        {formatCurrency(fund.aum)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs sm:text-sm text-neutral-600 mb-0.5 sm:mb-1">Vintage</p>
+                      <p className="text-xl sm:text-2xl font-semibold">
+                        {fund.vintage || "N/A"}
+                      </p>
+                    </div>
                   </div>
                   
                   {fund.description && (
