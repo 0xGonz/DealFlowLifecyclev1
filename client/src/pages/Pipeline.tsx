@@ -100,15 +100,15 @@ export default function Pipeline() {
             <Input
               type="text"
               placeholder="Search deals..."
-              className="pl-10 border-neutral-300"
+              className="pl-10 border-neutral-300 text-sm"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
           
-          <div className="flex flex-wrap gap-3 w-full md:w-auto">
+          <div className="flex flex-wrap gap-2 sm:gap-3 w-full md:w-auto">
             <Select value={sectorFilter} onValueChange={setSectorFilter}>
-              <SelectTrigger className="w-full sm:w-[180px] bg-white border-neutral-300">
+              <SelectTrigger className="w-[140px] sm:w-[180px] bg-white border-neutral-300 text-xs sm:text-sm h-9">
                 <SelectValue placeholder="All Sectors" />
               </SelectTrigger>
               <SelectContent>
@@ -120,7 +120,7 @@ export default function Pipeline() {
             </Select>
             
             <Select value={dateFilter} onValueChange={setDateFilter}>
-              <SelectTrigger className="w-full sm:w-[180px] bg-white border-neutral-300">
+              <SelectTrigger className="w-[140px] sm:w-[180px] bg-white border-neutral-300 text-xs sm:text-sm h-9">
                 <SelectValue placeholder="All Returns" />
               </SelectTrigger>
               <SelectContent>
@@ -236,7 +236,7 @@ export default function Pipeline() {
                                 }
                               }}
                             >
-                              <SelectTrigger className="w-[160px] h-8" onClick={(e) => e.stopPropagation()}>
+                              <SelectTrigger className="w-[120px] sm:w-[160px] h-8 text-xs sm:text-sm" onClick={(e) => e.stopPropagation()}>
                                 <SelectValue placeholder="Select status" />
                               </SelectTrigger>
                               <SelectContent>
@@ -315,20 +315,20 @@ export default function Pipeline() {
                     <tbody className="divide-y divide-neutral-200">
                       {dealsByStage[stage].map((deal: Deal) => (
                         <tr key={deal.id} className="hover:bg-neutral-50 transition-colors cursor-pointer" onClick={() => window.location.href = `/deals/${deal.id}`}>
-                          <td className="px-6 py-4">
+                          <td className="px-3 sm:px-6 py-3 sm:py-4">
                             <div className="font-medium text-neutral-900">{deal.name}</div>
                             <div className="text-xs text-neutral-500 mt-1">
                               {deal.stage === 'diligence' ? 'In Diligence' : DealStageLabels[deal.stage]} since {new Date(deal.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                             </div>
                           </td>
-                          <td className="px-6 py-4 text-neutral-600">{deal.sector}</td>
-                          <td className="px-6 py-4 text-neutral-600 max-w-md">
+                          <td className="px-3 sm:px-6 py-3 sm:py-4 text-neutral-600">{deal.sector}</td>
+                          <td className="px-3 sm:px-6 py-3 sm:py-4 text-neutral-600 max-w-md hidden md:table-cell">
                             <div className="line-clamp-2">{deal.description}</div>
                           </td>
-                          <td className="px-6 py-4 text-center font-medium">
+                          <td className="px-3 sm:px-6 py-3 sm:py-4 text-center font-medium">
                             {deal.targetRaise ? `${Math.floor(Math.random() * 30) + 5}%` : '-'}
                           </td>
-                          <td className="px-6 py-4 text-center">
+                          <td className="px-3 sm:px-6 py-3 sm:py-4 text-center">
                             <div className="inline-flex">
                               <Select 
                                 defaultValue={deal.stage} 
@@ -356,7 +356,7 @@ export default function Pipeline() {
                                   }
                                 }}
                               >
-                                <SelectTrigger className="w-[160px] h-8" onClick={(e) => e.stopPropagation()}>
+                                <SelectTrigger className="w-[120px] sm:w-[160px] h-8 text-xs sm:text-sm" onClick={(e) => e.stopPropagation()}>
                                   <SelectValue placeholder="Select status" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -367,8 +367,8 @@ export default function Pipeline() {
                               </Select>
                             </div>
                           </td>
-                          <td className="px-6 py-4 text-center">
-                            <div className="flex items-center justify-center space-x-2">
+                          <td className="px-3 sm:px-6 py-3 sm:py-4 text-center">
+                            <div className="flex items-center justify-center space-x-1 sm:space-x-2">
                               <Button 
                                 variant="ghost" 
                                 size="icon"
