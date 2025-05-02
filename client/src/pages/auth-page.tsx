@@ -10,8 +10,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Loader2 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 
 // Validation schemas
 const loginSchema = z.object({
@@ -25,6 +27,9 @@ const registerSchema = z.object({
   password: z.string().min(8, 'Password must be at least 8 characters'),
   passwordConfirm: z.string().min(8, 'Password confirmation must be at least 8 characters'),
   fullName: z.string().min(2, 'Full name is required'),
+  organization: z.string().min(2, 'Organization is required'),
+  role: z.enum(['admin', 'partner', 'analyst', 'observer']),
+  isICMember: z.boolean().default(false),
 })
 .refine(data => data.password === data.passwordConfirm, {
   message: 'Passwords do not match',
@@ -60,6 +65,9 @@ export default function AuthPage() {
       password: '',
       passwordConfirm: '',
       fullName: '',
+      organization: 'Doliver Advisors, LP',
+      role: 'analyst',
+      isICMember: false,
     },
   });
 
@@ -74,8 +82,8 @@ export default function AuthPage() {
   const onRegisterSubmit = (values: RegisterFormValues) => {
     // The backend will generate initials from fullName
     registerMutation.mutate({
-      ...values,
-      role: 'analyst', // Default role for new users
+      ...values
+      // Use the role selected by the user
     });
   };
 
@@ -203,6 +211,71 @@ export default function AuthPage() {
                               <Input type="email" placeholder="john.doe@example.com" {...field} />
                             </FormControl>
                             <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={registerForm.control}
+                        name="organization"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Organization</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select your organization" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="Doliver Advisors, LP">Doliver Advisors, LP</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={registerForm.control}
+                        name="role"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Team Role</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select your role" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="analyst">Analyst</SelectItem>
+                                <SelectItem value="partner">Partner</SelectItem>
+                                <SelectItem value="observer">Observer</SelectItem>
+                                <SelectItem value="admin">Manager</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={registerForm.control}
+                        name="isICMember"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                            <div className="space-y-1 leading-none">
+                              <FormLabel>
+                                Investment Committee Member
+                              </FormLabel>
+                              <FormDescription>
+                                Check this if you are part of the IC team
+                              </FormDescription>
+                            </div>
                           </FormItem>
                         )}
                       />
