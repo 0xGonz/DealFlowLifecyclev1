@@ -1,104 +1,66 @@
 /**
- * Generate initials from a full name
+ * Generates initials from a full name.
+ * For example, "John Doe" becomes "JD".
  * 
- * @param fullName The user's full name
- * @returns Initials (up to 2 characters)
+ * @param fullName - Full name to generate initials from.
+ * @returns String with the initials, uppercase.
  */
 export function generateInitials(fullName: string): string {
-  if (!fullName) return '';
-  
-  // Split the name by spaces and filter out empty segments
-  const nameParts = fullName.split(' ').filter(Boolean);
-  
-  if (nameParts.length === 0) return '';
-  
-  if (nameParts.length === 1) {
-    // If only one part, return the first character
-    return nameParts[0].charAt(0).toUpperCase();
+  if (!fullName) {
+    return 'XX'; // Default
   }
   
-  // Return first character of first and last parts
-  return (
-    nameParts[0].charAt(0) + nameParts[nameParts.length - 1].charAt(0)
-  ).toUpperCase();
+  const parts = fullName.trim().split(/\s+/);
+  
+  if (parts.length === 1) {
+    // If only one name, take first two letters
+    return fullName.substring(0, 2).toUpperCase();
+  }
+  
+  // Otherwise take first letter of first name and first letter of last name
+  const firstInitial = parts[0].charAt(0);
+  const lastInitial = parts[parts.length - 1].charAt(0);
+  
+  return (firstInitial + lastInitial).toUpperCase();
 }
 
 /**
- * Format a number as currency
+ * Formats a number as currency with dollar sign.
  * 
- * @param amount The amount to format
- * @param currency The currency code (default: USD)
- * @returns Formatted currency string
+ * @param amount - Number to format.
+ * @returns String formatted as currency.
  */
-export function formatCurrency(amount: number, currency = 'USD'): string {
+export function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency,
+    currency: 'USD',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(amount);
 }
 
 /**
- * Format a number as percentage
+ * Formats a percentage value.
  * 
- * @param value The value to format (e.g., 0.15 for 15%)
- * @param decimalPlaces Number of decimal places (default: 1)
- * @returns Formatted percentage string
+ * @param value - Number to format as percentage (e.g., 0.15 for 15%).
+ * @param decimalPlaces - Number of decimal places to show, defaults to 1.
+ * @returns String formatted as percentage.
  */
-export function formatPercentage(value: number, decimalPlaces = 1): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'percent',
-    minimumFractionDigits: decimalPlaces,
-    maximumFractionDigits: decimalPlaces,
-  }).format(value);
+export function formatPercentage(value: number, decimalPlaces: number = 1): string {
+  return `${(value * 100).toFixed(decimalPlaces)}%`;
 }
 
 /**
- * Truncate a string to a maximum length with ellipsis
+ * Truncates a string if it exceeds the specified length.
  * 
- * @param str The string to truncate
- * @param maxLength Maximum length before truncating
- * @returns Truncated string
+ * @param text - String to truncate.
+ * @param maxLength - Maximum length of the string, defaults to 50.
+ * @returns Truncated string if necessary, with ellipsis.
  */
-export function truncateString(str: string, maxLength: number): string {
-  if (!str || str.length <= maxLength) return str;
-  return str.slice(0, maxLength) + '...';
-}
-
-/**
- * Format a date in a user-friendly way
- * 
- * @param date The date to format
- * @param format Display format (default: 'short')
- * @returns Formatted date string
- */
-export function formatDate(date: Date, format: 'short' | 'medium' | 'long' = 'short'): string {
-  if (!date) return '';
-  
-  const options: Intl.DateTimeFormatOptions = {
-    year: 'numeric',
-    month: format === 'short' ? 'short' : 'long',
-    day: 'numeric',
-  };
-  
-  if (format === 'long') {
-    options.weekday = 'long';
+export function truncateText(text: string, maxLength: number = 50): string {
+  if (!text || text.length <= maxLength) {
+    return text;
   }
   
-  return new Intl.DateTimeFormat('en-US', options).format(new Date(date));
-}
-
-/**
- * Generate a random color hex value
- * 
- * @returns Random color as hex string
- */
-export function getRandomColor(): string {
-  const letters = '0123456789ABCDEF';
-  let color = '#';
-  for (let i = 0; i < 6; i++) {
-    color += letters[Math.floor(Math.random() * 16)];
-  }
-  return color;
+  return `${text.substring(0, maxLength)}...`;
 }

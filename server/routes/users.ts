@@ -5,6 +5,7 @@ import { asyncHandler } from '../utils/errorHandlers';
 import { requireAuth } from '../utils/auth';
 import { generateInitials } from '../utils/string';
 import { hashPassword, comparePasswords } from '../utils/auth';
+import { User } from '@shared/schema';
 
 const storage = StorageFactory.getStorage();
 export const usersRouter = Router();
@@ -83,7 +84,7 @@ usersRouter.patch('/:id', requireAuth, asyncHandler(async (req, res) => {
   }
   
   // Validate request data
-  const validatedData = updateUserSchema.parse(req.body);
+  const validatedInput = updateUserSchema.parse(req.body);
   
   // Only allow users to update their own profile unless they are admin
   const currentUser = await storage.getUser(req.session.userId!);
@@ -94,11 +95,16 @@ usersRouter.patch('/:id', requireAuth, asyncHandler(async (req, res) => {
     });
   }
   
+  // Prepare update data object
+  let updateData: Partial<User> = {
+    ...validatedInput
+  };
+  
   // Handle password update if requested
-  if (validatedData.newPassword && validatedData.currentPassword) {
+  if (validatedInput.newPassword && validatedInput.currentPassword) {
     // Verify current password
     const isPasswordCorrect = await comparePasswords(
-      validatedData.currentPassword,
+      validatedInput.currentPassword,
       userToUpdate.password
     );
     
@@ -110,19 +116,19 @@ usersRouter.patch('/:id', requireAuth, asyncHandler(async (req, res) => {
     }
     
     // Hash the new password
-    const hashedPassword = await hashPassword(validatedData.newPassword);
-    validatedData.password = hashedPassword;
+    updateData.password = await hashPassword(validatedInput.newPassword);
   }
   
   // Handle fullName update - generate new initials if needed
-  let initials = userToUpdate.initials;
-  if (validatedData.fullName && validatedData.fullName !== userToUpdate.fullName) {
-    initials = generateInitials(validatedData.fullName);
-    validatedData.initials = initials;
+  if (validatedInput.fullName && validatedInput.fullName !== userToUpdate.fullName) {
+    updateData.initials = generateInitials(validatedInput.fullName);
   }
   
+  // Remove the temporary fields not in the actual database schema
+  const { currentPassword, newPassword, ...cleanUpdateData } = updateData as any;
+  
   // Update user
-  const updatedUser = await storage.updateUser(userId, validatedData);
+  const updatedUser = await storage.updateUser(userId, cleanUpdateData);
   
   if (!updatedUser) {
     return res.status(500).json({

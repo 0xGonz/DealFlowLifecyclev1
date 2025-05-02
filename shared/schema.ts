@@ -16,6 +16,7 @@ export const users = pgTable("users", {
 
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
+  initials: true, // We generate initials on the server based on fullName
 });
 
 // Deal model

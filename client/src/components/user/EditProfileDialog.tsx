@@ -55,7 +55,7 @@ export default function EditProfileDialog({
   open,
   onOpenChange,
 }: EditProfileDialogProps) {
-  const { user, updateProfileMutation } = useAuth();
+  const { user, updateProfileMutation = { isPending: false, mutateAsync: async () => ({} as any) } } = useAuth();
   const [selectedColor, setSelectedColor] = useState<string | null>(
     user?.avatarColor || null
   );

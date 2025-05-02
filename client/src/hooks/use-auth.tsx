@@ -47,6 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   } = useQuery<SelectUser | null, Error>({
     queryKey: ["/api/auth/me"],
     retry: false,
+    initialData: null, // Set initial data to null to avoid undefined
   });
 
   const loginMutation = useMutation<SelectUser, Error, LoginData>({

@@ -62,7 +62,11 @@ export default function AuthPage() {
   };
 
   const onRegisterSubmit = (values: RegisterFormValues) => {
-    registerMutation.mutate(values);
+    // The backend will generate initials from fullName
+    registerMutation.mutate({
+      ...values,
+      role: 'analyst', // Default role for new users
+    });
   };
 
   // Redirect if already logged in
