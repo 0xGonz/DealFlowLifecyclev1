@@ -42,16 +42,16 @@ export default function DealsTable({ deals, onEdit, onAllocate, onUpdateStatus, 
   }
 
   return (
-    <div className="rounded-md border bg-white overflow-x-auto">
+    <div className="rounded-md border bg-white overflow-x-auto w-full">
       <Table>
         <TableHeader>
           <TableRow className="bg-white border-b">
-            <TableHead className="w-[180px] font-semibold">Deal Name</TableHead>
-            <TableHead className="w-[80px] font-semibold">Type</TableHead>
+            <TableHead style={{width: '18%'}} className="font-semibold">Deal Name</TableHead>
+            <TableHead style={{width: '8%'}} className="font-semibold">Type</TableHead>
             <TableHead className="font-semibold">Description</TableHead>
-            <TableHead className="w-[70px] font-semibold text-right">Return</TableHead>
-            <TableHead className="w-[100px] font-semibold">Status</TableHead>
-            <TableHead className="w-[100px] text-center font-semibold">Actions</TableHead>
+            <TableHead style={{width: '8%'}} className="font-semibold text-right">Return</TableHead>
+            <TableHead style={{width: '12%'}} className="font-semibold">Status</TableHead>
+            <TableHead style={{width: '10%'}} className="text-center font-semibold">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
