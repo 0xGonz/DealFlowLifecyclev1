@@ -200,7 +200,7 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="name"
@@ -277,7 +277,7 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
               )}
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="round"
@@ -331,7 +331,7 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="valuation"
@@ -416,7 +416,7 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
                     <RadioGroup
                       onValueChange={field.onChange}
                       defaultValue={field.value}
-                      className="flex space-x-3"
+                      className="flex flex-col xs:flex-row space-y-2 xs:space-y-0 xs:space-x-3"
                     >
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="initial_review" id="initial-review" />
@@ -478,7 +478,7 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
               </div>
             </div>
 
-            <DialogFooter>
+            <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-0">
               <Button variant="outline" type="button" onClick={onClose}>
                 Cancel
               </Button>

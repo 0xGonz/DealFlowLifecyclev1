@@ -491,7 +491,7 @@ export default function DealDetail() {
                   <div className="space-y-6">
                     {deal.miniMemos.map(memo => (
                       <div key={memo.id} className="border rounded-lg p-4">
-                        <div className="flex items-center justify-between mb-3">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between gap-2 sm:gap-0 mb-3">
                           <div className="flex items-center">
                             <Avatar className="h-8 w-8 mr-2">
                               <AvatarFallback style={{ backgroundColor: memo.user?.avatarColor }}>
