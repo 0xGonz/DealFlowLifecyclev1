@@ -38,22 +38,24 @@ router.get('/stats', async (req: Request, res: Response) => {
     const icReviewTrend = 5;   // +5%
     const investmentRateTrend = 8; // +8%
     
+    // For backwards compatibility, include the original response fields
     const response = {
       totalDeals,
+      totalDealsTrend,
       activeDeals,
       activePipelinePercent,
+      activePipelineTrend,
       newDeals,
       newDealsPercent,
+      newDealsTrend,
       inIcReview,
       icReviewPercent,
+      icReviewTrend,
       investedDeals,
       investmentRate,
+      investmentRateTrend,
       totalAum,
-      totalDealsTrend,
-      activePipelineTrend,
-      newDealsTrend,
-      icReviewTrend,
-      investmentRateTrend
+      aumTrend: 15 // Kept for backward compatibility
     };
     
     console.log('Dashboard stats: Sending response', response);

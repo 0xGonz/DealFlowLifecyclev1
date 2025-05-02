@@ -46,7 +46,7 @@ export default function Dashboard() {
         {/* Dashboard Overview */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-6 mb-6 sm:mb-8">
           {/* Quick Stats */}
-          <div className="md:col-span-12 lg:col-span-9 grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <div className="md:col-span-12 lg:col-span-12 grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
             <StatsCard
               title="Total Deals"
               value={statsLoading ? "Loading..." : (stats?.totalDeals !== undefined ? stats.totalDeals.toString() : "0")}
@@ -62,6 +62,16 @@ export default function Dashboard() {
               icon={<TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 text-accent" />}
               trend={statsLoading ? 0 : stats?.activePipelineTrend || 0}
               trendLabel="of total pipeline"
+              isLoading={statsLoading}
+            />
+            
+            <StatsCard
+              title="New Deals"
+              value={statsLoading ? "Loading..." : (stats?.newDealsPercent !== undefined ? `${stats.newDealsPercent}%` : "0%")}
+              icon={<LineChart className="h-5 w-5 sm:h-6 sm:w-6 text-info" />}
+              trend={statsLoading ? 0 : stats?.newDealsTrend || 0}
+              trendLabel="of total pipeline"
+              trendDirection="up"
               isLoading={statsLoading}
             />
             
