@@ -1,25 +1,39 @@
-import React from 'react';
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { User } from "@shared/schema";
+import { cn } from "@/lib/utils";
 
 interface UserAvatarProps {
-  user: User | null | undefined;
-  size?: 'sm' | 'md' | 'lg';
+  user: Pick<User, "fullName" | "initials" | "avatarColor"> | null;
+  size?: "sm" | "md" | "lg";
+  className?: string;
 }
 
-export default function UserAvatar({ user, size = 'md' }: UserAvatarProps) {
-  if (!user) return null;
-  
-  const sizeClass = {
-    sm: 'h-8 w-8 text-xs',
-    md: 'h-10 w-10 text-sm',
-    lg: 'h-12 w-12 text-base'
-  }[size];
-  
+export function UserAvatar({ user, size = "md", className }: UserAvatarProps) {
+  const getSize = () => {
+    switch (size) {
+      case "sm":
+        return "h-8 w-8 text-xs";
+      case "lg":
+        return "h-12 w-12 text-lg";
+      default:
+        return "h-10 w-10 text-sm";
+    }
+  };
+
+  const getBgColor = () => {
+    if (!user?.avatarColor) return "bg-primary";
+    return `bg-${user.avatarColor}`;
+  };
+
   return (
-    <Avatar className={`${sizeClass} bg-${user.avatarColor || 'primary'}`}>
-      <AvatarFallback className="font-semibold text-white">
-        {user.initials}
+    <Avatar className={cn(getSize(), className)}>
+      <AvatarFallback
+        className={cn(
+          "font-medium text-white",
+          getBgColor()
+        )}
+      >
+        {user?.initials || "?"}
       </AvatarFallback>
     </Avatar>
   );
