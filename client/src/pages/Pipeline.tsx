@@ -13,6 +13,7 @@ import { DealStageLabels } from "@shared/schema";
 import { Plus, Search, DollarSign } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { enrichDealsWithComputedProps } from "@/lib/utils";
 
 export default function Pipeline() {
   const [isNewDealModalOpen, setIsNewDealModalOpen] = useState(false);

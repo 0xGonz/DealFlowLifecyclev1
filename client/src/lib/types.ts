@@ -15,21 +15,25 @@ export interface Deal {
   name: string;
   description: string;
   sector: string;
-  stage: "initial_review" | "screening" | "diligence" | "ic_review" | "closing" | "closed" | "passed";
-  stageLabel: string;
+  stage: "initial_review" | "screening" | "diligence" | "ic_review" | "closing" | "closed" | "invested" | "rejected";
+  stageLabel?: string; // Frontend computed property
   round: string;
   targetRaise?: string;
   valuation?: string;
   leadInvestor?: string;
   contactEmail?: string;
   notes?: string;
+  rejectionReason?: string;
+  rejectedAt?: string;
   createdAt: string;
   updatedAt: string;
   createdBy: number;
   tags: string[];
-  assignedUsers?: number[];
-  starCount: number;
-  score?: number;
+  assignedUsers?: number[]; // Frontend computed property from deal assignments
+  starCount?: number; // Frontend computed property from stars count
+  score?: number; // Frontend computed property from average memo scores
+  miniMemos?: MiniMemo[]; // Frontend relationship 
+  allocations?: FundAllocation[]; // Frontend relationship
 }
 
 // Timeline event types
