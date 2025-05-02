@@ -1,8 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 
-/**
- * Custom error class for application errors
- */
+// Custom application error class
 export class AppError extends Error {
   statusCode: number;
   status: string;
@@ -18,56 +16,44 @@ export class AppError extends Error {
   }
 }
 
-/**
- * Global error handler middleware
- */
-export const globalErrorHandler = (err: Error | AppError, req: Request, res: Response, next: NextFunction) => {
-  // Set default values
-  let statusCode = 500;
-  let status = 'error';
-  let message = 'Something went wrong';
-  let stack: string | undefined;
-
-  // If it's our custom AppError, use its properties
-  if (err instanceof AppError) {
-    statusCode = err.statusCode;
-    status = err.status;
-    message = err.message;
-    // Only include stack trace in development
-    stack = process.env.NODE_ENV === 'development' ? err.stack : undefined;
-  } else {
-    // For other errors, if in development, include more details
-    if (process.env.NODE_ENV === 'development') {
-      stack = err.stack;
-      message = err.message;
-    }
-  }
-
-  // Handle Zod validation errors (they have a different format)
-  if (err.name === 'ZodError') {
-    statusCode = 400;
-    status = 'fail';
-  }
-
-  // Log error in development mode
-  if (process.env.NODE_ENV === 'development') {
-    console.error('ERROR:', err);
-  }
-
-  // Send response
-  res.status(statusCode).json({
-    status,
-    message,
-    stack,
-    ...(err.name === 'ZodError' && { errors: err }),
-  });
+// Async handler to avoid try/catch blocks in route handlers
+export const asyncHandler = (
+  fn: (req: Request, res: Response, next: NextFunction) => Promise<any>
+) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    fn(req, res, next).catch(next);
+  };
 };
 
-/**
- * Async handler wrapper to avoid try-catch blocks in route handlers
- */
-export const asyncHandler = (fn: Function) => {
-  return (req: Request, res: Response, next: NextFunction) => {
-    Promise.resolve(fn(req, res, next)).catch(next);
-  };
+// Global error handler middleware
+export const errorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
+  console.error('Error:', err);
+
+  err.statusCode = err.statusCode || 500;
+  err.status = err.status || 'error';
+
+  // For development environment, send detailed error
+  if (process.env.NODE_ENV === 'development') {
+    res.status(err.statusCode).json({
+      status: err.status,
+      message: err.message,
+      stack: err.stack,
+      error: err
+    });
+  } else {
+    // For production, send less detailed error
+    // Only send operational errors (ones we expect) with details
+    if (err.isOperational) {
+      res.status(err.statusCode).json({
+        status: err.status,
+        message: err.message
+      });
+    } else {
+      // For unexpected errors, don't leak error details
+      res.status(500).json({
+        status: 'error',
+        message: 'Something went wrong'
+      });
+    }
+  }
 };

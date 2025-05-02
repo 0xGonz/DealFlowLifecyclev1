@@ -1,108 +1,97 @@
-import { Request, Response, NextFunction } from 'express';
-import { StorageFactory } from '../storage-factory';
-import { AppError } from './errorHandlers';
 import { scrypt, randomBytes, timingSafeEqual } from 'crypto';
 import { promisify } from 'util';
-import { User } from '@shared/schema';
+import { NextFunction, Request, Response } from 'express';
+import { AppError } from './errorHandlers';
+import { StorageFactory } from '../storage-factory';
 
-// Convert callback-based scrypt to Promise-based
+// Promisify the scrypt function for async use
 const scryptAsync = promisify(scrypt);
 
 /**
- * Generate a secure password hash using scrypt algorithm
+ * Generate a secure hash for a password
  * 
  * @param password Plain text password to hash
- * @returns Hashed password with salt appended
+ * @returns Hashed password with salt
  */
 export async function generatePasswordHash(password: string): Promise<string> {
   // Generate a random salt
   const salt = randomBytes(16).toString('hex');
   
   // Hash the password with the salt
-  const derivedKey = await scryptAsync(password, salt, 64) as Buffer;
+  const buf = (await scryptAsync(password, salt, 64)) as Buffer;
   
-  // Return the hash and salt combined, separated by a dot
-  return `${derivedKey.toString('hex')}.${salt}`;
+  // Return the hash and salt combined
+  return `${buf.toString('hex')}.${salt}`;
 }
 
 /**
- * Verify a password against a stored hash
+ * Compare a plain text password with a hashed password
  * 
- * @param password Plain text password to verify
- * @param storedHash Stored hash from the database (hash.salt format)
- * @returns True if the password matches, false otherwise
+ * @param suppliedPassword Plain text password to verify
+ * @param storedHash Hashed password from database
+ * @returns Whether the password matches
  */
-export async function comparePassword(password: string, storedHash: string): Promise<boolean> {
-  // Split the stored hash into the hash and the salt
-  const [hash, salt] = storedHash.split('.');
+export async function comparePassword(suppliedPassword: string, storedHash: string): Promise<boolean> {
+  // Extract the hash and salt
+  const [hashedPassword, salt] = storedHash.split('.');
   
-  if (!hash || !salt) {
-    return false;
-  }
+  // Hash the supplied password with the same salt
+  const suppliedBuf = (await scryptAsync(suppliedPassword, salt, 64)) as Buffer;
   
-  // Hash the input password with the same salt
-  const derivedKey = await scryptAsync(password, salt, 64) as Buffer;
-  
-  // Compare the generated hash with the stored hash using constant-time comparison
-  // This prevents timing attacks
+  // Compare the hashes using a timing-safe compare function
   return timingSafeEqual(
-    Buffer.from(hash, 'hex'),
-    derivedKey
+    Buffer.from(hashedPassword, 'hex'),
+    suppliedBuf
   );
 }
 
 /**
- * Middleware to check if user is authenticated
+ * Middleware to require authentication for protected routes
  */
 export function requireAuth(req: Request, res: Response, next: NextFunction) {
   if (!req.session.userId) {
-    return next(new AppError('Authentication required', 401));
+    return next(new AppError('Not authenticated', 401));
   }
   next();
 }
 
 /**
- * Middleware to check if user has specific role
+ * Middleware to require specific user roles
+ * 
+ * @param roles Array of allowed roles
  */
-export function requireRole(roles: string[]) {
+export function requireRoles(roles: string[]) {
   return async (req: Request, res: Response, next: NextFunction) => {
     if (!req.session.userId) {
-      return next(new AppError('Authentication required', 401));
+      return next(new AppError('Not authenticated', 401));
     }
     
-    try {
-      const storage = StorageFactory.getStorage();
-      const user = await storage.getUser(req.session.userId);
-      
-      if (!user) {
-        return next(new AppError('User not found', 401));
-      }
-      
-      if (!roles.includes(user.role)) {
-        return next(new AppError('Insufficient permissions', 403));
-      }
-      
-      next();
-    } catch (error) {
-      next(error);
+    const storage = StorageFactory.getStorage();
+    const user = await storage.getUser(req.session.userId);
+    
+    if (!user) {
+      return next(new AppError('User not found', 404));
     }
+    
+    if (!roles.includes(user.role)) {
+      return next(new AppError('Insufficient permissions', 403));
+    }
+    
+    next();
   };
 }
 
 /**
- * Helper to get current user from session
+ * Middleware to require admin role
  */
-export async function getCurrentUser(req: Request): Promise<User | null> {
-  if (!req.session.userId) {
-    return null;
-  }
-  
-  try {
-    const storage = StorageFactory.getStorage();
-    const user = await storage.getUser(req.session.userId);
-    return user || null;
-  } catch (error) {
-    console.error('Error fetching current user:', error);
-    return null;
-  }
-}
+export const requireAdmin = requireRoles(['admin']);
+
+/**
+ * Middleware to require partner role
+ */
+export const requirePartner = requireRoles(['admin', 'partner']);
+
+/**
+ * Middleware to require analyst or higher role
+ */
+export const requireAnalyst = requireRoles(['admin', 'partner', 'analyst']);
