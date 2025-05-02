@@ -71,7 +71,7 @@ export default function Dashboard() {
                 icon: <LineChart className="h-5 w-5 sm:h-6 sm:w-6 text-info" />,
                 trend: stats?.newDealsTrend || 0,
                 trendLabel: `${stats?.newDeals || 0} of ${stats?.totalDeals || 0} deals`,
-                trendDirection: "up" as const
+                trendDirection: "auto" as const
               },
               {
                 title: "In IC Review",

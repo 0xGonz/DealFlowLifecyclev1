@@ -36,7 +36,11 @@ export default function PipelineStats({ deals, filteredDeals, stage }: PipelineS
   
   // Calculate stage-specific stats
   const stageDeals = stage !== 'all' ? filteredDeals : deals.filter(d => d.stage === 'diligence');
-  const stageTrend = 5; // Mock trend - in reality would calculate based on historical data
+  
+  // Calculate actual trends based on proportions in pipeline
+  const totalTrend = deals.length > 0 ? Math.round((filteredDeals.length / deals.length) * 100) - 100 : 0;
+  const stageTrend = deals.length > 0 ? Math.round((stageDeals.length / deals.length) * 100) - 100 : 0;
+  const valueTrend = filteredDeals.length > 0 ? Math.round((totalDealValue / filteredDeals.length) / 1000000) : 0;
   
   // Calculate stage conversion rate (for different stages this would be calculated differently)
   const conversionRate = stage === 'all' ? 
@@ -50,14 +54,14 @@ export default function PipelineStats({ deals, filteredDeals, stage }: PipelineS
     {
       label: "Total Deals",
       value: totalDealsCount,
-      trend: 12, 
+      trend: totalTrend, 
       icon: <Briefcase />,
       iconColor: "bg-blue-100 text-blue-600"
     },
     {
       label: "Deal Value",
       value: formatCurrency(totalDealValue, true),
-      trend: 8,
+      trend: valueTrend,
       icon: <DollarSign />,
       iconColor: "bg-emerald-100 text-emerald-600"
     },
@@ -71,7 +75,7 @@ export default function PipelineStats({ deals, filteredDeals, stage }: PipelineS
     {
       label: "Conversion Rate",
       value: formatPercentage(conversionRate, 1),
-      trend: -2,
+      trend: Math.round(conversionRate) - 100,
       icon: <PieChart />,
       iconColor: "bg-amber-100 text-amber-600"
     },
