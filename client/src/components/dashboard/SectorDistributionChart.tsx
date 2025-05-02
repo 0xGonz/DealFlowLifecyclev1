@@ -139,7 +139,7 @@ export default function SectorDistributionChart() {
             <p className="text-neutral-500">No sector data available</p>
           </div>
         ) : (
-          <div className="h-[350px] pr-[150px] relative">
+          <div className="h-[350px] sm:pr-[150px] relative">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie

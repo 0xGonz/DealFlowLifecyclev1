@@ -36,7 +36,7 @@ export default function Dashboard() {
         {/* Dashboard Overview */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mb-8">
           {/* Quick Stats */}
-          <div className="md:col-span-9 grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="md:col-span-9 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <StatsCard
               title="Active Deals"
               value={statsLoading ? "Loading..." : (stats?.activeDeals !== undefined ? stats.activeDeals.toString() : "0")}
@@ -79,23 +79,23 @@ export default function Dashboard() {
         </div>
         
         {/* Sector Distribution and Recent Deals */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mt-8">
-          <div className="md:col-span-5 flex">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-6 mt-8">
+          <div className="sm:col-span-1 md:col-span-5 flex w-full">
             <SectorDistributionChart />
           </div>
           
-          <div className="md:col-span-7 flex">
+          <div className="sm:col-span-1 md:col-span-7 flex w-full">
             <RecentDeals />
           </div>
         </div>
         
         {/* Activity Feed and Leaderboard */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mt-8">
-          <div className="md:col-span-7 flex">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-6 mt-8">
+          <div className="sm:col-span-1 md:col-span-7 flex w-full">
             <ActivityFeed />
           </div>
           
-          <div className="md:col-span-5 flex">
+          <div className="sm:col-span-1 md:col-span-5 flex w-full">
             <LeaderboardWidget />
           </div>
         </div>
