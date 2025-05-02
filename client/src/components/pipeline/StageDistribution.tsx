@@ -1,23 +1,29 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Deal } from "@/lib/types";
-import { DealStageLabels, DealStageColors } from "@shared/schema";
+import { DealStageLabels } from "@shared/schema";
+import { getDealStageBadgeClass } from "@/lib/utils/format";
 
 type StageDistributionProps = {
   deals: Deal[] | undefined;
   stage: string;
 };
 
-// Tailwind color classes for stages, matching the application's design language
-const STAGE_COLORS: Record<string, string> = {
-  initial_review: "bg-neutral-400", // Grey
-  screening: "bg-sky-400",          // Sky blue
-  diligence: "bg-blue-500",         // Blue
-  ic_review: "bg-violet-500",       // Violet
-  closing: "bg-amber-500",          // Amber
-  closed: "bg-green-500",           // Green
-  invested: "bg-emerald-500",       // Emerald
-  rejected: "bg-red-500"            // Red
+// Map badge classes to vibrant chart colors
+const getStageColorClass = (stage: string): string => {
+  const badgeClass = getDealStageBadgeClass(stage);
+  
+  // Extract the color part from the badge class and convert to vibrant chart colors
+  if (badgeClass.includes('bg-neutral')) return 'bg-neutral-400';
+  if (badgeClass.includes('bg-primary')) return 'bg-primary-500';
+  if (badgeClass.includes('bg-blue')) return 'bg-blue-500';
+  if (badgeClass.includes('bg-purple')) return 'bg-violet-500';
+  if (badgeClass.includes('bg-amber')) return 'bg-amber-500';
+  if (badgeClass.includes('bg-emerald')) return 'bg-emerald-500';
+  if (badgeClass.includes('bg-teal')) return 'bg-teal-500';
+  if (badgeClass.includes('bg-red')) return 'bg-red-500';
+  
+  return 'bg-neutral-400'; // Default
 };
 
 export default function StageDistribution({ deals, stage }: StageDistributionProps) {
@@ -36,7 +42,7 @@ export default function StageDistribution({ deals, stage }: StageDistributionPro
   if (stage !== 'all') {
     // For specific stage view, show "Days in Stage" visualization
     const stageName = stage.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
-    const colorClass = STAGE_COLORS[stage] || "bg-neutral-400";
+    const colorClass = getStageColorClass(stage);
     
     // Calculate days in stage for each deal
     const dealDays = deals.map(deal => ({
@@ -133,7 +139,7 @@ export default function StageDistribution({ deals, stage }: StageDistributionPro
     label: DealStageLabels[stageName as keyof typeof DealStageLabels] || stageName,
     count: stageDeals.length,
     percentage: Math.round((stageDeals.length / deals.length) * 100),
-    colorClass: STAGE_COLORS[stageName] || "bg-neutral-400"
+    colorClass: getStageColorClass(stageName)
   }));
   
   // Sort by count (descending)
