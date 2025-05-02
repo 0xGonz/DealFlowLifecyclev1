@@ -40,7 +40,8 @@ export const generateDealNotification = async (
   userId: number,
   dealName: string,
   action: 'created' | 'updated' | 'moved' | 'commented' | 'assigned',
-  dealId: number
+  dealId: number,
+  newStage?: string
 ): Promise<void> => {
   let title = '';
   let message = '';
@@ -56,7 +57,13 @@ export const generateDealNotification = async (
       break;
     case 'moved':
       title = 'Deal stage changed';
-      message = `${dealName} deal moved to a new stage`;
+      // If new stage is provided, include it in the message
+      if (newStage) {
+        const stageLabel = newStage.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+        message = `${dealName} deal moved to ${stageLabel} stage`;
+      } else {
+        message = `${dealName} deal moved to a new stage`;
+      }
       break;
     case 'commented':
       title = 'New comment added';
