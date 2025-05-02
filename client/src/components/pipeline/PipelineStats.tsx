@@ -57,11 +57,32 @@ export default function PipelineStats({ deals, filteredDeals, stage }: PipelineS
   const stageLabel = stage === 'all' ? "In Diligence" : 
     stage.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
   
-  // Calculate the average valuation based on available data
-  const avgValuation = filteredDeals.length > 0 ? totalValuation / filteredDeals.length : 0;
-
-  // Calculate the total target raise amount and average deal size
-  const avgDealSize = filteredDeals.length > 0 ? totalDealValue / filteredDeals.length : 0;
+  // Count deals by stage
+  const initialReviewCount = deals.filter(d => d.stage === 'initial_review').length;
+  const screeningCount = deals.filter(d => d.stage === 'screening').length;
+  const diligenceCount = deals.filter(d => d.stage === 'diligence').length;
+  const icReviewCount = deals.filter(d => d.stage === 'ic_review').length;
+  const closingCount = deals.filter(d => d.stage === 'closing').length;
+  const investedCount = deals.filter(d => d.stage === 'invested').length;
+  
+  // Calculate conversion percentages
+  const screeningPercent = deals.length > 0 ? Math.round((screeningCount / deals.length) * 100) : 0;
+  const diligencePercent = deals.length > 0 ? Math.round((diligenceCount / deals.length) * 100) : 0;
+  const icPercent = deals.length > 0 ? Math.round((icReviewCount / deals.length) * 100) : 0;
+  const investmentPercent = deals.length > 0 ? Math.round((investedCount / deals.length) * 100) : 0;
+  
+  // Stage-specific stats depending on current view
+  let stageSpecificCount = 0;
+  let stageSpecificLabel = "";
+  
+  if (stage === 'all') {
+    stageSpecificCount = screeningCount;
+    stageSpecificLabel = "In Screening";
+  } else {
+    stageSpecificCount = filteredDeals.length;
+    stageSpecificLabel = stage.replace('_', ' ')
+      .replace(/\b\w/g, l => l.toUpperCase());
+  }
   
   const stats: PipelineStat[] = [
     {
@@ -72,23 +93,23 @@ export default function PipelineStats({ deals, filteredDeals, stage }: PipelineS
       iconColor: "bg-blue-100 text-blue-600"
     },
     {
-      label: "Target Raise",
-      value: formatCurrency(totalDealValue),
-      trend: valueTrend,
-      icon: <DollarSign />,
-      iconColor: "bg-emerald-100 text-emerald-600"
-    },
-    {
-      label: "Avg Valuation",
-      value: formatCurrency(avgValuation),
-      trend: 0,
-      icon: <Target />,
+      label: stageSpecificLabel,
+      value: stageSpecificCount,
+      trend: stageTrend,
+      icon: <Clock />,
       iconColor: "bg-violet-100 text-violet-600"
     },
     {
+      label: "In Diligence",
+      value: diligenceCount,
+      trend: diligencePercent - 30, // Estimated trend
+      icon: <Target />,
+      iconColor: "bg-emerald-100 text-emerald-600"
+    },
+    {
       label: "Investment Rate",
-      value: formatPercentage(conversionRate, 1),
-      trend: Math.round(conversionRate) - 100,
+      value: formatPercentage(investmentPercent, 0),
+      trend: investmentPercent - 20, // Estimated trend
       icon: <PieChart />,
       iconColor: "bg-amber-100 text-amber-600"
     },
