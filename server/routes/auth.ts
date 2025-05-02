@@ -4,31 +4,65 @@ import { StorageFactory } from '../storage-factory';
 import { asyncHandler } from '../utils/errorHandlers';
 import { hashPassword, comparePasswords } from '../utils/auth';
 import { generateInitials } from '../utils/string';
+import { insertUserSchema } from '@shared/schema';
 
 const storage = StorageFactory.getStorage();
-const authRouter = Router();
+export const authRouter = Router();
 
-// Auth validation schemas
+// Login route
 const loginSchema = z.object({
-  identifier: z.string().min(1, 'Email or username is required'),
+  identifier: z.string().min(1, 'Username or email is required'),
   password: z.string().min(1, 'Password is required'),
 });
 
-const registerSchema = z.object({
-  username: z.string().min(3, 'Username must be at least 3 characters'),
-  email: z.string().email('Invalid email format'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
-  fullName: z.string().min(2, 'Full name is required'),
-  role: z.enum(['admin', 'partner', 'analyst', 'observer']).optional().default('analyst'),
-});
+authRouter.post('/login', asyncHandler(async (req, res) => {
+  const { identifier, password } = loginSchema.parse(req.body);
+  
+  // Find user by username or email
+  const user = await storage.getUserByUsername(identifier) || 
+    await storage.getUserByEmail(identifier);
+  
+  if (!user) {
+    return res.status(401).json({
+      status: 'fail',
+      message: 'Invalid credentials'
+    });
+  }
+  
+  // Verify password
+  const passwordMatch = await comparePasswords(password, user.password);
+  if (!passwordMatch) {
+    return res.status(401).json({
+      status: 'fail',
+      message: 'Invalid credentials'
+    });
+  }
+  
+  // Set session
+  req.session.userId = user.id;
+  
+  // Return user without password
+  const { password: _, ...userWithoutPassword } = user;
+  res.status(200).json(userWithoutPassword);
+}));
 
-// User registration
+// Registration route - using the insertUserSchema from shared/schema.ts
+const extendedRegisterSchema = insertUserSchema
+  .extend({
+    // User schema already has validation from drizzle-zod
+    passwordConfirm: z.string().min(8, 'Password confirmation must be at least 8 characters'),
+  })
+  .refine((data) => data.password === data.passwordConfirm, {
+    message: 'Passwords do not match',
+    path: ['passwordConfirm'],
+  });
+
 authRouter.post('/register', asyncHandler(async (req, res) => {
-  const validatedData = registerSchema.parse(req.body);
+  const validatedData = extendedRegisterSchema.parse(req.body);
   
   // Check if username already exists
-  const existingUserByUsername = await storage.getUserByUsername(validatedData.username);
-  if (existingUserByUsername) {
+  const existingUsername = await storage.getUserByUsername(validatedData.username);
+  if (existingUsername) {
     return res.status(400).json({
       status: 'fail',
       message: 'Username already exists'
@@ -36,70 +70,52 @@ authRouter.post('/register', asyncHandler(async (req, res) => {
   }
   
   // Check if email already exists
-  const existingUserByEmail = await storage.getUserByEmail(validatedData.email);
-  if (existingUserByEmail) {
+  const existingEmail = await storage.getUserByEmail(validatedData.email);
+  if (existingEmail) {
     return res.status(400).json({
       status: 'fail',
       message: 'Email already exists'
     });
   }
   
-  // Create new user with hashed password
+  // Hash password
   const hashedPassword = await hashPassword(validatedData.password);
+  
+  // Generate initials from full name
   const initials = generateInitials(validatedData.fullName);
   
-  const newUser = await storage.createUser({
-    ...validatedData,
+  // Remove passwordConfirm field and add initials
+  const { passwordConfirm, ...userData } = validatedData;
+  
+  // Create user with initials
+  // We use any type to work around the schema limitation
+  // since we're adding initials which is not in the InsertUser type
+  const userDataWithInitials: any = {
+    ...userData,
     password: hashedPassword,
     initials,
-    avatarColor: null, // Default avatar color, user can customize later
-    role: validatedData.role || 'analyst', // Default role
-  });
+  };
   
-  // Store user ID in session
+  const newUser = await storage.createUser(userDataWithInitials);
+  
+  // Set session
   req.session.userId = newUser.id;
   
-  // Send user data without password
+  // Return user without password
   const { password, ...userWithoutPassword } = newUser;
   res.status(201).json(userWithoutPassword);
 }));
 
-// User login
-authRouter.post('/login', asyncHandler(async (req, res) => {
-  const { identifier, password } = loginSchema.parse(req.body);
-  
-  // Check if identifier is username or email
-  let user = await storage.getUserByUsername(identifier);
-  if (!user) {
-    user = await storage.getUserByEmail(identifier);
-  }
-  
-  // If no user or password doesn't match
-  if (!user || !(await comparePasswords(password, user.password))) {
-    return res.status(401).json({
-      status: 'fail',
-      message: 'Invalid credentials'
-    });
-  }
-  
-  // Store user ID in session
-  req.session.userId = user.id;
-  
-  // Send user data without password
-  const { password: userPassword, ...userWithoutPassword } = user;
-  res.status(200).json(userWithoutPassword);
-}));
-
-// User logout
+// Logout route
 authRouter.post('/logout', (req, res) => {
   req.session.destroy((err) => {
     if (err) {
       return res.status(500).json({
         status: 'error',
-        message: 'Could not log out'
+        message: 'Failed to log out'
       });
     }
-    res.clearCookie('connect.sid'); // Clear session cookie
+    
     res.status(200).json({
       status: 'success',
       message: 'Logged out successfully'
@@ -107,7 +123,7 @@ authRouter.post('/logout', (req, res) => {
   });
 });
 
-// Get current user data
+// Get current user route
 authRouter.get('/me', asyncHandler(async (req, res) => {
   if (!req.session.userId) {
     return res.status(401).json({
@@ -117,17 +133,15 @@ authRouter.get('/me', asyncHandler(async (req, res) => {
   }
   
   const user = await storage.getUser(req.session.userId);
+  
   if (!user) {
-    req.session.destroy(() => {}); // Destroy invalid session
-    return res.status(401).json({
+    return res.status(404).json({
       status: 'fail',
       message: 'User not found'
     });
   }
   
-  // Send user data without password
+  // Return user without password
   const { password, ...userWithoutPassword } = user;
   res.status(200).json(userWithoutPassword);
 }));
-
-export { authRouter };

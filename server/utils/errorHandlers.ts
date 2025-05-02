@@ -1,65 +1,56 @@
 import { Request, Response, NextFunction } from 'express';
 
 /**
- * Custom application error class for operational errors
+ * Wraps async controller functions to properly handle promises and catch errors
+ * without having to use try/catch in every route handler.
+ * 
+ * @param fn - Async express route handler function
+ * @returns Express handler with error handling
+ */
+export const asyncHandler = 
+  (fn: (req: Request, res: Response, next: NextFunction) => Promise<any>) => 
+  (req: Request, res: Response, next: NextFunction) => {
+    Promise.resolve(fn(req, res, next)).catch(next);
+  };
+
+/**
+ * Handles 404 Not Found errors for routes that don't exist.
+ */
+export const notFoundHandler = (req: Request, res: Response, next: NextFunction) => {
+  res.status(404).json({
+    status: 'fail',
+    message: `Cannot find ${req.method} ${req.originalUrl} on this server`,
+  });
+};
+
+/**
+ * Global error handler for all uncaught errors in the application.
+ */
+export const globalErrorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
+  // Default to 500 internal server error unless specified
+  const statusCode = err.statusCode || 500;
+  
+  // Log error for server debugging
+  console.error('Error:', err);
+  
+  // Send appropriate response in production or development
+  res.status(statusCode).json({
+    status: 'error',
+    message: err.message || 'Something went wrong',
+    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
+  });
+};
+
+/**
+ * Custom error class with status code for API errors.
  */
 export class AppError extends Error {
   statusCode: number;
-  status: string;
-  isOperational: boolean;
-
-  constructor(message: string, statusCode: number) {
+  
+  constructor(message: string, statusCode: number = 500) {
     super(message);
     this.statusCode = statusCode;
-    this.status = statusCode >= 400 && statusCode < 500 ? 'fail' : 'error';
-    this.isOperational = true;
-
-    // Capture stack trace (exclude error creation from trace)
+    this.name = 'AppError';
     Error.captureStackTrace(this, this.constructor);
   }
 }
-
-/**
- * Async handler to catch errors in async route handlers
- */
-export const asyncHandler = (
-  fn: (req: Request, res: Response, next: NextFunction) => Promise<any>
-) => {
-  return (req: Request, res: Response, next: NextFunction) => {
-    fn(req, res, next).catch(next);
-  };
-};
-
-/**
- * Global error handler middleware for express
- */
-export const errorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
-  // Default to 500 if statusCode not defined
-  err.statusCode = err.statusCode || 500;
-  err.status = err.status || 'error';
-
-  // Development environment: send detailed error
-  if (process.env.NODE_ENV === 'development') {
-    return res.status(err.statusCode).json({
-      status: err.status,
-      message: err.message,
-      stack: err.stack,
-      error: err,
-    });
-  }
-
-  // Production environment: only send operational errors as-is
-  if (err.isOperational) {
-    return res.status(err.statusCode).json({
-      status: err.status,
-      message: err.message,
-    });
-  }
-
-  // Programming or unknown errors: don't leak error details
-  console.error('ERROR 💥', err);
-  return res.status(500).json({
-    status: 'error',
-    message: 'Something went wrong',
-  });
-};

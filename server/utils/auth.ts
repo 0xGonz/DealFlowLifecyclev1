@@ -1,81 +1,109 @@
 import { Request, Response, NextFunction } from 'express';
-import { randomBytes, scrypt } from 'crypto';
+import { scrypt, randomBytes, timingSafeEqual } from 'crypto';
 import { promisify } from 'util';
 import { AppError } from './errorHandlers';
 
-// Convert callback-based scrypt to Promise-based
 const scryptAsync = promisify(scrypt);
 
 /**
- * Hash a password using scrypt with a random salt
+ * Hashes a password using scrypt, returning the hash and salt.
+ * 
+ * @param password - Plain text password to hash
+ * @returns String in format 'hash.salt'
  */
 export async function hashPassword(password: string): Promise<string> {
-  // Generate random salt
   const salt = randomBytes(16).toString('hex');
-  
-  // Hash the password with the salt
-  const derivedKey = await scryptAsync(password, salt, 64) as Buffer;
-  
-  // Return the hashed password with salt for storage
-  // Format: [hash].[salt]
-  return `${derivedKey.toString('hex')}.${salt}`;
+  const buf = (await scryptAsync(password, salt, 64)) as Buffer;
+  return `${buf.toString('hex')}.${salt}`;
 }
 
 /**
- * Compare a plain text password with a hashed password
+ * Compares a supplied password against a stored hashed password.
+ * 
+ * @param suppliedPassword - Plain text password to check
+ * @param storedPassword - Stored password hash in format 'hash.salt'
+ * @returns Boolean indicating if the passwords match
  */
-export async function comparePasswords(plainPassword: string, hashedPassword: string): Promise<boolean> {
-  // Split the stored hash into derived key and salt
-  const [storedHash, salt] = hashedPassword.split('.');
-  
-  // Hash the input password with the same salt
-  const derivedKey = await scryptAsync(plainPassword, salt, 64) as Buffer;
-  
-  // Compare the generated hash with the stored hash
-  return derivedKey.toString('hex') === storedHash;
+export async function comparePasswords(
+  suppliedPassword: string,
+  storedPassword: string
+): Promise<boolean> {
+  const [hashedPart, salt] = storedPassword.split('.');
+  const hashedSuppliedBuf = (await scryptAsync(suppliedPassword, salt, 64)) as Buffer;
+  const storedBuf = Buffer.from(hashedPart, 'hex');
+  return timingSafeEqual(storedBuf, hashedSuppliedBuf);
 }
 
 /**
- * Middleware to require authentication
+ * Middleware to ensure a user is authenticated before accessing a route.
+ * 
+ * @param req - Express request object
+ * @param res - Express response object
+ * @param next - Express next function
  */
 export function requireAuth(req: Request, res: Response, next: NextFunction) {
   if (!req.session.userId) {
-    return next(new AppError('Not authenticated', 401));
+    return res.status(401).json({
+      status: 'fail',
+      message: 'Not authenticated'
+    });
   }
   next();
 }
 
 /**
- * Middleware to require admin role
+ * Middleware to ensure a user has admin role before accessing a route.
+ * 
+ * @param req - Express request object
+ * @param res - Express response object
+ * @param next - Express next function
  */
 export function requireAdmin(req: Request, res: Response, next: NextFunction) {
-  // First check if authenticated
   if (!req.session.userId) {
-    return next(new AppError('Not authenticated', 401));
+    return res.status(401).json({
+      status: 'fail',
+      message: 'Not authenticated'
+    });
   }
   
-  // Check if user has admin role (would require user in request)
-  // This is a placeholder - implementation will depend on how user data is stored
-  if (req.user?.role !== 'admin') {
-    return next(new AppError('Access denied. Admin privileges required.', 403));
+  // Check user has 'admin' role
+  const userRole = req.user?.role;
+  
+  if (userRole !== 'admin') {
+    return res.status(403).json({
+      status: 'fail',
+      message: 'You do not have permission to perform this action'
+    });
   }
   
   next();
 }
 
 /**
- * Middleware to require partner or admin role
+ * Middleware to ensure a user has at least one of the specified roles.
+ * 
+ * @param roles - Array of roles that are allowed to access the route
+ * @returns Express middleware function
  */
-export function requirePartner(req: Request, res: Response, next: NextFunction) {
-  // First check if authenticated
-  if (!req.session.userId) {
-    return next(new AppError('Not authenticated', 401));
-  }
-  
-  // Check if user has partner or admin role
-  if (req.user?.role !== 'partner' && req.user?.role !== 'admin') {
-    return next(new AppError('Access denied. Partner privileges required.', 403));
-  }
-  
-  next();
+export function requireRole(roles: string[]) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    if (!req.session.userId) {
+      return res.status(401).json({
+        status: 'fail',
+        message: 'Not authenticated'
+      });
+    }
+    
+    // Check user has one of the required roles
+    const userRole = req.user?.role;
+    
+    if (!userRole || !roles.includes(userRole)) {
+      return res.status(403).json({
+        status: 'fail',
+        message: 'You do not have permission to perform this action'
+      });
+    }
+    
+    next();
+  };
 }

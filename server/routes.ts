@@ -5,7 +5,7 @@ import session from 'express-session';
 import createMemoryStore from 'memorystore';
 
 // Utils
-import { errorHandler as globalErrorHandler, AppError } from './utils/errorHandlers';
+import { globalErrorHandler, AppError } from './utils/errorHandlers';
 import { requireAuth } from './utils/auth';
 
 // Custom 404 handler
