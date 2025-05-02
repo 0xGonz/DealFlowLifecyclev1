@@ -31,13 +31,13 @@ router.get('/stats', async (req: Request, res: Response) => {
     // Calculate total AUM
     const totalAum = funds ? funds.reduce((sum, fund) => sum + (fund.aum || 0), 0) : 0;
     
-    // Calculate trends based on current data (in a real app, this would compare to historical data)
-    // For now we're calculating percentages relative to total as our "trend" values
-    const totalDealsTrend = totalDeals > 0 ? Math.round((totalDeals / Math.max(totalDeals, 1)) * 10) : 0;
-    const activePipelineTrend = totalDeals > 0 ? Math.round((activeDeals / Math.max(totalDeals, 1)) * 10) : 0;
-    const newDealsTrend = totalDeals > 0 ? Math.round((newDeals / Math.max(totalDeals, 1)) * 10) : 0;
-    const icReviewTrend = totalDeals > 0 ? Math.round((inIcReview / Math.max(totalDeals, 1)) * 10) : 0;
-    const investmentRateTrend = totalDeals > 0 ? Math.round((investedDeals / Math.max(totalDeals, 1)) * 10) : 0;
+    // Calculate real-time metrics based on current data
+    // These are percentages representing real proportions of the deal pipeline
+    const totalDealsTrend = Math.round((activeDeals / Math.max(totalDeals, 1)) * 100);
+    const activePipelineTrend = activePipelinePercent;
+    const newDealsTrend = newDealsPercent;
+    const icReviewTrend = icReviewPercent;
+    const investmentRateTrend = investmentRate;
     
     // For backwards compatibility, include the original response fields
     const response = {
