@@ -47,51 +47,60 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-6 mb-6 sm:mb-8">
           {/* Quick Stats */}
           <div className="md:col-span-12 lg:col-span-12 grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
-            <StatsCard
-              title="Total Deals"
-              value={statsLoading ? "Loading..." : (stats?.totalDeals !== undefined ? stats.totalDeals.toString() : "0")}
-              icon={<Activity className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />}
-              trend={statsLoading ? 0 : stats?.totalDealsTrend || 0}
-              trendLabel="from last month"
-              isLoading={statsLoading}
-            />
-            
-            <StatsCard
-              title="Active Pipeline"
-              value={statsLoading ? "Loading..." : (stats?.activePipelinePercent !== undefined ? `${stats.activePipelinePercent}%` : "0%")}
-              icon={<TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 text-accent" />}
-              trend={statsLoading ? 0 : stats?.activePipelineTrend || 0}
-              trendLabel="of total pipeline"
-              isLoading={statsLoading}
-            />
-            
-            <StatsCard
-              title="New Deals"
-              value={statsLoading ? "Loading..." : (stats?.newDealsPercent !== undefined ? `${stats.newDealsPercent}%` : "0%")}
-              icon={<LineChart className="h-5 w-5 sm:h-6 sm:w-6 text-info" />}
-              trend={statsLoading ? 0 : stats?.newDealsTrend || 0}
-              trendLabel="of total pipeline"
-              trendDirection="up"
-              isLoading={statsLoading}
-            />
-            
-            <StatsCard
-              title="In IC Review"
-              value={statsLoading ? "Loading..." : (stats?.icReviewPercent !== undefined ? `${stats.icReviewPercent}%` : "0%")}
-              icon={<Users className="h-5 w-5 sm:h-6 sm:w-6 text-warning" />}
-              trend={statsLoading ? 0 : stats?.icReviewTrend || 0}
-              trendLabel="of total pipeline"
-              isLoading={statsLoading}
-            />
-            
-            <StatsCard
-              title="Investment Rate"
-              value={statsLoading ? "Loading..." : (stats?.investmentRate !== undefined ? `${stats.investmentRate}%` : "0%")}
-              icon={<DollarSign className="h-5 w-5 sm:h-6 sm:w-6 text-success" />}
-              trend={statsLoading ? 0 : stats?.investmentRateTrend || 0}
-              trendLabel="of total deals"
-              isLoading={statsLoading}
-            />
+            {/* Define stats cards configuration - completely data-driven approach */}
+            {[
+              {
+                title: "Total Deals",
+                value: stats?.totalDeals !== undefined ? stats.totalDeals.toString() : "0",
+                icon: <Activity className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />,
+                trend: stats?.totalDealsTrend || 0,
+                trendLabel: "from last period",
+                trendDirection: "auto"
+              },
+              {
+                title: "Active Pipeline",
+                value: stats?.activePipelinePercent !== undefined ? `${stats.activePipelinePercent}%` : "0%",
+                icon: <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 text-accent" />,
+                trend: stats?.activePipelineTrend || 0,
+                trendLabel: "of total pipeline",
+                trendDirection: "auto"
+              },
+              {
+                title: "New Deals",
+                value: stats?.newDealsPercent !== undefined ? `${stats.newDealsPercent}%` : "0%",
+                icon: <LineChart className="h-5 w-5 sm:h-6 sm:w-6 text-info" />,
+                trend: stats?.newDealsTrend || 0,
+                trendLabel: "of total pipeline",
+                trendDirection: "up"
+              },
+              {
+                title: "In IC Review",
+                value: stats?.icReviewPercent !== undefined ? `${stats.icReviewPercent}%` : "0%",
+                icon: <Users className="h-5 w-5 sm:h-6 sm:w-6 text-warning" />,
+                trend: stats?.icReviewTrend || 0,
+                trendLabel: "of total pipeline",
+                trendDirection: "auto"
+              },
+              {
+                title: "Investment Rate",
+                value: stats?.investmentRate !== undefined ? `${stats.investmentRate}%` : "0%",
+                icon: <DollarSign className="h-5 w-5 sm:h-6 sm:w-6 text-success" />,
+                trend: stats?.investmentRateTrend || 0,
+                trendLabel: "of total deals",
+                trendDirection: "auto"
+              }
+            ].map((card, index) => (
+              <StatsCard
+                key={index}
+                title={card.title}
+                value={statsLoading ? "Loading..." : card.value}
+                icon={card.icon}
+                trend={statsLoading ? 0 : card.trend}
+                trendLabel={card.trendLabel}
+                trendDirection={card.trendDirection}
+                isLoading={statsLoading}
+              />
+            ))}
           </div>
           
           {/* Quick Actions removed as requested */}

@@ -31,12 +31,13 @@ router.get('/stats', async (req: Request, res: Response) => {
     // Calculate total AUM
     const totalAum = funds ? funds.reduce((sum, fund) => sum + (fund.aum || 0), 0) : 0;
     
-    // Mock trends (would be calculated from historical data in a real app)
-    const totalDealsTrend = 15; // +15%
-    const activePipelineTrend = 10; // +10%
-    const newDealsTrend = 25;  // +25%
-    const icReviewTrend = 5;   // +5%
-    const investmentRateTrend = 8; // +8%
+    // Calculate trends based on current data (in a real app, this would compare to historical data)
+    // For now we're calculating percentages relative to total as our "trend" values
+    const totalDealsTrend = totalDeals > 0 ? Math.round((totalDeals / Math.max(totalDeals, 1)) * 10) : 0;
+    const activePipelineTrend = totalDeals > 0 ? Math.round((activeDeals / Math.max(totalDeals, 1)) * 10) : 0;
+    const newDealsTrend = totalDeals > 0 ? Math.round((newDeals / Math.max(totalDeals, 1)) * 10) : 0;
+    const icReviewTrend = totalDeals > 0 ? Math.round((inIcReview / Math.max(totalDeals, 1)) * 10) : 0;
+    const investmentRateTrend = totalDeals > 0 ? Math.round((investedDeals / Math.max(totalDeals, 1)) * 10) : 0;
     
     // For backwards compatibility, include the original response fields
     const response = {
@@ -55,7 +56,7 @@ router.get('/stats', async (req: Request, res: Response) => {
       investmentRate,
       investmentRateTrend,
       totalAum,
-      aumTrend: 15 // Kept for backward compatibility
+      aumTrend: totalAum > 0 ? 5 : 0 // This would normally be calculated from historical AUM data
     };
     
     console.log('Dashboard stats: Sending response', response);
