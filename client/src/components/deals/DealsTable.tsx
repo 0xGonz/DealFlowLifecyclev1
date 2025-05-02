@@ -3,7 +3,13 @@ import { Link } from 'wouter';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { MoreHorizontal, ChevronDown, User, FileText } from "lucide-react";
+import { MoreHorizontal, ChevronDown, User, FileText, Check } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Deal } from "@/lib/types";
 import { getDealStageBadgeClass, formatCurrency, formatDate, formatPercentage } from "@/lib/utils/format";
@@ -13,10 +19,11 @@ type DealsTableProps = {
   deals: Deal[] | undefined;
   onEdit: (dealId: number) => void;
   onAllocate: (dealId: number, dealName: string) => void;
+  onUpdateStatus?: (dealId: number, newStatus: string) => void;
   isLoading: boolean;
 };
 
-export default function DealsTable({ deals, onEdit, onAllocate, isLoading }: DealsTableProps) {
+export default function DealsTable({ deals, onEdit, onAllocate, onUpdateStatus, isLoading }: DealsTableProps) {
   if (isLoading) {
     return (
       <div className="py-8 text-center text-neutral-500">
@@ -78,12 +85,28 @@ export default function DealsTable({ deals, onEdit, onAllocate, isLoading }: Dea
                   <span className="text-sm font-medium text-emerald-700">10-15%</span>
                 </TableCell>
                 <TableCell>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline" className={stageBadgeClass}>
-                      {dealStageLabel}
-                    </Badge>
-                    <ChevronDown className="h-4 w-4 text-neutral-400" />
-                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger className="focus:outline-none" asChild>
+                      <div className="flex items-center gap-2 cursor-pointer">
+                        <Badge variant="outline" className={stageBadgeClass}>
+                          {dealStageLabel}
+                        </Badge>
+                        <ChevronDown className="h-4 w-4 text-neutral-400" />
+                      </div>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-[180px]">
+                      {Object.entries(DealStageLabels).map(([stage, label]) => (
+                        <DropdownMenuItem 
+                          key={stage} 
+                          className="flex items-center justify-between"
+                          onClick={() => onUpdateStatus ? onUpdateStatus(deal.id, stage) : console.log(`Changed status to ${stage}`)}
+                        >
+                          <span>{label}</span>
+                          {stage === deal.stage && <Check className="h-4 w-4 text-primary" />}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
                 <TableCell>
                   <div className="flex justify-center gap-2">
