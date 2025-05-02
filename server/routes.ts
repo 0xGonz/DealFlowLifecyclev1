@@ -16,8 +16,13 @@ import documentsRoutes from './routes/documents';
 import allocationsRoutes from './routes/allocations';
 
 // Utils
-import { errorHandler, notFoundHandler, AppError } from './utils/errorHandlers';
+import { globalErrorHandler as errorHandler, AppError } from './utils/errorHandlers';
 import { requireAuth } from './utils/auth';
+
+// Custom 404 handler
+const notFoundHandler = (req: Request, res: Response, next: NextFunction) => {
+  next(new AppError(`Route not found: ${req.originalUrl}`, 404));
+};
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up session middleware with memorystore

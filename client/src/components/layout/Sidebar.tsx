@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
-import { UserAvatar } from "@/components/user/UserAvatar";
+import UserAvatar from "@/components/user/UserAvatar";
 import EditProfileDialog from "@/components/user/EditProfileDialog";
 
 interface SidebarProps {

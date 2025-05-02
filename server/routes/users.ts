@@ -1,106 +1,100 @@
-import { Request, Response, Router } from "express";
-import { StorageFactory } from "../storage-factory";
+import { Router } from "express";
 import { z } from "zod";
+import { StorageFactory } from "../storage-factory";
+import { AppError } from "../utils/errorHandlers";
+import { requireAuth } from "../utils/auth";
 
-// Create validation schema for profile updates
-const profileUpdateSchema = z.object({
-  fullName: z.string().min(2).optional(),
-  email: z.string().email().optional(),
-  role: z.enum(["admin", "partner", "analyst", "observer"]).optional(),
-  avatarColor: z.string().nullable().optional(),
-});
-
-export const usersRouter = Router();
-
-// Middleware to check if user is authenticated
-const isAuthenticated = (req: Request, res: Response, next: Function) => {
-  if (!req.session.userId) {
-    return res.status(401).json({ message: "Not authenticated" });
-  }
-  next();
-};
+const router = Router();
+const storage = StorageFactory.getStorage();
 
 // Get all users
-usersRouter.get("/", isAuthenticated, async (req: Request, res: Response) => {
+router.get("/", requireAuth, async (req, res, next) => {
   try {
-    const storage = StorageFactory.getStorage();
     const users = await storage.getUsers();
-
-    // Return users without password
-    const usersWithoutPasswords = users.map(user => {
+    
+    // Remove password from response
+    const usersWithoutPassword = users.map(user => {
       const { password, ...userWithoutPassword } = user;
       return userWithoutPassword;
     });
-
-    return res.status(200).json(usersWithoutPasswords);
+    
+    res.json(usersWithoutPassword);
   } catch (error) {
-    console.error("Get users error:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    next(error);
   }
 });
 
 // Get user by ID
-usersRouter.get("/:id", isAuthenticated, async (req: Request, res: Response) => {
+router.get("/:id", requireAuth, async (req, res, next) => {
   try {
-    const userId = parseInt(req.params.id);
-    if (isNaN(userId)) {
-      return res.status(400).json({ message: "Invalid user ID" });
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      throw new AppError("Invalid user ID", 400);
     }
 
-    const storage = StorageFactory.getStorage();
-    const user = await storage.getUser(userId);
-
+    const user = await storage.getUser(id);
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      throw new AppError("User not found", 404);
     }
 
-    // Return user without password
+    // Remove password from response
     const { password, ...userWithoutPassword } = user;
-    return res.status(200).json(userWithoutPassword);
+    res.json(userWithoutPassword);
   } catch (error) {
-    console.error("Get user error:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    next(error);
   }
 });
 
-// Update user profile
-usersRouter.patch("/:id", isAuthenticated, async (req: Request, res: Response) => {
+// Update user
+router.patch("/:id", requireAuth, async (req, res, next) => {
   try {
-    const userId = parseInt(req.params.id);
-    if (isNaN(userId)) {
-      return res.status(400).json({ message: "Invalid user ID" });
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      throw new AppError("Invalid user ID", 400);
     }
 
+    // Get session user ID
+    const sessionUserId = req.session?.userId;
+    
     // Check if user is updating their own profile or is an admin
-    if (req.session.userId !== userId) {
-      return res.status(403).json({ message: "You are not authorized to update this profile" });
+    const sessionUser = sessionUserId ? await storage.getUser(sessionUserId) : null;
+    const isOwnProfile = sessionUserId === id;
+    const isAdmin = sessionUser?.role === "admin";
+    
+    if (!isOwnProfile && !isAdmin) {
+      throw new AppError("Not authorized to update this user", 403);
     }
 
-    const result = profileUpdateSchema.safeParse(req.body);
+    // Validate update data
+    const updateSchema = z.object({
+      fullName: z.string().optional(),
+      email: z.string().email().optional(),
+      role: z.enum(["admin", "partner", "analyst", "observer"]).optional(),
+      avatarColor: z.string().nullable().optional(),
+    });
+
+    const result = updateSchema.safeParse(req.body);
     if (!result.success) {
-      return res.status(400).json({ message: "Invalid request data", errors: result.error.errors });
+      throw new AppError("Invalid update data", 400, result.error.format());
     }
 
-    const storage = StorageFactory.getStorage();
-
-    // Check if user exists
-    const existingUser = await storage.getUser(userId);
-    if (!existingUser) {
-      return res.status(404).json({ message: "User not found" });
+    // Restrict role changes to admins only
+    if (result.data.role && !isAdmin) {
+      throw new AppError("Only admins can change roles", 403);
     }
 
     // Update user
-    const updatedUser = await storage.updateUser(userId, result.data);
-
+    const updatedUser = await storage.updateUser(id, result.data);
     if (!updatedUser) {
-      return res.status(404).json({ message: "User not found" });
+      throw new AppError("User not found", 404);
     }
 
-    // Return user without password
+    // Remove password from response
     const { password, ...userWithoutPassword } = updatedUser;
-    return res.status(200).json(userWithoutPassword);
+    res.json(userWithoutPassword);
   } catch (error) {
-    console.error("Update user error:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    next(error);
   }
 });
+
+export const usersRouter = router;

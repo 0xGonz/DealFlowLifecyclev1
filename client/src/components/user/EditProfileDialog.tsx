@@ -1,220 +1,228 @@
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/use-auth";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
+  DialogFooter,
 } from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-
-interface ProfileFormData {
-  fullName: string;
-  email: string;
-  role: string;
-  avatarColor: string;
-}
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { useAuth } from "@/hooks/use-auth";
+import { useState } from "react";
+import UserAvatar from "./UserAvatar";
+import { X } from "lucide-react";
 
 interface EditProfileDialogProps {
-  trigger: React.ReactNode;
+  trigger?: React.ReactNode;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }
 
-const profileFormSchema = z.object({
-  fullName: z.string().min(2, { message: "Full name must be at least 2 characters" }),
-  email: z.string().email({ message: "Please enter a valid email address" }),
-  role: z.string(),
-  avatarColor: z.string().nullable().optional(),
+// Form schema for profile updates
+const profileSchema = z.object({
+  fullName: z
+    .string()
+    .min(2, "Full name must be at least 2 characters")
+    .max(100, "Full name must be less than 100 characters"),
+  email: z.string().email("Please enter a valid email address"),
+  role: z.enum(["admin", "partner", "analyst", "observer"]),
+  avatarColor: z.string().nullable(),
 });
 
+type ProfileFormValues = z.infer<typeof profileSchema>;
+
+// Color options for avatar
 const colorOptions = [
-  { value: "#f97316", label: "Orange" },
-  { value: "#10b981", label: "Emerald" },
-  { value: "#3b82f6", label: "Blue" },
-  { value: "#a855f7", label: "Purple" },
-  { value: "#ec4899", label: "Pink" },
-  { value: "#f43f5e", label: "Rose" },
-  { value: "#06b6d4", label: "Cyan" },
-  { value: "#14b8a6", label: "Teal" },
-  { value: "#8b5cf6", label: "Violet" },
-  { value: "#d946ef", label: "Fuchsia" },
+  { value: "#2563eb", label: "Blue" },
+  { value: "#9333ea", label: "Purple" },
+  { value: "#c026d3", label: "Fuchsia" },
+  { value: "#e11d48", label: "Rose" },
+  { value: "#dc2626", label: "Red" },
+  { value: "#ea580c", label: "Orange" },
+  { value: "#ca8a04", label: "Yellow" },
+  { value: "#16a34a", label: "Green" },
+  { value: "#0891b2", label: "Cyan" },
+  { value: "#4f46e5", label: "Indigo" },
 ];
 
-export default function EditProfileDialog({ trigger, open, onOpenChange }: EditProfileDialogProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const { user } = useAuth();
-  const { toast } = useToast();
+export default function EditProfileDialog({
+  trigger,
+  open,
+  onOpenChange,
+}: EditProfileDialogProps) {
+  const { user, updateProfileMutation } = useAuth();
+  const [selectedColor, setSelectedColor] = useState<string | null>(
+    user?.avatarColor || null
+  );
 
-  // Create a function that handles controlled/uncontrolled state
-  const handleOpenChange = (value: boolean) => {
-    if (onOpenChange) {
-      onOpenChange(value);
-    } else {
-      setIsOpen(value);
-    }
-  };
-
-  // Check if component is controlled or uncontrolled
-  const isDialogOpen = open !== undefined ? open : isOpen;
-
-  const form = useForm<ProfileFormData>({
-    resolver: zodResolver(profileFormSchema),
+  // Form handling
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { errors, isSubmitting },
+    reset,
+  } = useForm<ProfileFormValues>({
+    resolver: zodResolver(profileSchema),
     defaultValues: {
       fullName: user?.fullName || "",
       email: user?.email || "",
       role: user?.role || "analyst",
-      avatarColor: user?.avatarColor || "",
+      avatarColor: user?.avatarColor,
     },
   });
 
-  const onSubmit = async (data: ProfileFormData) => {
-    try {
-      // Implement API call to update profile
-      // Example: await updateUserProfile(user.id, data);
-      toast({
-        title: "Profile updated",
-        description: "Your profile has been updated successfully",
-      });
-      handleOpenChange(false);
-    } catch (error) {
-      toast({
-        title: "Failed to update profile",
-        description: "There was an error updating your profile",
-        variant: "destructive",
-      });
+  // Preview user with selected color
+  const previewUser = user
+    ? {
+        ...user,
+        avatarColor: selectedColor,
+      }
+    : null;
+
+  const onSubmit = async (data: ProfileFormValues) => {
+    if (!user) return;
+    
+    await updateProfileMutation.mutateAsync({
+      userId: user.id,
+      data,
+    });
+    
+    // Close dialog if onOpenChange is provided
+    if (onOpenChange) {
+      onOpenChange(false);
     }
   };
 
+  // Handle dialog close
+  const handleClose = () => {
+    if (onOpenChange) {
+      onOpenChange(false);
+    }
+    // Reset form to original values
+    reset({
+      fullName: user?.fullName || "",
+      email: user?.email || "",
+      role: user?.role || "analyst",
+      avatarColor: user?.avatarColor,
+    });
+    setSelectedColor(user?.avatarColor || null);
+  };
+
+  if (!user) return null;
+
   return (
-    <Dialog open={isDialogOpen} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>{trigger}</DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      {trigger}
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Edit profile</DialogTitle>
-          <DialogDescription>
-            Update your profile information here.  
-          </DialogDescription>
+          <DialogTitle>Edit Profile</DialogTitle>
         </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
-            <FormField
-              control={form.control}
-              name="fullName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Full Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="John Doe" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-2">
+          {/* Avatar preview */}
+          <div className="flex flex-col items-center justify-center mb-6">
+            <div className="relative">
+              {previewUser && (
+                <UserAvatar user={previewUser} className="h-20 w-20" />
               )}
-            />
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input placeholder="john.doe@example.com" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+              {selectedColor && (
+                <button
+                  type="button"
+                  className="absolute -top-2 -right-2 bg-white rounded-full p-1 shadow-sm hover:bg-gray-100"
+                  onClick={() => {
+                    setSelectedColor(null);
+                  }}
+                >
+                  <X className="h-3 w-3" />
+                </button>
               )}
+            </div>
+            <div className="text-lg font-medium mt-2">{user.fullName}</div>
+            <div className="text-sm text-gray-500">{user.username}</div>
+
+            {/* Color selector */}
+            <div className="flex gap-1 mt-3 flex-wrap max-w-[240px] justify-center">
+              {colorOptions.map((color) => (
+                <button
+                  key={color.value}
+                  type="button"
+                  className="w-6 h-6 rounded-full transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                  style={{ backgroundColor: color.value }}
+                  onClick={() => {
+                    setSelectedColor(color.value);
+                  }}
+                  title={color.label}
+                  aria-label={`Select ${color.label} color`}
+                />
+              ))
+              }
+            </div>
+            <input 
+              type="hidden" 
+              {...register("avatarColor")} 
+              value={selectedColor || ""} 
             />
-            <FormField
-              control={form.control}
+          </div>
+
+          {/* Form fields */}
+          <div className="space-y-2">
+            <Label htmlFor="fullName">Full Name</Label>
+            <Input id="fullName" {...register("fullName")} />
+            {errors.fullName && (
+              <p className="text-sm text-red-500">{errors.fullName.message}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input id="email" type="email" {...register("email")} />
+            {errors.email && (
+              <p className="text-sm text-red-500">{errors.email.message}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="role">Role</Label>
+            <Controller
               name="role"
+              control={control}
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Role</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a role" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="admin">Admin</SelectItem>
-                      <SelectItem value="partner">Partner</SelectItem>
-                      <SelectItem value="analyst">Analyst</SelectItem>
-                      <SelectItem value="observer">Observer</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormDescription>
-                    Your role determines your permissions in the system.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
+                <Select 
+                  onValueChange={field.onChange} 
+                  defaultValue={field.value}
+                >
+                  <SelectTrigger id="role">
+                    <SelectValue placeholder="Select a role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="admin">Admin</SelectItem>
+                    <SelectItem value="partner">Partner</SelectItem>
+                    <SelectItem value="analyst">Analyst</SelectItem>
+                    <SelectItem value="observer">Observer</SelectItem>
+                  </SelectContent>
+                </Select>
               )}
             />
-            <FormField
-              control={form.control}
-              name="avatarColor"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Avatar Color</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value || undefined}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Choose avatar color" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {colorOptions.map((color) => (
-                        <SelectItem key={color.value} value={color.value}>
-                          <div className="flex items-center">
-                            <div
-                              className="h-4 w-4 rounded-full mr-2"
-                              style={{ backgroundColor: color.value }}
-                            />
-                            {color.label}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormDescription>
-                    Select a color for your profile avatar.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <DialogFooter>
-              <Button type="submit">Save changes</Button>
-            </DialogFooter>
-          </form>
-        </Form>
+            {errors.role && (
+              <p className="text-sm text-red-500">{errors.role.message}</p>
+            )}
+          </div>
+
+          <DialogFooter className="mt-6">
+            <Button type="button" variant="outline" onClick={handleClose}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isSubmitting || updateProfileMutation.isPending}>
+              {isSubmitting || updateProfileMutation.isPending ? "Saving..." : "Save Changes"}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );

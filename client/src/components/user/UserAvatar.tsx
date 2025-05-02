@@ -1,50 +1,50 @@
-import { User } from "@shared/schema";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
+import { User } from "@shared/schema";
 
-type UserAvatarProps = {
-  user: User;
+type UserWithoutPassword = Omit<User, "password">;
+
+interface UserAvatarProps {
+  user: UserWithoutPassword;
   className?: string;
-};
+}
 
-export function UserAvatar({ user, className }: UserAvatarProps) {
-  // Generate initials from the user's full name
-  const initials = user.fullName
-    .split(" ")
-    .map(name => name[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
-
-  // Use the user's avatar color if available, or generate a default color
-  const avatarColor = user.avatarColor || generateDefaultColor(user.id);
-
+/**
+ * Avatar component that displays initials with a colored background
+ */
+export default function UserAvatar({ user, className }: UserAvatarProps) {
+  // Use the user's preferred avatar color or generate one based on user ID
+  const avatarColor = user.avatarColor || generateColorFromId(user.id);
+  
   return (
-    <Avatar className={className}>
+    <Avatar className={cn(className)}>
       <AvatarFallback 
-        className="text-white" 
         style={{ backgroundColor: avatarColor }}
+        className="text-white font-medium"
       >
-        {initials}
+        {user.initials}
       </AvatarFallback>
     </Avatar>
   );
 }
 
-// Generate consistent colors based on user ID
-function generateDefaultColor(userId: number): string {
-  const colors = [
-    "#f97316", // orange-500
-    "#10b981", // emerald-500
-    "#3b82f6", // blue-500
-    "#a855f7", // purple-500
-    "#ec4899", // pink-500
-    "#f43f5e", // rose-500
-    "#06b6d4", // cyan-500
-    "#14b8a6", // teal-500
-    "#8b5cf6", // violet-500
-    "#d946ef", // fuchsia-500
-  ];
-  
-  // Use modulo to get a consistent color for each user ID
-  return colors[userId % colors.length];
+// List of nice avatar colors
+const avatarColors = [
+  "#2563eb", // blue-600
+  "#9333ea", // purple-600
+  "#c026d3", // fuchsia-600
+  "#e11d48", // rose-600
+  "#dc2626", // red-600
+  "#ea580c", // orange-600
+  "#ca8a04", // yellow-600
+  "#16a34a", // green-600
+  "#0891b2", // cyan-600
+  "#4f46e5", // indigo-600
+];
+
+/**
+ * Generate a consistent color based on user ID
+ */
+function generateColorFromId(id: number): string {
+  return avatarColors[id % avatarColors.length];
 }

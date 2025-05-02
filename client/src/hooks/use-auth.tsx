@@ -1,23 +1,28 @@
 import { createContext, ReactNode, useContext } from "react";
-import {
-  useQuery,
-  useMutation,
-  UseMutationResult,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { useQuery, useMutation, UseMutationResult } from "@tanstack/react-query";
 import { User } from "@shared/schema";
-import { getQueryFn, apiRequest } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
+type UserWithoutPassword = Omit<User, "password">;
+
 type AuthContextType = {
-  user: User | null;
+  user: UserWithoutPassword | null;
   isLoading: boolean;
   error: Error | null;
-  login: (username: string, password: string) => Promise<User>;
-  register: (username: string, fullName: string, email: string, password: string) => Promise<User>;
+  login: (username: string, password: string) => Promise<UserWithoutPassword>;
+  register: (
+    username: string,
+    fullName: string,
+    email: string,
+    password: string
+  ) => Promise<UserWithoutPassword>;
   logout: () => Promise<void>;
+  updateProfile: (userId: number, data: UpdateProfileData) => Promise<UserWithoutPassword>;
+  loginMutation: UseMutationResult<UserWithoutPassword, Error, LoginData>;
+  registerMutation: UseMutationResult<UserWithoutPassword, Error, RegisterData>;
   logoutMutation: UseMutationResult<void, Error, void>;
-  updateProfile: (userId: number, data: Partial<User>) => Promise<User>;
+  updateProfileMutation: UseMutationResult<UserWithoutPassword, Error, { userId: number; data: UpdateProfileData }>;
 };
 
 type LoginData = {
@@ -32,40 +37,73 @@ type RegisterData = {
   password: string;
 };
 
+type UpdateProfileData = {
+  fullName?: string;
+  email?: string;
+  role?: "admin" | "partner" | "analyst" | "observer";
+  avatarColor?: string | null;
+};
+
 export const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
 
-  // Query current user
+  // Get the current user
   const {
     data: user,
     error,
     isLoading,
-  } = useQuery<User | null, Error>({
+  } = useQuery<UserWithoutPassword | null, Error>({
     queryKey: ["/api/auth/me"],
-    queryFn: getQueryFn({ on401: "returnNull" }),
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    retry: false,
+    // If 401 is returned, just return null user (not authenticated) instead of error
+    queryFn: async ({ signal }) => {
+      try {
+        const response = await fetch("/api/auth/me", { signal });
+        if (response.status === 401) {
+          return null;
+        }
+        if (!response.ok) {
+          throw new Error(`Error fetching user: ${response.statusText}`);
+        }
+        return await response.json();
+      } catch (err) {
+        if (err instanceof Error && err.name === "AbortError") {
+          return null; // Handle abort gracefully
+        }
+        throw err;
+      }
+    },
   });
 
   // Login mutation
-  const loginMutation = useMutation<User, Error, LoginData>({
+  const loginMutation = useMutation<UserWithoutPassword, Error, LoginData>({
     mutationFn: async (credentials) => {
-      const res = await apiRequest("POST", "/api/auth/login", credentials);
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Login failed");
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(credentials),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to login");
       }
-      return await res.json();
+
+      return await response.json();
     },
-    onSuccess: (userData: User) => {
+    onSuccess: (userData) => {
       queryClient.setQueryData(["/api/auth/me"], userData);
       toast({
         title: "Login successful",
-        description: "Welcome back!",
+        description: `Welcome back, ${userData.fullName}!`,
       });
     },
-    onError: (error: Error) => {
+    onError: (error) => {
       toast({
         title: "Login failed",
         description: error.message,
@@ -75,23 +113,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   // Register mutation
-  const registerMutation = useMutation<User, Error, RegisterData>({
+  const registerMutation = useMutation<UserWithoutPassword, Error, RegisterData>({
     mutationFn: async (userData) => {
-      const res = await apiRequest("POST", "/api/auth/register", userData);
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Registration failed");
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(userData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to register");
       }
-      return await res.json();
+
+      return await response.json();
     },
-    onSuccess: (userData: User) => {
+    onSuccess: (userData) => {
       queryClient.setQueryData(["/api/auth/me"], userData);
       toast({
         title: "Registration successful",
-        description: "Welcome to Doliver Capital",
+        description: `Welcome, ${userData.fullName}!`,
       });
     },
-    onError: (error: Error) => {
+    onError: (error) => {
       toast({
         title: "Registration failed",
         description: error.message,
@@ -103,20 +149,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Logout mutation
   const logoutMutation = useMutation<void, Error, void>({
     mutationFn: async () => {
-      const res = await apiRequest("POST", "/api/auth/logout");
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Logout failed");
+      const response = await fetch("/api/auth/logout", {
+        method: "POST",
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to logout");
       }
     },
     onSuccess: () => {
       queryClient.setQueryData(["/api/auth/me"], null);
+      // Invalidate all queries to refresh data
+      queryClient.invalidateQueries();
       toast({
         title: "Logged out",
-        description: "You have been logged out successfully",
+        description: "You have been successfully logged out.",
       });
     },
-    onError: (error: Error) => {
+    onError: (error) => {
       toast({
         title: "Logout failed",
         description: error.message,
@@ -126,23 +177,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   // Update profile mutation
-  const updateProfileMutation = useMutation<User, Error, { userId: number; data: Partial<User> }>({
+  const updateProfileMutation = useMutation<
+    UserWithoutPassword,
+    Error,
+    { userId: number; data: UpdateProfileData }
+  >({
     mutationFn: async ({ userId, data }) => {
-      const res = await apiRequest("PATCH", `/api/users/${userId}`, data);
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Profile update failed");
+      const response = await fetch(`/api/users/${userId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to update profile");
       }
-      return await res.json();
+
+      return await response.json();
     },
-    onSuccess: (userData: User) => {
+    onSuccess: (userData) => {
       queryClient.setQueryData(["/api/auth/me"], userData);
       toast({
         title: "Profile updated",
-        description: "Your profile has been updated successfully",
+        description: "Your profile has been successfully updated.",
       });
     },
-    onError: (error: Error) => {
+    onError: (error) => {
       toast({
         title: "Profile update failed",
         description: error.message,
@@ -151,42 +214,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
   });
 
-  // Function to login
-  const login = async (username: string, password: string): Promise<User> => {
-    return loginMutation.mutateAsync({ username, password });
+  // Wrapper functions for easier usage
+  const login = async (username: string, password: string) => {
+    return await loginMutation.mutateAsync({ username, password });
   };
 
-  // Function to register
   const register = async (
     username: string,
     fullName: string,
     email: string,
     password: string
-  ): Promise<User> => {
-    return registerMutation.mutateAsync({ username, fullName, email, password });
+  ) => {
+    return await registerMutation.mutateAsync({
+      username,
+      fullName,
+      email,
+      password,
+    });
   };
 
-  // Function to logout
-  const logout = async (): Promise<void> => {
-    return logoutMutation.mutateAsync();
+  const logout = async () => {
+    await logoutMutation.mutateAsync();
   };
 
-  // Function to update profile
-  const updateProfile = async (userId: number, data: Partial<User>): Promise<User> => {
-    return updateProfileMutation.mutateAsync({ userId, data });
+  const updateProfile = async (userId: number, data: UpdateProfileData) => {
+    return await updateProfileMutation.mutateAsync({ userId, data });
   };
 
   return (
     <AuthContext.Provider
       value={{
-        user: user || null,
+        user: user ?? null,
         isLoading,
         error,
         login,
         register,
         logout,
-        logoutMutation,
         updateProfile,
+        loginMutation,
+        registerMutation,
+        logoutMutation,
+        updateProfileMutation,
       }}
     >
       {children}
