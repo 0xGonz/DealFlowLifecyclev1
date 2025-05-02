@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { generateDealNotification } from "@/lib/utils/notification-utils";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -53,7 +54,7 @@ export default function StageProgression({ deal, onStageUpdated }: StageProgress
     mutationFn: async (stageData: { stage: string; rejectionReason?: string }) => {
       return apiRequest("PATCH", `/api/deals/${deal.id}`, stageData);
     },
-    onSuccess: () => {
+    onSuccess: async (data: any) => {
       // Refresh deal data
       queryClient.invalidateQueries({ queryKey: [`/api/deals/${deal.id}`] });
       queryClient.invalidateQueries({ queryKey: ["/api/deals"] });
@@ -61,8 +62,19 @@ export default function StageProgression({ deal, onStageUpdated }: StageProgress
       // Show success toast
       toast({
         title: "Stage Updated",
-        description: "The deal stage has been successfully updated."
+        description: `${deal.name} moved to ${DealStageLabels[data.stage as keyof typeof DealStageLabels]}`
       });
+      
+      // Create notification with specific stage info
+      try {
+        await generateDealNotification(1, deal.name, 'moved', deal.id, data.stage);
+        
+        // Refresh notifications in the UI
+        queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/notifications/unread-count"] });
+      } catch (err) {
+        console.error('Failed to create notification:', err);
+      }
       
       // Call onStageUpdated callback if provided
       if (onStageUpdated) {
@@ -136,7 +148,7 @@ export default function StageProgression({ deal, onStageUpdated }: StageProgress
             ) : isPassed ? (
               <span className="text-amber-500 font-medium">Passed</span>
             ) : (
-              <span>{DealStageLabels[deal.stage]}</span>
+              <span>{DealStageLabels[deal.stage as keyof typeof DealStageLabels]}</span>
             )}
           </p>
         </div>

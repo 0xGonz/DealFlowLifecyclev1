@@ -137,7 +137,8 @@ export default function EditDealModal({ isOpen, onClose, dealId }: EditDealModal
         
         // Generate notification for all users (using admin user ID 1 for now)
         if (stageChanged) {
-          await generateDealNotification(1, data.name, 'moved', dealId);
+          // Pass the new stage to the notification function
+          await generateDealNotification(1, data.name, 'moved', dealId, form.getValues().stage);
         } else {
           await generateDealNotification(1, data.name, 'updated', dealId);
         }

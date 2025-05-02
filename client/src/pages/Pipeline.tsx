@@ -47,7 +47,8 @@ export default function Pipeline() {
       
       // Create notification for stage change
       try {
-        await generateDealNotification(1, data.name, 'moved', data.id);
+        // Pass the new stage to the notification function
+        await generateDealNotification(1, data.name, 'moved', data.id, data.stage);
         
         // Refresh notifications in the UI
         queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
