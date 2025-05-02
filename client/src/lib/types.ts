@@ -29,7 +29,7 @@ export interface Deal {
   updatedAt: string;
   createdBy: number;
   tags: string[];
-  assignedUsers?: number[]; // Frontend computed property from deal assignments
+  assignedUsers?: User[]; // Frontend computed property from deal assignments
   starCount?: number; // Frontend computed property from stars count
   score?: number; // Frontend computed property from average memo scores
   miniMemos?: MiniMemo[]; // Frontend relationship 

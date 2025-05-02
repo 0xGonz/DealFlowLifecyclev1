@@ -55,7 +55,7 @@ import {
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { getDealStageBadgeClass } from "@/lib/utils/format";
-import { Deal, MiniMemo } from "@/lib/types";
+import { Deal, MiniMemo, User } from "@/lib/types";
 
 export default function DealDetail() {
   const [match, params] = useRoute("/deals/:id");

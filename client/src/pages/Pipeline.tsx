@@ -14,6 +14,7 @@ import { Plus, Search, DollarSign } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { enrichDealsWithComputedProps } from "@/lib/utils";
+import { Deal } from "@/lib/types";
 
 export default function Pipeline() {
   const [isNewDealModalOpen, setIsNewDealModalOpen] = useState(false);
@@ -27,16 +28,6 @@ export default function Pipeline() {
   const [dateFilter, setDateFilter] = useState("all");
   const { toast } = useToast();
 
-  // Define interface for Deal type
-  interface Deal {
-    id: number;
-    name: string;
-    description: string;
-    stage: keyof typeof DealStageLabels;
-    sector: string;
-    createdAt: string;
-    targetRaise?: number;
-  }
 
   const { data: deals, isLoading } = useQuery<Deal[]>({
     queryKey: ["/api/deals"],
