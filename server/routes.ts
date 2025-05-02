@@ -14,22 +14,8 @@ const notFoundHandler = (req: Request, res: Response, next: NextFunction) => {
 };
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Set up session middleware with memorystore - making adjustments for better session handling
-  const MemoryStore = createMemoryStore(session);
-  app.use(session({
-    secret: process.env.SESSION_SECRET || 'investment-tracker-secret',
-    resave: true, // Changed to true to ensure sessions are saved
-    saveUninitialized: true, // Changed to true to save unintialized sessions
-    cookie: {
-      secure: false, // Explicitly set secure to false for development
-      maxAge: 1000 * 60 * 60 * 24, // 1 day
-      httpOnly: true,
-      sameSite: 'lax'
-    },
-    store: new MemoryStore({
-      checkPeriod: 86400000 // prune expired entries every 24h
-    })
-  }));
+  // Session middleware is now in index.ts
+  // This helps us to deserialize user first, then attach to request
   
   // Body parser middleware
   app.use(express.json());

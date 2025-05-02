@@ -51,6 +51,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryKey: ["/api/auth/me"],
     retry: 1, // Allow one retry to handle temporary network issues
     initialData: null, // Set initial data to null to avoid undefined
+    refetchOnWindowFocus: false, // Don't refetch when window regains focus
+    refetchOnReconnect: true, // Refetch when connection is restored
+    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
   });
 
   const loginMutation = useMutation<SelectUser, Error, LoginData>({
@@ -59,6 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(credentials),
+        credentials: "include", // Include cookies in the request
       });
 
       if (!response.ok) {
@@ -92,6 +96,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(userData),
+        credentials: "include", // Include cookies in the request
       });
 
       if (!response.ok) {
@@ -121,6 +126,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     mutationFn: async () => {
       const response = await fetch("/api/auth/logout", {
         method: "POST",
+        credentials: "include", // Include cookies in the request
       });
 
       if (!response.ok) {
@@ -151,6 +157,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
+        credentials: "include", // Include cookies in the request
       });
 
       if (!response.ok) {

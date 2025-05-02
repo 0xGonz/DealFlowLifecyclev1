@@ -125,23 +125,15 @@ authRouter.post('/logout', (req, res) => {
 
 // Get current user route
 authRouter.get('/me', requireAuth, asyncHandler(async (req, res) => {
-  if (!req.session.userId) {
+  // requireAuth middleware already checked authentication and req.user is populated
+  // by our global middleware
+  if (!req.user) {
     return res.status(401).json({
       status: 'fail',
       message: 'Not authenticated'
     });
   }
   
-  const user = await storage.getUser(req.session.userId);
-  
-  if (!user) {
-    return res.status(404).json({
-      status: 'fail',
-      message: 'User not found'
-    });
-  }
-  
-  // Return user without password
-  const { password, ...userWithoutPassword } = user;
-  res.status(200).json(userWithoutPassword);
+  // Return the user object which already has password removed
+  res.status(200).json(req.user);
 }));
