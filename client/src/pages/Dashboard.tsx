@@ -32,15 +32,15 @@ export default function Dashboard() {
 
   return (
     <AppLayout>
-      <div className="p-6 pb-20">
+      <div className="p-4 sm:p-6 pb-20">
         {/* Dashboard Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-6 mb-6 sm:mb-8">
           {/* Quick Stats */}
-          <div className="md:col-span-9 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="md:col-span-12 lg:col-span-9 grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <StatsCard
               title="Active Deals"
               value={statsLoading ? "Loading..." : (stats?.activeDeals !== undefined ? stats.activeDeals.toString() : "0")}
-              icon={<Activity className="h-6 w-6 text-primary" />}
+              icon={<Activity className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />}
               trend={statsLoading ? 0 : stats?.activeDealsTrend || 0}
               trendLabel="from last month"
               isLoading={statsLoading}
@@ -49,7 +49,7 @@ export default function Dashboard() {
             <StatsCard
               title="New Deals (30d)"
               value={statsLoading ? "Loading..." : (stats?.newDeals !== undefined ? stats.newDeals.toString() : "0")}
-              icon={<TrendingUp className="h-6 w-6 text-accent" />}
+              icon={<TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 text-accent" />}
               trend={statsLoading ? 0 : stats?.newDealsTrend || 0}
               trendLabel="from last month"
               isLoading={statsLoading}
@@ -58,7 +58,7 @@ export default function Dashboard() {
             <StatsCard
               title="In IC Review"
               value={statsLoading ? "Loading..." : (stats?.inIcReview !== undefined ? stats.inIcReview.toString() : "0")}
-              icon={<Users className="h-6 w-6 text-info" />}
+              icon={<Users className="h-5 w-5 sm:h-6 sm:w-6 text-info" />}
               trend={statsLoading ? 0 : stats?.icReviewTrend || 0}
               trendLabel="new this week"
               trendDirection="up"
@@ -68,7 +68,7 @@ export default function Dashboard() {
             <StatsCard
               title="Total AUM"
               value={statsLoading ? "Loading..." : (stats?.totalAum !== undefined ? formatCurrency(stats.totalAum, true) : "$0")}
-              icon={<DollarSign className="h-6 w-6 text-success" />}
+              icon={<DollarSign className="h-5 w-5 sm:h-6 sm:w-6 text-success" />}
               trend={statsLoading ? 0 : stats?.aumTrend || 0}
               trendLabel="Q2 performance"
               isLoading={statsLoading}
@@ -79,7 +79,7 @@ export default function Dashboard() {
         </div>
         
         {/* Sector Distribution and Recent Deals */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 mt-6 sm:mt-8">
           <div className="lg:col-span-5 flex w-full">
             <SectorDistributionChart />
           </div>
@@ -90,12 +90,12 @@ export default function Dashboard() {
         </div>
         
         {/* Activity Feed and Leaderboard */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-6 mt-8">
-          <div className="sm:col-span-1 md:col-span-7 flex w-full">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-6 mt-6 sm:mt-8">
+          <div className="md:col-span-7 flex w-full">
             <ActivityFeed />
           </div>
           
-          <div className="sm:col-span-1 md:col-span-5 flex w-full">
+          <div className="md:col-span-5 flex w-full">
             <LeaderboardWidget />
           </div>
         </div>

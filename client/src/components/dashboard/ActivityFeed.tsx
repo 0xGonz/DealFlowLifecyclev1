@@ -40,50 +40,50 @@ export default function ActivityFeed() {
     switch (eventType) {
       case 'stage_change':
         return (
-          <div className="absolute left-0 top-0 w-6 h-6 rounded-full bg-primary-light flex items-center justify-center z-10">
-            <CheckCircle className="h-3 w-3 text-white" />
+          <div className="absolute left-0 top-0 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-primary-light flex items-center justify-center z-10">
+            <CheckCircle className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-white" />
           </div>
         );
       case 'memo_added':
         return (
-          <div className="absolute left-0 top-0 w-6 h-6 rounded-full bg-accent flex items-center justify-center z-10">
-            <FileEdit className="h-3 w-3 text-white" />
+          <div className="absolute left-0 top-0 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-accent flex items-center justify-center z-10">
+            <FileEdit className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-white" />
           </div>
         );
       case 'note':
         return (
-          <div className="absolute left-0 top-0 w-6 h-6 rounded-full bg-secondary flex items-center justify-center z-10">
-            <FileEdit className="h-3 w-3 text-white" />
+          <div className="absolute left-0 top-0 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-secondary flex items-center justify-center z-10">
+            <FileEdit className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-white" />
           </div>
         );
       case 'star_added':
         return (
-          <div className="absolute left-0 top-0 w-6 h-6 rounded-full bg-accent flex items-center justify-center z-10">
-            <Star className="h-3 w-3 text-white" />
+          <div className="absolute left-0 top-0 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-accent flex items-center justify-center z-10">
+            <Star className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-white" />
           </div>
         );
       case 'document_upload':
         return (
-          <div className="absolute left-0 top-0 w-6 h-6 rounded-full bg-info flex items-center justify-center z-10">
-            <FileText className="h-3 w-3 text-white" />
+          <div className="absolute left-0 top-0 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-info flex items-center justify-center z-10">
+            <FileText className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-white" />
           </div>
         );
       case 'fund_allocation':
         return (
-          <div className="absolute left-0 top-0 w-6 h-6 rounded-full bg-success flex items-center justify-center z-10">
-            <DollarSign className="h-3 w-3 text-white" />
+          <div className="absolute left-0 top-0 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-success flex items-center justify-center z-10">
+            <DollarSign className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-white" />
           </div>
         );
       case 'ai_analysis':
         return (
-          <div className="absolute left-0 top-0 w-6 h-6 rounded-full bg-primary flex items-center justify-center z-10">
-            <Info className="h-3 w-3 text-white" />
+          <div className="absolute left-0 top-0 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-primary flex items-center justify-center z-10">
+            <Info className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-white" />
           </div>
         );
       default:
         return (
-          <div className="absolute left-0 top-0 w-6 h-6 rounded-full bg-info flex items-center justify-center z-10">
-            <Info className="h-3 w-3 text-white" />
+          <div className="absolute left-0 top-0 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-info flex items-center justify-center z-10">
+            <Info className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-white" />
           </div>
         );
     }
@@ -106,30 +106,30 @@ export default function ActivityFeed() {
           </div>
         ) : (
           activities.map((activity) => (
-            <div key={activity.id} className="timeline-dot relative pl-8 pb-6">
+            <div key={activity.id} className="timeline-dot relative pl-6 sm:pl-8 pb-5 sm:pb-6">
               {getEventIcon(activity.eventType)}
               <div>
-                <div className="flex justify-between">
-                  <p className="font-medium text-sm">
+                <div className="flex flex-col xs:flex-row justify-between">
+                  <p className="font-medium text-xs sm:text-sm">
                     {activity.deal?.name && (
-                      <span className="font-semibold">{activity.deal.name} </span>
+                      <span className="font-semibold truncate block xs:inline">{activity.deal.name} </span>
                     )}
-                    {getActivityTitle(activity)}
+                    <span className="text-neutral-700">{getActivityTitle(activity)}</span>
                   </p>
-                  <span className="text-xs text-neutral-500">
+                  <span className="text-[10px] xs:text-xs text-neutral-500 mt-0.5 xs:mt-0">
                     {formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true })}
                   </span>
                 </div>
-                <p className="text-sm text-neutral-600 mt-1">{activity.content}</p>
+                <p className="text-xs sm:text-sm text-neutral-600 mt-1 line-clamp-2">{activity.content}</p>
                 
                 {activity.user && (
                   <div className="flex items-center mt-2">
-                    <Avatar className="h-5 w-5 mr-1">
-                      <AvatarFallback style={{ backgroundColor: activity.user.avatarColor, fontSize: '10px' }}>
+                    <Avatar className="h-4 w-4 sm:h-5 sm:w-5 mr-1">
+                      <AvatarFallback style={{ backgroundColor: activity.user.avatarColor, fontSize: '9px' }}>
                         {activity.user.initials}
                       </AvatarFallback>
                     </Avatar>
-                    <span className="text-xs text-neutral-500">{activity.user.fullName}</span>
+                    <span className="text-[10px] xs:text-xs text-neutral-500">{activity.user.fullName}</span>
                   </div>
                 )}
               </div>

@@ -147,17 +147,17 @@ export default function SectorDistributionChart() {
             <p className="text-neutral-500">No sector data available</p>
           </div>
         ) : (
-          <div className="h-[350px] w-full pr-0 sm:pr-[10%] md:pr-[15%] lg:pr-[20%] xl:pr-[25%] relative">
+          <div className="h-[280px] xs:h-[320px] sm:h-[350px] w-full relative">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
                   data={processedData}
-                  cx={windowWidth < 768 ? "50%" : "40%"}
+                  cx={windowWidth < 640 ? "50%" : "40%"}
                   cy="50%"
                   labelLine={false}
                   label={renderCustomizedLabel}
-                  innerRadius={60}
-                  outerRadius={100}
+                  innerRadius={windowWidth < 480 ? 40 : windowWidth < 640 ? 50 : 60}
+                  outerRadius={windowWidth < 480 ? 80 : windowWidth < 640 ? 90 : 100}
                   fill="#8884d8"
                   dataKey="count"
                 >
@@ -170,24 +170,29 @@ export default function SectorDistributionChart() {
                 </Pie>
                 <Tooltip content={<CustomTooltip sectorData={processedData} />} />
                 <Legend 
-                  verticalAlign="middle" 
-                  align="right"
-                  layout="vertical"
+                  verticalAlign={windowWidth < 640 ? "bottom" : "middle"}
+                  align={windowWidth < 640 ? "center" : "right"}
+                  layout={windowWidth < 640 ? "horizontal" : "vertical"}
                   payload={
                     processedData.map((item, index) => {
                       const totalCount = processedData.reduce((sum, i) => sum + i.count, 0);
                       const percentage = (item.count / totalCount * 100).toFixed(0);
+                      // Truncate long sector names on small screens
+                      const displayName = windowWidth < 640 && item.sector.length > 12 ? 
+                        item.sector.substring(0, 10) + '...' : item.sector;
                       return {
-                        value: `${item.sector} (${percentage}%)`,
+                        value: windowWidth < 640 ? 
+                          `${displayName}` : 
+                          `${item.sector} (${percentage}%)`,
                         type: 'circle',
                         id: item.sector,
                         color: SECTOR_COLORS[index % SECTOR_COLORS.length],
                       };
                     })
                   }
-                  iconSize={10}
-                  wrapperStyle={{ right: 0, top: 20 }}
-                  formatter={(value: string) => <span className="text-sm font-medium">{value}</span>}
+                  iconSize={windowWidth < 640 ? 8 : 10}
+                  wrapperStyle={windowWidth < 640 ? { bottom: 0 } : { right: 0, top: 20 }}
+                  formatter={(value: string) => <span className="text-[10px] xs:text-xs sm:text-sm font-medium">{value}</span>}
                 />
               </PieChart>
             </ResponsiveContainer>
