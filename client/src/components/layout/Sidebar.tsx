@@ -100,17 +100,17 @@ export default function Sidebar({ onCloseMobile }: SidebarProps) {
               </li>
             ))}
             
-            <li className="mt-6 mb-3 px-4">
-              <span className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">
+            <li className="mt-4 mb-2 px-2">
+              <span className="text-2xs font-semibold text-neutral-500 uppercase tracking-wider">
                 Admin
               </span>
             </li>
             
             {adminNavItems.map((item) => (
-              <li key={item.href} className="mb-1 px-2">
+              <li key={item.href} className="mb-0.5 px-1">
                 <a
                   href={item.href}
-                  className={`sidebar-nav-link flex items-center py-3 md:py-2 px-3 hover:bg-neutral-100 transition-colors rounded-md text-sm md:text-base ${
+                  className={`sidebar-nav-link flex items-center py-1.5 px-2 hover:bg-neutral-100 transition-colors rounded-md text-xs ${
                     location === item.href
                       ? "active bg-neutral-100 text-primary-dark font-medium"
                       : "text-neutral-700"
@@ -126,13 +126,13 @@ export default function Sidebar({ onCloseMobile }: SidebarProps) {
         </nav>
         
         {/* Logout button */}
-        <div className="p-4 border-t border-neutral-200">
+        <div className="p-2 border-t border-neutral-200">
           <a 
             href="/logout" 
-            className="flex items-center py-3 md:py-2 px-3 rounded-md text-sm md:text-base text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900 transition-colors"
+            className="flex items-center py-1.5 px-2 rounded-md text-xs text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900 transition-colors"
             onClick={() => onCloseMobile && window.innerWidth < 768 && onCloseMobile()}
           >
-            <LogOut className="h-5 w-5 mr-3" />
+            <LogOut className="h-4 w-4 mr-2" />
             Logout
           </a>
         </div>
