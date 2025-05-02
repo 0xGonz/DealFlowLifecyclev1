@@ -17,7 +17,7 @@ router.get('/stats', async (req: Request, res: Response) => {
     
     // Calculate dashboard stats
     const totalDeals = deals ? deals.length : 0;
-    const activeDeals = deals ? deals.filter(deal => deal.stage !== 'closed' && deal.stage !== 'passed').length : 0;
+    const activeDeals = deals ? deals.filter(deal => deal.stage !== 'closed' && deal.stage !== 'rejected').length : 0;
     const activePipelinePercent = totalDeals > 0 ? Math.round((activeDeals / totalDeals) * 100) : 0;
     const newDeals = deals ? deals.filter(deal => ['initial_review', 'screening'].includes(deal.stage)).length : 0;
     const newDealsPercent = totalDeals > 0 ? Math.round((newDeals / totalDeals) * 100) : 0;

@@ -11,7 +11,9 @@ import {
   Activity, 
   TrendingUp, 
   Users, 
-  DollarSign 
+  DollarSign,
+  LineChart,
+  BarChart
 } from "lucide-react";
 
 interface DashboardStats {
@@ -64,12 +66,11 @@ export default function Dashboard() {
             />
             
             <StatsCard
-              title="New Deals"
-              value={statsLoading ? "Loading..." : (stats?.newDealsPercent !== undefined ? `${stats.newDealsPercent}%` : "0%")}
-              icon={<Users className="h-5 w-5 sm:h-6 sm:w-6 text-info" />}
-              trend={statsLoading ? 0 : stats?.newDealsTrend || 0}
+              title="In IC Review"
+              value={statsLoading ? "Loading..." : (stats?.icReviewPercent !== undefined ? `${stats.icReviewPercent}%` : "0%")}
+              icon={<Users className="h-5 w-5 sm:h-6 sm:w-6 text-warning" />}
+              trend={statsLoading ? 0 : stats?.icReviewTrend || 0}
               trendLabel="of total pipeline"
-              trendDirection="up"
               isLoading={statsLoading}
             />
             
@@ -78,7 +79,7 @@ export default function Dashboard() {
               value={statsLoading ? "Loading..." : (stats?.investmentRate !== undefined ? `${stats.investmentRate}%` : "0%")}
               icon={<DollarSign className="h-5 w-5 sm:h-6 sm:w-6 text-success" />}
               trend={statsLoading ? 0 : stats?.investmentRateTrend || 0}
-              trendLabel="from last month"
+              trendLabel="of total deals"
               isLoading={statsLoading}
             />
           </div>
