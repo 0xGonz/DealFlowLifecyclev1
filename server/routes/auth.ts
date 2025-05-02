@@ -137,15 +137,57 @@ authRouter.post('/logout', (req, res) => {
   });
 });
 
-// Get current user route
-authRouter.get('/me', requireAuth, asyncHandler(async (req, res) => {
-  // requireAuth middleware already checked authentication and req.user is populated
-  // by our global middleware
-  if (!req.user) {
+// Debug route to check session status
+authRouter.get('/session-debug', (req, res) => {
+  res.json({
+    sessionExists: !!req.session,
+    userIdInSession: req.session?.userId || null,
+    userInRequest: !!req.user,
+    cookies: req.headers.cookie || 'No cookies found',
+    currentTime: new Date().toISOString()
+  });
+});
+
+// Get current user route - removed requireAuth middleware for debugging
+authRouter.get('/me', asyncHandler(async (req, res) => {
+  console.log('GET /api/auth/me called', {
+    sessionExists: !!req.session,
+    userId: req.session?.userId,
+    user: req.user
+  });
+
+  // If not authenticated, return 401 but with a clear message
+  if (!req.session || !req.session.userId) {
     return res.status(401).json({
       status: 'fail',
-      message: 'Not authenticated'
+      message: 'No active session found',
+      debug: { hasSession: !!req.session }
     });
+  }
+  
+  if (!req.user) {
+    const storage = StorageFactory.getStorage();
+    try {
+      // Try to get user from storage directly
+      const user = await storage.getUser(req.session.userId);
+      if (user) {
+        // Don't include password in response
+        const { password, ...userWithoutPassword } = user;
+        return res.status(200).json(userWithoutPassword);
+      } else {
+        return res.status(401).json({
+          status: 'fail',
+          message: 'User not found in database',
+          debug: { userId: req.session.userId }
+        });
+      }
+    } catch (err) {
+      console.error('Error fetching user in /me endpoint:', err);
+      return res.status(500).json({
+        status: 'error',
+        message: 'Server error when fetching user'
+      });
+    }
   }
   
   // Return the user object which already has password removed

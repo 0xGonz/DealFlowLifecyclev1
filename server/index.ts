@@ -1,5 +1,6 @@
 import express, { type Request, Response, NextFunction } from "express";
 import session from "express-session";
+import cors from "cors";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 // We don't need to import errorHandlers here since it's used in routes.ts
@@ -22,6 +23,16 @@ declare global {
 }
 
 const app = express();
+
+// Configure CORS
+app.use(cors({
+  origin: true, // Allows requests from any origin in development; should be restricted in production
+  credentials: true, // Important: allow cookies to be sent with requests
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+// Parse JSON and URL-encoded request bodies
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
