@@ -25,18 +25,18 @@ export default function Leaderboard() {
 
   return (
     <AppLayout>
-      <div className="flex-1 overflow-y-auto pb-20">
+      <div className="flex-1 overflow-y-auto p-4 sm:p-6 pb-20">
         <h1 className="text-xl sm:text-2xl font-semibold text-neutral-800 mb-4 sm:mb-6">Deal Leaderboard</h1>
         
         <Card>
-          <CardHeader>
-            <CardTitle>Deal Rankings</CardTitle>
+          <CardHeader className="px-4 sm:px-6 py-4 sm:py-6">
+            <CardTitle className="text-base sm:text-lg">Deal Rankings</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-4 sm:px-6 py-3 sm:py-4">
             <Tabs defaultValue="score">
               <TabsList className="mb-4">
-                <TabsTrigger value="score">By Score</TabsTrigger>
-                <TabsTrigger value="stars">By Stars</TabsTrigger>
+                <TabsTrigger value="score" className="text-xs sm:text-sm">By Score</TabsTrigger>
+                <TabsTrigger value="stars" className="text-xs sm:text-sm">By Stars</TabsTrigger>
               </TabsList>
               
               <TabsContent value="score">
@@ -54,14 +54,18 @@ export default function Leaderboard() {
                     <TableBody>
                       {isLoading ? (
                         <TableRow>
-                          <TableCell colSpan={5} className="text-center py-10 text-neutral-500">
-                            Loading leaderboard data...
+                          <TableCell colSpan={5} className="text-center py-8 sm:py-10 text-neutral-500">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+                            <p className="text-sm">Loading leaderboard data...</p>
                           </TableCell>
                         </TableRow>
                       ) : leaderboardData.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={5} className="text-center py-10 text-neutral-500">
-                            No deals found for the leaderboard.
+                          <TableCell colSpan={5} className="text-center py-8 sm:py-10 text-neutral-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 mx-auto text-neutral-300 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                            </svg>
+                            <p className="text-sm">No deals found for the leaderboard.</p>
                           </TableCell>
                         </TableRow>
                       ) : (
@@ -127,14 +131,18 @@ export default function Leaderboard() {
                     <TableBody>
                       {isLoading ? (
                         <TableRow>
-                          <TableCell colSpan={5} className="text-center py-10 text-neutral-500">
-                            Loading leaderboard data...
+                          <TableCell colSpan={5} className="text-center py-8 sm:py-10 text-neutral-500">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+                            <p className="text-sm">Loading leaderboard data...</p>
                           </TableCell>
                         </TableRow>
                       ) : leaderboardData.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={5} className="text-center py-10 text-neutral-500">
-                            No deals found for the leaderboard.
+                          <TableCell colSpan={5} className="text-center py-8 sm:py-10 text-neutral-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 mx-auto text-neutral-300 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                            </svg>
+                            <p className="text-sm">No deals found for the leaderboard.</p>
                           </TableCell>
                         </TableRow>
                       ) : (
