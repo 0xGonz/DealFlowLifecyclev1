@@ -60,7 +60,7 @@ export default function PipelineStats({ deals, filteredDeals, stage }: PipelineS
     },
     {
       label: "Deal Value",
-      value: formatCurrency(totalDealValue, true),
+      value: formatCurrency(totalDealValue),
       trend: valueTrend,
       icon: <DollarSign />,
       iconColor: "bg-emerald-100 text-emerald-600"

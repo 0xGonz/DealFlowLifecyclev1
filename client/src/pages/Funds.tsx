@@ -18,6 +18,7 @@ import {
   TableCell 
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -188,18 +189,26 @@ export default function Funds() {
                   <CardTitle className="text-base sm:text-lg font-semibold truncate">{fund.name}</CardTitle>
                 </CardHeader>
                 <CardContent className="pt-3 sm:pt-4">
-                  <div className="grid grid-cols-2 gap-4 mb-3 sm:mb-4">
+                  <div className="flex flex-col mb-3 sm:mb-4 space-y-3">
                     <div>
-                      <p className="text-xs sm:text-sm text-neutral-600 mb-0.5 sm:mb-1">Assets Under Management</p>
-                      <p className="text-xl sm:text-2xl font-semibold flex items-center">
+                      <p className="text-xs sm:text-sm text-neutral-600 mb-0.5">Assets Under Management</p>
+                      <p className="text-xl font-semibold flex items-center">
                         {formatCurrency(fund.aum)}
                       </p>
                     </div>
-                    <div>
-                      <p className="text-xs sm:text-sm text-neutral-600 mb-0.5 sm:mb-1">Vintage</p>
-                      <p className="text-xl sm:text-2xl font-semibold">
-                        {fund.vintage || "N/A"}
-                      </p>
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <p className="text-xs text-neutral-600 mb-0.5">Vintage</p>
+                        <p className="text-lg font-medium">
+                          {fund.vintage || "N/A"}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-neutral-600 mb-0.5">Status</p>
+                        <Badge variant="outline" className="font-normal">
+                          {fund.vintage && fund.vintage >= new Date().getFullYear() ? "Active" : "Legacy"}
+                        </Badge>
+                      </div>
                     </div>
                   </div>
                   

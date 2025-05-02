@@ -1,120 +1,115 @@
 /**
- * Format a number as a currency string with optional shortening for large values
- * @param value The value to format
- * @param shorten Whether to shorten large values (e.g., 1M, 2B)
- * @param currency The currency symbol to use (default: $)
+ * Format a number as currency
+ * @param amount The amount to format
+ * @param currency The currency code (default: USD)
  * @returns Formatted currency string
  */
-export function formatCurrency(value: number, shorten = false, currency = '$'): string {
-  if (value === 0) return `${currency}0`;
-  if (!value) return `${currency}--`;
-  
-  // Format with shortening if requested
-  if (shorten) {
-    if (value >= 1_000_000_000) {
-      return `${currency}${(value / 1_000_000_000).toFixed(1)}B`;
-    } else if (value >= 1_000_000) {
-      return `${currency}${(value / 1_000_000).toFixed(1)}M`;
-    } else if (value >= 1_000) {
-      return `${currency}${(value / 1_000).toFixed(1)}K`;
-    }
+export const formatCurrency = (amount: number | undefined | null): string => {
+  if (amount === undefined || amount === null) {
+    return "$0.00";
   }
   
-  // Standard currency formatting
+  // Format large numbers with appropriate abbreviations
+  if (amount >= 1000000000) {
+    return `$${(amount / 1000000000).toFixed(1)}B`;
+  } else if (amount >= 1000000) {
+    return `$${(amount / 1000000).toFixed(1)}M`;
+  } else if (amount >= 1000) {
+    return `$${(amount / 1000).toFixed(1)}K`;
+  }
+  
+  // Format standard currency
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
-  }).format(value);
-}
+  }).format(amount);
+};
 
 /**
- * Format a number as a percentage
- * @param value The value to format (e.g., 15 for 15%)
- * @param decimals Number of decimal places (default: 0)
- * @returns Formatted percentage string
- */
-export function formatPercentage(value: number, decimals = 0): string {
-  if (value === undefined || value === null) return '--%';
-  return `${value.toFixed(decimals)}%`;
-}
-
-/**
- * Format a date string into a more readable format
+ * Format a date string
  * @param dateString The date string to format
- * @param includeTime Whether to include the time in the output
- * @returns Formatted date string
+ * @returns Formatted date string (MM/DD/YYYY)
  */
-export function formatDate(dateString: string, includeTime = false): string {
-  if (!dateString) return '--';
+export const formatDate = (dateString: string | undefined | null): string => {
+  if (!dateString) return 'N/A';
   
   const date = new Date(dateString);
-  if (isNaN(date.getTime())) return dateString; // Return original if invalid
-  
-  const options: Intl.DateTimeFormatOptions = {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  };
-  
-  if (includeTime) {
-    options.hour = '2-digit';
-    options.minute = '2-digit';
-  }
-  
-  return new Intl.DateTimeFormat('en-US', options).format(date);
-}
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+};
 
 /**
- * Format a number with thousand separators
- * @param value The value to format
- * @param decimals Number of decimal places (default: 0)
- * @returns Formatted number string
+ * Format a percentage value
+ * @param value The value to format as percentage
+ * @param decimals Number of decimal places (default: 1)
+ * @returns Formatted percentage string
  */
-export function formatNumber(value: number, decimals = 0): string {
-  if (value === undefined || value === null) return '--';
-  return new Intl.NumberFormat('en-US', {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals
-  }).format(value);
-}
+export const formatPercentage = (value: number | undefined | null, decimals = 1): string => {
+  if (value === undefined || value === null) {
+    return '0%';
+  }
+  
+  // Convert to percentage and add % sign
+  return `${value.toFixed(decimals)}%`;
+};
+
+/**
+ * Format a ratio value (used for MOIC, etc.)
+ * @param value The ratio value
+ * @param decimals Number of decimal places (default: 2)
+ * @returns Formatted ratio string (e.g., "1.45x")
+ */
+export const formatRatio = (value: number | undefined | null, decimals = 2): string => {
+  if (value === undefined || value === null) {
+    return '0.00x';
+  }
+  
+  return `${value.toFixed(decimals)}x`;
+};
 
 /**
  * Get the appropriate CSS class for a deal stage badge
  * @param stage The deal stage
- * @returns The CSS class for the badge background
+ * @returns CSS class for the badge
  */
-export function getDealStageBadgeClass(stage: string): string {
-  const stageClasses: Record<string, string> = {
-    initial_review: "bg-neutral-100 text-neutral-800",
-    screening: "bg-sky-100 text-sky-800",
-    diligence: "bg-blue-100 text-blue-800",
-    ic_review: "bg-violet-100 text-violet-800",
-    closing: "bg-amber-100 text-amber-800",
-    closed: "bg-green-100 text-green-800",
-    invested: "bg-emerald-100 text-emerald-800",
-    rejected: "bg-red-100 text-red-800"
-  };
-  
-  return stageClasses[stage] || "bg-neutral-100 text-neutral-800";
-}
+export const getDealStageBadgeClass = (stage: string): string => {
+  switch (stage) {
+    case 'initial_review':
+      return 'bg-neutral-100 text-neutral-800';
+    case 'screening':
+      return 'bg-primary-50 text-primary-800';
+    case 'diligence': 
+      return 'bg-blue-100 text-blue-800';
+    case 'ic_review':
+      return 'bg-purple-100 text-purple-800';
+    case 'closing':
+      return 'bg-amber-100 text-amber-800';
+    case 'closed':
+      return 'bg-emerald-100 text-emerald-800';
+    case 'invested':
+      return 'bg-teal-100 text-teal-800';
+    case 'rejected':
+      return 'bg-red-100 text-red-800';
+    default:
+      return 'bg-neutral-100 text-neutral-800';
+  }
+};
 
 /**
- * Format file sizes into human-readable format
+ * Format a file size in bytes to a human-readable format
  * @param bytes The size in bytes
- * @param decimals Number of decimal places to show
- * @returns Formatted size string (e.g., '2.5 MB')
+ * @param decimals Number of decimal places (default: 2)
+ * @returns Formatted file size string
  */
-export function formatBytes(bytes: number, decimals = 2): string {
-  if (bytes === 0) return '0 Bytes';
-  if (!bytes) return '--';
+export const formatBytes = (bytes: number | undefined | null, decimals = 2): string => {
+  if (bytes === undefined || bytes === null || bytes === 0) {
+    return '0 Bytes';
+  }
   
   const k = 1024;
-  const dm = decimals < 0 ? 0 : decimals;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
-  
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
-}
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(decimals))} ${sizes[i]}`;
+};

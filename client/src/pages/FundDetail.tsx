@@ -200,50 +200,65 @@ export default function FundDetail() {
           <div className="text-center py-12">Loading fund details...</div>
         ) : (
           <>
-            {/* Fund Overview */}
+            {/* Layout Grid - Reorganized */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-              <Card className="lg:col-span-2">
-                <CardHeader>
-                  <CardTitle>Overview</CardTitle>
-                  {fund?.description && (
-                    <CardDescription>{fund.description}</CardDescription>
-                  )}
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
-                    <div>
-                      <p className="text-xs sm:text-sm text-neutral-600 mb-1">Assets Under Management</p>
-                      <p className="text-lg sm:text-xl md:text-2xl font-semibold flex items-center">
-                        {formatCurrency(fund?.aum)}
-                        <TrendingUp className="ml-2 h-3 w-3 sm:h-4 sm:w-4 text-success" />
-                      </p>
+              {/* Fund Visualizations & Actions */}
+              <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Sector Distribution - Larger Size */}
+                <div className="md:col-span-1">
+                  <FundSectorDistribution allocations={allocations || []} deals={deals || []} />
+                </div>
+                
+                {/* Called Capital Ratio - Larger Size */}
+                <div className="md:col-span-1">
+                  <CalledCapitalRatio allocations={allocations || []} totalFundSize={fund?.aum || 0} />
+                </div>
+                
+                {/* Overview Card */}
+                <Card className="md:col-span-2">
+                  <CardHeader>
+                    <CardTitle>Fund Overview</CardTitle>
+                    {fund?.description && (
+                      <CardDescription>{fund.description}</CardDescription>
+                    )}
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
+                      <div>
+                        <p className="text-xs sm:text-sm text-neutral-600 mb-1">Assets Under Management</p>
+                        <p className="text-lg sm:text-xl font-semibold flex items-center">
+                          {formatCurrency(fund?.aum)}
+                          <TrendingUp className="ml-2 h-3 w-3 sm:h-4 sm:w-4 text-success" />
+                        </p>
+                      </div>
+                      
+                      <div>
+                        <p className="text-xs sm:text-sm text-neutral-600 mb-1">Vintage</p>
+                        <p className="text-lg sm:text-xl font-semibold">
+                          {fund?.vintage || "N/A"}
+                        </p>
+                      </div>
+                      
+                      <div>
+                        <p className="text-xs sm:text-sm text-neutral-600 mb-1">Total Investments</p>
+                        <p className="text-lg sm:text-xl font-semibold">
+                          {allocations?.length || 0}
+                        </p>
+                      </div>
+                      
+                      <div>
+                        <p className="text-xs sm:text-sm text-neutral-600 mb-1">Created Date</p>
+                        <p className="text-base sm:text-lg font-medium">
+                          {fund?.createdAt ? format(new Date(fund.createdAt), "PPP") : "Unknown"}
+                        </p>
+                      </div>
                     </div>
-                    
-                    <div>
-                      <p className="text-xs sm:text-sm text-neutral-600 mb-1">Total Investments</p>
-                      <p className="text-lg sm:text-xl md:text-2xl font-semibold">
-                        {allocations?.length || 0}
-                      </p>
-                    </div>
-                    
-                    <div className="sm:col-span-2 md:col-span-1">
-                      <p className="text-xs sm:text-sm text-neutral-600 mb-1">Created Date</p>
-                      <p className="text-base sm:text-lg font-medium">
-                        {fund?.createdAt ? format(new Date(fund.createdAt), "PPP") : "Unknown"}
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </div>
               
-              {/* Fund Visualizations */}
-              <div className="space-y-6">
-                {/* Import the visualization components */}
-                <FundSectorDistribution allocations={allocations || []} deals={deals || []} />
-                
-                <CalledCapitalRatio allocations={allocations || []} totalFundSize={fund?.aum || 0} />
-                
-                {/* Investment Actions */}
+              {/* Investment Actions - Right Column */}
+              <div className="lg:col-span-1">
                 <Card>
                   <CardHeader>
                     <CardTitle>Investment Actions</CardTitle>
