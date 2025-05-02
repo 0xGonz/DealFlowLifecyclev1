@@ -14,27 +14,25 @@ export default function AppLayout({ children }: AppLayoutProps) {
   return (
     <div className="flex h-screen bg-neutral-100 relative">
       {/* Mobile sidebar toggle */}
-      <div className="md:hidden fixed top-4 left-4 z-50">
+      <div className="md:hidden fixed top-5 left-5 z-50">
         <Button 
           variant="ghost" 
           size="icon" 
-          className="bg-white shadow-md rounded-full h-10 w-10"
+          className="bg-white shadow-md rounded-full h-10 w-10 flex items-center justify-center"
           onClick={() => setSidebarOpen(!sidebarOpen)}
         >
-          <Menu />
+          <Menu className="h-5 w-5" />
         </Button>
       </div>
 
       {/* Overlay for mobile when sidebar is open */}
-      {sidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden" 
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
+      <div 
+        className={`fixed inset-0 bg-black transition-opacity duration-300 ease-in-out z-40 md:hidden ${sidebarOpen ? 'opacity-50 pointer-events-auto' : 'opacity-0 pointer-events-none'}`} 
+        onClick={() => setSidebarOpen(false)}
+      />
 
       {/* Sidebar - hidden on mobile unless toggled */}
-      <div className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 transition-transform duration-200 ease-in-out md:static fixed inset-y-0 left-0 z-40`}>
+      <div className={`${sidebarOpen ? 'translate-x-0 shadow-xl' : '-translate-x-full'} md:translate-x-0 md:shadow-none transition-all duration-300 ease-in-out md:static fixed inset-y-0 left-0 z-40 h-full`}>
         <Sidebar onCloseMobile={() => setSidebarOpen(false)} />
       </div>
 

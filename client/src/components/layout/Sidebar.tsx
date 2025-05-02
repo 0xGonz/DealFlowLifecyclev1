@@ -58,7 +58,7 @@ export default function Sidebar({ onCloseMobile }: SidebarProps) {
   ];
 
   return (
-    <aside className="h-full w-64 bg-white shadow-md">
+    <aside className="h-full w-64 bg-white shadow-md overflow-y-auto">
       <div className="flex flex-col h-full">
         {/* Logo & Brand with close button for mobile */}
         <div className="p-4 border-b border-neutral-200 flex justify-between items-center">
@@ -83,12 +83,12 @@ export default function Sidebar({ onCloseMobile }: SidebarProps) {
         <nav className="flex-1 overflow-y-auto scrollbar-thin py-4">
           <ul>
             {mainNavItems.map((item) => (
-              <li key={item.href} className="mb-1">
+              <li key={item.href} className="mb-1 px-2">
                 <a
                   href={item.href}
-                  className={`sidebar-nav-link flex items-center py-2 px-4 hover:bg-neutral-200 ${
+                  className={`sidebar-nav-link flex items-center py-3 md:py-2 px-3 hover:bg-neutral-100 transition-colors rounded-md text-sm md:text-base ${
                     location === item.href
-                      ? "active text-primary-dark"
+                      ? "active bg-neutral-100 text-primary-dark font-medium"
                       : "text-neutral-700"
                   }`}
                   onClick={() => onCloseMobile && window.innerWidth < 768 && onCloseMobile()}
@@ -106,12 +106,12 @@ export default function Sidebar({ onCloseMobile }: SidebarProps) {
             </li>
             
             {adminNavItems.map((item) => (
-              <li key={item.href} className="mb-1">
+              <li key={item.href} className="mb-1 px-2">
                 <a
                   href={item.href}
-                  className={`sidebar-nav-link flex items-center py-2 px-4 hover:bg-neutral-200 ${
+                  className={`sidebar-nav-link flex items-center py-3 md:py-2 px-3 hover:bg-neutral-100 transition-colors rounded-md text-sm md:text-base ${
                     location === item.href
-                      ? "active text-primary-dark"
+                      ? "active bg-neutral-100 text-primary-dark font-medium"
                       : "text-neutral-700"
                   }`}
                   onClick={() => onCloseMobile && window.innerWidth < 768 && onCloseMobile()}
