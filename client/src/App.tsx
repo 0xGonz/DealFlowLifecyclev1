@@ -1,5 +1,4 @@
 import { Switch, Route } from "wouter";
-import { ProtectedRoute } from "./lib/protected-route";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -11,22 +10,18 @@ import Leaderboard from "@/pages/Leaderboard";
 import Funds from "@/pages/Funds";
 import FundDetail from "@/pages/FundDetail";
 import DealDetail from "@/pages/DealDetail";
-import AuthPage from "@/pages/auth-page";
-import { AuthProvider } from "@/hooks/use-auth";
-
+import { AuthProvider } from "@/lib/context/auth-context";
 import ErrorBoundary from "@/components/common/ErrorBoundary";
-import { ThemeProvider } from "@/components/theme-provider";
 
 function Router() {
   return (
     <Switch>
-      <ProtectedRoute path="/" component={Dashboard} />
-      <ProtectedRoute path="/pipeline" component={Pipeline} />
-      <ProtectedRoute path="/leaderboard" component={Leaderboard} />
-      <ProtectedRoute path="/funds" component={Funds} />
-      <ProtectedRoute path="/funds/:id" component={FundDetail} />
-      <ProtectedRoute path="/deals/:id" component={DealDetail} />
-      <Route path="/auth" component={AuthPage} />
+      <Route path="/" component={Dashboard} />
+      <Route path="/pipeline" component={Pipeline} />
+      <Route path="/leaderboard" component={Leaderboard} />
+      <Route path="/funds" component={Funds} />
+      <Route path="/funds/:id" component={FundDetail} />
+      <Route path="/deals/:id" component={DealDetail} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -34,23 +29,21 @@ function Router() {
 
 function App() {
   return (
-    <ThemeProvider defaultTheme="light" storageKey="doliver-theme">
-      <ErrorBoundary
-        onError={(error, info) => {
-          console.error("Global error caught by ErrorBoundary:", error, info);
-          // Here we could send to an error reporting service like Sentry
-        }}
-      >
-        <QueryClientProvider client={queryClient}>
-          <AuthProvider>
-            <TooltipProvider>
-              <Toaster />
-              <Router />
-            </TooltipProvider>
-          </AuthProvider>
-        </QueryClientProvider>
-      </ErrorBoundary>
-    </ThemeProvider>
+    <ErrorBoundary
+      onError={(error, info) => {
+        console.error("Global error caught by ErrorBoundary:", error, info);
+        // Here we could send to an error reporting service like Sentry
+      }}
+    >
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Router />
+          </TooltipProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 

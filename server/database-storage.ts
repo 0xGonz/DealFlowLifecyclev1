@@ -1,4 +1,4 @@
-import { db, pool } from './db';
+import { db } from './db';
 import { IStorage } from './storage';
 import {
   User, InsertUser,
@@ -15,28 +15,11 @@ import {
   funds, fundAllocations, dealAssignments, notifications
 } from '@shared/schema';
 import { eq, and } from 'drizzle-orm';
-import session from 'express-session';
-import ConnectPg from 'connect-pg-simple';
 
 /**
  * PostgreSQL database implementation of the storage interface
  */
 export class DatabaseStorage implements IStorage {
-  sessionStore: session.Store;
-
-  constructor() {
-    if (!pool) {
-      throw new Error('Database pool not initialized');
-    }
-    
-    // Initialize PostgreSQL session store
-    const PostgresStore = ConnectPg(session);
-    this.sessionStore = new PostgresStore({
-      pool, 
-      createTableIfMissing: true,
-      tableName: 'session'
-    });
-  }
   // User operations
   async getUser(id: number): Promise<User | undefined> {
     if (!db) {
