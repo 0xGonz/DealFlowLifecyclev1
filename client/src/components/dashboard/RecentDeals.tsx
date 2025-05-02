@@ -96,7 +96,7 @@ export default function RecentDeals() {
             <p className="text-neutral-500">No deals found matching your filters.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredDeals.map(deal => (
               <DealCard key={deal.id} deal={deal} />
             ))}
