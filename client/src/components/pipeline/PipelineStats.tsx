@@ -24,11 +24,18 @@ export default function PipelineStats({ deals, filteredDeals, stage }: PipelineS
   // Calculate statistics for the current view
   const totalDealsCount = filteredDeals.length;
   
-  // Calculate the total deal value
+  // Calculate the total deal value based on actual targetRaise values
   const totalDealValue = filteredDeals.reduce((sum, deal) => {
-    const targetRaise = deal.targetRaise?.replace(/[^0-9.]/g, '');
-    return sum + (targetRaise ? parseFloat(targetRaise) : 0);
-  }, 0) * 1000000; // Converting to actual value if in millions
+    const targetRaise = deal.targetRaise?.replace(/\D/g, '');
+    // Only add if we can parse a valid number
+    return sum + (targetRaise ? parseInt(targetRaise, 10) : 0);
+  }, 0);
+  
+  // Calculate the total valuation value based on actual valuation values
+  const totalValuation = filteredDeals.reduce((sum, deal) => {
+    const valuation = deal.valuation?.replace(/\D/g, '');
+    return sum + (valuation ? parseInt(valuation, 10) : 0);
+  }, 0);
   
   // Calculate average deal score
   const avgScore = filteredDeals.reduce((sum, deal) => sum + (deal.score || 0), 0) / 
@@ -50,6 +57,12 @@ export default function PipelineStats({ deals, filteredDeals, stage }: PipelineS
   const stageLabel = stage === 'all' ? "In Diligence" : 
     stage.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
   
+  // Calculate the average valuation based on available data
+  const avgValuation = filteredDeals.length > 0 ? totalValuation / filteredDeals.length : 0;
+
+  // Calculate the total target raise amount and average deal size
+  const avgDealSize = filteredDeals.length > 0 ? totalDealValue / filteredDeals.length : 0;
+  
   const stats: PipelineStat[] = [
     {
       label: "Total Deals",
@@ -59,21 +72,21 @@ export default function PipelineStats({ deals, filteredDeals, stage }: PipelineS
       iconColor: "bg-blue-100 text-blue-600"
     },
     {
-      label: "Deal Value",
+      label: "Target Raise",
       value: formatCurrency(totalDealValue),
       trend: valueTrend,
       icon: <DollarSign />,
       iconColor: "bg-emerald-100 text-emerald-600"
     },
     {
-      label: stageLabel,
-      value: stageDeals.length,
-      trend: stageTrend,
-      icon: <Clock />,
+      label: "Avg Valuation",
+      value: formatCurrency(avgValuation),
+      trend: 0,
+      icon: <Target />,
       iconColor: "bg-violet-100 text-violet-600"
     },
     {
-      label: "Conversion Rate",
+      label: "Investment Rate",
       value: formatPercentage(conversionRate, 1),
       trend: Math.round(conversionRate) - 100,
       icon: <PieChart />,
@@ -97,7 +110,23 @@ export default function PipelineStats({ deals, filteredDeals, stage }: PipelineS
               <span className="text-base sm:text-xl md:text-2xl font-bold mr-1 sm:mr-2 truncate max-w-full">
                 {stat.value}
               </span>
-
+              
+              {/* Trend indicator */}
+              {stat.trend !== undefined && (
+                <div className="flex items-center">
+                  {stat.trend > 0 ? (
+                    <div className="text-success flex items-center text-xs">
+                      <TrendingUp className="h-3 w-3 mr-1" />
+                      {stat.trend}%
+                    </div>
+                  ) : stat.trend < 0 ? (
+                    <div className="text-danger flex items-center text-xs">
+                      <TrendingDown className="h-3 w-3 mr-1" />
+                      {Math.abs(stat.trend)}%
+                    </div>
+                  ) : null}
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
