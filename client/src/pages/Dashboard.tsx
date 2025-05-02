@@ -79,12 +79,12 @@ export default function Dashboard() {
         </div>
         
         {/* Sector Distribution and Recent Deals */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-6 mt-8">
-          <div className="sm:col-span-1 md:col-span-5 flex w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-8">
+          <div className="lg:col-span-5 flex w-full">
             <SectorDistributionChart />
           </div>
           
-          <div className="sm:col-span-1 md:col-span-7 flex w-full">
+          <div className="lg:col-span-7 flex w-full">
             <RecentDeals />
           </div>
         </div>

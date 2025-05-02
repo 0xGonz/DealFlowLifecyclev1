@@ -100,9 +100,9 @@ export default function RecentDeals() {
             <p className="text-sm sm:text-base text-neutral-500">No deals found matching your filters.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
             {filteredDeals.map(deal => (
-              <DealCard key={deal.id} deal={deal} compact={filteredDeals.length > 2} />
+              <DealCard key={deal.id} deal={deal} compact={false} />
             ))}
           </div>
         )}

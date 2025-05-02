@@ -72,7 +72,7 @@ export default function DealCard({ deal: rawDeal, compact = false, onEdit, onAll
       className="bg-white rounded-lg shadow pipeline-card overflow-hidden cursor-pointer hover:shadow-md transition-shadow duration-200"
       onClick={() => navigate(`/deals/${deal.id}`)}
     >
-      <CardContent className={`p-4 ${compact ? 'pb-2' : ''}`}>
+      <CardContent className="p-3 sm:p-4">
         <div className="flex justify-between items-start mb-2 sm:mb-3">
           <h3 className="font-semibold text-sm sm:text-lg truncate mr-2">{deal.name}</h3>
           <span className={`deal-stage-badge text-[10px] sm:text-xs px-1.5 py-0.5 sm:px-2 sm:py-1 leading-none whitespace-nowrap ${getDealStageBadgeClass(deal.stage)}`}>
@@ -80,11 +80,9 @@ export default function DealCard({ deal: rawDeal, compact = false, onEdit, onAll
           </span>
         </div>
         
-        {!compact && (
-          <p className="text-xs sm:text-sm text-neutral-600 mb-3 line-clamp-2 h-10">
-            {deal.description}
-          </p>
-        )}
+        <p className="text-xs sm:text-sm text-neutral-600 mb-3 line-clamp-2">
+          {deal.description}
+        </p>
         
         <div className="flex flex-col gap-2 mb-3">
           <div className="flex items-center text-xs sm:text-sm text-neutral-500">
@@ -139,8 +137,7 @@ export default function DealCard({ deal: rawDeal, compact = false, onEdit, onAll
         </div>
       </CardContent>
       
-      {!compact && (
-        <CardFooter className="border-t border-neutral-200 p-2 sm:p-3 flex flex-wrap sm:flex-nowrap justify-between gap-1">
+      <CardFooter className="border-t border-neutral-200 p-2 sm:p-3 flex flex-wrap sm:flex-nowrap justify-between gap-1">
           <Button 
             variant="ghost" 
             size="sm" 
@@ -189,7 +186,6 @@ export default function DealCard({ deal: rawDeal, compact = false, onEdit, onAll
             </Button>
           )}
         </CardFooter>
-      )}
     </Card>
   );
 }
