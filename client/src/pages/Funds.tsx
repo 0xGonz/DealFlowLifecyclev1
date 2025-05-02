@@ -8,6 +8,7 @@ import {
   CardContent, 
   CardFooter 
 } from "@/components/ui/card";
+import { Fund } from "@/lib/types";
 import { 
   Table, 
   TableHeader, 
@@ -45,7 +46,7 @@ export default function Funds() {
   
   const { toast } = useToast();
   
-  const { data: funds, isLoading } = useQuery({
+  const { data: funds = [], isLoading } = useQuery<Fund[]>({
     queryKey: ['/api/funds'],
   });
 
@@ -160,43 +161,47 @@ export default function Funds() {
         </div>
         
         {/* Funds Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
           {isLoading ? (
-            <div className="col-span-full py-12 text-center text-neutral-500">
-              Loading funds...
+            <div className="col-span-full py-8 sm:py-12 text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+              <p className="text-sm sm:text-base text-neutral-500">Loading funds...</p>
             </div>
           ) : funds?.length === 0 ? (
-            <div className="col-span-full py-12 text-center text-neutral-500">
-              No funds created yet. Create your first fund with the "New Fund" button.
+            <div className="col-span-full py-8 sm:py-12 text-center">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 mx-auto text-neutral-300 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p className="text-sm sm:text-base text-neutral-500">No funds created yet. Create your first fund with the "New Fund" button.</p>
             </div>
           ) : (
             funds?.map(fund => (
-              <Card key={fund.id} className="overflow-hidden">
-                <CardHeader className="bg-primary/10 pb-2">
-                  <CardTitle className="text-lg">{fund.name}</CardTitle>
+              <Card key={fund.id} className="overflow-hidden hover:shadow-md transition-shadow duration-200">
+                <CardHeader className="bg-primary/10 pb-2 sm:pb-3">
+                  <CardTitle className="text-base sm:text-lg font-semibold truncate">{fund.name}</CardTitle>
                 </CardHeader>
-                <CardContent className="pt-4">
-                  <div className="mb-4">
-                    <p className="text-sm text-neutral-600 mb-1">Assets Under Management</p>
-                    <p className="text-2xl font-semibold flex items-center">
+                <CardContent className="pt-3 sm:pt-4">
+                  <div className="mb-3 sm:mb-4">
+                    <p className="text-xs sm:text-sm text-neutral-600 mb-0.5 sm:mb-1">Assets Under Management</p>
+                    <p className="text-xl sm:text-2xl font-semibold flex items-center">
                       {formatCurrency(fund.aum)}
-                      <TrendingUp className="ml-2 h-4 w-4 text-success" />
+                      <TrendingUp className="ml-1.5 sm:ml-2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-success" />
                     </p>
                   </div>
                   
                   {fund.description && (
-                    <p className="text-sm text-neutral-600 mb-4">{fund.description}</p>
+                    <p className="text-xs sm:text-sm text-neutral-600 mb-3 sm:mb-4 line-clamp-2">{fund.description}</p>
                   )}
                   
-                  <div className="text-xs text-neutral-500">
+                  <div className="text-[10px] sm:text-xs text-neutral-500">
                     Created {formatDistanceToNow(new Date(fund.createdAt), { addSuffix: true })}
                   </div>
                 </CardContent>
-                <CardFooter className="bg-neutral-50 border-t">
-                  <Button variant="ghost" size="sm" className="ml-auto" asChild>
+                <CardFooter className="bg-neutral-50 border-t p-2 sm:p-3">
+                  <Button variant="ghost" size="sm" className="ml-auto h-7 sm:h-8 px-2 sm:px-3 text-xs sm:text-sm" asChild>
                     <a href={`/funds/${fund.id}`}>
                       View Details
-                      <ArrowUpRight className="ml-1 h-4 w-4" />
+                      <ArrowUpRight className="ml-1 h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </a>
                   </Button>
                 </CardFooter>
@@ -208,28 +213,33 @@ export default function Funds() {
         {/* Recent Allocations */}
         <Card>
           <CardHeader>
-            <CardTitle>Recent Fund Allocations</CardTitle>
+            <CardTitle className="text-base sm:text-lg">Recent Fund Allocations</CardTitle>
           </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Deal</TableHead>
-                  <TableHead>Fund</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Security Type</TableHead>
-                  <TableHead>Date</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {/* In a real app, we'd fetch allocations across all funds */}
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-10 text-neutral-500">
-                    No recent allocations to display.
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
+          <CardContent className="p-0 sm:p-6">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-xs sm:text-sm">Deal</TableHead>
+                    <TableHead className="text-xs sm:text-sm">Fund</TableHead>
+                    <TableHead className="text-xs sm:text-sm">Amount</TableHead>
+                    <TableHead className="text-xs sm:text-sm hidden sm:table-cell">Security Type</TableHead>
+                    <TableHead className="text-xs sm:text-sm">Date</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {/* In a real app, we'd fetch allocations across all funds */}
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-8 sm:py-10 text-neutral-500">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 mx-auto text-neutral-300 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                      <p className="text-sm">No recent allocations to display.</p>
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
       </div>

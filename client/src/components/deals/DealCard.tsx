@@ -73,56 +73,56 @@ export default function DealCard({ deal: rawDeal, compact = false, onEdit, onAll
       onClick={() => navigate(`/deals/${deal.id}`)}
     >
       <CardContent className={`p-4 ${compact ? 'pb-2' : ''}`}>
-        <div className="flex justify-between items-start mb-3">
-          <h3 className="font-semibold text-lg">{deal.name}</h3>
-          <span className={`deal-stage-badge ${getDealStageBadgeClass(deal.stage)}`}>
+        <div className="flex justify-between items-start mb-2 sm:mb-3">
+          <h3 className="font-semibold text-sm sm:text-lg truncate mr-2">{deal.name}</h3>
+          <span className={`deal-stage-badge text-[10px] sm:text-xs px-1.5 py-0.5 sm:px-2 sm:py-1 leading-none whitespace-nowrap ${getDealStageBadgeClass(deal.stage)}`}>
             {deal.stageLabel}
           </span>
         </div>
         
         {!compact && (
-          <p className="text-sm text-neutral-600 mb-3">
-            {deal.description.length > 60 
-              ? `${deal.description.substring(0, 60)}...` 
-              : deal.description}
+          <p className="text-xs sm:text-sm text-neutral-600 mb-3 line-clamp-2 h-10">
+            {deal.description}
           </p>
         )}
         
         <div className="flex flex-col gap-2 mb-3">
-          <div className="flex items-center text-sm text-neutral-500">
-            <Users className="h-4 w-4 mr-1" />
-            {deal.round || "Unknown Round"}
+          <div className="flex items-center text-xs sm:text-sm text-neutral-500">
+            <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" />
+            <span className="truncate">{deal.round || "Unknown Round"}</span>
           </div>
           
-          <div className="flex items-center text-sm">
-            <Tag className="h-4 w-4 mr-1 text-primary" />
-            <span className="text-primary-dark font-medium">
+          <div className="flex items-center text-xs sm:text-sm">
+            <Tag className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 text-primary" />
+            <span className="text-primary-dark font-medium truncate">
               {deal.sector}
             </span>
           </div>
         </div>
         
         {!compact && (
-          <div className="flex items-center text-sm text-neutral-500 mb-4">
-            <DollarSign className="h-4 w-4 mr-1" />
-            {(deal.targetRaise || deal.valuation) 
-              ? `${deal.targetRaise || ''} ${deal.targetRaise && deal.valuation ? ', ' : ''} ${deal.valuation || ''}` 
-              : 'No financial details'}
+          <div className="flex items-center text-xs sm:text-sm text-neutral-500 mb-3 sm:mb-4">
+            <DollarSign className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" />
+            <span className="truncate">
+              {(deal.targetRaise || deal.valuation) 
+                ? `${deal.targetRaise || ''} ${deal.targetRaise && deal.valuation ? ', ' : ''} ${deal.valuation || ''}` 
+                : 'No financial details'}
+            </span>
           </div>
         )}
         
         <div className="flex items-center justify-between">
-          <div className="flex -space-x-2">
+          <div className="flex -space-x-1.5 sm:-space-x-2">
             {assignedUsers.slice(0, 3).map((user: User) => (
-              <Avatar key={user.id} className="w-8 h-8 border-2 border-white">
-                <AvatarFallback style={{ backgroundColor: user.avatarColor }}>
+              <Avatar key={user.id} className="w-6 h-6 sm:w-7 sm:h-7 border-2 border-white">
+                <AvatarFallback style={{ backgroundColor: user.avatarColor }} className="text-[10px] sm:text-xs">
                   {user.initials}
                 </AvatarFallback>
               </Avatar>
             ))}
             {assignedUsers.length > 3 && (
-              <Avatar className="w-8 h-8 border-2 border-white">
-                <AvatarFallback className="bg-neutral-300 text-neutral-700 text-xs">
+              <Avatar className="w-6 h-6 sm:w-7 sm:h-7 border-2 border-white">
+                <AvatarFallback className="bg-neutral-300 text-neutral-700 text-[10px] sm:text-xs">
                   +{assignedUsers.length - 3}
                 </AvatarFallback>
               </Avatar>
@@ -131,7 +131,7 @@ export default function DealCard({ deal: rawDeal, compact = false, onEdit, onAll
           
           {!compact && (
             <div className="flex items-center">
-              <span className="text-xs text-neutral-500">
+              <span className="text-[10px] sm:text-xs text-neutral-500 max-w-[120px] sm:max-w-none truncate">
                 Updated {formatDistanceToNow(new Date(deal.updatedAt), { addSuffix: true })}
               </span>
             </div>
@@ -144,23 +144,23 @@ export default function DealCard({ deal: rawDeal, compact = false, onEdit, onAll
           <Button 
             variant="ghost" 
             size="sm" 
-            className="text-neutral-600 hover:text-primary text-xs sm:text-sm flex-1 sm:flex-auto px-2 sm:px-3 h-8 sm:h-9"
+            className="text-neutral-600 hover:text-primary text-xs sm:text-sm flex-1 sm:flex-auto px-2 sm:px-3 h-7 sm:h-8"
             onClick={(e) => {
               e.stopPropagation();
               if (onEdit) onEdit();
             }}
           >
-            <Edit className="h-4 w-4 mr-1" />
+            <Edit className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" />
             <span className="whitespace-nowrap">Edit</span>
           </Button>
           
           <Button 
             variant="ghost" 
             size="sm" 
-            className={`text-xs sm:text-sm flex-1 sm:flex-auto px-2 sm:px-3 h-8 sm:h-9 ${deal.starCount ? 'text-accent' : 'text-neutral-600 hover:text-primary'}`}
+            className={`text-xs sm:text-sm flex-1 sm:flex-auto px-2 sm:px-3 h-7 sm:h-8 ${deal.starCount ? 'text-accent' : 'text-neutral-600 hover:text-primary'}`}
             onClick={handleStarDeal}
           >
-            <Star className={`h-4 w-4 mr-1 ${deal.starCount ? 'fill-current' : ''}`} />
+            <Star className={`h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 ${deal.starCount ? 'fill-current' : ''}`} />
             <span className="whitespace-nowrap">{deal.starCount ? `${deal.starCount}` : 'Star'}</span>
           </Button>
           
@@ -168,23 +168,23 @@ export default function DealCard({ deal: rawDeal, compact = false, onEdit, onAll
             <Button 
               variant="ghost" 
               size="sm" 
-              className="text-neutral-600 hover:text-primary text-xs sm:text-sm flex-1 sm:flex-auto px-2 sm:px-3 h-8 sm:h-9"
+              className="text-neutral-600 hover:text-primary text-xs sm:text-sm flex-1 sm:flex-auto px-2 sm:px-3 h-7 sm:h-8"
               onClick={(e) => {
                 e.stopPropagation();
                 onAllocate();
               }}
             >
-              <DollarSign className="h-4 w-4 mr-1" />
+              <DollarSign className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" />
               <span className="whitespace-nowrap">Allocate</span>
             </Button>
           ) : (
             <Button 
               variant="ghost" 
               size="sm" 
-              className="text-neutral-600 hover:text-primary text-xs sm:text-sm flex-1 sm:flex-auto px-2 sm:px-3 h-8 sm:h-9"
+              className="text-neutral-600 hover:text-primary text-xs sm:text-sm flex-1 sm:flex-auto px-2 sm:px-3 h-7 sm:h-8"
               onClick={(e) => e.stopPropagation()}
             >
-              <Share2 className="h-4 w-4 mr-1" />
+              <Share2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" />
               <span className="whitespace-nowrap">Share</span>
             </Button>
           )}

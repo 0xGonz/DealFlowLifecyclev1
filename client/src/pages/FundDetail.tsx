@@ -164,14 +164,14 @@ export default function FundDetail() {
   
   return (
     <AppLayout>
-      <div className="flex-1 overflow-y-auto p-6 pb-20">
-        <div className="flex items-center mb-6">
-          <Button variant="ghost" className="mr-3 p-2" asChild>
+      <div className="flex-1 overflow-y-auto pb-20">
+        <div className="flex items-center mb-4 sm:mb-6">
+          <Button variant="ghost" className="mr-2 sm:mr-3 h-9 w-9 sm:p-2 p-1.5" asChild>
             <a href="/funds">
-              <ChevronLeft className="h-5 w-5" />
+              <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
             </a>
           </Button>
-          <h1 className="text-2xl font-semibold text-neutral-800">
+          <h1 className="text-xl sm:text-2xl font-semibold text-neutral-800 truncate">
             {isFundLoading ? "Loading..." : fund?.name}
           </h1>
         </div>

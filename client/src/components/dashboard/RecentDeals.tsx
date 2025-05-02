@@ -46,10 +46,10 @@ export default function RecentDeals() {
       </CardHeader>
       
       <CardContent className="flex-1">
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex space-x-2 ml-auto">
+        <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 mb-4">
+          <div className="flex flex-wrap gap-2 w-full">
             <Select value={stageFilter} onValueChange={setStageFilter}>
-              <SelectTrigger className="h-9 w-[150px]">
+              <SelectTrigger className="h-8 sm:h-9 text-xs sm:text-sm w-full sm:w-[120px] md:w-[150px]">
                 <SelectValue placeholder="All Stages" />
               </SelectTrigger>
               <SelectContent>
@@ -63,7 +63,7 @@ export default function RecentDeals() {
             </Select>
             
             <Select value={dateFilter} onValueChange={setDateFilter}>
-              <SelectTrigger className="h-9 w-[150px]">
+              <SelectTrigger className="h-8 sm:h-9 text-xs sm:text-sm w-full sm:w-[120px] md:w-[150px]">
                 <SelectValue placeholder="Last 30 Days" />
               </SelectTrigger>
               <SelectContent>
@@ -75,11 +75,11 @@ export default function RecentDeals() {
             </Select>
             
             <button 
-              className="flex items-center justify-center px-4 py-2 text-sm text-primary hover:text-primary-dark"
+              className="flex items-center justify-center h-8 sm:h-9 px-3 py-1 text-xs sm:text-sm text-primary hover:text-primary-dark ml-auto"
               onClick={() => navigate("/pipeline")}
             >
               View All
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 sm:h-4 sm:w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
               </svg>
             </button>
@@ -88,17 +88,21 @@ export default function RecentDeals() {
         
         {/* Deals Grid */}
         {isLoading ? (
-          <div className="flex justify-center items-center py-12">
-            <p className="text-neutral-500">Loading deals...</p>
+          <div className="flex flex-col justify-center items-center py-8 sm:py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-2"></div>
+            <p className="text-sm sm:text-base text-neutral-500">Loading deals...</p>
           </div>
         ) : filteredDeals?.length === 0 ? (
-          <div className="flex justify-center items-center py-12">
-            <p className="text-neutral-500">No deals found matching your filters.</p>
+          <div className="flex flex-col justify-center items-center py-8 sm:py-12">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-neutral-300 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <p className="text-sm sm:text-base text-neutral-500">No deals found matching your filters.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
             {filteredDeals.map(deal => (
-              <DealCard key={deal.id} deal={deal} />
+              <DealCard key={deal.id} deal={deal} compact={filteredDeals.length > 2} />
             ))}
           </div>
         )}
