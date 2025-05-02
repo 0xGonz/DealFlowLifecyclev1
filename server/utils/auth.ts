@@ -1,58 +1,54 @@
-import { Request, Response, NextFunction } from "express";
-import { StorageFactory } from "../storage-factory";
-import { AppError } from "./errorHandlers";
-import * as crypto from "crypto";
-import { User } from "@shared/schema";
+import { Request, Response, NextFunction } from 'express';
+import { StorageFactory } from '../storage-factory';
+import { AppError } from './errorHandlers';
+import { scrypt, randomBytes, timingSafeEqual } from 'crypto';
+import { promisify } from 'util';
+import { User } from '@shared/schema';
 
-// Extend Express Request with user property
-declare global {
-  namespace Express {
-    interface Request {
-      user?: User;
-    }
-  }
-}
+// Convert callback-based scrypt to Promise-based
+const scryptAsync = promisify(scrypt);
 
 /**
- * Generate a password hash using scrypt
- * @param password The plain text password
- * @returns The hashed password with salt
+ * Generate a secure password hash using scrypt algorithm
+ * 
+ * @param password Plain text password to hash
+ * @returns Hashed password with salt appended
  */
 export async function generatePasswordHash(password: string): Promise<string> {
   // Generate a random salt
-  const salt = crypto.randomBytes(16).toString("hex");
+  const salt = randomBytes(16).toString('hex');
   
   // Hash the password with the salt
-  return new Promise((resolve, reject) => {
-    crypto.scrypt(password, salt, 64, (err, derivedKey) => {
-      if (err) reject(err);
-      resolve(`${derivedKey.toString("hex")}.${salt}`);
-    });
-  });
+  const derivedKey = await scryptAsync(password, salt, 64) as Buffer;
+  
+  // Return the hash and salt combined, separated by a dot
+  return `${derivedKey.toString('hex')}.${salt}`;
 }
 
 /**
- * Compare a plain text password with a hashed password
- * @param password The plain text password
- * @param hashedPassword The hashed password with salt
- * @returns Whether the passwords match
+ * Verify a password against a stored hash
+ * 
+ * @param password Plain text password to verify
+ * @param storedHash Stored hash from the database (hash.salt format)
+ * @returns True if the password matches, false otherwise
  */
-export async function comparePassword(password: string, hashedPassword: string): Promise<boolean> {
-  return new Promise((resolve, reject) => {
-    // Extract the salt from the hashed password
-    const [hash, salt] = hashedPassword.split(".");
-    
-    // Hash the provided password with the same salt
-    crypto.scrypt(password, salt, 64, (err, derivedKey) => {
-      if (err) reject(err);
-      
-      // Compare the hashes in constant time to prevent timing attacks
-      resolve(crypto.timingSafeEqual(
-        Buffer.from(hash, "hex"),
-        derivedKey
-      ));
-    });
-  });
+export async function comparePassword(password: string, storedHash: string): Promise<boolean> {
+  // Split the stored hash into the hash and the salt
+  const [hash, salt] = storedHash.split('.');
+  
+  if (!hash || !salt) {
+    return false;
+  }
+  
+  // Hash the input password with the same salt
+  const derivedKey = await scryptAsync(password, salt, 64) as Buffer;
+  
+  // Compare the generated hash with the stored hash using constant-time comparison
+  // This prevents timing attacks
+  return timingSafeEqual(
+    Buffer.from(hash, 'hex'),
+    derivedKey
+  );
 }
 
 /**
@@ -60,53 +56,53 @@ export async function comparePassword(password: string, hashedPassword: string):
  */
 export function requireAuth(req: Request, res: Response, next: NextFunction) {
   if (!req.session.userId) {
-    return res.status(401).json({
-      status: "fail",
-      message: "Not authenticated",
-    });
+    return next(new AppError('Authentication required', 401));
   }
   next();
 }
 
 /**
- * Middleware to check if user is an admin
+ * Middleware to check if user has specific role
  */
-export async function requireAdmin(req: Request, res: Response, next: NextFunction) {
+export function requireRole(roles: string[]) {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    if (!req.session.userId) {
+      return next(new AppError('Authentication required', 401));
+    }
+    
+    try {
+      const storage = StorageFactory.getStorage();
+      const user = await storage.getUser(req.session.userId);
+      
+      if (!user) {
+        return next(new AppError('User not found', 401));
+      }
+      
+      if (!roles.includes(user.role)) {
+        return next(new AppError('Insufficient permissions', 403));
+      }
+      
+      next();
+    } catch (error) {
+      next(error);
+    }
+  };
+}
+
+/**
+ * Helper to get current user from session
+ */
+export async function getCurrentUser(req: Request): Promise<User | null> {
   if (!req.session.userId) {
-    return res.status(401).json({
-      status: "fail",
-      message: "Not authenticated",
-    });
+    return null;
   }
   
-  const storage = StorageFactory.getStorage();
-  const user = await storage.getUser(req.session.userId);
-  
-  if (!user || user.role !== "admin") {
-    return res.status(403).json({
-      status: "fail",
-      message: "Forbidden: Admin access required",
-    });
+  try {
+    const storage = StorageFactory.getStorage();
+    const user = await storage.getUser(req.session.userId);
+    return user || null;
+  } catch (error) {
+    console.error('Error fetching current user:', error);
+    return null;
   }
-  
-  // Make the user available on the request
-  req.user = user;
-  next();
-}
-
-/**
- * Generate a random password
- * @param length The length of the password
- * @returns A random password
- */
-export function generateRandomPassword(length: number = 12): string {
-  const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+~`|}{[]:;?><,./-=";
-  let password = "";
-  
-  for (let i = 0; i < length; i++) {
-    const randomIndex = crypto.randomInt(0, charset.length);
-    password += charset[randomIndex];
-  }
-  
-  return password;
 }
