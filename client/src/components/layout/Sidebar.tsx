@@ -25,22 +25,22 @@ export default function Sidebar({ onCloseMobile }: SidebarProps) {
     { 
       href: "/", 
       label: "Dashboard", 
-      icon: <BarChart3 className="h-5 w-5 mr-3" /> 
+      icon: <BarChart3 className="h-4 w-4 mr-2" /> 
     },
     { 
       href: "/pipeline", 
       label: "Pipeline", 
-      icon: <Building className="h-5 w-5 mr-3" /> 
+      icon: <Building className="h-4 w-4 mr-2" /> 
     },
     { 
       href: "/leaderboard", 
       label: "Leaderboard", 
-      icon: <ChartPieIcon className="h-5 w-5 mr-3" /> 
+      icon: <ChartPieIcon className="h-4 w-4 mr-2" /> 
     },
     { 
       href: "/funds", 
       label: "Funds", 
-      icon: <FileText className="h-5 w-5 mr-3" /> 
+      icon: <FileText className="h-4 w-4 mr-2" /> 
     },
   ];
 
@@ -48,23 +48,23 @@ export default function Sidebar({ onCloseMobile }: SidebarProps) {
     { 
       href: "/settings", 
       label: "Settings", 
-      icon: <Settings className="h-5 w-5 mr-3" /> 
+      icon: <Settings className="h-4 w-4 mr-2" /> 
     },
     { 
       href: "/users", 
       label: "Users", 
-      icon: <Users className="h-5 w-5 mr-3" /> 
+      icon: <Users className="h-4 w-4 mr-2" /> 
     },
   ];
 
   return (
-    <aside className="h-full w-64 bg-white shadow-md overflow-y-auto">
+    <aside className="h-full w-48 bg-white shadow-md overflow-y-auto">
       {/* Set fixed width for consistent sidebar rendering */}
       <div className="flex flex-col h-full">
         {/* Logo & Brand with close button for mobile */}
-        <div className="p-4 border-b border-neutral-200 flex justify-between items-center">
+        <div className="p-2 border-b border-neutral-200 flex justify-between items-center">
           <a href="/" className="flex items-center cursor-pointer" onClick={onCloseMobile}>
-            <img src={doliverLogo} alt="Doliver Advisors" className="h-10" />
+            <img src={doliverLogo} alt="Doliver Advisors" className="h-7" />
           </a>
           {onCloseMobile && (
             <Button 
@@ -81,13 +81,13 @@ export default function Sidebar({ onCloseMobile }: SidebarProps) {
         {/* User Profile moved to bottom */}
         
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto scrollbar-thin py-4">
+        <nav className="flex-1 overflow-y-auto scrollbar-thin py-2">
           <ul>
             {mainNavItems.map((item) => (
-              <li key={item.href} className="mb-1 px-2">
+              <li key={item.href} className="mb-0.5 px-1">
                 <a
                   href={item.href}
-                  className={`sidebar-nav-link flex items-center py-3 md:py-2 px-3 hover:bg-neutral-100 transition-colors rounded-md text-sm md:text-base ${
+                  className={`sidebar-nav-link flex items-center py-1.5 px-2 hover:bg-neutral-100 transition-colors rounded-md text-xs ${
                     location === item.href
                       ? "active bg-neutral-100 text-primary-dark font-medium"
                       : "text-neutral-700"

@@ -12,7 +12,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="flex h-screen bg-neutral-100 relative md:pl-64">
+    <div className="flex h-screen bg-neutral-100 relative md:pl-48">
       {/* Mobile sidebar toggle */}
       <div className="md:hidden fixed top-5 left-5 z-50">
         <Button 
