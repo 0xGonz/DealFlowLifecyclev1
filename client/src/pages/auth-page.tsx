@@ -1,327 +1,246 @@
-import { useState, useEffect } from "react";
-import { useLocation } from "wouter";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { useAuth } from "@/hooks/use-auth";
-import { Loader2 } from "lucide-react";
+import { useState } from 'react';
+import { useLocation } from 'wouter';
+import { useAuth } from '@/hooks/use-auth';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Loader2 } from 'lucide-react';
 
-// Login form schema
+// Validation schemas
 const loginSchema = z.object({
-  username: z.string().min(1, "Username is required"),
-  password: z.string().min(1, "Password is required"),
+  identifier: z.string().min(1, 'Email or username is required'),
+  password: z.string().min(1, 'Password is required'),
 });
 
-// Registration form schema
 const registerSchema = z.object({
-  username: z.string().min(3, "Username must be at least 3 characters"),
-  fullName: z.string().min(2, "Full name is required"),
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-  confirmPassword: z.string(),
-}).refine(data => data.password === data.confirmPassword, {
-  message: "Passwords do not match",
-  path: ["confirmPassword"],
+  username: z.string().min(3, 'Username must be at least 3 characters'),
+  email: z.string().email('Invalid email format'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+  fullName: z.string().min(2, 'Full name is required'),
 });
 
+// Type inference
 type LoginFormValues = z.infer<typeof loginSchema>;
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export default function AuthPage() {
-  const [activeTab, setActiveTab] = useState<string>("login");
-  const [_, setLocation] = useLocation();
-  const { user, loginMutation, registerMutation } = useAuth();
+  const [activeTab, setActiveTab] = useState('login');
+  const [, setLocation] = useLocation();
+  const { user, isLoading, loginMutation, registerMutation } = useAuth();
 
-  // Redirect if user is already logged in
-  useEffect(() => {
-    if (user) {
-      setLocation("/");
-    }
-  }, [user, setLocation]);
-
-  // Login form
+  // Forms
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      username: "",
-      password: "",
+      identifier: '',
+      password: '',
     },
   });
 
-  // Register form
   const registerForm = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      username: "",
-      fullName: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
+      username: '',
+      email: '',
+      password: '',
+      fullName: '',
     },
   });
 
-  // Handle login submit
-  const onLoginSubmit = async (data: LoginFormValues) => {
-    try {
-      await loginMutation.mutateAsync(data);
-    } catch (error) {
-      // Error handling is done in the mutation
-    }
+  // Handlers
+  const onLoginSubmit = (values: LoginFormValues) => {
+    loginMutation.mutate(values);
   };
 
-  // Handle registration submit
-  const onRegisterSubmit = async (data: RegisterFormValues) => {
-    try {
-      await registerMutation.mutateAsync({
-        username: data.username,
-        fullName: data.fullName,
-        email: data.email,
-        password: data.password,
-      });
-    } catch (error) {
-      // Error handling is done in the mutation
-    }
+  const onRegisterSubmit = (values: RegisterFormValues) => {
+    registerMutation.mutate(values);
   };
 
-  // If already authenticated, don't render the auth page
+  // Redirect if already logged in
   if (user) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
+    setLocation('/');
+    return null;
   }
 
   return (
-    <div className="container relative flex-1 flex-col items-center justify-center grid lg:max-w-none lg:grid-cols-2 lg:px-0 min-h-screen">
-      {/* Hero section */}
-      <div className="bg-muted relative hidden h-full flex-col p-10 text-white lg:flex dark:border-r">
-        <div className="absolute inset-0 bg-gradient-to-b from-primary to-primary-foreground" />
-        <div className="relative z-20 flex items-center text-lg font-medium">
-          <img src="/logo.svg" alt="Logo" className="h-8 w-8 mr-2" />
-          Investment Lifecycle Tracker
-        </div>
-        <div className="relative z-20 mt-auto">
-          <blockquote className="space-y-2">
-            <p className="text-lg">
-              &ldquo;Streamlined investment tracking from deal sourcing to portfolio management&rdquo;
-            </p>
-            <footer className="text-sm">Doliver Capital</footer>
-          </blockquote>
-        </div>
-      </div>
-
-      {/* Auth forms */}
-      <div className="lg:p-8">
-        <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
-          <div className="flex flex-col space-y-2 text-center">
-            <h1 className="text-2xl font-semibold tracking-tight">
-              Welcome to Investment Lifecycle Tracker
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Sign in to your account or create a new one to get started
-            </p>
+    <div className="min-h-screen flex flex-col lg:flex-row bg-gray-50">
+      {/* Left column - Auth form */}
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-8">
+        <div className="w-full max-w-md">
+          <div className="mb-8 text-center">
+            <h1 className="text-3xl font-bold">Investment Lifecycle Tracker</h1>
+            <p className="text-gray-600 mt-2">Sign in or create an account to continue</p>
           </div>
-          
-          <Tabs
-            defaultValue="login"
-            value={activeTab}
-            onValueChange={setActiveTab}
-            className="w-full"
-          >
-            <TabsList className="grid w-full grid-cols-2">
+
+          <Tabs defaultValue="login" value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="grid w-full grid-cols-2 mb-6">
               <TabsTrigger value="login">Login</TabsTrigger>
               <TabsTrigger value="register">Register</TabsTrigger>
             </TabsList>
-            
-            {/* Login Tab */}
+
             <TabsContent value="login">
               <Card>
-                <CardHeader>
-                  <CardTitle>Login</CardTitle>
+                <CardHeader className="space-y-1">
+                  <CardTitle className="text-2xl">Login</CardTitle>
                   <CardDescription>
-                    Enter your username and password to sign in to your account
+                    Enter your credentials to sign in to your account
                   </CardDescription>
                 </CardHeader>
-                <form onSubmit={loginForm.handleSubmit(onLoginSubmit)}>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="login-username">Username</Label>
-                      <Input
-                        id="login-username"
-                        placeholder="johndoe"
-                        {...loginForm.register("username")}
+                <Form {...loginForm}>
+                  <form onSubmit={loginForm.handleSubmit(onLoginSubmit)}>
+                    <CardContent className="space-y-4">
+                      <FormField
+                        control={loginForm.control}
+                        name="identifier"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Email or Username</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Enter your email or username" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
                       />
-                      {loginForm.formState.errors.username && (
-                        <p className="text-sm text-destructive">
-                          {loginForm.formState.errors.username.message}
-                        </p>
-                      )}
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="login-password">Password</Label>
-                      <Input
-                        id="login-password"
-                        type="password"
-                        {...loginForm.register("password")}
+                      <FormField
+                        control={loginForm.control}
+                        name="password"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Password</FormLabel>
+                            <FormControl>
+                              <Input type="password" placeholder="••••••••" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
                       />
-                      {loginForm.formState.errors.password && (
-                        <p className="text-sm text-destructive">
-                          {loginForm.formState.errors.password.message}
-                        </p>
-                      )}
-                    </div>
-                  </CardContent>
-                  <CardFooter>
-                    <Button 
-                      type="submit" 
-                      className="w-full"
-                      disabled={loginMutation.isPending}
-                    >
-                      {loginMutation.isPending ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Signing in...
-                        </>
-                      ) : (
-                        "Sign In"
-                      )}
-                    </Button>
-                  </CardFooter>
-                </form>
+                    </CardContent>
+                    <CardFooter>
+                      <Button type="submit" className="w-full" disabled={loginMutation.isPending}>
+                        {loginMutation.isPending ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Signing in...
+                          </>
+                        ) : (
+                          'Sign in'
+                        )}
+                      </Button>
+                    </CardFooter>
+                  </form>
+                </Form>
               </Card>
             </TabsContent>
-            
-            {/* Register Tab */}
+
             <TabsContent value="register">
               <Card>
-                <CardHeader>
-                  <CardTitle>Create an account</CardTitle>
+                <CardHeader className="space-y-1">
+                  <CardTitle className="text-2xl">Create an account</CardTitle>
                   <CardDescription>
-                    Enter your information below to create a new account
+                    Enter your information to create a new account
                   </CardDescription>
                 </CardHeader>
-                <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)}>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="register-username">Username</Label>
-                      <Input
-                        id="register-username"
-                        placeholder="johndoe"
-                        {...registerForm.register("username")}
+                <Form {...registerForm}>
+                  <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)}>
+                    <CardContent className="space-y-4">
+                      <FormField
+                        control={registerForm.control}
+                        name="fullName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Full Name</FormLabel>
+                            <FormControl>
+                              <Input placeholder="John Doe" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
                       />
-                      {registerForm.formState.errors.username && (
-                        <p className="text-sm text-destructive">
-                          {registerForm.formState.errors.username.message}
-                        </p>
-                      )}
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="register-fullname">Full Name</Label>
-                      <Input
-                        id="register-fullname"
-                        placeholder="John Doe"
-                        {...registerForm.register("fullName")}
+                      <FormField
+                        control={registerForm.control}
+                        name="username"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Username</FormLabel>
+                            <FormControl>
+                              <Input placeholder="johndoe" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
                       />
-                      {registerForm.formState.errors.fullName && (
-                        <p className="text-sm text-destructive">
-                          {registerForm.formState.errors.fullName.message}
-                        </p>
-                      )}
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="register-email">Email</Label>
-                      <Input
-                        id="register-email"
-                        type="email"
-                        placeholder="john.doe@example.com"
-                        {...registerForm.register("email")}
+                      <FormField
+                        control={registerForm.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Email</FormLabel>
+                            <FormControl>
+                              <Input type="email" placeholder="john.doe@example.com" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
                       />
-                      {registerForm.formState.errors.email && (
-                        <p className="text-sm text-destructive">
-                          {registerForm.formState.errors.email.message}
-                        </p>
-                      )}
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="register-password">Password</Label>
-                      <Input
-                        id="register-password"
-                        type="password"
-                        {...registerForm.register("password")}
+                      <FormField
+                        control={registerForm.control}
+                        name="password"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Password</FormLabel>
+                            <FormControl>
+                              <Input type="password" placeholder="••••••••" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
                       />
-                      {registerForm.formState.errors.password && (
-                        <p className="text-sm text-destructive">
-                          {registerForm.formState.errors.password.message}
-                        </p>
-                      )}
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="register-confirm-password">
-                        Confirm Password
-                      </Label>
-                      <Input
-                        id="register-confirm-password"
-                        type="password"
-                        {...registerForm.register("confirmPassword")}
-                      />
-                      {registerForm.formState.errors.confirmPassword && (
-                        <p className="text-sm text-destructive">
-                          {registerForm.formState.errors.confirmPassword.message}
-                        </p>
-                      )}
-                    </div>
-                  </CardContent>
-                  <CardFooter>
-                    <Button 
-                      type="submit" 
-                      className="w-full"
-                      disabled={registerMutation.isPending}
-                    >
-                      {registerMutation.isPending ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Creating account...
-                        </>
-                      ) : (
-                        "Create Account"
-                      )}
-                    </Button>
-                  </CardFooter>
-                </form>
+                    </CardContent>
+                    <CardFooter>
+                      <Button type="submit" className="w-full" disabled={registerMutation.isPending}>
+                        {registerMutation.isPending ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Creating account...
+                          </>
+                        ) : (
+                          'Create account'
+                        )}
+                      </Button>
+                    </CardFooter>
+                  </form>
+                </Form>
               </Card>
             </TabsContent>
           </Tabs>
-          
-          <p className="px-8 text-center text-sm text-muted-foreground">
-            By continuing, you agree to our{" "}
-            <a
-              href="#"
-              className="underline underline-offset-4 hover:text-primary"
-            >
-              Terms of Service
-            </a>{" "}
-            and{" "}
-            <a
-              href="#"
-              className="underline underline-offset-4 hover:text-primary"
-            >
-              Privacy Policy
-            </a>
-            .
-          </p>
+        </div>
+      </div>
+
+      {/* Right column - Hero section */}
+      <div className="hidden lg:flex flex-1 bg-gradient-to-br from-primary/90 to-primary-foreground">
+        <div className="flex flex-col justify-center p-12 text-white">
+          <h2 className="text-4xl font-bold mb-6">Streamline Your Investment Process</h2>
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-xl font-semibold mb-2">Deal Pipeline Management</h3>
+              <p>Track deals from initial review through investment with a comprehensive stage-based system.</p>
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold mb-2">Fund Allocation</h3>
+              <p>Manage fund capital efficiently with clear visibility into committed and called amounts.</p>
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold mb-2">Performance Metrics</h3>
+              <p>Monitor key investment metrics including TVPI, DPI, RVPI, and IRR in real-time.</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
