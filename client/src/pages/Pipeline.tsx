@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import AppLayout from "@/components/layout/AppLayout";
 import DealCard from "@/components/deals/DealCard";
+import DealsTable from "@/components/deals/DealsTable";
 import NewDealModal from "@/components/deals/NewDealModal";
 import EditDealModal from "@/components/deals/EditDealModal";
 import AllocateFundModal from "@/components/deals/AllocateFundModal";
@@ -187,23 +188,19 @@ export default function Pipeline() {
                   <SectorDistribution deals={filteredDeals} stage="all" />
                 </div>
                 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                  {filteredDeals?.map((deal) => (
-                    <DealCard 
-                      key={deal.id}
-                      deal={deal}
-                      onEdit={() => {
-                        setSelectedDealId(deal.id);
-                        setIsEditDealModalOpen(true);
-                      }}
-                      onAllocate={() => {
-                        setSelectedDealId(deal.id);
-                        setSelectedDealName(deal.name);
-                        setIsAllocateFundModalOpen(true);
-                      }}
-                    />
-                  ))}
-                </div>
+                <DealsTable 
+                  deals={filteredDeals}
+                  isLoading={isLoading}
+                  onEdit={(dealId) => {
+                    setSelectedDealId(dealId);
+                    setIsEditDealModalOpen(true);
+                  }}
+                  onAllocate={(dealId, dealName) => {
+                    setSelectedDealId(dealId);
+                    setSelectedDealName(dealName);
+                    setIsAllocateFundModalOpen(true);
+                  }}
+                />
               </>
             )}
           </TabsContent>
@@ -225,23 +222,19 @@ export default function Pipeline() {
                     <SectorDistribution deals={dealsByStage[stage]} stage={stage} />
                   </div>
                   
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {dealsByStage[stage]?.map((deal) => (
-                      <DealCard 
-                        key={deal.id}
-                        deal={deal}
-                        onEdit={() => {
-                          setSelectedDealId(deal.id);
-                          setIsEditDealModalOpen(true);
-                        }}
-                        onAllocate={() => {
-                          setSelectedDealId(deal.id);
-                          setSelectedDealName(deal.name);
-                          setIsAllocateFundModalOpen(true);
-                        }}
-                      />
-                    ))}
-                  </div>
+                  <DealsTable 
+                    deals={dealsByStage[stage]}
+                    isLoading={isLoading}
+                    onEdit={(dealId) => {
+                      setSelectedDealId(dealId);
+                      setIsEditDealModalOpen(true);
+                    }}
+                    onAllocate={(dealId, dealName) => {
+                      setSelectedDealId(dealId);
+                      setSelectedDealName(dealName);
+                      setIsAllocateFundModalOpen(true);
+                    }}
+                  />
                 </>
               )}
             </TabsContent>
