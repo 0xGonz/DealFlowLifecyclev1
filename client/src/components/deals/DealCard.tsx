@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { Deal, User } from "@/lib/types";
 import { getDealStageBadgeClass } from "@/lib/utils/format";
+import { enrichDealWithComputedProps } from "@/lib/utils";
 
 interface DealCardProps {
   deal: Deal;
@@ -24,19 +25,20 @@ interface DealCardProps {
   onAllocate?: () => void;
 }
 
-export default function DealCard({ deal, compact = false, onEdit, onAllocate }: DealCardProps) {
+export default function DealCard({ deal: rawDeal, compact = false, onEdit, onAllocate }: DealCardProps) {
   const [, navigate] = useLocation();
   const { toast } = useToast();
+
+  // Enrich deal with computed properties
+  const deal = enrichDealWithComputedProps(rawDeal);
 
   // Get users to show avatars
   const { data: users = [] } = useQuery<User[]>({
     queryKey: ['/api/users'],
   });
 
-  // Get assigned user details
-  const assignedUsers = users.filter((user: User) => 
-    deal.assignedUsers?.includes(user.id)
-  ) || [];
+  // Get assigned user details for display
+  const assignedUsers = deal.assignedUsers || [];
 
   // Function to handle starring a deal
   const handleStarDeal = async (e: React.MouseEvent) => {
@@ -111,7 +113,7 @@ export default function DealCard({ deal, compact = false, onEdit, onAllocate }: 
         
         <div className="flex items-center justify-between">
           <div className="flex -space-x-2">
-            {assignedUsers.slice(0, 3).map((user: any) => (
+            {assignedUsers.slice(0, 3).map((user: User) => (
               <Avatar key={user.id} className="w-8 h-8 border-2 border-white">
                 <AvatarFallback style={{ backgroundColor: user.avatarColor }}>
                   {user.initials}

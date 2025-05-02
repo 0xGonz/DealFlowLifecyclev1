@@ -29,9 +29,12 @@ export default function Pipeline() {
   const { toast } = useToast();
 
 
-  const { data: deals, isLoading } = useQuery<Deal[]>({
+  const { data: rawDeals, isLoading } = useQuery<Deal[]>({
     queryKey: ["/api/deals"],
   });
+  
+  // Apply computed properties to all deals
+  const deals = rawDeals ? enrichDealsWithComputedProps(rawDeals) : undefined;
 
   // Filter deals based on current filters
   const filteredDeals = deals?.filter((deal: Deal) => {

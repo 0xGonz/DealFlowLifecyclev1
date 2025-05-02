@@ -55,6 +55,7 @@ import {
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { getDealStageBadgeClass } from "@/lib/utils/format";
+import { enrichDealWithComputedProps } from "@/lib/utils";
 import { Deal, MiniMemo, User } from "@/lib/types";
 
 export default function DealDetail() {
@@ -92,10 +93,13 @@ export default function DealDetail() {
     return <AppLayout><div className="p-6">Redirecting...</div></AppLayout>;
   }
   
-  const { data: deal, isLoading } = useQuery<Deal>({
+  const { data: rawDeal, isLoading } = useQuery<Deal>({
     queryKey: [`/api/deals/${dealId}`],
     enabled: !!dealId,
   });
+  
+  // Apply computed properties to deal data
+  const deal = rawDeal ? enrichDealWithComputedProps(rawDeal) : undefined;
   
   const addNoteMutation = useMutation({
     mutationFn: async (content: string) => {
@@ -279,7 +283,7 @@ export default function DealDetail() {
               </div>
               <div className="flex items-center">
                 <div className="flex -space-x-2 mr-4">
-                  {deal?.assignedUsers ? deal.assignedUsers.map(user => (
+                  {deal?.assignedUsers ? deal.assignedUsers.map((user: User) => (
                     <Avatar key={user.id} className="border-2 border-white">
                       <AvatarFallback style={{ backgroundColor: user.avatarColor }}>
                         {user.initials}
@@ -489,7 +493,7 @@ export default function DealDetail() {
               <CardContent>
                 {deal?.miniMemos?.length ? (
                   <div className="space-y-6">
-                    {deal.miniMemos.map(memo => (
+                    {deal.miniMemos.map((memo: MiniMemo) => (
                       <div key={memo.id} className="border rounded-lg p-4">
                         <div className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between gap-2 sm:gap-0 mb-3">
                           <div className="flex items-center">
