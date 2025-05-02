@@ -323,56 +323,56 @@ export default function DealDetail() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
               <div>
-                <h3 className="text-sm font-medium text-neutral-500 mb-2">Deal Details</h3>
-                <div className="space-y-3">
+                <h3 className="text-xs sm:text-sm font-medium text-neutral-500 mb-1.5 sm:mb-2">Deal Details</h3>
+                <div className="space-y-2 sm:space-y-3">
                   <div className="flex items-start">
-                    <Building className="h-4 w-4 text-neutral-500 mt-0.5 mr-2" />
+                    <Building className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-neutral-500 mt-0.5 mr-1.5 sm:mr-2 flex-shrink-0" />
                     <div>
-                      <p className="text-sm font-medium">Sector</p>
-                      <p className="text-sm text-neutral-600">{deal?.sector || 'Not specified'}</p>
+                      <p className="text-xs sm:text-sm font-medium">Sector</p>
+                      <p className="text-xs sm:text-sm text-neutral-600 truncate">{deal?.sector || 'Not specified'}</p>
                     </div>
                   </div>
                   <div className="flex items-start">
-                    <Users className="h-4 w-4 text-neutral-500 mt-0.5 mr-2" />
+                    <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-neutral-500 mt-0.5 mr-1.5 sm:mr-2 flex-shrink-0" />
                     <div>
-                      <p className="text-sm font-medium">Round</p>
-                      <p className="text-sm text-neutral-600">{deal?.round || 'Not specified'}</p>
+                      <p className="text-xs sm:text-sm font-medium">Round</p>
+                      <p className="text-xs sm:text-sm text-neutral-600 truncate">{deal?.round || 'Not specified'}</p>
                     </div>
                   </div>
                   <div className="flex items-start">
-                    <DollarSign className="h-4 w-4 text-neutral-500 mt-0.5 mr-2" />
+                    <DollarSign className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-neutral-500 mt-0.5 mr-1.5 sm:mr-2 flex-shrink-0" />
                     <div>
-                      <p className="text-sm font-medium">Target Raise</p>
-                      <p className="text-sm text-neutral-600">{deal?.targetRaise || 'Not specified'}</p>
+                      <p className="text-xs sm:text-sm font-medium">Target Raise</p>
+                      <p className="text-xs sm:text-sm text-neutral-600 truncate">{deal?.targetRaise || 'Not specified'}</p>
                     </div>
                   </div>
                 </div>
               </div>
               
               <div>
-                <h3 className="text-sm font-medium text-neutral-500 mb-2">Company Info</h3>
-                <div className="space-y-3">
+                <h3 className="text-xs sm:text-sm font-medium text-neutral-500 mb-1.5 sm:mb-2">Company Info</h3>
+                <div className="space-y-2 sm:space-y-3">
                   <div className="flex items-start">
-                    <Mail className="h-4 w-4 text-neutral-500 mt-0.5 mr-2" />
-                    <div>
-                      <p className="text-sm font-medium">Contact</p>
-                      <p className="text-sm text-neutral-600">{deal?.contactEmail || 'Not specified'}</p>
+                    <Mail className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-neutral-500 mt-0.5 mr-1.5 sm:mr-2 flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm font-medium">Contact</p>
+                      <p className="text-xs sm:text-sm text-neutral-600 truncate">{deal?.contactEmail || 'Not specified'}</p>
                     </div>
                   </div>
                   <div className="flex items-start">
-                    <Users className="h-4 w-4 text-neutral-500 mt-0.5 mr-2" />
-                    <div>
-                      <p className="text-sm font-medium">Lead Investor</p>
-                      <p className="text-sm text-neutral-600">{deal?.leadInvestor || 'Not specified'}</p>
+                    <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-neutral-500 mt-0.5 mr-1.5 sm:mr-2 flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm font-medium">Lead Investor</p>
+                      <p className="text-xs sm:text-sm text-neutral-600 truncate">{deal?.leadInvestor || 'Not specified'}</p>
                     </div>
                   </div>
                   <div className="flex items-start">
-                    <Calendar className="h-4 w-4 text-neutral-500 mt-0.5 mr-2" />
+                    <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-neutral-500 mt-0.5 mr-1.5 sm:mr-2 flex-shrink-0" />
                     <div>
-                      <p className="text-sm font-medium">Added</p>
-                      <p className="text-sm text-neutral-600">
+                      <p className="text-xs sm:text-sm font-medium">Added</p>
+                      <p className="text-xs sm:text-sm text-neutral-600 truncate">
                         {deal?.createdAt ? formatDistanceToNow(new Date(deal.createdAt), { addSuffix: true }) : 'Recently'}
                       </p>
                     </div>
@@ -381,27 +381,27 @@ export default function DealDetail() {
               </div>
               
               <div>
-                <h3 className="text-sm font-medium text-neutral-500 mb-2">Evaluation</h3>
-                <div className="space-y-3">
+                <h3 className="text-xs sm:text-sm font-medium text-neutral-500 mb-1.5 sm:mb-2">Evaluation</h3>
+                <div className="space-y-2 sm:space-y-3">
                   <div className="flex items-start">
-                    <BarChart4 className="h-4 w-4 text-neutral-500 mt-0.5 mr-2" />
+                    <BarChart4 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-neutral-500 mt-0.5 mr-1.5 sm:mr-2 flex-shrink-0" />
                     <div>
-                      <p className="text-sm font-medium">Leaderboard Score</p>
-                      <p className="text-sm text-neutral-600 font-semibold">{deal?.score || 'Not rated'}</p>
+                      <p className="text-xs sm:text-sm font-medium">Leaderboard Score</p>
+                      <p className="text-xs sm:text-sm text-neutral-600 font-semibold">{deal?.score || 'Not rated'}</p>
                     </div>
                   </div>
                   <div className="flex items-start">
-                    <Star className="h-4 w-4 text-neutral-500 mt-0.5 mr-2" />
+                    <Star className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-neutral-500 mt-0.5 mr-1.5 sm:mr-2 flex-shrink-0" />
                     <div>
-                      <p className="text-sm font-medium">Stars</p>
-                      <p className="text-sm text-neutral-600">{deal?.starCount || 0}</p>
+                      <p className="text-xs sm:text-sm font-medium">Stars</p>
+                      <p className="text-xs sm:text-sm text-neutral-600">{deal?.starCount || 0}</p>
                     </div>
                   </div>
                   <div className="flex items-start">
-                    <FileText className="h-4 w-4 text-neutral-500 mt-0.5 mr-2" />
+                    <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-neutral-500 mt-0.5 mr-1.5 sm:mr-2 flex-shrink-0" />
                     <div>
-                      <p className="text-sm font-medium">Mini-Memos</p>
-                      <p className="text-sm text-neutral-600">{deal?.miniMemos?.length || 0} submitted</p>
+                      <p className="text-xs sm:text-sm font-medium">Mini-Memos</p>
+                      <p className="text-xs sm:text-sm text-neutral-600">{deal?.miniMemos?.length || 0} submitted</p>
                     </div>
                   </div>
                 </div>
@@ -444,9 +444,9 @@ export default function DealDetail() {
           
           <TabsContent value="workflow">
             <Card>
-              <CardHeader>
-                <CardTitle>Deal Stage Progression</CardTitle>
-                <CardDescription>
+              <CardHeader className="pb-2 sm:pb-4">
+                <CardTitle className="text-base sm:text-xl">Deal Stage Progression</CardTitle>
+                <CardDescription className="text-xs sm:text-sm">
                   Track and update the investment lifecycle stage for this deal
                 </CardDescription>
               </CardHeader>
@@ -468,9 +468,9 @@ export default function DealDetail() {
             <div className="grid grid-cols-1 sm:grid-cols-12 gap-6">
               <div className="sm:col-span-8 md:col-span-8">
                 <Card>
-                  <CardHeader>
-                    <CardTitle>Timeline & Notes</CardTitle>
-                    <CardDescription>
+                  <CardHeader className="pb-2 sm:pb-4">
+                    <CardTitle className="text-base sm:text-xl">Timeline & Notes</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm">
                       History of activity and communication for this deal
                     </CardDescription>
                   </CardHeader>
@@ -482,9 +482,9 @@ export default function DealDetail() {
               
               <div className="sm:col-span-4 md:col-span-4">
                 <Card>
-                  <CardHeader>
-                    <CardTitle>Add Note</CardTitle>
-                    <CardDescription>
+                  <CardHeader className="pb-2 sm:pb-4">
+                    <CardTitle className="text-base sm:text-xl">Add Note</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm">
                       Add a note to the deal timeline
                     </CardDescription>
                   </CardHeader>
@@ -512,9 +512,9 @@ export default function DealDetail() {
           
           <TabsContent value="memos">
             <Card>
-              <CardHeader>
-                <CardTitle>Mini-Memos</CardTitle>
-                <CardDescription>
+              <CardHeader className="pb-2 sm:pb-4">
+                <CardTitle className="text-base sm:text-xl">Mini-Memos</CardTitle>
+                <CardDescription className="text-xs sm:text-sm">
                   Investment theses and evaluations
                 </CardDescription>
               </CardHeader>
@@ -575,9 +575,9 @@ export default function DealDetail() {
           
           <TabsContent value="documents">
             <Card>
-              <CardHeader>
-                <CardTitle>Documents</CardTitle>
-                <CardDescription>
+              <CardHeader className="pb-2 sm:pb-4">
+                <CardTitle className="text-base sm:text-xl">Documents</CardTitle>
+                <CardDescription className="text-xs sm:text-sm">
                   Deal-related files and attachments
                 </CardDescription>
               </CardHeader>
@@ -589,9 +589,9 @@ export default function DealDetail() {
           
           <TabsContent value="allocation">
             <Card>
-              <CardHeader>
-                <CardTitle>Fund Allocation</CardTitle>
-                <CardDescription>
+              <CardHeader className="pb-2 sm:pb-4">
+                <CardTitle className="text-base sm:text-xl">Fund Allocation</CardTitle>
+                <CardDescription className="text-xs sm:text-sm">
                   Allocate this deal to investment funds
                 </CardDescription>
               </CardHeader>
