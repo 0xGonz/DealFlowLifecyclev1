@@ -1,156 +1,137 @@
-import { Router, Request, Response, NextFunction } from 'express';
+import { Router } from 'express';
+import { z } from 'zod';
 import { StorageFactory } from '../storage-factory';
-import * as z from 'zod';
-import { AppError, asyncHandler } from '../utils/errorHandlers';
-import { generatePasswordHash, requireAuth, requireAdmin, comparePassword } from '../utils/auth';
-import { generateInitials, generateRandomColor } from '../utils/string';
+import { asyncHandler } from '../utils/errorHandlers';
+import { requireAuth } from '../utils/auth';
+import { generateInitials } from '../utils/string';
+import { hashPassword, comparePasswords } from '../utils/auth';
 
+const storage = StorageFactory.getStorage();
 export const usersRouter = Router();
 
-// Validation schema for updating a user
+// Get all users
+usersRouter.get('/', requireAuth, asyncHandler(async (req, res) => {
+  const users = await storage.getUsers();
+  
+  // Map to remove passwords from response
+  const safeUsers = users.map(user => {
+    const { password, ...userWithoutPassword } = user;
+    return userWithoutPassword;
+  });
+  
+  res.status(200).json(safeUsers);
+}));
+
+// Get user by ID
+usersRouter.get('/:id', requireAuth, asyncHandler(async (req, res) => {
+  const userId = parseInt(req.params.id, 10);
+  
+  if (isNaN(userId)) {
+    return res.status(400).json({
+      status: 'fail',
+      message: 'Invalid user ID format'
+    });
+  }
+  
+  const user = await storage.getUser(userId);
+  
+  if (!user) {
+    return res.status(404).json({
+      status: 'fail',
+      message: 'User not found'
+    });
+  }
+  
+  // Remove password from response
+  const { password, ...userWithoutPassword } = user;
+  res.status(200).json(userWithoutPassword);
+}));
+
+// Update user (profile data)
 const updateUserSchema = z.object({
-  fullName: z.string().min(2, 'Full name must be at least 2 characters').optional(),
   email: z.string().email('Invalid email format').optional(),
-  // Allowing role updates only by admins in the route handler
+  fullName: z.string().min(2, 'Full name must be at least 2 characters').optional(),
   role: z.enum(['admin', 'partner', 'analyst', 'observer']).optional(),
-  // Allow password update with validation
+  avatarColor: z.string().nullable().optional(),
   currentPassword: z.string().optional(),
   newPassword: z.string().min(8, 'New password must be at least 8 characters').optional(),
 }).refine(data => {
   // If new password is provided, current password must also be provided
-  if (data.newPassword && !data.currentPassword) {
-    return false;
-  }
-  return true;
+  return !(data.newPassword && !data.currentPassword);
 }, {
-  message: 'Current password is required to set a new password',
+  message: 'Current password is required when setting a new password',
   path: ['currentPassword']
 });
 
-// Get all users (admin only)
-usersRouter.get(
-  '/',
-  requireAdmin,
-  asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    const storage = StorageFactory.getStorage();
-    const users = await storage.getUsers();
-    
-    // Remove passwords from response
-    const usersWithoutPasswords = users.map(user => {
-      const { password, ...userWithoutPassword } = user;
-      return userWithoutPassword;
+usersRouter.patch('/:id', requireAuth, asyncHandler(async (req, res) => {
+  const userId = parseInt(req.params.id, 10);
+  
+  if (isNaN(userId)) {
+    return res.status(400).json({
+      status: 'fail',
+      message: 'Invalid user ID format'
     });
+  }
+  
+  // Check if user exists
+  const userToUpdate = await storage.getUser(userId);
+  if (!userToUpdate) {
+    return res.status(404).json({
+      status: 'fail',
+      message: 'User not found'
+    });
+  }
+  
+  // Validate request data
+  const validatedData = updateUserSchema.parse(req.body);
+  
+  // Only allow users to update their own profile unless they are admin
+  const currentUser = await storage.getUser(req.session.userId!);
+  if (userId !== req.session.userId && currentUser?.role !== 'admin') {
+    return res.status(403).json({
+      status: 'fail',
+      message: 'You can only update your own profile'
+    });
+  }
+  
+  // Handle password update if requested
+  if (validatedData.newPassword && validatedData.currentPassword) {
+    // Verify current password
+    const isPasswordCorrect = await comparePasswords(
+      validatedData.currentPassword,
+      userToUpdate.password
+    );
     
-    res.status(200).json(usersWithoutPasswords);
-  })
-);
-
-// Get a specific user
-usersRouter.get(
-  '/:id',
-  requireAuth,
-  asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    const userId = parseInt(req.params.id, 10);
-    if (isNaN(userId)) {
-      return next(new AppError('Invalid user ID', 400));
+    if (!isPasswordCorrect) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Current password is incorrect'
+      });
     }
     
-    // Users can only see themselves unless they're admins
-    if (req.session.userId !== userId && !(await isUserAdmin(req.session.userId!))) {
-      return next(new AppError('Unauthorized', 403));
-    }
-    
-    const storage = StorageFactory.getStorage();
-    const user = await storage.getUser(userId);
-    
-    if (!user) {
-      return next(new AppError('User not found', 404));
-    }
-    
-    // Remove password from response
-    const { password, ...userWithoutPassword } = user;
-    
-    res.status(200).json(userWithoutPassword);
-  })
-);
-
-// Update a user
-usersRouter.patch(
-  '/:id',
-  requireAuth,
-  asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const userId = parseInt(req.params.id, 10);
-      if (isNaN(userId)) {
-        return next(new AppError('Invalid user ID', 400));
-      }
-      
-      // Users can only update themselves unless they're admins
-      const isAdmin = await isUserAdmin(req.session.userId!);
-      if (req.session.userId !== userId && !isAdmin) {
-        return next(new AppError('Unauthorized', 403));
-      }
-      
-      // Validate request body
-      const validatedData = updateUserSchema.parse(req.body);
-      
-      const storage = StorageFactory.getStorage();
-      const user = await storage.getUser(userId);
-      
-      if (!user) {
-        return next(new AppError('User not found', 404));
-      }
-      
-      // Handle role updates - only admins can update roles
-      if (validatedData.role && !isAdmin) {
-        delete validatedData.role;
-      }
-      
-      // Handle password updates
-      let updateData: Partial<typeof validatedData> = { ...validatedData };
-      delete updateData.currentPassword;
-      delete updateData.newPassword;
-      
-      if (validatedData.currentPassword && validatedData.newPassword) {
-        const { currentPassword, newPassword } = validatedData;
-        const isValidPassword = await comparePassword(currentPassword, user.password);
-        
-        if (!isValidPassword) {
-          return next(new AppError('Current password is incorrect', 400));
-        }
-        
-        // Hash new password and add to update data
-        updateData.password = await generatePasswordHash(newPassword);
-      }
-      
-      // If fullName is changed, update initials
-      if (validatedData.fullName) {
-        updateData.initials = generateInitials(validatedData.fullName);
-      }
-      
-      // Update user
-      const updatedUser = await storage.updateUser(userId, updateData);
-      
-      if (!updatedUser) {
-        return next(new AppError('Failed to update user', 500));
-      }
-      
-      // Remove password from response
-      const { password, ...userWithoutPassword } = updatedUser;
-      
-      res.status(200).json(userWithoutPassword);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return next(new AppError(`Validation error: ${error.errors[0].message}`, 400));
-      }
-      next(error);
-    }
-  })
-);
-
-// Helper function to check if a user is an admin
-async function isUserAdmin(userId: number): Promise<boolean> {
-  const storage = StorageFactory.getStorage();
-  const user = await storage.getUser(userId);
-  return user?.role === 'admin' || false;
-}
+    // Hash the new password
+    const hashedPassword = await hashPassword(validatedData.newPassword);
+    validatedData.password = hashedPassword;
+  }
+  
+  // Handle fullName update - generate new initials if needed
+  let initials = userToUpdate.initials;
+  if (validatedData.fullName && validatedData.fullName !== userToUpdate.fullName) {
+    initials = generateInitials(validatedData.fullName);
+    validatedData.initials = initials;
+  }
+  
+  // Update user
+  const updatedUser = await storage.updateUser(userId, validatedData);
+  
+  if (!updatedUser) {
+    return res.status(500).json({
+      status: 'error',
+      message: 'Failed to update user'
+    });
+  }
+  
+  // Remove password from response
+  const { password, ...userWithoutPassword } = updatedUser;
+  res.status(200).json(userWithoutPassword);
+}));

@@ -55,7 +55,10 @@ export default function AuthPage() {
 
   // Handlers
   const onLoginSubmit = (values: LoginFormValues) => {
-    loginMutation.mutate(values);
+    loginMutation.mutate({
+      identifier: values.identifier,
+      password: values.password
+    });
   };
 
   const onRegisterSubmit = (values: RegisterFormValues) => {

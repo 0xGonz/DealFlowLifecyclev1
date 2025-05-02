@@ -1,92 +1,49 @@
 /**
  * Generate initials from a full name
  * 
- * @param fullName Full name to generate initials from
+ * @param fullName The user's full name
  * @returns Initials (up to 2 characters)
  */
 export function generateInitials(fullName: string): string {
-  if (!fullName) return 'U';
+  if (!fullName) return '';
   
-  const nameParts = fullName.trim().split(/\s+/);
+  // Split the name by spaces and filter out empty segments
+  const nameParts = fullName.split(' ').filter(Boolean);
+  
+  if (nameParts.length === 0) return '';
   
   if (nameParts.length === 1) {
-    // Single name: take first two letters
-    return nameParts[0].substring(0, 2).toUpperCase();
-  } else {
-    // Multiple names: take first letter of first and last name
-    const firstInitial = nameParts[0].charAt(0);
-    const lastInitial = nameParts[nameParts.length - 1].charAt(0);
-    return (firstInitial + lastInitial).toUpperCase();
+    // If only one part, return the first character
+    return nameParts[0].charAt(0).toUpperCase();
   }
-}
-
-/**
- * Colors that provide good contrast with light text
- */
-const AVATAR_COLORS = [
-  '#2563EB', // Blue
-  '#7C3AED', // Violet
-  '#DB2777', // Pink
-  '#9333EA', // Purple
-  '#D97706', // Amber
-  '#059669', // Emerald
-  '#DC2626', // Red
-  '#4338CA', // Indigo
-  '#0E7490', // Cyan
-  '#65A30D', // Lime
-  '#0891B2', // Teal
-  '#A21CAF', // Fuchsia
-  '#AB2F5C', // Rose-Pink
-  '#1E429F', // Deep Blue
-  '#3F6212', // Dark Lime
-  '#5B21B6', // Strong Purple
-  '#B45309', // Dark Amber
-  '#B91C1C', // Dark Red
-  '#096A2E', // Forest Green
-  '#3730A3', // Deep Indigo
-];
-
-/**
- * Generate a random color for avatars
- * @returns Random color from the predefined palette
- */
-export function generateRandomColor(): string {
-  const randomIndex = Math.floor(Math.random() * AVATAR_COLORS.length);
-  return AVATAR_COLORS[randomIndex];
-}
-
-/**
- * Shorten a string to a maximum length with ellipsis
- * 
- * @param str String to shorten
- * @param maxLength Maximum length before adding ellipsis
- * @returns Shortened string
- */
-export function shortenString(str: string, maxLength: number): string {
-  if (!str || str.length <= maxLength) return str;
-  return str.substring(0, maxLength) + '...';
+  
+  // Return first character of first and last parts
+  return (
+    nameParts[0].charAt(0) + nameParts[nameParts.length - 1].charAt(0)
+  ).toUpperCase();
 }
 
 /**
  * Format a number as currency
  * 
- * @param amount Amount to format
- * @param currency Currency code (default: USD)
+ * @param amount The amount to format
+ * @param currency The currency code (default: USD)
  * @returns Formatted currency string
  */
 export function formatCurrency(amount: number, currency = 'USD'): string {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency,
+    minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(amount);
 }
 
 /**
- * Format a number as a percentage
+ * Format a number as percentage
  * 
- * @param value Value to format (0.1 = 10%)
- * @param decimalPlaces Number of decimal places
+ * @param value The value to format (e.g., 0.15 for 15%)
+ * @param decimalPlaces Number of decimal places (default: 1)
  * @returns Formatted percentage string
  */
 export function formatPercentage(value: number, decimalPlaces = 1): string {
@@ -95,4 +52,53 @@ export function formatPercentage(value: number, decimalPlaces = 1): string {
     minimumFractionDigits: decimalPlaces,
     maximumFractionDigits: decimalPlaces,
   }).format(value);
+}
+
+/**
+ * Truncate a string to a maximum length with ellipsis
+ * 
+ * @param str The string to truncate
+ * @param maxLength Maximum length before truncating
+ * @returns Truncated string
+ */
+export function truncateString(str: string, maxLength: number): string {
+  if (!str || str.length <= maxLength) return str;
+  return str.slice(0, maxLength) + '...';
+}
+
+/**
+ * Format a date in a user-friendly way
+ * 
+ * @param date The date to format
+ * @param format Display format (default: 'short')
+ * @returns Formatted date string
+ */
+export function formatDate(date: Date, format: 'short' | 'medium' | 'long' = 'short'): string {
+  if (!date) return '';
+  
+  const options: Intl.DateTimeFormatOptions = {
+    year: 'numeric',
+    month: format === 'short' ? 'short' : 'long',
+    day: 'numeric',
+  };
+  
+  if (format === 'long') {
+    options.weekday = 'long';
+  }
+  
+  return new Intl.DateTimeFormat('en-US', options).format(new Date(date));
+}
+
+/**
+ * Generate a random color hex value
+ * 
+ * @returns Random color as hex string
+ */
+export function getRandomColor(): string {
+  const letters = '0123456789ABCDEF';
+  let color = '#';
+  for (let i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
 }
