@@ -226,48 +226,63 @@ export default function DealDetail() {
         }
         
         {/* Back button and page title */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-0 mb-6">
-          <Button variant="ghost" className="mr-2" asChild>
-            <a href="/pipeline">
-              <ChevronLeft className="h-4 w-4 mr-1" />
-              Back to Pipeline
-            </a>
-          </Button>
-          <h1 className="text-2xl font-semibold text-neutral-800">{deal?.name}</h1>
-          
-          <div className="w-full sm:w-auto sm:ml-auto flex flex-wrap gap-2 justify-start sm:justify-end">
-            <Button variant="outline" onClick={handleStarDeal}>
-              <Star className={`h-4 w-4 mr-2 ${deal?.starCount ? 'fill-accent text-accent' : ''}`} />
-              {deal?.starCount ? `Starred (${deal.starCount})` : 'Star'}
+        <div className="flex flex-col gap-4 mb-6">
+          <div className="flex items-center justify-between">
+            <Button variant="ghost" className="mr-2 h-9 px-2 sm:px-3" asChild>
+              <a href="/pipeline" className="flex items-center">
+                <ChevronLeft className="h-4 w-4 mr-1" />
+                <span className="text-sm">Back</span>
+              </a>
             </Button>
-            <Button onClick={() => setIsEditModalOpen(true)}>
-              <Edit className="h-4 w-4 mr-2" />
-              Edit Deal
-            </Button>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="destructive">
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Are you sure you want to delete this deal?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This action cannot be undone. This will permanently delete the deal
-                    and all its associated data including timeline events, memos, and allocations.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDeleteDeal}>
-                    {deleteDealMutation.isPending ? "Deleting..." : "Delete Deal"}
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="h-9 px-2 sm:px-3"
+                onClick={handleStarDeal}
+              >
+                <Star className={`h-4 w-4 sm:mr-1 ${deal?.starCount ? 'fill-accent text-accent' : ''}`} />
+                <span className="hidden sm:inline">{deal?.starCount ? `${deal.starCount}` : 'Star'}</span>
+              </Button>
+              <Button 
+                size="sm"
+                className="h-9 px-2 sm:px-3"
+                onClick={() => setIsEditModalOpen(true)}
+              >
+                <Edit className="h-4 w-4 sm:mr-1" />
+                <span className="hidden sm:inline">Edit</span>
+              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button 
+                    variant="destructive" 
+                    size="sm"
+                    className="h-9 px-2 sm:px-3"
+                  >
+                    <Trash2 className="h-4 w-4 sm:mr-1" />
+                    <span className="hidden sm:inline">Delete</span>
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you sure you want to delete this deal?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This action cannot be undone. This will permanently delete the deal
+                      and all its associated data including timeline events, memos, and allocations.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDeleteDeal}>
+                      {deleteDealMutation.isPending ? "Deleting..." : "Delete Deal"}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
           </div>
+          
+          <h1 className="text-xl sm:text-2xl font-semibold text-neutral-800">{deal?.name}</h1>
         </div>
         
         {/* Deal Overview Card */}
@@ -275,32 +290,33 @@ export default function DealDetail() {
           <CardHeader>
             <div className="flex flex-col sm:flex-row justify-between items-start gap-4 sm:gap-0">
               <div>
-                <Badge className={`${getDealStageBadgeClass(deal?.stage || '')} mb-2`}>
+                <Badge className={`${getDealStageBadgeClass(deal?.stage || '')} mb-2 text-xs sm:text-sm px-2 py-0.5`}>
                   {deal?.stageLabel}
                 </Badge>
-                <CardTitle>{deal?.name}</CardTitle>
-                <CardDescription>{deal?.description}</CardDescription>
+                <CardTitle className="text-lg sm:text-xl">{deal?.name}</CardTitle>
+                <CardDescription className="text-sm leading-normal mt-1">{deal?.description}</CardDescription>
               </div>
-              <div className="flex items-center">
-                <div className="flex -space-x-2 mr-4">
+              <div className="flex items-center self-end sm:self-start mt-2 sm:mt-0">
+                <div className="flex -space-x-2 mr-2 sm:mr-4">
                   {deal?.assignedUsers ? deal.assignedUsers.map((user: User) => (
-                    <Avatar key={user.id} className="border-2 border-white">
-                      <AvatarFallback style={{ backgroundColor: user.avatarColor }}>
+                    <Avatar key={user.id} className="border-2 border-white h-7 w-7 sm:h-8 sm:w-8">
+                      <AvatarFallback style={{ backgroundColor: user.avatarColor }} className="text-xs sm:text-sm">
                         {user.initials}
                       </AvatarFallback>
                     </Avatar>
                   )) : (
-                    <Avatar className="border-2 border-white">
-                      <AvatarFallback>NA</AvatarFallback>
+                    <Avatar className="border-2 border-white h-7 w-7 sm:h-8 sm:w-8">
+                      <AvatarFallback className="text-xs sm:text-sm">NA</AvatarFallback>
                     </Avatar>
                   )}
                 </div>
                 <Button 
                   variant="outline" 
-                  size="sm" 
+                  size="sm"
+                  className="h-7 sm:h-8 px-2 sm:px-3 text-xs sm:text-sm" 
                   onClick={() => setIsAssignModalOpen(true)}
                 >
-                  <Users className="h-4 w-4 mr-2" />
+                  <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                   Assign
                 </Button>
               </div>
