@@ -28,11 +28,15 @@ app.use(express.urlencoded({ extended: false }));
 // Configure session middleware with memory store (for now)
 app.use(session({
   secret: process.env.SESSION_SECRET || 'investment-tracker-secret',
-  resave: false,
-  saveUninitialized: false,
+  resave: true, // Changed to true to ensure session is saved on every request
+  saveUninitialized: true, // Changed to true to save uninitialized sessions
+  name: 'investment_session', // Give a consistent name to the session cookie
   cookie: {
-    secure: process.env.NODE_ENV === 'production',
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    secure: false, // Set to false since we're not using HTTPS
+    httpOnly: true, // Only accessible through HTTP
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours 
+    sameSite: 'lax', // Allow cross-site requests
+    path: '/' // Cookie is valid for all paths
   }
 }));
 

@@ -42,12 +42,33 @@ export async function comparePasswords(
  * @param next - Express next function
  */
 export function requireAuth(req: Request, res: Response, next: NextFunction) {
-  if (!req.session.userId) {
+  // Log information for debugging
+  console.log('Session:', req.session);
+  console.log('User ID in session:', req.session.userId);
+  console.log('User in request:', req.user);
+  
+  if (!req.session || !req.session.userId) {
+    // Clear the session to be safe
+    if (req.session) {
+      req.session.destroy((err) => {
+        if (err) console.error('Error destroying session:', err);
+      });
+    }
+    
     return res.status(401).json({
       status: 'fail',
       message: 'Not authenticated'
     });
   }
+  
+  // Make sure req.user is populated
+  if (!req.user) {
+    return res.status(401).json({
+      status: 'fail',
+      message: 'User not found'
+    });
+  }
+  
   next();
 }
 
@@ -59,15 +80,23 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
  * @param next - Express next function
  */
 export function requireAdmin(req: Request, res: Response, next: NextFunction) {
-  if (!req.session.userId) {
+  if (!req.session || !req.session.userId) {
     return res.status(401).json({
       status: 'fail',
       message: 'Not authenticated'
     });
   }
   
+  // Make sure req.user is populated
+  if (!req.user) {
+    return res.status(401).json({
+      status: 'fail',
+      message: 'User not found'
+    });
+  }
+  
   // Check user has 'admin' role
-  const userRole = req.user?.role;
+  const userRole = req.user.role;
   
   if (userRole !== 'admin') {
     return res.status(403).json({
@@ -87,15 +116,23 @@ export function requireAdmin(req: Request, res: Response, next: NextFunction) {
  */
 export function requireRole(roles: string[]) {
   return (req: Request, res: Response, next: NextFunction) => {
-    if (!req.session.userId) {
+    if (!req.session || !req.session.userId) {
       return res.status(401).json({
         status: 'fail',
         message: 'Not authenticated'
       });
     }
     
+    // Make sure req.user is populated
+    if (!req.user) {
+      return res.status(401).json({
+        status: 'fail',
+        message: 'User not found'
+      });
+    }
+    
     // Check user has one of the required roles
-    const userRole = req.user?.role;
+    const userRole = req.user.role;
     
     if (!userRole || !roles.includes(userRole)) {
       return res.status(403).json({

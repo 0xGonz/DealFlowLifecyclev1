@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useContext } from "react";
+import { createContext, ReactNode, useContext, useEffect } from "react";
 import {
   useQuery,
   useMutation,
@@ -49,11 +49,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isLoading,
   } = useQuery<SelectUser | null, Error>({
     queryKey: ["/api/auth/me"],
-    retry: 1, // Allow one retry to handle temporary network issues
+    retry: 2, // Allow retries to handle temporary network issues
     initialData: null, // Set initial data to null to avoid undefined
-    refetchOnWindowFocus: false, // Don't refetch when window regains focus
+    refetchOnWindowFocus: true, // Refetch when window regains focus to maintain session
+    refetchOnMount: true, // Always refetch when component mounts
     refetchOnReconnect: true, // Refetch when connection is restored
-    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+    staleTime: 1000 // Consider data stale quickly to encourage refetches
   });
 
   const loginMutation = useMutation<SelectUser, Error, LoginData>({

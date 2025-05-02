@@ -41,6 +41,13 @@ authRouter.post('/login', asyncHandler(async (req, res) => {
   // Set session
   req.session.userId = user.id;
   
+  // Save the session explicitly to ensure it persists
+  req.session.save((err) => {
+    if (err) {
+      console.error('Error saving session:', err);
+    }
+  });
+  
   // Return user without password
   const { password: _, ...userWithoutPassword } = user;
   res.status(200).json(userWithoutPassword);
@@ -100,6 +107,13 @@ authRouter.post('/register', asyncHandler(async (req, res) => {
   
   // Set session
   req.session.userId = newUser.id;
+  
+  // Save the session explicitly to ensure it persists
+  req.session.save((err) => {
+    if (err) {
+      console.error('Error saving session:', err);
+    }
+  });
   
   // Return user without password
   const { password, ...userWithoutPassword } = newUser;
