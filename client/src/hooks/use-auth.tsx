@@ -49,7 +49,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isLoading,
   } = useQuery<SelectUser | null, Error>({
     queryKey: ["/api/auth/me"],
-    retry: false,
+    retry: 1, // Allow one retry to handle temporary network issues
     initialData: null, // Set initial data to null to avoid undefined
   });
 

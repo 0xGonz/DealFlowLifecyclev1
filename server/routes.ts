@@ -35,20 +35,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Import route modules dynamically
   const authRouter = await import("./routes/auth").then(m => m.authRouter);
   const usersRouter = await import("./routes/users").then(m => m.usersRouter).catch(() => Router()); // Fallback if not yet created
+  const dealsRouter = await import("./routes/deals").then(m => m.dealsRouter).catch(() => Router());
+  const dashboardRouter = await import("./routes/dashboard").then(m => m.dashboardRouter).catch(() => Router());
+  const notificationsRouter = await import("./routes/notifications").then(m => m.notificationsRouter).catch(() => Router());
   
   // Register route modules
   app.use('/api/auth', authRouter);
   app.use('/api/users', usersRouter);
+  app.use('/api/deals', dealsRouter);
+  app.use('/api/dashboard', dashboardRouter);
+  app.use('/api/notifications', notificationsRouter);
   
-  // Other API routes to be implemented later
-  // app.use('/api/deals', dealsRoutes);
-  // app.use('/api/funds', fundsRoutes);
-  // app.use('/api/allocations', allocationsRoutes);
-  // app.use('/api/dashboard', dashboardRoutes);
-  // app.use('/api/leaderboard', leaderboardRoutes);
-  // app.use('/api/activity', activityRoutes);
-  // app.use('/api/notifications', notificationsRoutes);
-  // app.use('/api/documents', documentsRoutes);
+  // Create stub endpoints for other routes that might be requested by the frontend
+  const stubRouter = Router();
+  stubRouter.get('/*', (req, res) => res.json([]));
+  stubRouter.post('/*', (req, res) => res.json({}));
+  
+  app.use('/api/funds', stubRouter);
+  app.use('/api/allocations', stubRouter);
+  app.use('/api/leaderboard', stubRouter);
+  app.use('/api/activity', stubRouter);
+  app.use('/api/documents', stubRouter);
   
   // Catch-all route for 404s
   app.use('/api/*', notFoundHandler);

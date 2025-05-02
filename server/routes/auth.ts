@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { StorageFactory } from '../storage-factory';
 import { asyncHandler } from '../utils/errorHandlers';
-import { hashPassword, comparePasswords } from '../utils/auth';
+import { hashPassword, comparePasswords, requireAuth } from '../utils/auth';
 import { generateInitials } from '../utils/string';
 import { insertUserSchema } from '@shared/schema';
 
@@ -124,7 +124,7 @@ authRouter.post('/logout', (req, res) => {
 });
 
 // Get current user route
-authRouter.get('/me', asyncHandler(async (req, res) => {
+authRouter.get('/me', requireAuth, asyncHandler(async (req, res) => {
   if (!req.session.userId) {
     return res.status(401).json({
       status: 'fail',
