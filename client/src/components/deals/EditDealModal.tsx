@@ -34,8 +34,9 @@ import { Label } from "@/components/ui/label";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { generateDealNotification } from "@/lib/utils/notification-utils";
-import { DealStageLabels } from "@shared/schema";
 import { DEAL_SECTORS } from "@/lib/constants/sectors";
+import { FUNDING_ROUNDS } from "@/lib/constants/funding-rounds";
+import { DEAL_STAGES, DealStage, DealStageLabels } from "@/lib/constants/deal-stages";
 
 // Form schema with validation rules
 const dealFormSchema = z.object({
@@ -49,7 +50,7 @@ const dealFormSchema = z.object({
   leadInvestor: z.string().optional(),
   contactEmail: z.string().email("Invalid email address").optional().or(z.literal("")),
   notes: z.string().optional(),
-  stage: z.enum(["initial_review", "screening", "diligence", "ic_review", "closing", "closed", "passed", "rejected"]),
+  stage: z.enum(DEAL_STAGES),
   rejectionReason: z.string().optional(),
   tags: z.array(z.string()).optional()
 });
@@ -224,26 +225,9 @@ export default function EditDealModal({ isOpen, onClose, dealId }: EditDealModal
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="Private Credit">Private Credit</SelectItem>
-                          <SelectItem value="Buyout">Buyout</SelectItem>
-                          <SelectItem value="Crypto">Crypto</SelectItem>
-                          <SelectItem value="GP Stakes">GP Stakes</SelectItem>
-                          <SelectItem value="Energy">Energy</SelectItem>
-                          <SelectItem value="Venture">Venture</SelectItem>
-                          <SelectItem value="Technology">Technology</SelectItem>
-                          <SelectItem value="SaaS">SaaS</SelectItem>
-                          <SelectItem value="Fintech">Fintech</SelectItem>
-                          <SelectItem value="AI/ML">AI/ML</SelectItem>
-                          <SelectItem value="Cybersecurity">Cybersecurity</SelectItem>
-                          <SelectItem value="Healthcare">Healthcare</SelectItem>
-                          <SelectItem value="Biotech">Biotech</SelectItem>
-                          <SelectItem value="Renewable Energy">Renewable Energy</SelectItem>
-                          <SelectItem value="Clean Tech">Clean Tech</SelectItem>
-                          <SelectItem value="Consumer Goods">Consumer Goods</SelectItem>
-                          <SelectItem value="E-commerce">E-commerce</SelectItem>
-                          <SelectItem value="Retail">Retail</SelectItem>
-                          <SelectItem value="Real Estate">Real Estate</SelectItem>
-                          <SelectItem value="Other">Other</SelectItem>
+                          {DEAL_SECTORS.map((sector) => (
+                            <SelectItem key={sector} value={sector}>{sector}</SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -288,12 +272,9 @@ export default function EditDealModal({ isOpen, onClose, dealId }: EditDealModal
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="Seed">Seed</SelectItem>
-                          <SelectItem value="Seed Extension">Seed Extension</SelectItem>
-                          <SelectItem value="Series A">Series A</SelectItem>
-                          <SelectItem value="Series B">Series B</SelectItem>
-                          <SelectItem value="Series C">Series C</SelectItem>
-                          <SelectItem value="Series D+">Series D+</SelectItem>
+                          {FUNDING_ROUNDS.map((round) => (
+                            <SelectItem key={round} value={round}>{round}</SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                       <FormMessage />
