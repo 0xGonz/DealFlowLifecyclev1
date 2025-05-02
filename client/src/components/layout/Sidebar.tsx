@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { 
   BarChart3, 
   Building, 
@@ -12,7 +11,9 @@ import {
   X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import ProfileEditModal from "@/components/profile/ProfileEditModal";
+import { useAuth } from "@/hooks/use-auth";
+import { UserAvatar } from "@/components/user/UserAvatar";
+import EditProfileDialog from "@/components/user/EditProfileDialog";
 
 interface SidebarProps {
   onCloseMobile?: () => void;
@@ -21,6 +22,7 @@ interface SidebarProps {
 export default function Sidebar({ onCloseMobile }: SidebarProps) {
   const [location] = useLocation();
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const { user, logoutMutation } = useAuth();
 
   // Navigation items
   const mainNavItems = [
@@ -65,18 +67,21 @@ export default function Sidebar({ onCloseMobile }: SidebarProps) {
       <div className="flex flex-col h-full">
         {/* User Profile at the top with close button for mobile */}
         <div className="p-3 border-b border-neutral-200 flex justify-between items-center">
-          <div 
-            className="flex items-center space-x-2 cursor-pointer hover:bg-neutral-50 p-1 rounded-md transition-colors" 
-            onClick={() => setIsProfileModalOpen(true)}
-          >
-            <Avatar className="h-8 w-8">
-              <AvatarFallback className="bg-primary text-white">JD</AvatarFallback>
-            </Avatar>
-            <div className="flex flex-col">
-              <span className="text-sm font-medium">John Doe</span>
-              <span className="text-xs text-neutral-500">Partner</span>
+          {user && (
+            <div 
+              className="flex items-center space-x-2 cursor-pointer hover:bg-neutral-50 p-1 rounded-md transition-colors" 
+              onClick={() => setIsProfileModalOpen(true)}
+            >
+              <UserAvatar
+                user={user}
+                className="h-8 w-8"
+              />
+              <div className="flex flex-col">
+                <span className="text-sm font-medium">{user.fullName}</span>
+                <span className="text-xs text-neutral-500">{user.role}</span>
+              </div>
             </div>
-          </div>
+          )}
           {onCloseMobile && (
             <Button 
               variant="ghost" 
@@ -136,23 +141,26 @@ export default function Sidebar({ onCloseMobile }: SidebarProps) {
         
         {/* Logout button */}
         <div className="p-3 border-t border-neutral-200">
-          <a 
-            href="/logout" 
-            className="flex items-center py-2 px-3 rounded-md text-sm text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900 transition-colors"
-            onClick={() => onCloseMobile && window.innerWidth < 768 && onCloseMobile()}
+          <button 
+            className="flex items-center py-2 px-3 rounded-md text-sm text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900 transition-colors w-full text-left"
+            onClick={() => {
+              logoutMutation.mutate();
+              if (onCloseMobile && window.innerWidth < 768) onCloseMobile();
+            }}
           >
             <LogOut className="h-5 w-5 mr-2" />
             Logout
-          </a>
+          </button>
         </div>
 
         {/* Profile Edit Modal */}
-        <ProfileEditModal
-          isOpen={isProfileModalOpen}
-          onClose={() => setIsProfileModalOpen(false)}
-          currentName="John Doe"
-          currentRole="partner"
-        />
+        {user && (
+          <EditProfileDialog
+            trigger={<span></span>}
+            open={isProfileModalOpen}
+            onOpenChange={setIsProfileModalOpen}
+          />
+        )}
       </div>
     </aside>
   );

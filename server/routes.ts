@@ -1,11 +1,13 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
+import session from 'express-session';
+import createMemoryStore from 'memorystore';
 
 // Route imports
 import dealsRoutes from './routes/deals';
 import fundsRoutes from './routes/funds';
-import usersRoutes from './routes/users';
-import authRoutes from './routes/auth';
+import { usersRouter as usersRoutes } from './routes/users';
+import { authRouter as authRoutes } from './routes/auth';
 import dashboardRoutes from './routes/dashboard';
 import leaderboardRoutes from './routes/leaderboard';
 import activityRoutes from './routes/activity';
@@ -18,6 +20,20 @@ import { errorHandler, notFoundHandler, AppError } from './utils/errorHandlers';
 import { requireAuth } from './utils/auth';
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Set up session middleware with memorystore
+  const MemoryStore = createMemoryStore(session);
+  app.use(session({
+    secret: process.env.SESSION_SECRET || 'investment-tracker-secret',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 1000 * 60 * 60 * 24 // 1 day
+    },
+    store: new MemoryStore({
+      checkPeriod: 86400000 // prune expired entries every 24h
+    })
+  }));
   
   // Uncomment to require authentication for all API routes
   // app.use('/api/*', requireAuth);

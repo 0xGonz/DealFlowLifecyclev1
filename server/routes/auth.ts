@@ -1,106 +1,159 @@
-import express, { Request, Response } from 'express';
-import { asyncHandler } from '../utils/errorHandlers';
-import { login, logout, getCurrentUser, register } from '../utils/auth';
-import { StorageFactory } from '../storage-factory';
-import { insertUserSchema } from '@shared/schema';
-import { z } from 'zod';
+import { Request, Response, Router } from "express";
+import { scrypt, randomBytes, timingSafeEqual } from "crypto";
+import { promisify } from "util";
+import { StorageFactory } from "../storage-factory";
+import { z } from "zod";
 
-const router = express.Router();
+const scryptAsync = promisify(scrypt);
 
-// Login validation schema
+// Create validation schemas
 const loginSchema = z.object({
-  username: z.string().min(3, 'Username must be at least 3 characters'),
-  password: z.string().min(6, 'Password must be at least 6 characters')
+  username: z.string(),
+  password: z.string(),
 });
 
+const registerSchema = z.object({
+  username: z.string().min(3),
+  fullName: z.string().min(2),
+  email: z.string().email(),
+  password: z.string().min(6),
+});
+
+const profileUpdateSchema = z.object({
+  fullName: z.string().min(2).optional(),
+  email: z.string().email().optional(),
+  role: z.enum(["admin", "partner", "analyst", "observer"]).optional(),
+  avatarColor: z.string().nullable().optional(),
+});
+
+// Helper functions for password hashing
+async function hashPassword(password: string) {
+  const salt = randomBytes(16).toString("hex");
+  const buf = (await scryptAsync(password, salt, 64)) as Buffer;
+  return `${buf.toString("hex")}.${salt}`;
+}
+
+async function comparePasswords(supplied: string, stored: string) {
+  const [hashed, salt] = stored.split(".");
+  const hashedBuf = Buffer.from(hashed, "hex");
+  const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
+  return timingSafeEqual(hashedBuf, suppliedBuf);
+}
+
+export const authRouter = Router();
+
 // Login route
-router.post('/login', asyncHandler(async (req: Request, res: Response) => {
-  // Validate request body
-  const { username, password } = loginSchema.parse(req.body);
-  
-  // Attempt login
-  const user = await login(req, username, password);
-  
-  // Return user info (without password)
-  const { password: _, ...userWithoutPassword } = user;
-  return res.json({ user: userWithoutPassword });
-}));
+authRouter.post("/login", async (req: Request, res: Response) => {
+  try {
+    const result = loginSchema.safeParse(req.body);
+    if (!result.success) {
+      return res.status(400).json({ message: "Invalid request data" });
+    }
+
+    const { username, password } = result.data;
+    const storage = StorageFactory.getStorage();
+    const user = await storage.getUserByUsername(username);
+
+    if (!user || !(await comparePasswords(password, user.password))) {
+      return res.status(401).json({ message: "Invalid username or password" });
+    }
+
+    // Store user in session
+    req.session.userId = user.id;
+    
+    // Return user without password
+    const { password: _, ...userWithoutPassword } = user;
+    return res.status(200).json(userWithoutPassword);
+  } catch (error) {
+    console.error("Login error:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+// Register route
+authRouter.post("/register", async (req: Request, res: Response) => {
+  try {
+    const result = registerSchema.safeParse(req.body);
+    if (!result.success) {
+      return res.status(400).json({ message: "Invalid request data" });
+    }
+
+    const { username, fullName, email, password } = result.data;
+    const storage = StorageFactory.getStorage();
+
+    // Check if username already exists
+    const existingUser = await storage.getUserByUsername(username);
+    if (existingUser) {
+      return res.status(400).json({ message: "Username already exists" });
+    }
+
+    // Generate initials from full name
+    const initials = fullName
+      .split(" ")
+      .map(name => name[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+
+    // Create user
+    const hashedPassword = await hashPassword(password);
+    const user = await storage.createUser({
+      username,
+      password: hashedPassword,
+      fullName,
+      email,
+      initials,
+      role: "analyst", // Default role
+      avatarColor: null, // Will generate default color based on ID
+    });
+
+    // Store user in session
+    req.session.userId = user.id;
+
+    // Return user without password
+    const { password: _, ...userWithoutPassword } = user;
+    return res.status(201).json(userWithoutPassword);
+  } catch (error) {
+    console.error("Registration error:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
 
 // Logout route
-router.post('/logout', asyncHandler(async (req: Request, res: Response) => {
-  await logout(req);
-  return res.json({ success: true, message: 'Logged out successfully' });
-}));
+authRouter.post("/logout", (req: Request, res: Response) => {
+  // Destroy the session
+  req.session.destroy((err) => {
+    if (err) {
+      console.error("Logout error:", err);
+      return res.status(500).json({ message: "Error logging out" });
+    }
+    res.clearCookie("connect.sid");
+    return res.status(200).json({ message: "Logged out successfully" });
+  });
+});
 
-// Register new user route
-router.post('/register', asyncHandler(async (req: Request, res: Response) => {
-  // Validate input using schema from shared/schema.ts
-  const userData = insertUserSchema.parse(req.body);
-  
-  // Check if username exists
-  const storage = StorageFactory.getStorage();
-  const existingUser = await storage.getUserByUsername(userData.username);
-  
-  if (existingUser) {
-    return res.status(400).json({ message: 'Username already exists' });
-  }
-  
-  // Register user (will hash password in the register function)
-  const newUser = await register(userData);
-  
-  // Login the new user
-  await login(req, userData.username, userData.password);
-  
-  // Return user info (without password)
-  const { password: _, ...userWithoutPassword } = newUser;
-  return res.status(201).json({ user: userWithoutPassword });
-}));
+// Get current user
+authRouter.get("/me", async (req: Request, res: Response) => {
+  try {
+    // Check if user is authenticated
+    if (!req.session.userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
 
-// Get current user route
-router.get('/me', asyncHandler(async (req: Request, res: Response) => {
-  const user = await getCurrentUser(req);
-  
-  if (!user) {
-    return res.status(401).json({ message: 'Not authenticated' });
-  }
-  
-  // Return user info (without password)
-  const { password: _, ...userWithoutPassword } = user;
-  return res.json({ user: userWithoutPassword });
-}));
+    const storage = StorageFactory.getStorage();
+    const user = await storage.getUser(req.session.userId);
 
-// Update user profile
-router.patch('/:userId', asyncHandler(async (req: Request, res: Response) => {
-  const currentUser = await getCurrentUser(req);
-  
-  if (!currentUser) {
-    return res.status(401).json({ message: 'Not authenticated' });
-  }
-  
-  const userId = parseInt(req.params.userId);
-  
-  // Only allow users to update their own profile unless they're admin
-  if (userId !== currentUser.id && currentUser.role !== 'admin') {
-    return res.status(403).json({ message: 'Not authorized to update this user' });
-  }
-  
-  // Get validation schema (partial to allow updating only some fields)
-  const updateSchema = insertUserSchema.partial().omit({ password: true });
-  
-  // Validate input
-  const userData = updateSchema.parse(req.body);
-  
-  // Update user 
-  const storage = StorageFactory.getStorage();
-  const updatedUser = await storage.updateUser(userId, userData);
-  
-  if (!updatedUser) {
-    return res.status(404).json({ message: 'User not found' });
-  }
-  
-  // Return updated user (without password)
-  const { password: _, ...userWithoutPassword } = updatedUser;
-  return res.json({ user: userWithoutPassword });
-}));
+    if (!user) {
+      // User not found or session refers to deleted user
+      req.session.destroy(() => {});
+      return res.status(401).json({ message: "User not found" });
+    }
 
-export default router;
+    // Return user without password
+    const { password: _, ...userWithoutPassword } = user;
+    return res.status(200).json(userWithoutPassword);
+  } catch (error) {
+    console.error("Get current user error:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});

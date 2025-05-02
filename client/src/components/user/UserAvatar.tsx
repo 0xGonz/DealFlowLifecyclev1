@@ -1,40 +1,50 @@
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { User } from "@shared/schema";
-import { cn } from "@/lib/utils";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
-interface UserAvatarProps {
-  user: Pick<User, "fullName" | "initials" | "avatarColor"> | null;
-  size?: "sm" | "md" | "lg";
+type UserAvatarProps = {
+  user: User;
   className?: string;
-}
+};
 
-export function UserAvatar({ user, size = "md", className }: UserAvatarProps) {
-  const getSize = () => {
-    switch (size) {
-      case "sm":
-        return "h-8 w-8 text-xs";
-      case "lg":
-        return "h-12 w-12 text-lg";
-      default:
-        return "h-10 w-10 text-sm";
-    }
-  };
+export function UserAvatar({ user, className }: UserAvatarProps) {
+  // Generate initials from the user's full name
+  const initials = user.fullName
+    .split(" ")
+    .map(name => name[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
 
-  const getBgColor = () => {
-    if (!user?.avatarColor) return "bg-primary";
-    return `bg-${user.avatarColor}`;
-  };
+  // Use the user's avatar color if available, or generate a default color
+  const avatarColor = user.avatarColor || generateDefaultColor(user.id);
 
   return (
-    <Avatar className={cn(getSize(), className)}>
-      <AvatarFallback
-        className={cn(
-          "font-medium text-white",
-          getBgColor()
-        )}
+    <Avatar className={className}>
+      <AvatarFallback 
+        className="text-white" 
+        style={{ backgroundColor: avatarColor }}
       >
-        {user?.initials || "?"}
+        {initials}
       </AvatarFallback>
     </Avatar>
   );
+}
+
+// Generate consistent colors based on user ID
+function generateDefaultColor(userId: number): string {
+  const colors = [
+    "#f97316", // orange-500
+    "#10b981", // emerald-500
+    "#3b82f6", // blue-500
+    "#a855f7", // purple-500
+    "#ec4899", // pink-500
+    "#f43f5e", // rose-500
+    "#06b6d4", // cyan-500
+    "#14b8a6", // teal-500
+    "#8b5cf6", // violet-500
+    "#d946ef", // fuchsia-500
+  ];
+  
+  // Use modulo to get a consistent color for each user ID
+  return colors[userId % colors.length];
 }

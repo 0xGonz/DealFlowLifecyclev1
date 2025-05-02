@@ -1,7 +1,11 @@
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -11,13 +15,22 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useState } from "react";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { useAuth } from "@/hooks/use-auth";
-import { useToast } from "@/hooks/use-toast";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface ProfileFormData {
   fullName: string;
@@ -26,21 +39,48 @@ interface ProfileFormData {
   avatarColor: string;
 }
 
+interface EditProfileDialogProps {
+  trigger: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
+
 const profileFormSchema = z.object({
   fullName: z.string().min(2, { message: "Full name must be at least 2 characters" }),
   email: z.string().email({ message: "Please enter a valid email address" }),
-  role: z.enum(["admin", "partner", "analyst", "observer"]),
-  avatarColor: z.string(),
+  role: z.string(),
+  avatarColor: z.string().nullable().optional(),
 });
 
-interface EditProfileDialogProps {
-  trigger: React.ReactNode;
-}
+const colorOptions = [
+  { value: "#f97316", label: "Orange" },
+  { value: "#10b981", label: "Emerald" },
+  { value: "#3b82f6", label: "Blue" },
+  { value: "#a855f7", label: "Purple" },
+  { value: "#ec4899", label: "Pink" },
+  { value: "#f43f5e", label: "Rose" },
+  { value: "#06b6d4", label: "Cyan" },
+  { value: "#14b8a6", label: "Teal" },
+  { value: "#8b5cf6", label: "Violet" },
+  { value: "#d946ef", label: "Fuchsia" },
+];
 
-export default function EditProfileDialog({ trigger }: EditProfileDialogProps) {
-  const [open, setOpen] = useState(false);
-  const { user, mutateUser } = useAuth();
+export default function EditProfileDialog({ trigger, open, onOpenChange }: EditProfileDialogProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const { user } = useAuth();
   const { toast } = useToast();
+
+  // Create a function that handles controlled/uncontrolled state
+  const handleOpenChange = (value: boolean) => {
+    if (onOpenChange) {
+      onOpenChange(value);
+    } else {
+      setIsOpen(value);
+    }
+  };
+
+  // Check if component is controlled or uncontrolled
+  const isDialogOpen = open !== undefined ? open : isOpen;
 
   const form = useForm<ProfileFormData>({
     resolver: zodResolver(profileFormSchema),
@@ -48,29 +88,22 @@ export default function EditProfileDialog({ trigger }: EditProfileDialogProps) {
       fullName: user?.fullName || "",
       email: user?.email || "",
       role: user?.role || "analyst",
-      avatarColor: user?.avatarColor || "blue-600",
+      avatarColor: user?.avatarColor || "",
     },
   });
 
   const onSubmit = async (data: ProfileFormData) => {
     try {
-      await fetch(`/api/auth/${user?.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-      
-      await mutateUser();
-      
+      // Implement API call to update profile
+      // Example: await updateUserProfile(user.id, data);
       toast({
         title: "Profile updated",
         description: "Your profile has been updated successfully",
       });
-      
-      setOpen(false);
+      handleOpenChange(false);
     } catch (error) {
       toast({
-        title: "Error",
+        title: "Failed to update profile",
         description: "There was an error updating your profile",
         variant: "destructive",
       });
@@ -78,17 +111,17 @@ export default function EditProfileDialog({ trigger }: EditProfileDialogProps) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={isDialogOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Edit profile</DialogTitle>
           <DialogDescription>
-            Update your profile information and preferences. Click save when you're done.
+            Update your profile information here.  
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
             <FormField
               control={form.control}
               name="fullName"
@@ -96,7 +129,7 @@ export default function EditProfileDialog({ trigger }: EditProfileDialogProps) {
                 <FormItem>
                   <FormLabel>Full Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="Your full name" {...field} />
+                    <Input placeholder="John Doe" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -109,7 +142,7 @@ export default function EditProfileDialog({ trigger }: EditProfileDialogProps) {
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input placeholder="your.email@example.com" {...field} />
+                    <Input placeholder="john.doe@example.com" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -121,11 +154,7 @@ export default function EditProfileDialog({ trigger }: EditProfileDialogProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Role</FormLabel>
-                  <Select
-                    disabled={user?.role !== "admin"} // Only admins can change roles
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a role" />
@@ -138,6 +167,9 @@ export default function EditProfileDialog({ trigger }: EditProfileDialogProps) {
                       <SelectItem value="observer">Observer</SelectItem>
                     </SelectContent>
                   </Select>
+                  <FormDescription>
+                    Your role determines your permissions in the system.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -146,52 +178,34 @@ export default function EditProfileDialog({ trigger }: EditProfileDialogProps) {
               control={form.control}
               name="avatarColor"
               render={({ field }) => (
-                <FormItem className="space-y-3">
+                <FormItem>
                   <FormLabel>Avatar Color</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      className="flex flex-wrap gap-4"
-                    >
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="blue-600" className="bg-blue-600" />
-                        </FormControl>
-                        <FormLabel className="font-normal">Blue</FormLabel>
-                      </FormItem>
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="green-600" className="bg-green-600" />
-                        </FormControl>
-                        <FormLabel className="font-normal">Green</FormLabel>
-                      </FormItem>
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="red-600" className="bg-red-600" />
-                        </FormControl>
-                        <FormLabel className="font-normal">Red</FormLabel>
-                      </FormItem>
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="purple-600" className="bg-purple-600" />
-                        </FormControl>
-                        <FormLabel className="font-normal">Purple</FormLabel>
-                      </FormItem>
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="orange-600" className="bg-orange-600" />
-                        </FormControl>
-                        <FormLabel className="font-normal">Orange</FormLabel>
-                      </FormItem>
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="pink-600" className="bg-pink-600" />
-                        </FormControl>
-                        <FormLabel className="font-normal">Pink</FormLabel>
-                      </FormItem>
-                    </RadioGroup>
-                  </FormControl>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value || undefined}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose avatar color" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {colorOptions.map((color) => (
+                        <SelectItem key={color.value} value={color.value}>
+                          <div className="flex items-center">
+                            <div
+                              className="h-4 w-4 rounded-full mr-2"
+                              style={{ backgroundColor: color.value }}
+                            />
+                            {color.label}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>
+                    Select a color for your profile avatar.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

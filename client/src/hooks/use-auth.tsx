@@ -1,93 +1,179 @@
 import { createContext, ReactNode, useContext } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { User, insertUserSchema } from "@shared/schema";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import {
+  useQuery,
+  useMutation,
+  UseMutationResult,
+  useQueryClient,
+} from "@tanstack/react-query";
+import { User } from "@shared/schema";
+import { getQueryFn, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
 type AuthContextType = {
   user: User | null;
   isLoading: boolean;
   error: Error | null;
-  login: (username: string, password: string) => Promise<void>;
+  login: (username: string, password: string) => Promise<User>;
+  register: (username: string, fullName: string, email: string, password: string) => Promise<User>;
   logout: () => Promise<void>;
-  register: (username: string, fullName: string, email: string, password: string) => Promise<void>;
-  mutateUser: () => Promise<void>;
+  logoutMutation: UseMutationResult<void, Error, void>;
+  updateProfile: (userId: number, data: Partial<User>) => Promise<User>;
 };
 
-const AuthContext = createContext<AuthContextType | null>(null);
+type LoginData = {
+  username: string;
+  password: string;
+};
+
+type RegisterData = {
+  username: string;
+  fullName: string;
+  email: string;
+  password: string;
+};
+
+export const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
-  
+  const queryClient = useQueryClient();
+
+  // Query current user
   const {
     data: user,
     error,
     isLoading,
-    refetch,
-  } = useQuery<User | null>({
+  } = useQuery<User | null, Error>({
     queryKey: ["/api/auth/me"],
-    retry: false,
+    queryFn: getQueryFn({ on401: "returnNull" }),
   });
 
-  const login = async (username: string, password: string) => {
-    try {
-      await apiRequest("POST", "/api/auth/login", { username, password });
-      await refetch();
-    } catch (error) {
+  // Login mutation
+  const loginMutation = useMutation<User, Error, LoginData>({
+    mutationFn: async (credentials) => {
+      const res = await apiRequest("POST", "/api/auth/login", credentials);
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Login failed");
+      }
+      return await res.json();
+    },
+    onSuccess: (userData: User) => {
+      queryClient.setQueryData(["/api/auth/me"], userData);
+      toast({
+        title: "Login successful",
+        description: "Welcome back!",
+      });
+    },
+    onError: (error: Error) => {
       toast({
         title: "Login failed",
-        description: "Invalid username or password",
+        description: error.message,
         variant: "destructive",
       });
-      throw error;
-    }
-  };
+    },
+  });
 
-  const logout = async () => {
-    try {
-      await apiRequest("POST", "/api/auth/logout");
-      queryClient.setQueryData(["/api/auth/me"], null);
-      await refetch();
-    } catch (error) {
-      console.error("Logout failed", error);
-      throw error;
-    }
-  };
-
-  const register = async (username: string, fullName: string, email: string, password: string) => {
-    try {
-      // Calculate initials from full name
-      const nameParts = fullName.split(' ');
-      const initials = nameParts.length > 1 
-        ? `${nameParts[0][0]}${nameParts[nameParts.length - 1][0]}` 
-        : fullName.substring(0, 2);
-      
-      const userData = {
-        username,
-        fullName,
-        email,
-        password,
-        initials: initials.toUpperCase(),
-        role: "analyst", // Default role
-        avatarColor: "blue-600", // Default color
-      };
-      
-      await apiRequest("POST", "/api/auth/register", userData);
-      
-      // Auto login after registration
-      await login(username, password);
-    } catch (error) {
+  // Register mutation
+  const registerMutation = useMutation<User, Error, RegisterData>({
+    mutationFn: async (userData) => {
+      const res = await apiRequest("POST", "/api/auth/register", userData);
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Registration failed");
+      }
+      return await res.json();
+    },
+    onSuccess: (userData: User) => {
+      queryClient.setQueryData(["/api/auth/me"], userData);
+      toast({
+        title: "Registration successful",
+        description: "Welcome to Doliver Capital",
+      });
+    },
+    onError: (error: Error) => {
       toast({
         title: "Registration failed",
-        description: "Username or email may already be in use",
+        description: error.message,
         variant: "destructive",
       });
-      throw error;
-    }
+    },
+  });
+
+  // Logout mutation
+  const logoutMutation = useMutation<void, Error, void>({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/api/auth/logout");
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Logout failed");
+      }
+    },
+    onSuccess: () => {
+      queryClient.setQueryData(["/api/auth/me"], null);
+      toast({
+        title: "Logged out",
+        description: "You have been logged out successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Logout failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Update profile mutation
+  const updateProfileMutation = useMutation<User, Error, { userId: number; data: Partial<User> }>({
+    mutationFn: async ({ userId, data }) => {
+      const res = await apiRequest("PATCH", `/api/users/${userId}`, data);
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Profile update failed");
+      }
+      return await res.json();
+    },
+    onSuccess: (userData: User) => {
+      queryClient.setQueryData(["/api/auth/me"], userData);
+      toast({
+        title: "Profile updated",
+        description: "Your profile has been updated successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Profile update failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Function to login
+  const login = async (username: string, password: string): Promise<User> => {
+    return loginMutation.mutateAsync({ username, password });
   };
 
-  const mutateUser = async () => {
-    await refetch();
+  // Function to register
+  const register = async (
+    username: string,
+    fullName: string,
+    email: string,
+    password: string
+  ): Promise<User> => {
+    return registerMutation.mutateAsync({ username, fullName, email, password });
+  };
+
+  // Function to logout
+  const logout = async (): Promise<void> => {
+    return logoutMutation.mutateAsync();
+  };
+
+  // Function to update profile
+  const updateProfile = async (userId: number, data: Partial<User>): Promise<User> => {
+    return updateProfileMutation.mutateAsync({ userId, data });
   };
 
   return (
@@ -95,11 +181,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       value={{
         user: user || null,
         isLoading,
-        error: error as Error | null,
+        error,
         login,
-        logout,
         register,
-        mutateUser,
+        logout,
+        logoutMutation,
+        updateProfile,
       }}
     >
       {children}
