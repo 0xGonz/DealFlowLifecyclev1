@@ -14,7 +14,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
   return (
     <div className="flex h-screen bg-neutral-100 relative md:pl-48">
       {/* Mobile sidebar toggle */}
-      <div className="md:hidden fixed top-5 left-5 z-50">
+      <div className="md:hidden fixed top-4 left-4 z-50">
         <Button 
           variant="ghost" 
           size="icon" 

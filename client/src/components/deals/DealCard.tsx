@@ -20,9 +20,11 @@ import { getDealStageBadgeClass } from "@/lib/utils/format";
 interface DealCardProps {
   deal: Deal;
   compact?: boolean;
+  onEdit?: () => void;
+  onAllocate?: () => void;
 }
 
-export default function DealCard({ deal, compact = false }: DealCardProps) {
+export default function DealCard({ deal, compact = false, onEdit, onAllocate }: DealCardProps) {
   const [, navigate] = useLocation();
   const { toast } = useToast();
 
@@ -137,7 +139,15 @@ export default function DealCard({ deal, compact = false }: DealCardProps) {
       
       {!compact && (
         <CardFooter className="border-t border-neutral-200 p-3 flex justify-between">
-          <Button variant="ghost" size="sm" className="text-neutral-600 hover:text-primary">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="text-neutral-600 hover:text-primary"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onEdit) onEdit();
+            }}
+          >
             <Edit className="h-4 w-4 mr-1" />
             Edit
           </Button>
@@ -152,10 +162,30 @@ export default function DealCard({ deal, compact = false }: DealCardProps) {
             {deal.starCount ? `${deal.starCount}` : 'Star'}
           </Button>
           
-          <Button variant="ghost" size="sm" className="text-neutral-600 hover:text-primary">
-            <Share2 className="h-4 w-4 mr-1" />
-            Share
-          </Button>
+          {deal.stage === 'invested' && onAllocate ? (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="text-neutral-600 hover:text-primary"
+              onClick={(e) => {
+                e.stopPropagation();
+                onAllocate();
+              }}
+            >
+              <DollarSign className="h-4 w-4 mr-1" />
+              Allocate
+            </Button>
+          ) : (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="text-neutral-600 hover:text-primary"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Share2 className="h-4 w-4 mr-1" />
+              Share
+            </Button>
+          )}
         </CardFooter>
       )}
     </Card>
