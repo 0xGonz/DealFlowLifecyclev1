@@ -42,7 +42,7 @@ export default function DealsTable({ deals, onEdit, onAllocate, isLoading }: Dea
             <TableHead className="w-[200px] font-semibold">Deal Name</TableHead>
             <TableHead className="w-[100px] font-semibold">Type</TableHead>
             <TableHead className="w-[300px] font-semibold">Description</TableHead>
-            <TableHead className="w-[60px] font-semibold text-right">%</TableHead>
+            <TableHead className="w-[80px] font-semibold text-right">Return %</TableHead>
             <TableHead className="w-[120px] font-semibold">Status</TableHead>
             <TableHead className="w-[100px] text-center font-semibold">Actions</TableHead>
           </TableRow>
