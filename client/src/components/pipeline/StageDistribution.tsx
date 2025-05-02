@@ -23,6 +23,100 @@ const STAGE_COLORS: Record<string, string> = {
 export default function StageDistribution({ deals, stage }: StageDistributionProps) {
   if (!deals || deals.length === 0) return null;
   
+  // Function to calculate days in stage for each deal
+  const calculateDaysInStage = (deal: Deal): number => {
+    // In a real app, we'd use timeline events to calculate accurate days in stage
+    // For demo, we'll use creation date as a proxy
+    const creationDate = new Date(deal.createdAt);
+    const today = new Date();
+    return Math.max(1, Math.floor((today.getTime() - creationDate.getTime()) / (1000 * 60 * 60 * 24)));
+  };
+  
+  // Different visualizations based on whether we're viewing all deals or a specific stage
+  if (stage !== 'all') {
+    // For specific stage view, show "Days in Stage" visualization
+    const stageName = stage.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+    const colorClass = STAGE_COLORS[stage] || "bg-neutral-400";
+    
+    // Calculate days in stage for each deal
+    const dealDays = deals.map(deal => ({
+      id: deal.id,
+      name: deal.name,
+      days: calculateDaysInStage(deal),
+    }));
+    
+    // Sort by days (descending)
+    dealDays.sort((a, b) => b.days - a.days);
+    
+    // Type for our category stats
+    type CategoryStat = {
+      label: string;
+      count: number;
+      percentage?: number;
+    };
+    
+    // Calculate distribution categories
+    const categories: CategoryStat[] = [
+      { label: '< 7 days', count: dealDays.filter(d => d.days < 7).length },
+      { label: '7-14 days', count: dealDays.filter(d => d.days >= 7 && d.days < 14).length },
+      { label: '15-30 days', count: dealDays.filter(d => d.days >= 14 && d.days < 30).length },
+      { label: '30+ days', count: dealDays.filter(d => d.days >= 30).length },
+    ];
+    
+    // Calculate percentages
+    categories.forEach(cat => {
+      cat.percentage = Math.round((cat.count / deals.length) * 100) || 0;
+    });
+    
+    return (
+      <Card className="mb-6">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base sm:text-lg">
+            Days in {stageName} Stage
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3 sm:space-y-4">
+            {categories.map((cat, index) => (
+              <div key={index} className="space-y-1">
+                <div className="flex flex-wrap sm:flex-nowrap justify-between items-center">
+                  <div className="flex items-center mb-1 sm:mb-0 min-w-[120px]">
+                    <div className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full ${colorClass} mr-1.5 sm:mr-2 flex-shrink-0`}></div>
+                    <span className="text-xs sm:text-sm font-medium truncate">{cat.label}</span>
+                  </div>
+                  <div className="flex items-center ml-auto sm:ml-0">
+                    <span className="text-xs sm:text-sm text-neutral-500 mr-1.5 sm:mr-2">{cat.count} deals</span>
+                    <span className="text-[10px] sm:text-xs text-neutral-500 bg-neutral-100 px-1.5 py-0.5 rounded-full whitespace-nowrap">
+                      {cat.percentage}%
+                    </span>
+                  </div>
+                </div>
+                <div className="w-full bg-neutral-100 rounded-full h-2 sm:h-2.5">
+                  <div 
+                    className={`${colorClass} h-2 sm:h-2.5 rounded-full transition-all duration-300 ease-in-out`} 
+                    style={{ width: `${cat.percentage}%` }}
+                  ></div>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          {/* List of deals with their days in stage */}
+          <div className="mt-4 space-y-2">
+            <h4 className="text-xs font-medium text-neutral-500">Individual Deals</h4>
+            {dealDays.map((deal) => (
+              <div key={deal.id} className="flex justify-between items-center text-xs py-1 border-b border-neutral-100">
+                <span className="font-medium truncate max-w-[70%]">{deal.name}</span>
+                <span className="text-neutral-500">{deal.days} days</span>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+  
+  // For "All Deals" view, show the regular stage distribution
   // Group deals by stage
   const stageGroups = deals.reduce((acc: Record<string, Deal[]>, deal: Deal) => {
     const stage = deal.stage;
@@ -45,15 +139,11 @@ export default function StageDistribution({ deals, stage }: StageDistributionPro
   // Sort by count (descending)
   stageStats.sort((a, b) => b.count - a.count);
   
-  const title = stage === 'all' 
-    ? 'Deal Stage Distribution' 
-    : `Stage Distribution - ${stage.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}`;
-  
   return (
     <Card className="mb-6">
       <CardHeader className="pb-2">
         <CardTitle className="text-base sm:text-lg">
-          {title}
+          Deal Stage Distribution
         </CardTitle>
       </CardHeader>
       <CardContent>
