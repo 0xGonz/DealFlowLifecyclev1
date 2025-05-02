@@ -87,7 +87,7 @@ export default function Sidebar({ onCloseMobile }: SidebarProps) {
               <li key={item.href} className="mb-0.5 px-1">
                 <a
                   href={item.href}
-                  className={`sidebar-nav-link flex items-center py-1.5 px-2 hover:bg-neutral-100 transition-colors rounded-md text-xs ${
+                  className={`sidebar-nav-link flex items-center py-1.5 px-2 hover:bg-neutral-100 transition-colors rounded-md text-sm ${
                     location === item.href
                       ? "active bg-neutral-100 text-primary-dark font-medium"
                       : "text-neutral-700"
@@ -101,7 +101,7 @@ export default function Sidebar({ onCloseMobile }: SidebarProps) {
             ))}
             
             <li className="mt-4 mb-2 px-2">
-              <span className="text-2xs font-semibold text-neutral-500 uppercase tracking-wider">
+              <span className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">
                 Admin
               </span>
             </li>
@@ -110,7 +110,7 @@ export default function Sidebar({ onCloseMobile }: SidebarProps) {
               <li key={item.href} className="mb-0.5 px-1">
                 <a
                   href={item.href}
-                  className={`sidebar-nav-link flex items-center py-1.5 px-2 hover:bg-neutral-100 transition-colors rounded-md text-xs ${
+                  className={`sidebar-nav-link flex items-center py-1.5 px-2 hover:bg-neutral-100 transition-colors rounded-md text-sm ${
                     location === item.href
                       ? "active bg-neutral-100 text-primary-dark font-medium"
                       : "text-neutral-700"
@@ -129,7 +129,7 @@ export default function Sidebar({ onCloseMobile }: SidebarProps) {
         <div className="p-2 border-t border-neutral-200">
           <a 
             href="/logout" 
-            className="flex items-center py-1.5 px-2 rounded-md text-xs text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900 transition-colors"
+            className="flex items-center py-1.5 px-2 rounded-md text-sm text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900 transition-colors"
             onClick={() => onCloseMobile && window.innerWidth < 768 && onCloseMobile()}
           >
             <LogOut className="h-4 w-4 mr-2" />
