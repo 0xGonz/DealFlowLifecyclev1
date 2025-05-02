@@ -5,6 +5,9 @@ import DealCard from "@/components/deals/DealCard";
 import NewDealModal from "@/components/deals/NewDealModal";
 import EditDealModal from "@/components/deals/EditDealModal";
 import AllocateFundModal from "@/components/deals/AllocateFundModal";
+import PipelineStats from "@/components/pipeline/PipelineStats";
+import StageDistribution from "@/components/pipeline/StageDistribution";
+import SectorDistribution from "@/components/pipeline/SectorDistribution";
 import { Button } from "@/components/ui/button";
 import { Select, SelectItem, SelectTrigger, SelectValue, SelectContent } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
@@ -175,36 +178,17 @@ export default function Pipeline() {
             ) : filteredDeals?.length === 0 ? (
               <div className="py-12 text-center text-neutral-500">No deals found matching the criteria.</div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {filteredDeals?.map((deal) => (
-                  <DealCard 
-                    key={deal.id}
-                    deal={deal}
-                    onEdit={() => {
-                      setSelectedDealId(deal.id);
-                      setIsEditDealModalOpen(true);
-                    }}
-                    onAllocate={() => {
-                      setSelectedDealId(deal.id);
-                      setSelectedDealName(deal.name);
-                      setIsAllocateFundModalOpen(true);
-                    }}
-                  />
-                ))}
-              </div>
-            )}
-          </TabsContent>
-          
-          {/* Stage Specific Tabs */}
-          {Object.entries(DealStageLabels).map(([stage, label]) => (
-            <TabsContent key={stage} value={stage} className="space-y-4">
-              {isLoading ? (
-                <div className="py-12 text-center text-neutral-500">Loading deals...</div>
-              ) : !dealsByStage?.[stage] || dealsByStage[stage]?.length === 0 ? (
-                <div className="py-12 text-center text-neutral-500">No deals in {label.toLowerCase()} stage.</div>
-              ) : (
+              <>
+                {/* Pipeline stats and visualizations for all deals */}
+                <PipelineStats deals={deals} filteredDeals={filteredDeals} stage="all" />
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  <StageDistribution deals={filteredDeals} stage="all" />
+                  <SectorDistribution deals={filteredDeals} stage="all" />
+                </div>
+                
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                  {dealsByStage[stage]?.map((deal) => (
+                  {filteredDeals?.map((deal) => (
                     <DealCard 
                       key={deal.id}
                       deal={deal}
@@ -220,6 +204,45 @@ export default function Pipeline() {
                     />
                   ))}
                 </div>
+              </>
+            )}
+          </TabsContent>
+          
+          {/* Stage Specific Tabs */}
+          {Object.entries(DealStageLabels).map(([stage, label]) => (
+            <TabsContent key={stage} value={stage} className="space-y-4">
+              {isLoading ? (
+                <div className="py-12 text-center text-neutral-500">Loading deals...</div>
+              ) : !dealsByStage?.[stage] || dealsByStage[stage]?.length === 0 ? (
+                <div className="py-12 text-center text-neutral-500">No deals in {label.toLowerCase()} stage.</div>
+              ) : (
+                <>
+                  {/* Pipeline stats and visualizations for stage-specific deals */}
+                  <PipelineStats deals={deals} filteredDeals={dealsByStage[stage]} stage={stage} />
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <StageDistribution deals={dealsByStage[stage]} stage={stage} />
+                    <SectorDistribution deals={dealsByStage[stage]} stage={stage} />
+                  </div>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {dealsByStage[stage]?.map((deal) => (
+                      <DealCard 
+                        key={deal.id}
+                        deal={deal}
+                        onEdit={() => {
+                          setSelectedDealId(deal.id);
+                          setIsEditDealModalOpen(true);
+                        }}
+                        onAllocate={() => {
+                          setSelectedDealId(deal.id);
+                          setSelectedDealName(deal.name);
+                          setIsAllocateFundModalOpen(true);
+                        }}
+                      />
+                    ))}
+                  </div>
+                </>
               )}
             </TabsContent>
           ))}
