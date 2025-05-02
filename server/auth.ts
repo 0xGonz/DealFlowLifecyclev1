@@ -5,9 +5,19 @@ import { promisify } from 'util';
 import { StorageFactory } from './storage-factory';
 import { User } from '@shared/schema';
 
+// Define the interface for Express.User to correctly extend from our schema
 declare global {
   namespace Express {
-    interface User extends User {}
+    interface User {
+      id: number;
+      username: string;
+      password: string;
+      fullName: string;
+      initials: string;
+      email: string;
+      role: string;
+      avatarColor: string;
+    }
   }
 }
 

@@ -1,11 +1,11 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
+import { setupAuth } from './auth';
 
 // Route imports
 import dealsRoutes from './routes/deals';
 import fundsRoutes from './routes/funds';
 import usersRoutes from './routes/users';
-import authRoutes from './routes/auth';
 import dashboardRoutes from './routes/dashboard';
 import leaderboardRoutes from './routes/leaderboard';
 import activityRoutes from './routes/activity';
@@ -19,14 +19,13 @@ import { requireAuth } from './utils/auth';
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
-  // Uncomment to require authentication for all API routes
-  // app.use('/api/*', requireAuth);
+  // Setup authentication with our new implementation
+  setupAuth(app);
   
   // Register route modules
   app.use('/api/deals', dealsRoutes);
   app.use('/api/funds', fundsRoutes);
   app.use('/api/users', usersRoutes);
-  app.use('/api/auth', authRoutes);
   app.use('/api/allocations', allocationsRoutes);
   app.use('/api/dashboard', dashboardRoutes);
   app.use('/api/leaderboard', leaderboardRoutes);
