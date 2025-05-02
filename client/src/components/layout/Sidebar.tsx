@@ -16,7 +16,7 @@ import UserAvatar from "@/components/user/UserAvatar";
 import EditProfileDialog from "@/components/user/EditProfileDialog";
 
 // Format the role name for display (capitalize first letter)
-function formatRole(role: string): string {
+const formatRole = (role: string): string => {
   if (!role) return '';
   return role.charAt(0).toUpperCase() + role.slice(1);
 }
