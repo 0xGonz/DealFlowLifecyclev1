@@ -82,7 +82,9 @@ export default function DealsTable({ deals, onEdit, onAllocate, onUpdateStatus, 
                   <p className="text-2xs xs:text-xs sm:text-sm line-clamp-1 sm:line-clamp-2">{deal.description}</p>
                 </TableCell>
                 <TableCell className="text-right py-2 sm:py-3 px-2 sm:px-4 hidden md:table-cell">
-                  <span className="text-2xs xs:text-xs sm:text-sm font-medium text-emerald-700">10-15%</span>
+                  <span className="text-2xs xs:text-xs sm:text-sm font-medium text-emerald-700">
+                    {deal.targetReturn ? `${deal.targetReturn}%` : deal.score ? `${deal.score}%` : 'N/A'}
+                  </span>
                 </TableCell>
                 <TableCell className="py-1 sm:py-2 px-2 sm:px-4">
                   <DropdownMenu>
