@@ -31,36 +31,36 @@ export default function StatsCard({
   const trendColorClass = isTrendUp ? "text-success" : "text-danger";
 
   return (
-    <Card className="bg-white p-4 rounded-lg shadow">
+    <Card className="bg-white p-3 rounded-lg shadow">
       <div className="flex justify-between items-start">
         <div>
-          <p className="text-sm text-neutral-600 mb-1">{title}</p>
+          <p className="text-xs text-neutral-600 mb-0.5">{title}</p>
           {isLoading ? (
-            <Skeleton className="h-8 w-24" />
+            <Skeleton className="h-6 w-24" />
           ) : (
-            <h3 className="text-2xl font-semibold">{value}</h3>
+            <h3 className="text-xl font-semibold">{value}</h3>
           )}
         </div>
-        <div className="p-2 bg-opacity-20 rounded-lg" style={{ backgroundColor: 'var(--primary-light-alpha-20)' }}>
+        <div className="p-1.5 bg-opacity-20 rounded-lg" style={{ backgroundColor: 'var(--primary-light-alpha-20)' }}>
           {icon}
         </div>
       </div>
       
       {trend !== undefined && (
-        <div className="mt-3 flex items-center text-xs">
+        <div className="mt-1.5 flex items-center text-2xs">
           {isLoading ? (
-            <Skeleton className="h-4 w-16" />
+            <Skeleton className="h-3 w-12" />
           ) : (
             <>
               <span className={`flex items-center ${trendColorClass}`}>
                 {isTrendUp ? (
-                  <ArrowUp className="h-4 w-4 mr-1" />
+                  <ArrowUp className="h-3 w-3 mr-0.5" />
                 ) : (
-                  <ArrowDown className="h-4 w-4 mr-1" />
+                  <ArrowDown className="h-3 w-3 mr-0.5" />
                 )}
                 {Math.abs(trend)} 
               </span>
-              {trendLabel && <span className="text-neutral-500 ml-1">{trendLabel}</span>}
+              {trendLabel && <span className="text-neutral-500 ml-0.5 text-2xs">{trendLabel}</span>}
             </>
           )}
         </div>

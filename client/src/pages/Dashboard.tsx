@@ -75,10 +75,7 @@ export default function Dashboard() {
             />
           </div>
           
-          {/* Quick Actions */}
-          <div className="md:col-span-3">
-            <QuickActions />
-          </div>
+          {/* Quick Actions removed as requested */}
         </div>
         
         {/* Sector Distribution and Recent Deals */}
