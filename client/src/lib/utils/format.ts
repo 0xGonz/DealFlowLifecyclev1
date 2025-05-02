@@ -76,23 +76,25 @@ export const formatRatio = (value: number | undefined | null, decimals = 2): str
 export const getDealStageBadgeClass = (stage: string): string => {
   switch (stage) {
     case 'initial_review':
-      return 'bg-neutral-100 text-neutral-800';
+      return 'bg-gray-200 text-gray-800';
     case 'screening':
-      return 'bg-primary-50 text-primary-800';
+      return 'bg-blue-200 text-blue-800';
     case 'diligence': 
-      return 'bg-blue-100 text-blue-800';
+      return 'bg-indigo-200 text-indigo-800';
     case 'ic_review':
-      return 'bg-purple-100 text-purple-800';
+      return 'bg-purple-200 text-purple-800';
     case 'closing':
-      return 'bg-amber-100 text-amber-800';
+      return 'bg-amber-200 text-amber-800';
     case 'closed':
-      return 'bg-emerald-100 text-emerald-800';
+      return 'bg-emerald-200 text-emerald-800';
     case 'invested':
-      return 'bg-teal-100 text-teal-800';
+      return 'bg-teal-200 text-teal-800';
     case 'rejected':
-      return 'bg-red-100 text-red-800';
+      return 'bg-red-200 text-red-800';
+    case 'passed':
+      return 'bg-yellow-200 text-yellow-800';
     default:
-      return 'bg-neutral-100 text-neutral-800';
+      return 'bg-gray-200 text-gray-800';
   }
 };
 

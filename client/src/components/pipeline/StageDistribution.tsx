@@ -14,16 +14,17 @@ const getStageColorClass = (stage: string): string => {
   const badgeClass = getDealStageBadgeClass(stage);
   
   // Extract the color part from the badge class and convert to vibrant chart colors
-  if (badgeClass.includes('bg-neutral')) return 'bg-neutral-400';
-  if (badgeClass.includes('bg-primary')) return 'bg-primary-500';
+  if (badgeClass.includes('bg-gray')) return 'bg-gray-500';
   if (badgeClass.includes('bg-blue')) return 'bg-blue-500';
-  if (badgeClass.includes('bg-purple')) return 'bg-violet-500';
+  if (badgeClass.includes('bg-indigo')) return 'bg-indigo-500';
+  if (badgeClass.includes('bg-purple')) return 'bg-purple-500';
   if (badgeClass.includes('bg-amber')) return 'bg-amber-500';
   if (badgeClass.includes('bg-emerald')) return 'bg-emerald-500';
   if (badgeClass.includes('bg-teal')) return 'bg-teal-500';
   if (badgeClass.includes('bg-red')) return 'bg-red-500';
+  if (badgeClass.includes('bg-yellow')) return 'bg-yellow-500';
   
-  return 'bg-neutral-400'; // Default
+  return 'bg-gray-500'; // Default
 };
 
 export default function StageDistribution({ deals, stage }: StageDistributionProps) {
