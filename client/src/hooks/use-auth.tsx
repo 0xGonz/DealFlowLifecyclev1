@@ -9,13 +9,16 @@ import { insertUserSchema, type User as SelectUser, type InsertUser } from "@sha
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 
+// Extended type that includes passwordConfirm for registration
+type RegisterData = InsertUser & { passwordConfirm: string };
+
 type AuthContextType = {
   user: SelectUser | null;
   isLoading: boolean;
   error: Error | null;
   loginMutation: UseMutationResult<SelectUser, Error, LoginData>;
   logoutMutation: UseMutationResult<void, Error, void>;
-  registerMutation: UseMutationResult<SelectUser, Error, InsertUser>;
+  registerMutation: UseMutationResult<SelectUser, Error, RegisterData>;
   updateProfileMutation: UseMutationResult<SelectUser, Error, UpdateProfileData>;
 };
 
@@ -81,15 +84,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
   });
 
-  const registerMutation = useMutation<SelectUser, Error, InsertUser>({
+  const registerMutation = useMutation<SelectUser, Error, RegisterData>({
     mutationFn: async (userData) => {
-      // Validate the user data with zod schema
-      const validData = insertUserSchema.parse(userData);
-
+      // We don't validate with insertUserSchema since we need passwordConfirm
+      // which isn't part of the schema
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(validData),
+        body: JSON.stringify(userData),
       });
 
       if (!response.ok) {

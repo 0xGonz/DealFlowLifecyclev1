@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/hooks/use-auth';
+import { InsertUser } from '@shared/schema';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -33,6 +34,9 @@ const registerSchema = z.object({
 // Type inference
 type LoginFormValues = z.infer<typeof loginSchema>;
 type RegisterFormValues = z.infer<typeof registerSchema>;
+
+// Used for registration mutation
+type RegisterData = InsertUser & { passwordConfirm: string };
 
 export default function AuthPage() {
   const [activeTab, setActiveTab] = useState('login');
@@ -68,12 +72,9 @@ export default function AuthPage() {
   };
 
   const onRegisterSubmit = (values: RegisterFormValues) => {
-    // Extract passwordConfirm and create data object for submission
-    const { passwordConfirm, ...userData } = values;
-    
     // The backend will generate initials from fullName
     registerMutation.mutate({
-      ...userData,
+      ...values,
       role: 'analyst', // Default role for new users
     });
   };
