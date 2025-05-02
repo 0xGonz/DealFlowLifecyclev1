@@ -91,7 +91,7 @@ export default function Pipeline() {
 
   return (
     <AppLayout>
-      <div className="flex-1 overflow-y-auto p-6 pb-20">
+      <div className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 pb-20">
         
         {/* Filters */}
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4 w-full">
@@ -181,34 +181,34 @@ export default function Pipeline() {
               <div className="py-12 text-center text-neutral-500">No deals found matching the criteria.</div>
             ) : (
               <div className="bg-white rounded-lg shadow-sm overflow-hidden overflow-x-auto">
-                <table className="w-full min-w-[800px]">
+                <table className="w-full min-w-[650px] sm:min-w-[800px]">
                   <thead className="bg-neutral-50 border-b">
                     <tr>
-                      <th className="text-left px-6 py-3 text-sm font-medium text-neutral-500">Name</th>
-                      <th className="text-left px-6 py-3 text-sm font-medium text-neutral-500">Sector</th>
-                      <th className="text-left px-6 py-3 text-sm font-medium text-neutral-500">Description</th>
-                      <th className="text-center px-6 py-3 text-sm font-medium text-neutral-500">Return</th>
-                      <th className="text-center px-6 py-3 text-sm font-medium text-neutral-500">Status</th>
-                      <th className="text-center px-6 py-3 text-sm font-medium text-neutral-500">Actions</th>
+                      <th className="text-left px-3 sm:px-6 py-3 text-sm font-medium text-neutral-500">Name</th>
+                      <th className="text-left px-3 sm:px-6 py-3 text-sm font-medium text-neutral-500">Sector</th>
+                      <th className="text-left px-3 sm:px-6 py-3 text-sm font-medium text-neutral-500 hidden md:table-cell">Description</th>
+                      <th className="text-center px-3 sm:px-6 py-3 text-sm font-medium text-neutral-500">Return</th>
+                      <th className="text-center px-3 sm:px-6 py-3 text-sm font-medium text-neutral-500">Status</th>
+                      <th className="text-center px-3 sm:px-6 py-3 text-sm font-medium text-neutral-500">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-neutral-200">
                     {filteredDeals?.map((deal: Deal) => (
                       <tr key={deal.id} className="hover:bg-neutral-50 transition-colors cursor-pointer" onClick={() => window.location.href = `/deals/${deal.id}`}>
-                        <td className="px-6 py-4">
+                        <td className="px-3 sm:px-6 py-3 sm:py-4">
                           <div className="font-medium text-neutral-900">{deal.name}</div>
                           <div className="text-xs text-neutral-500 mt-1">
                             {deal.stage === 'diligence' ? 'In Diligence' : DealStageLabels[deal.stage]} since {new Date(deal.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-neutral-600">{deal.sector}</td>
-                        <td className="px-6 py-4 text-neutral-600 max-w-md">
+                        <td className="px-3 sm:px-6 py-3 sm:py-4 text-neutral-600">{deal.sector}</td>
+                        <td className="px-3 sm:px-6 py-3 sm:py-4 text-neutral-600 max-w-md hidden md:table-cell">
                           <div className="line-clamp-2">{deal.description}</div>
                         </td>
-                        <td className="px-6 py-4 text-center font-medium">
+                        <td className="px-3 sm:px-6 py-3 sm:py-4 text-center font-medium">
                           {deal.targetRaise ? `${Math.floor(Math.random() * 30) + 5}%` : '-'}
                         </td>
-                        <td className="px-6 py-4 text-center">
+                        <td className="px-3 sm:px-6 py-3 sm:py-4 text-center">
                           <div className="inline-flex">
                             <Select 
                               defaultValue={deal.stage} 
@@ -247,8 +247,8 @@ export default function Pipeline() {
                             </Select>
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-center">
-                          <div className="flex items-center justify-center space-x-2">
+                        <td className="px-3 sm:px-6 py-3 sm:py-4 text-center">
+                          <div className="flex items-center justify-center space-x-1 sm:space-x-2">
                             <Button 
                               variant="ghost" 
                               size="icon"
@@ -301,15 +301,15 @@ export default function Pipeline() {
                 <div className="py-12 text-center text-neutral-500">No deals in {label.toLowerCase()} stage.</div>
               ) : (
                 <div className="bg-white rounded-lg shadow-sm overflow-hidden overflow-x-auto">
-                  <table className="w-full min-w-[800px]">
+                  <table className="w-full min-w-[650px] sm:min-w-[800px]">
                     <thead className="bg-neutral-50 border-b">
                       <tr>
-                        <th className="text-left px-6 py-3 text-sm font-medium text-neutral-500">Name</th>
-                        <th className="text-left px-6 py-3 text-sm font-medium text-neutral-500">Sector</th>
-                        <th className="text-left px-6 py-3 text-sm font-medium text-neutral-500">Description</th>
-                        <th className="text-center px-6 py-3 text-sm font-medium text-neutral-500">Return</th>
-                        <th className="text-center px-6 py-3 text-sm font-medium text-neutral-500">Status</th>
-                        <th className="text-center px-6 py-3 text-sm font-medium text-neutral-500">Actions</th>
+                        <th className="text-left px-3 sm:px-6 py-3 text-sm font-medium text-neutral-500">Name</th>
+                        <th className="text-left px-3 sm:px-6 py-3 text-sm font-medium text-neutral-500">Sector</th>
+                        <th className="text-left px-3 sm:px-6 py-3 text-sm font-medium text-neutral-500 hidden md:table-cell">Description</th>
+                        <th className="text-center px-3 sm:px-6 py-3 text-sm font-medium text-neutral-500">Return</th>
+                        <th className="text-center px-3 sm:px-6 py-3 text-sm font-medium text-neutral-500">Status</th>
+                        <th className="text-center px-3 sm:px-6 py-3 text-sm font-medium text-neutral-500">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-neutral-200">
