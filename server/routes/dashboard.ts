@@ -47,3 +47,27 @@ dashboardRouter.get('/stats', asyncHandler(async (req, res) => {
     // Additional metrics can be added here
   });
 }));
+
+// Get sector distribution stats
+dashboardRouter.get('/sector-stats', asyncHandler(async (req, res) => {
+  const deals = await storage.getDeals();
+  
+  // Create a map to count deals by sector
+  const sectorCounts: Record<string, number> = {};
+  const pipelineStages = ['initial_review', 'screening', 'diligence', 'ic_review'];
+  
+  // Only count deals in the active pipeline
+  deals.filter(deal => pipelineStages.includes(deal.stage))
+    .forEach(deal => {
+      const sector = deal.sector || 'Other';
+      sectorCounts[sector] = (sectorCounts[sector] || 0) + 1;
+    });
+  
+  // Convert the map to an array of objects for easier consumption by the frontend
+  const sectorStats = Object.entries(sectorCounts).map(([sector, count]) => ({
+    sector,
+    count,
+  }));
+  
+  res.status(200).json(sectorStats);
+}));
