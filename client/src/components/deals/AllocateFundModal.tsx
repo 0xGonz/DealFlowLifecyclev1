@@ -36,7 +36,15 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
     amount: 0,
     securityType: '',
     allocationDate: new Date().toISOString().split('T')[0], // format as YYYY-MM-DD
-    notes: ''
+    notes: '',
+    // Investment tracking fields
+    status: "committed", // committed, funded, unfunded
+    portfolioWeight: 0,
+    interestPaid: 0,
+    distributionPaid: 0,
+    marketValue: 0,
+    moic: 1,
+    irr: 0
   });
 
   // Fetch funds for dropdown
@@ -62,7 +70,15 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
         amount: 0,
         securityType: '',
         allocationDate: new Date().toISOString().split('T')[0],
-        notes: ''
+        notes: '',
+        // Reset investment tracking fields
+        status: "committed",
+        portfolioWeight: 0,
+        interestPaid: 0,
+        distributionPaid: 0,
+        marketValue: 0,
+        moic: 1,
+        irr: 0
       });
 
       // Invalidate queries to refresh data
@@ -203,6 +219,68 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
                 allocationDate: e.target.value
               })}
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="status">Investment Status *</Label>
+            <Select 
+              onValueChange={(value) => setAllocationData({
+                ...allocationData, 
+                status: value
+              })}
+              defaultValue="committed"
+            >
+              <SelectTrigger id="status">
+                <SelectValue placeholder="Select investment status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="committed">Committed</SelectItem>
+                <SelectItem value="funded">Funded</SelectItem>
+                <SelectItem value="unfunded">Unfunded</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="distributionPaid">Distributions Paid</Label>
+              <div className="relative">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-neutral-500">
+                  $
+                </span>
+                <Input 
+                  id="distributionPaid"
+                  type="number"
+                  className="pl-6"
+                  value={allocationData.distributionPaid}
+                  onChange={(e) => setAllocationData({
+                    ...allocationData, 
+                    distributionPaid: parseFloat(e.target.value)
+                  })}
+                  placeholder="0.00"
+                />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="marketValue">Current Market Value</Label>
+              <div className="relative">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-neutral-500">
+                  $
+                </span>
+                <Input 
+                  id="marketValue"
+                  type="number"
+                  className="pl-6"
+                  value={allocationData.marketValue}
+                  onChange={(e) => setAllocationData({
+                    ...allocationData, 
+                    marketValue: parseFloat(e.target.value)
+                  })}
+                  placeholder="0.00"
+                />
+              </div>
+            </div>
           </div>
 
           <div className="space-y-2">

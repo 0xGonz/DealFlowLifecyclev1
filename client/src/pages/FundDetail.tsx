@@ -67,7 +67,15 @@ export default function FundDetail() {
     amount: 0,
     securityType: "",
     allocationDate: new Date().toISOString().split('T')[0], // format as YYYY-MM-DD
-    notes: ""
+    notes: "",
+    // Investment tracking fields
+    status: "committed", // committed, funded, unfunded
+    portfolioWeight: 0,
+    interestPaid: 0,
+    distributionPaid: 0,
+    marketValue: 0,
+    moic: 1,
+    irr: 0
   });
   
   const { toast } = useToast();
@@ -107,7 +115,15 @@ export default function FundDetail() {
         amount: 0,
         securityType: "",
         allocationDate: new Date().toISOString().split('T')[0],
-        notes: ""
+        notes: "",
+        // Reset investment tracking fields
+        status: "committed",
+        portfolioWeight: 0,
+        interestPaid: 0,
+        distributionPaid: 0,
+        marketValue: 0,
+        moic: 1,
+        irr: 0
       });
       setIsNewAllocationDialogOpen(false);
       
@@ -260,7 +276,7 @@ export default function FundDetail() {
                         </div>
                         
                         <div className="space-y-2">
-                          <Label htmlFor="amount">Amount *</Label>
+                          <Label htmlFor="amount">Investment Amount *</Label>
                           <div className="relative">
                             <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-500" />
                             <Input 
@@ -299,6 +315,26 @@ export default function FundDetail() {
                         </div>
                         
                         <div className="space-y-2">
+                          <Label htmlFor="status">Investment Status *</Label>
+                          <Select 
+                            onValueChange={(value) => setNewAllocationData({
+                              ...newAllocationData, 
+                              status: value
+                            })}
+                            defaultValue="committed"
+                          >
+                            <SelectTrigger id="status">
+                              <SelectValue placeholder="Select investment status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="committed">Committed</SelectItem>
+                              <SelectItem value="funded">Funded</SelectItem>
+                              <SelectItem value="unfunded">Unfunded</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        
+                        <div className="space-y-2">
                           <Label htmlFor="allocationDate">Allocation Date</Label>
                           <div className="relative">
                             <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-500" />
@@ -312,6 +348,44 @@ export default function FundDetail() {
                                 allocationDate: e.target.value
                               })}
                             />
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="distributionPaid">Distributions Paid</Label>
+                            <div className="relative">
+                              <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-500" />
+                              <Input 
+                                id="distributionPaid"
+                                type="number"
+                                className="pl-10"
+                                value={newAllocationData.distributionPaid}
+                                onChange={(e) => setNewAllocationData({
+                                  ...newAllocationData, 
+                                  distributionPaid: parseFloat(e.target.value)
+                                })}
+                                placeholder="0.00"
+                              />
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label htmlFor="marketValue">Current Market Value</Label>
+                            <div className="relative">
+                              <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-500" />
+                              <Input 
+                                id="marketValue"
+                                type="number"
+                                className="pl-10"
+                                value={newAllocationData.marketValue}
+                                onChange={(e) => setNewAllocationData({
+                                  ...newAllocationData, 
+                                  marketValue: parseFloat(e.target.value)
+                                })}
+                                placeholder="0.00"
+                              />
+                            </div>
                           </div>
                         </div>
                         
