@@ -99,7 +99,7 @@ export default function Sidebar({ onCloseMobile }: SidebarProps) {
               </li>
             ))}
             
-            <li className="mt-4 mb-2 px-4">
+            <li className="mt-6 mb-3 px-4">
               <span className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">
                 Admin
               </span>
@@ -128,7 +128,7 @@ export default function Sidebar({ onCloseMobile }: SidebarProps) {
         <div className="p-4 border-t border-neutral-200">
           <a 
             href="/logout" 
-            className="flex items-center text-neutral-700 hover:text-neutral-900"
+            className="flex items-center py-3 md:py-2 px-3 rounded-md text-sm md:text-base text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900 transition-colors"
             onClick={() => onCloseMobile && window.innerWidth < 768 && onCloseMobile()}
           >
             <LogOut className="h-5 w-5 mr-3" />
