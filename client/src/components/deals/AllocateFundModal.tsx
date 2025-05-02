@@ -120,7 +120,7 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
     if (!allocationData.securityType) {
       toast({
         title: "Error",
-        description: "Security type is required",
+        description: "Sector is required",
         variant: "destructive"
       });
       return;
@@ -188,7 +188,7 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="securityType">Security Type *</Label>
+            <Label htmlFor="securityType">Sector *</Label>
             <Select
               onValueChange={(value) => setAllocationData({
                 ...allocationData,
@@ -196,14 +196,19 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
               })}
             >
               <SelectTrigger id="securityType">
-                <SelectValue placeholder="Select security type" />
+                <SelectValue placeholder="Select sector" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="common">Common Stock</SelectItem>
-                <SelectItem value="preferred">Preferred Stock</SelectItem>
-                <SelectItem value="convertible">Convertible Note</SelectItem>
-                <SelectItem value="safe">SAFE</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
+                <SelectItem value="Private Credit">Private Credit</SelectItem>
+                <SelectItem value="Buyout">Buyout</SelectItem>
+                <SelectItem value="Crypto">Crypto</SelectItem>
+                <SelectItem value="GP Stakes">GP Stakes</SelectItem>
+                <SelectItem value="Energy">Energy</SelectItem>
+                <SelectItem value="Venture">Venture</SelectItem>
+                <SelectItem value="Technology">Technology</SelectItem>
+                <SelectItem value="SaaS">SaaS</SelectItem>
+                <SelectItem value="Fintech">Fintech</SelectItem>
+                <SelectItem value="Healthcare">Healthcare</SelectItem>
               </SelectContent>
             </Select>
           </div>
