@@ -35,16 +35,16 @@ export default function DealsTable({ deals, onEdit, onAllocate, isLoading }: Dea
   }
 
   return (
-    <div className="rounded-md border bg-white overflow-hidden">
+    <div className="rounded-md border bg-white overflow-x-auto">
       <Table>
         <TableHeader>
-          <TableRow>
-            <TableHead className="w-[250px]">Deal</TableHead>
-            <TableHead>Stage</TableHead>
-            <TableHead>Sector</TableHead>
-            <TableHead>Target Raise</TableHead>
-            <TableHead>Timeline</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+          <TableRow className="bg-muted/50">
+            <TableHead className="w-[200px] font-semibold">Deal</TableHead>
+            <TableHead className="font-semibold">Sector</TableHead>
+            <TableHead className="w-[300px] font-semibold">Description</TableHead>
+            <TableHead className="font-semibold">Return</TableHead>
+            <TableHead className="font-semibold">Status</TableHead>
+            <TableHead className="text-right font-semibold">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -73,25 +73,22 @@ export default function DealsTable({ deals, onEdit, onAllocate, isLoading }: Dea
                       <Link href={`/deals/${deal.id}`} className="font-medium text-neutral-900 hover:text-primary">
                         {deal.name}
                       </Link>
-                      <p className="text-xs text-neutral-500 line-clamp-1 max-w-[200px]">
-                        {deal.description}
-                      </p>
                     </div>
                   </div>
-                </TableCell>
-                <TableCell>
-                  <Badge variant="outline" className={stageBadgeClass}>
-                    {dealStageLabel}
-                  </Badge>
                 </TableCell>
                 <TableCell>
                   <span className="text-sm">{deal.sector}</span>
                 </TableCell>
                 <TableCell>
-                  <span className="text-sm">{deal.targetRaise}</span>
+                  <p className="text-sm line-clamp-2 max-w-[250px]">{deal.description}</p>
                 </TableCell>
                 <TableCell>
-                  <span className="text-sm">{formatDate(deal.updatedAt)}</span>
+                  <span className="text-sm font-medium text-emerald-700">10-15%</span>
+                </TableCell>
+                <TableCell>
+                  <Badge variant="outline" className={stageBadgeClass}>
+                    {dealStageLabel}
+                  </Badge>
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
