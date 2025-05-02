@@ -104,9 +104,9 @@ export default function Pipeline() {
             />
           </div>
           
-          <div className="flex flex-wrap gap-2 sm:gap-3 w-full md:w-auto">
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-3 w-full md:w-auto">
             <Select value={sectorFilter} onValueChange={setSectorFilter}>
-              <SelectTrigger className="w-[140px] sm:w-[180px] bg-white border-neutral-300 text-xs sm:text-sm h-9">
+              <SelectTrigger className="w-full sm:w-[150px] md:w-[160px] bg-white border-neutral-300 text-xs sm:text-sm h-9">
                 <SelectValue placeholder="All Sectors" />
               </SelectTrigger>
               <SelectContent>
@@ -118,7 +118,7 @@ export default function Pipeline() {
             </Select>
             
             <Select value={dateFilter} onValueChange={setDateFilter}>
-              <SelectTrigger className="w-[140px] sm:w-[180px] bg-white border-neutral-300 text-xs sm:text-sm h-9">
+              <SelectTrigger className="w-full sm:w-[150px] md:w-[160px] bg-white border-neutral-300 text-xs sm:text-sm h-9">
                 <SelectValue placeholder="All Returns" />
               </SelectTrigger>
               <SelectContent>
@@ -130,7 +130,7 @@ export default function Pipeline() {
             </Select>
             
             <Select value={stageFilter} onValueChange={setStageFilter}>
-              <SelectTrigger className="w-[140px] sm:w-[180px] bg-white border-neutral-300 text-xs sm:text-sm h-9">
+              <SelectTrigger className="w-full sm:w-[150px] md:w-[160px] bg-white border-neutral-300 text-xs sm:text-sm h-9">
                 <SelectValue placeholder="All Statuses" />
               </SelectTrigger>
               <SelectContent>
@@ -142,7 +142,7 @@ export default function Pipeline() {
             </Select>
             
             <Select value="all" onValueChange={() => {}}>
-              <SelectTrigger className="w-[140px] sm:w-[150px] bg-white border-neutral-300 text-xs sm:text-sm h-9">
+              <SelectTrigger className="w-full sm:w-[150px] md:w-[160px] bg-white border-neutral-300 text-xs sm:text-sm h-9">
                 <SelectValue placeholder="Any Time" />
               </SelectTrigger>
               <SelectContent>

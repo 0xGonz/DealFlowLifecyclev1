@@ -46,12 +46,12 @@ export default function DealsTable({ deals, onEdit, onAllocate, onUpdateStatus, 
       <Table>
         <TableHeader>
           <TableRow className="bg-white border-b">
-            <TableHead className="w-[18%] md:w-[15%] font-semibold">Deal Name</TableHead>
-            <TableHead className="w-[8%] md:w-[10%] lg:w-[8%] hidden sm:table-cell font-semibold">Type</TableHead>
-            <TableHead className="w-auto font-semibold">Description</TableHead>
-            <TableHead className="w-[8%] lg:w-[8%] hidden sm:table-cell font-semibold text-right">Return</TableHead>
-            <TableHead className="w-[25%] md:w-[15%] lg:w-[12%] font-semibold">Status</TableHead>
-            <TableHead className="w-[15%] md:w-[12%] lg:w-[10%] text-center font-semibold">Actions</TableHead>
+            <TableHead className="w-[30%] xs:w-[25%] sm:w-[20%] md:w-[18%] font-semibold">Deal Name</TableHead>
+            <TableHead className="w-[12%] sm:w-[10%] hidden xs:table-cell font-semibold">Type</TableHead>
+            <TableHead className="w-auto hidden sm:table-cell font-semibold">Description</TableHead>
+            <TableHead className="w-[10%] hidden md:table-cell font-semibold text-right">Return</TableHead>
+            <TableHead className="w-[40%] xs:w-[35%] sm:w-[25%] md:w-[20%] lg:w-[15%] font-semibold">Status</TableHead>
+            <TableHead className="w-[20%] xs:w-[15%] md:w-[12%] lg:w-[10%] text-center font-semibold">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -75,14 +75,14 @@ export default function DealsTable({ deals, onEdit, onAllocate, onUpdateStatus, 
                     <div className="text-2xs sm:text-xs text-neutral-500 truncate">In DD since {formatDate(deal.updatedAt)}</div>
                   </div>
                 </TableCell>
-                <TableCell className="py-3 hidden sm:table-cell">
-                  <span className="text-sm">{deal.sector || 'Private Credit'}</span>
+                <TableCell className="py-3 hidden xs:table-cell">
+                  <span className="text-xs sm:text-sm">{deal.sector || 'Private Credit'}</span>
                 </TableCell>
-                <TableCell className="py-2 sm:py-3">
+                <TableCell className="py-2 sm:py-3 hidden sm:table-cell">
                   <p className="text-xs sm:text-sm line-clamp-1 sm:line-clamp-2">{deal.description}</p>
                 </TableCell>
-                <TableCell className="text-right py-3 hidden sm:table-cell">
-                  <span className="text-sm font-medium text-emerald-700">10-15%</span>
+                <TableCell className="text-right py-3 hidden md:table-cell">
+                  <span className="text-xs sm:text-sm font-medium text-emerald-700">10-15%</span>
                 </TableCell>
                 <TableCell className="py-3">
                   <DropdownMenu>
