@@ -15,6 +15,12 @@ import { useAuth } from "@/hooks/use-auth";
 import UserAvatar from "@/components/user/UserAvatar";
 import EditProfileDialog from "@/components/user/EditProfileDialog";
 
+// Format the role name for display (capitalize first letter)
+function formatRole(role: string): string {
+  if (!role) return '';
+  return role.charAt(0).toUpperCase() + role.slice(1);
+}
+
 interface SidebarProps {
   onCloseMobile?: () => void;
 }
@@ -78,7 +84,7 @@ export default function Sidebar({ onCloseMobile }: SidebarProps) {
               />
               <div className="flex flex-col">
                 <span className="text-sm font-medium">{user.fullName}</span>
-                <span className="text-xs text-neutral-500">{user.role}</span>
+                <span className="text-xs text-neutral-500">{formatRole(user.role)}</span>
               </div>
             </div>
           )}

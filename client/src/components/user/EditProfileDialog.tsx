@@ -88,9 +88,17 @@ export default function EditProfileDialog({
   const onSubmit = async (data: ProfileFormValues) => {
     if (!user) return;
     
+    // Make sure the avatarColor is set to the currently selected color
+    const dataWithColor = {
+      ...data,
+      avatarColor: selectedColor
+    };
+    
+    console.log('Submitting profile update:', dataWithColor);
+    
     await updateProfileMutation.mutateAsync({
       userId: user.id,
-      data,
+      data: dataWithColor,
     });
     
     // Close dialog if onOpenChange is provided
