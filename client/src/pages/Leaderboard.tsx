@@ -25,8 +25,8 @@ export default function Leaderboard() {
 
   return (
     <AppLayout>
-      <div className="flex-1 overflow-y-auto p-6 pb-20">
-        <h1 className="text-2xl font-semibold text-neutral-800 mb-6">Deal Leaderboard</h1>
+      <div className="flex-1 overflow-y-auto pb-20">
+        <h1 className="text-xl sm:text-2xl font-semibold text-neutral-800 mb-4 sm:mb-6">Deal Leaderboard</h1>
         
         <Card>
           <CardHeader>
@@ -44,11 +44,11 @@ export default function Leaderboard() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="w-[60px]">Rank</TableHead>
-                        <TableHead>Deal</TableHead>
-                        <TableHead className="text-right">Score</TableHead>
-                        <TableHead className="text-center">Stars</TableHead>
-                        <TableHead>Stage</TableHead>
+                        <TableHead className="w-[40px] sm:w-[60px] text-xs sm:text-sm">Rank</TableHead>
+                        <TableHead className="text-xs sm:text-sm">Deal</TableHead>
+                        <TableHead className="text-right text-xs sm:text-sm">Score</TableHead>
+                        <TableHead className="text-center text-xs sm:text-sm">Stars</TableHead>
+                        <TableHead className="text-xs sm:text-sm">Stage</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -71,34 +71,36 @@ export default function Leaderboard() {
                             className="cursor-pointer hover:bg-neutral-50"
                             onClick={() => navigate(`/deals/${deal.id}`)}
                           >
-                            <TableCell className="font-medium">{index + 1}</TableCell>
-                            <TableCell className="font-medium">{deal.name}</TableCell>
-                            <TableCell className="text-right">
+                            <TableCell className="font-medium text-xs sm:text-sm py-2 sm:py-3">{index + 1}</TableCell>
+                            <TableCell className="font-medium text-xs sm:text-sm py-2 sm:py-3 max-w-[120px] sm:max-w-none">
+                              <div className="truncate">{deal.name}</div>
+                            </TableCell>
+                            <TableCell className="text-right text-xs sm:text-sm py-2 sm:py-3">
                               <div className="flex items-center justify-end">
-                                <span className="text-lg font-semibold mr-2">{deal.score}</span>
+                                <span className="text-base sm:text-lg font-semibold mr-1 sm:mr-2">{deal.score}</span>
                                 {deal.change > 0 ? (
-                                  <span className="text-success text-xs flex items-center">
-                                    <ArrowUp className="h-3 w-3 mr-1" />
+                                  <span className="text-success text-[10px] sm:text-xs flex items-center">
+                                    <ArrowUp className="h-3 w-3 mr-0.5 sm:mr-1" />
                                     {deal.change}
                                   </span>
                                 ) : deal.change < 0 ? (
-                                  <span className="text-destructive text-xs flex items-center">
-                                    <ArrowDown className="h-3 w-3 mr-1" />
+                                  <span className="text-destructive text-[10px] sm:text-xs flex items-center">
+                                    <ArrowDown className="h-3 w-3 mr-0.5 sm:mr-1" />
                                     {Math.abs(deal.change)}
                                   </span>
                                 ) : (
-                                  <span className="text-neutral-500 text-xs">-</span>
+                                  <span className="text-neutral-500 text-[10px] sm:text-xs">-</span>
                                 )}
                               </div>
                             </TableCell>
-                            <TableCell className="text-center">
+                            <TableCell className="text-center text-xs sm:text-sm py-2 sm:py-3">
                               <div className="flex items-center justify-center text-accent">
-                                <Star className="h-4 w-4 fill-current" />
-                                <span className="ml-1 text-sm">{deal.starCount}</span>
+                                <Star className="h-3.5 w-3.5 sm:h-4 sm:w-4 fill-current" />
+                                <span className="ml-1 text-xs sm:text-sm">{deal.starCount}</span>
                               </div>
                             </TableCell>
-                            <TableCell>
-                              <span className={`deal-stage-badge ${getDealStageBadgeClass(deal.stage)}`}>
+                            <TableCell className="text-xs sm:text-sm py-2 sm:py-3">
+                              <span className={`deal-stage-badge text-[10px] sm:text-xs py-1 px-1.5 sm:px-2 ${getDealStageBadgeClass(deal.stage)}`}>
                                 {deal.stageLabel}
                               </span>
                             </TableCell>
@@ -115,11 +117,11 @@ export default function Leaderboard() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="w-[60px]">Rank</TableHead>
-                        <TableHead>Deal</TableHead>
-                        <TableHead className="text-center">Stars</TableHead>
-                        <TableHead className="text-right">Score</TableHead>
-                        <TableHead>Stage</TableHead>
+                        <TableHead className="w-[40px] sm:w-[60px] text-xs sm:text-sm">Rank</TableHead>
+                        <TableHead className="text-xs sm:text-sm">Deal</TableHead>
+                        <TableHead className="text-center text-xs sm:text-sm">Stars</TableHead>
+                        <TableHead className="text-right text-xs sm:text-sm">Score</TableHead>
+                        <TableHead className="text-xs sm:text-sm">Stage</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -143,21 +145,23 @@ export default function Leaderboard() {
                             className="cursor-pointer hover:bg-neutral-50"
                             onClick={() => navigate(`/deals/${deal.id}`)}
                           >
-                            <TableCell className="font-medium">{index + 1}</TableCell>
-                            <TableCell className="font-medium">{deal.name}</TableCell>
-                            <TableCell className="text-center">
+                            <TableCell className="font-medium text-xs sm:text-sm py-2 sm:py-3">{index + 1}</TableCell>
+                            <TableCell className="font-medium text-xs sm:text-sm py-2 sm:py-3 max-w-[120px] sm:max-w-none">
+                              <div className="truncate">{deal.name}</div>
+                            </TableCell>
+                            <TableCell className="text-center text-xs sm:text-sm py-2 sm:py-3">
                               <div className="flex items-center justify-center text-accent">
-                                <Star className="h-4 w-4 fill-current" />
-                                <span className="ml-1 text-sm">{deal.starCount}</span>
+                                <Star className="h-3.5 w-3.5 sm:h-4 sm:w-4 fill-current" />
+                                <span className="ml-1 text-xs sm:text-sm">{deal.starCount}</span>
                               </div>
                             </TableCell>
-                            <TableCell className="text-right">
+                            <TableCell className="text-right text-xs sm:text-sm py-2 sm:py-3">
                               <div className="flex items-center justify-end">
-                                <span className="text-lg font-semibold">{deal.score}</span>
+                                <span className="text-base sm:text-lg font-semibold">{deal.score}</span>
                               </div>
                             </TableCell>
-                            <TableCell>
-                              <span className={`deal-stage-badge ${getDealStageBadgeClass(deal.stage)}`}>
+                            <TableCell className="text-xs sm:text-sm py-2 sm:py-3">
+                              <span className={`deal-stage-badge text-[10px] sm:text-xs py-1 px-1.5 sm:px-2 ${getDealStageBadgeClass(deal.stage)}`}>
                                 {deal.stageLabel}
                               </span>
                             </TableCell>
