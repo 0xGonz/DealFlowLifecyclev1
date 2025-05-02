@@ -54,6 +54,10 @@ import { formatCurrency } from "@/lib/utils/format";
 import { format } from "date-fns";
 import NotFound from "./not-found";
 
+// Visualization components
+import FundSectorDistribution from "@/components/funds/FundSectorDistribution";
+import CalledCapitalRatio from "@/components/funds/CalledCapitalRatio";
+
 export default function FundDetail() {
   // Get fund ID from URL
   const [, params] = useRoute("/funds/:id");
@@ -232,143 +236,68 @@ export default function FundDetail() {
                 </CardContent>
               </Card>
               
-              {/* Quick Actions */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Quick Actions</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <Dialog open={isNewAllocationDialogOpen} onOpenChange={setIsNewAllocationDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button className="w-full bg-primary hover:bg-primary-dark text-white">
-                        <Plus className="h-5 w-5 mr-2" />
-                        New Allocation
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Create New Allocation</DialogTitle>
-                        <DialogDescription>
-                          Allocate capital from {fund?.name} to a deal
-                        </DialogDescription>
-                      </DialogHeader>
-                      
-                      <div className="space-y-4 py-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="deal">Deal *</Label>
-                          <Select 
-                            onValueChange={(value) => setNewAllocationData({
-                              ...newAllocationData, 
-                              dealId: parseInt(value)
-                            })}
-                          >
-                            <SelectTrigger id="deal">
-                              <SelectValue placeholder="Select a deal" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {deals?.map(deal => (
-                                <SelectItem key={deal.id} value={deal.id.toString()}>
-                                  {deal.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
+              {/* Fund Visualizations */}
+              <div className="space-y-6">
+                {/* Import the visualization components */}
+                <FundSectorDistribution allocations={allocations || []} deals={deals || []} />
+                
+                <CalledCapitalRatio allocations={allocations || []} totalFundSize={fund?.aum || 0} />
+                
+                {/* Investment Actions */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Investment Actions</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <Dialog open={isNewAllocationDialogOpen} onOpenChange={setIsNewAllocationDialogOpen}>
+                      <DialogTrigger asChild>
+                        <Button className="w-full bg-primary hover:bg-primary-dark text-white">
+                          <Plus className="h-5 w-5 mr-2" />
+                          New Allocation
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Create New Allocation</DialogTitle>
+                          <DialogDescription>
+                            Allocate capital from {fund?.name} to a deal
+                          </DialogDescription>
+                        </DialogHeader>
                         
-                        <div className="space-y-2">
-                          <Label htmlFor="amount">Investment Amount *</Label>
-                          <div className="relative">
-                            <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-500" />
-                            <Input 
-                              id="amount"
-                              type="number"
-                              className="pl-10"
-                              value={newAllocationData.amount}
-                              onChange={(e) => setNewAllocationData({
-                                ...newAllocationData, 
-                                amount: parseFloat(e.target.value)
-                              })}
-                              placeholder="0.00"
-                            />
-                          </div>
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <Label htmlFor="securityType">Sector *</Label>
-                          <Select 
-                            onValueChange={(value) => setNewAllocationData({
-                              ...newAllocationData, 
-                              securityType: value
-                            })}
-                          >
-                            <SelectTrigger id="securityType">
-                              <SelectValue placeholder="Select sector" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="Private Credit">Private Credit</SelectItem>
-                              <SelectItem value="Buyout">Buyout</SelectItem>
-                              <SelectItem value="Crypto">Crypto</SelectItem>
-                              <SelectItem value="GP Stakes">GP Stakes</SelectItem>
-                              <SelectItem value="Energy">Energy</SelectItem>
-                              <SelectItem value="Venture">Venture</SelectItem>
-                              <SelectItem value="Technology">Technology</SelectItem>
-                              <SelectItem value="SaaS">SaaS</SelectItem>
-                              <SelectItem value="Fintech">Fintech</SelectItem>
-                              <SelectItem value="Healthcare">Healthcare</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <Label htmlFor="status">Investment Status *</Label>
-                          <Select 
-                            onValueChange={(value) => setNewAllocationData({
-                              ...newAllocationData, 
-                              status: value
-                            })}
-                            defaultValue="committed"
-                          >
-                            <SelectTrigger id="status">
-                              <SelectValue placeholder="Select investment status" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="committed">Committed</SelectItem>
-                              <SelectItem value="funded">Funded</SelectItem>
-                              <SelectItem value="unfunded">Unfunded</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <Label htmlFor="allocationDate">Allocation Date</Label>
-                          <div className="relative">
-                            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-500" />
-                            <Input 
-                              id="allocationDate"
-                              type="date"
-                              className="pl-10"
-                              value={newAllocationData.allocationDate}
-                              onChange={(e) => setNewAllocationData({
-                                ...newAllocationData, 
-                                allocationDate: e.target.value
-                              })}
-                            />
-                          </div>
-                        </div>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-4 py-4">
                           <div className="space-y-2">
-                            <Label htmlFor="distributionPaid">Distributions Paid</Label>
+                            <Label htmlFor="deal">Deal *</Label>
+                            <Select 
+                              onValueChange={(value) => setNewAllocationData({
+                                ...newAllocationData, 
+                                dealId: parseInt(value)
+                              })}
+                            >
+                              <SelectTrigger id="deal">
+                                <SelectValue placeholder="Select a deal" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {deals?.map(deal => (
+                                  <SelectItem key={deal.id} value={deal.id.toString()}>
+                                    {deal.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label htmlFor="amount">Investment Amount *</Label>
                             <div className="relative">
                               <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-500" />
                               <Input 
-                                id="distributionPaid"
+                                id="amount"
                                 type="number"
                                 className="pl-10"
-                                value={newAllocationData.distributionPaid}
+                                value={newAllocationData.amount}
                                 onChange={(e) => setNewAllocationData({
                                   ...newAllocationData, 
-                                  distributionPaid: parseFloat(e.target.value)
+                                  amount: parseFloat(e.target.value)
                                 })}
                                 placeholder="0.00"
                               />
@@ -376,145 +305,228 @@ export default function FundDetail() {
                           </div>
                           
                           <div className="space-y-2">
-                            <Label htmlFor="marketValue">Current Market Value</Label>
+                            <Label htmlFor="securityType">Sector *</Label>
+                            <Select 
+                              onValueChange={(value) => setNewAllocationData({
+                                ...newAllocationData, 
+                                securityType: value
+                              })}
+                            >
+                              <SelectTrigger id="securityType">
+                                <SelectValue placeholder="Select sector" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Private Credit">Private Credit</SelectItem>
+                                <SelectItem value="Buyout">Buyout</SelectItem>
+                                <SelectItem value="Crypto">Crypto</SelectItem>
+                                <SelectItem value="GP Stakes">GP Stakes</SelectItem>
+                                <SelectItem value="Energy">Energy</SelectItem>
+                                <SelectItem value="Venture">Venture</SelectItem>
+                                <SelectItem value="Technology">Technology</SelectItem>
+                                <SelectItem value="SaaS">SaaS</SelectItem>
+                                <SelectItem value="Fintech">Fintech</SelectItem>
+                                <SelectItem value="Healthcare">Healthcare</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label htmlFor="status">Investment Status *</Label>
+                            <Select 
+                              onValueChange={(value) => setNewAllocationData({
+                                ...newAllocationData, 
+                                status: value
+                              })}
+                              defaultValue="committed"
+                            >
+                              <SelectTrigger id="status">
+                                <SelectValue placeholder="Select investment status" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="committed">Committed</SelectItem>
+                                <SelectItem value="funded">Funded</SelectItem>
+                                <SelectItem value="unfunded">Unfunded</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label htmlFor="allocationDate">Allocation Date</Label>
                             <div className="relative">
-                              <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-500" />
+                              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-500" />
                               <Input 
-                                id="marketValue"
-                                type="number"
+                                id="allocationDate"
+                                type="date"
                                 className="pl-10"
-                                value={newAllocationData.marketValue}
+                                value={newAllocationData.allocationDate}
                                 onChange={(e) => setNewAllocationData({
                                   ...newAllocationData, 
-                                  marketValue: parseFloat(e.target.value)
+                                  allocationDate: e.target.value
                                 })}
-                                placeholder="0.00"
                               />
                             </div>
                           </div>
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <Label htmlFor="notes">Notes</Label>
-                          <Textarea 
-                            id="notes" 
-                            value={newAllocationData.notes}
-                            onChange={(e) => setNewAllocationData({
-                              ...newAllocationData, 
-                              notes: e.target.value
-                            })}
-                            placeholder="Additional details about this allocation"
-                          />
-                        </div>
-                      </div>
-                      
-                      <DialogFooter>
-                        <Button 
-                          variant="outline"
-                          onClick={() => setIsNewAllocationDialogOpen(false)}
-                        >
-                          Cancel
-                        </Button>
-                        <Button 
-                          onClick={handleCreateAllocation}
-                          disabled={createAllocation.isPending}
-                        >
-                          {createAllocation.isPending ? "Creating..." : "Create Allocation"}
-                        </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                  
-                  <Dialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button variant="outline" className="w-full">
-                        <FileText className="h-5 w-5 mr-2" />
-                        Generate Report
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Fund Report</DialogTitle>
-                        <DialogDescription>
-                          Generate a performance report for {fund?.name}
-                        </DialogDescription>
-                      </DialogHeader>
-                      
-                      <div className="space-y-4 py-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="reportType">Report Type</Label>
-                          <Select defaultValue="performance">
-                            <SelectTrigger id="reportType">
-                              <SelectValue placeholder="Select report type" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="performance">Performance Metrics</SelectItem>
-                              <SelectItem value="allocation">Allocation Summary</SelectItem>
-                              <SelectItem value="comprehensive">Comprehensive Report</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <Label htmlFor="reportFormat">Format</Label>
-                          <Select defaultValue="pdf">
-                            <SelectTrigger id="reportFormat">
-                              <SelectValue placeholder="Select format" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="pdf">PDF Document</SelectItem>
-                              <SelectItem value="excel">Excel Spreadsheet</SelectItem>
-                              <SelectItem value="csv">CSV File</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <Label htmlFor="dateRange">Date Range</Label>
-                          <div className="grid grid-cols-1 xs:grid-cols-2 gap-2 xs:gap-4">
-                            <div className="relative">
-                              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-500" />
-                              <Input 
-                                id="startDate"
-                                type="date"
-                                className="pl-10"
-                                defaultValue={new Date(new Date().setMonth(new Date().getMonth() - 3)).toISOString().split('T')[0]}
-                              />
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <Label htmlFor="distributionPaid">Distributions Paid</Label>
+                              <div className="relative">
+                                <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-500" />
+                                <Input 
+                                  id="distributionPaid"
+                                  type="number"
+                                  className="pl-10"
+                                  value={newAllocationData.distributionPaid}
+                                  onChange={(e) => setNewAllocationData({
+                                    ...newAllocationData, 
+                                    distributionPaid: parseFloat(e.target.value)
+                                  })}
+                                  placeholder="0.00"
+                                />
+                              </div>
                             </div>
-                            <div className="relative">
-                              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-500" />
-                              <Input 
-                                id="endDate"
-                                type="date"
-                                className="pl-10"
-                                defaultValue={new Date().toISOString().split('T')[0]}
-                              />
+                            
+                            <div className="space-y-2">
+                              <Label htmlFor="marketValue">Current Market Value</Label>
+                              <div className="relative">
+                                <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-500" />
+                                <Input 
+                                  id="marketValue"
+                                  type="number"
+                                  className="pl-10"
+                                  value={newAllocationData.marketValue}
+                                  onChange={(e) => setNewAllocationData({
+                                    ...newAllocationData, 
+                                    marketValue: parseFloat(e.target.value)
+                                  })}
+                                  placeholder="0.00"
+                                />
+                              </div>
                             </div>
                           </div>
+                          
+                          <div className="space-y-2">
+                            <Label htmlFor="notes">Notes</Label>
+                            <Textarea 
+                              id="notes" 
+                              value={newAllocationData.notes}
+                              onChange={(e) => setNewAllocationData({
+                                ...newAllocationData, 
+                                notes: e.target.value
+                              })}
+                              placeholder="Additional details about this allocation"
+                            />
+                          </div>
                         </div>
-                      </div>
-                      
-                      <DialogFooter>
-                        <Button 
-                          variant="outline"
-                          onClick={() => setIsReportDialogOpen(false)}
-                        >
-                          Cancel
-                        </Button>
-                        <Button onClick={() => {
-                          toast({
-                            title: "Report Generated",
-                            description: "Your report has been generated and is ready to download",
-                          });
-                          setIsReportDialogOpen(false);
-                        }}>
+                        
+                        <DialogFooter>
+                          <Button 
+                            variant="outline"
+                            onClick={() => setIsNewAllocationDialogOpen(false)}
+                          >
+                            Cancel
+                          </Button>
+                          <Button 
+                            onClick={handleCreateAllocation}
+                            disabled={createAllocation.isPending}
+                          >
+                            {createAllocation.isPending ? "Creating..." : "Create Allocation"}
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                    
+                    <Dialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" className="w-full">
+                          <FileText className="h-5 w-5 mr-2" />
                           Generate Report
                         </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                </CardContent>
-              </Card>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Fund Report</DialogTitle>
+                          <DialogDescription>
+                            Generate a performance report for {fund?.name}
+                          </DialogDescription>
+                        </DialogHeader>
+                        
+                        <div className="space-y-4 py-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="reportType">Report Type</Label>
+                            <Select defaultValue="performance">
+                              <SelectTrigger id="reportType">
+                                <SelectValue placeholder="Select report type" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="performance">Performance Metrics</SelectItem>
+                                <SelectItem value="allocation">Allocation Summary</SelectItem>
+                                <SelectItem value="comprehensive">Comprehensive Report</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label htmlFor="reportFormat">Format</Label>
+                            <Select defaultValue="pdf">
+                              <SelectTrigger id="reportFormat">
+                                <SelectValue placeholder="Select format" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="pdf">PDF Document</SelectItem>
+                                <SelectItem value="excel">Excel Spreadsheet</SelectItem>
+                                <SelectItem value="csv">CSV File</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label htmlFor="dateRange">Date Range</Label>
+                            <div className="grid grid-cols-1 xs:grid-cols-2 gap-2 xs:gap-4">
+                              <div className="relative">
+                                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-500" />
+                                <Input 
+                                  id="startDate"
+                                  type="date"
+                                  className="pl-10"
+                                  defaultValue={new Date(new Date().setMonth(new Date().getMonth() - 3)).toISOString().split('T')[0]}
+                                />
+                              </div>
+                              <div className="relative">
+                                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-500" />
+                                <Input 
+                                  id="endDate"
+                                  type="date"
+                                  className="pl-10"
+                                  defaultValue={new Date().toISOString().split('T')[0]}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <DialogFooter>
+                          <Button 
+                            variant="outline"
+                            onClick={() => setIsReportDialogOpen(false)}
+                          >
+                            Cancel
+                          </Button>
+                          <Button onClick={() => {
+                            toast({
+                              title: "Report Generated",
+                              description: "Your report has been generated and is ready to download",
+                            });
+                            setIsReportDialogOpen(false);
+                          }}>
+                            Generate Report
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
             
             {/* Fund Allocations */}
