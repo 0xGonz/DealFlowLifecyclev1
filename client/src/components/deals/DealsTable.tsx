@@ -42,16 +42,16 @@ export default function DealsTable({ deals, onEdit, onAllocate, onUpdateStatus, 
   }
 
   return (
-    <div className="rounded-md border bg-white overflow-x-auto w-full">
+    <div className="rounded-md border bg-white overflow-x-auto w-full -mx-4 px-4 sm:mx-0 sm:px-0">
       <Table>
         <TableHeader>
           <TableRow className="bg-white border-b">
-            <TableHead className="w-[30%] xs:w-[25%] sm:w-[20%] md:w-[18%] font-semibold">Deal Name</TableHead>
-            <TableHead className="w-[12%] sm:w-[10%] hidden xs:table-cell font-semibold">Type</TableHead>
-            <TableHead className="w-auto hidden sm:table-cell font-semibold">Description</TableHead>
-            <TableHead className="w-[10%] hidden md:table-cell font-semibold text-right">Return</TableHead>
-            <TableHead className="w-[40%] xs:w-[35%] sm:w-[25%] md:w-[20%] lg:w-[15%] font-semibold">Status</TableHead>
-            <TableHead className="w-[20%] xs:w-[15%] md:w-[12%] lg:w-[10%] text-center font-semibold">Actions</TableHead>
+            <TableHead className="w-[35%] xs:w-[25%] sm:w-[20%] md:w-[18%] font-semibold text-[10px] xs:text-xs sm:text-sm">Deal Name</TableHead>
+            <TableHead className="w-[12%] sm:w-[10%] hidden xs:table-cell font-semibold text-[10px] xs:text-xs sm:text-sm">Type</TableHead>
+            <TableHead className="w-auto hidden sm:table-cell font-semibold text-[10px] xs:text-xs sm:text-sm">Description</TableHead>
+            <TableHead className="w-[10%] hidden md:table-cell font-semibold text-right text-[10px] xs:text-xs sm:text-sm">Return</TableHead>
+            <TableHead className="w-[40%] xs:w-[35%] sm:w-[25%] md:w-[20%] lg:w-[15%] font-semibold text-[10px] xs:text-xs sm:text-sm">Status</TableHead>
+            <TableHead className="w-[25%] xs:w-[15%] md:w-[12%] lg:w-[10%] text-center font-semibold text-[10px] xs:text-xs sm:text-sm">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -69,29 +69,29 @@ export default function DealsTable({ deals, onEdit, onAllocate, onUpdateStatus, 
               
             return (
               <TableRow key={deal.id} className="hover:bg-neutral-50 cursor-default">
-                <TableCell className="py-2 sm:py-3">
+                <TableCell className="py-1.5 sm:py-2.5 px-2 sm:px-4">
                   <div className="flex flex-col">
-                    <div className="font-medium text-sm sm:text-base text-neutral-900 truncate">{deal.name}</div>
-                    <div className="text-2xs sm:text-xs text-neutral-500 truncate">In DD since {formatDate(deal.updatedAt)}</div>
+                    <div className="font-medium text-xs sm:text-sm md:text-base text-neutral-900 truncate">{deal.name}</div>
+                    <div className="text-[8px] xs:text-2xs sm:text-xs text-neutral-500 truncate">In DD since {formatDate(deal.updatedAt)}</div>
                   </div>
                 </TableCell>
-                <TableCell className="py-3 hidden xs:table-cell">
-                  <span className="text-xs sm:text-sm">{deal.sector || 'Private Credit'}</span>
+                <TableCell className="py-2 sm:py-3 px-2 sm:px-4 hidden xs:table-cell">
+                  <span className="text-2xs xs:text-xs sm:text-sm">{deal.sector || 'Private Credit'}</span>
                 </TableCell>
-                <TableCell className="py-2 sm:py-3 hidden sm:table-cell">
-                  <p className="text-xs sm:text-sm line-clamp-1 sm:line-clamp-2">{deal.description}</p>
+                <TableCell className="py-1.5 sm:py-2.5 px-2 sm:px-4 hidden sm:table-cell">
+                  <p className="text-2xs xs:text-xs sm:text-sm line-clamp-1 sm:line-clamp-2">{deal.description}</p>
                 </TableCell>
-                <TableCell className="text-right py-3 hidden md:table-cell">
-                  <span className="text-xs sm:text-sm font-medium text-emerald-700">10-15%</span>
+                <TableCell className="text-right py-2 sm:py-3 px-2 sm:px-4 hidden md:table-cell">
+                  <span className="text-2xs xs:text-xs sm:text-sm font-medium text-emerald-700">10-15%</span>
                 </TableCell>
-                <TableCell className="py-3">
+                <TableCell className="py-1 sm:py-2 px-2 sm:px-4">
                   <DropdownMenu>
                     <DropdownMenuTrigger className="focus:outline-none" asChild>
                       <div className="flex items-center gap-1 sm:gap-2 cursor-pointer max-w-full">
-                        <Badge variant="outline" className={`${stageBadgeClass} text-xs sm:text-sm truncate max-w-[85%] sm:max-w-none`}>
+                        <Badge variant="outline" className={`${stageBadgeClass} text-[9px] xs:text-xs sm:text-sm px-1.5 py-0.5 truncate max-w-[85%] sm:max-w-none`}>
                           {dealStageLabel}
                         </Badge>
-                        <ChevronDown className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0 text-neutral-400" />
+                        <ChevronDown className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 flex-shrink-0 text-neutral-400" />
                       </div>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" className="w-[180px]">
@@ -102,35 +102,35 @@ export default function DealsTable({ deals, onEdit, onAllocate, onUpdateStatus, 
                           onClick={() => onUpdateStatus ? onUpdateStatus(deal.id, stage) : console.log(`Changed status to ${stage}`)}
                         >
                           <span>{label}</span>
-                          {stage === deal.stage && <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />}
+                          {stage === deal.stage && <Check className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-primary" />}
                         </DropdownMenuItem>
                       ))}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>
-                <TableCell className="py-3">
+                <TableCell className="py-1 sm:py-2 px-2 sm:px-4">
                   <div className="flex justify-center gap-1 md:gap-2">
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-7 w-7 sm:h-8 sm:w-8 p-0 hidden sm:inline-flex"
+                      className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 p-0 hidden sm:inline-flex"
                     >
-                      <User className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-neutral-600" />
+                      <User className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 text-neutral-600" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-7 w-7 sm:h-8 sm:w-8 p-0 hidden sm:inline-flex"
+                      className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 p-0 hidden sm:inline-flex"
                     >
-                      <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-neutral-600" />
+                      <FileText className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 text-neutral-600" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => onEdit(deal.id)}
-                      className="h-7 w-7 sm:h-8 sm:w-8 p-0"
+                      className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 p-0"
                     >
-                      <MoreHorizontal className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-neutral-600" />
+                      <MoreHorizontal className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 text-neutral-600" />
                     </Button>
                   </div>
                 </TableCell>

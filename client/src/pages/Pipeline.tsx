@@ -92,21 +92,21 @@ export default function Pipeline() {
     <AppLayout>
       <div className="flex-1 overflow-y-auto pb-20">
         {/* Filters */}
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4 w-full">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 sm:mb-6 gap-3 sm:gap-4 w-full">
           <div className="relative w-full md:max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-500 h-4 w-4" />
+            <Search className="absolute left-2.5 sm:left-3 top-1/2 transform -translate-y-1/2 text-neutral-500 h-3.5 w-3.5 sm:h-4 sm:w-4" />
             <Input
               type="text"
               placeholder="Search deals..."
-              className="pl-10 border-neutral-300 text-sm"
+              className="pl-8 sm:pl-10 h-8 sm:h-9 border-neutral-300 text-xs sm:text-sm"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
           
-          <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-3 w-full md:w-auto">
+          <div className="grid grid-cols-2 xs:grid-cols-2 sm:flex sm:flex-wrap gap-2 w-full md:w-auto mt-2 md:mt-0">
             <Select value={sectorFilter} onValueChange={setSectorFilter}>
-              <SelectTrigger className="w-full sm:w-[150px] md:w-[160px] bg-white border-neutral-300 text-xs sm:text-sm h-9">
+              <SelectTrigger className="w-full h-8 sm:h-9 sm:w-[130px] md:w-[140px] bg-white border-neutral-300 text-[10px] xs:text-xs sm:text-sm">
                 <SelectValue placeholder="All Sectors" />
               </SelectTrigger>
               <SelectContent>
@@ -118,7 +118,7 @@ export default function Pipeline() {
             </Select>
             
             <Select value={dateFilter} onValueChange={setDateFilter}>
-              <SelectTrigger className="w-full sm:w-[150px] md:w-[160px] bg-white border-neutral-300 text-xs sm:text-sm h-9">
+              <SelectTrigger className="w-full h-8 sm:h-9 sm:w-[130px] md:w-[140px] bg-white border-neutral-300 text-[10px] xs:text-xs sm:text-sm">
                 <SelectValue placeholder="All Returns" />
               </SelectTrigger>
               <SelectContent>
@@ -130,7 +130,7 @@ export default function Pipeline() {
             </Select>
             
             <Select value={stageFilter} onValueChange={setStageFilter}>
-              <SelectTrigger className="w-full sm:w-[150px] md:w-[160px] bg-white border-neutral-300 text-xs sm:text-sm h-9">
+              <SelectTrigger className="w-full h-8 sm:h-9 sm:w-[130px] md:w-[140px] bg-white border-neutral-300 text-[10px] xs:text-xs sm:text-sm">
                 <SelectValue placeholder="All Statuses" />
               </SelectTrigger>
               <SelectContent>
@@ -142,7 +142,7 @@ export default function Pipeline() {
             </Select>
             
             <Select value="all" onValueChange={() => {}}>
-              <SelectTrigger className="w-full sm:w-[150px] md:w-[160px] bg-white border-neutral-300 text-xs sm:text-sm h-9">
+              <SelectTrigger className="w-full h-8 sm:h-9 sm:w-[130px] md:w-[140px] bg-white border-neutral-300 text-[10px] xs:text-xs sm:text-sm">
                 <SelectValue placeholder="Any Time" />
               </SelectTrigger>
               <SelectContent>
