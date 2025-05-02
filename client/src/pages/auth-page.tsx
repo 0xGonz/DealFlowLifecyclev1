@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/hooks/use-auth';
 import { InsertUser } from '@shared/schema';
@@ -87,11 +87,12 @@ export default function AuthPage() {
     });
   };
 
-  // Redirect if already logged in
-  if (user) {
-    setLocation('/');
-    return null;
-  }
+  // Redirect if already logged in using useEffect to avoid state updates during render
+  useEffect(() => {
+    if (user) {
+      setLocation('/');
+    }
+  }, [user, setLocation]);
 
   return (
     <div className="min-h-screen flex flex-col lg:flex-row bg-gray-50">
