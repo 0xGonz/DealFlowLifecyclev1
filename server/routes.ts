@@ -1,5 +1,5 @@
 import type { Express, Request, Response, NextFunction } from "express";
-import express from "express";
+import express, { Router } from "express";
 import { createServer, type Server } from "http";
 import session from 'express-session';
 import createMemoryStore from 'memorystore';
@@ -32,9 +32,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Body parser middleware
   app.use(express.json());
   
-  // Import route modules
-  import { authRouter } from "./routes/auth";
-  import { usersRouter } from "./routes/users";
+  // Import route modules dynamically
+  const authRouter = await import("./routes/auth").then(m => m.authRouter);
+  const usersRouter = await import("./routes/users").then(m => m.usersRouter).catch(() => Router()); // Fallback if not yet created
   
   // Register route modules
   app.use('/api/auth', authRouter);

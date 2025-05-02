@@ -2,6 +2,16 @@ import { Request, Response, NextFunction } from "express";
 import { StorageFactory } from "../storage-factory";
 import { AppError } from "./errorHandlers";
 import * as crypto from "crypto";
+import { User } from "@shared/schema";
+
+// Extend Express Request with user property
+declare global {
+  namespace Express {
+    interface Request {
+      user?: User;
+    }
+  }
+}
 
 /**
  * Generate a password hash using scrypt
