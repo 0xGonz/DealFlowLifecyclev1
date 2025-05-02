@@ -1,23 +1,48 @@
 /**
- * Generate initials from a full name
- * @param fullName The full name to generate initials from
+ * Convert a full name to initials
+ * @param fullName The full name to convert
  * @returns The initials (up to 2 characters)
  */
-export function generateInitials(fullName: string): string {
+export function getInitials(fullName: string): string {
   if (!fullName) return "";
   
-  // Split the name by spaces and filter out empty strings
-  const nameParts = fullName.split(" ").filter(part => part.length > 0);
+  const names = fullName.trim().split(/\s+/);
   
-  if (nameParts.length === 0) return "";
-  
-  if (nameParts.length === 1) {
-    // If there's only one part, take the first character
-    return nameParts[0].charAt(0).toUpperCase();
-  } else {
-    // Take the first character of the first and last parts
-    const firstInitial = nameParts[0].charAt(0).toUpperCase();
-    const lastInitial = nameParts[nameParts.length - 1].charAt(0).toUpperCase();
-    return `${firstInitial}${lastInitial}`;
+  if (names.length === 0) return "";
+  if (names.length === 1) {
+    // If only one name, take first two letters or just the first if it's a single letter
+    return names[0].substring(0, Math.min(2, names[0].length)).toUpperCase();
   }
+  
+  // Otherwise take first letter of first and last name
+  return (names[0][0] + names[names.length - 1][0]).toUpperCase();
+}
+
+/**
+ * Sanitize a string for safe usage in IDs, URLs, etc.
+ * @param str The string to sanitize
+ * @returns The sanitized string
+ */
+export function sanitizeString(str: string): string {
+  if (!str) return "";
+  
+  return str
+    .toLowerCase()
+    .replace(/\s+/g, "-") // Replace spaces with hyphens
+    .replace(/[^\w\-]/g, "") // Remove non-word chars except hyphens
+    .replace(/--+/g, "-") // Replace multiple hyphens with single hyphen
+    .replace(/^-+|-+$/g, ""); // Remove leading/trailing hyphens
+}
+
+/**
+ * Truncate a string to a maximum length, adding ellipsis if needed
+ * @param str The string to truncate
+ * @param maxLength The maximum length
+ * @returns The truncated string
+ */
+export function truncateString(str: string, maxLength: number): string {
+  if (!str) return "";
+  if (str.length <= maxLength) return str;
+  
+  return str.substring(0, maxLength - 3) + "...";
 }
