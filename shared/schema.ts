@@ -143,6 +143,15 @@ export const fundAllocations = pgTable("fund_allocations", {
   securityType: text("security_type").notNull(),
   allocationDate: timestamp("allocation_date").notNull().defaultNow(),
   notes: text("notes"),
+  // Investment tracking fields
+  status: text("status", { enum: ["committed", "funded", "unfunded"] }).default("committed"),
+  portfolioWeight: real("portfolio_weight").default(0),
+  interestPaid: real("interest_paid").default(0),
+  distributionPaid: real("distribution_paid").default(0),
+  totalReturned: real("total_returned").default(0),
+  marketValue: real("market_value").default(0),
+  moic: real("moic").default(1),
+  irr: real("irr").default(0),
 });
 
 export const insertFundAllocationSchema = createInsertSchema(fundAllocations).omit({
