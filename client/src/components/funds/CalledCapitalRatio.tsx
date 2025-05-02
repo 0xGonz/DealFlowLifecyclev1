@@ -1,103 +1,117 @@
-import React, { useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
-import { Badge } from "@/components/ui/badge";
+import React from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { ResponsiveContainer, PieChart, Pie, Cell, Legend, Tooltip } from 'recharts';
+import { FundAllocation } from "@shared/schema";
+import { formatCurrency } from "@/lib/utils/format";
+
+type CapitalData = {
+  name: string;
+  value: number;
+  color: string;
+};
 
 interface CalledCapitalRatioProps {
-  allocations: any[];
+  allocations: FundAllocation[];
   totalFundSize: number;
 }
 
-export default function CalledCapitalRatio({ allocations = [], totalFundSize = 0 }: CalledCapitalRatioProps) {
-  // Calculate called and uncalled capital
-  const { calledCapital, uncalledCapital, calledRatio, uncalledRatio } = useMemo(() => {
-    // Total committed or funded capital is considered "called"
+const CalledCapitalRatio: React.FC<CalledCapitalRatioProps> = ({ 
+  allocations,
+  totalFundSize
+}) => {
+  // Calculate called vs uncalled capital based on allocation status
+  const capitalData = React.useMemo(() => {
     const called = allocations
-      .filter(a => a.status === 'funded' || a.status === 'committed')
+      .filter(allocation => allocation.status === 'funded')
       .reduce((sum, allocation) => sum + allocation.amount, 0);
     
-    // Calculate uncalled amount (remaining capital)
-    const uncalled = Math.max(0, totalFundSize - called);
+    const committed = allocations
+      .filter(allocation => allocation.status === 'committed')
+      .reduce((sum, allocation) => sum + allocation.amount, 0);
+      
+    // Calculate uncalled as the total committed but not funded
+    const uncalled = committed;
     
-    // Calculate percentages
-    const calledPercent = totalFundSize > 0 ? Math.round((called / totalFundSize) * 100) : 0;
-    const uncalledPercent = 100 - calledPercent;
+    // Make sure we have at least some data to display
+    if (called === 0 && uncalled === 0) {
+      return [];
+    }
     
-    return {
-      calledCapital: called,
-      uncalledCapital: uncalled,
-      calledRatio: calledPercent,
-      uncalledRatio: uncalledPercent
-    };
-  }, [allocations, totalFundSize]);
+    return [
+      { name: "Called Capital", value: called, color: "#4f46e5" },
+      { name: "Uncalled Capital", value: uncalled, color: "#a5b4fc" }
+    ];
+  }, [allocations]);
   
-  // Prepare chart data
-  const chartData = [
-    { name: 'Called Capital', value: calledRatio, fill: '#0088FE' },
-    { name: 'Uncalled Capital', value: uncalledRatio, fill: '#EBEDF0' },
-  ];
-  
-  // Format currency values
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      notation: 'compact',
-      maximumFractionDigits: 1
-    }).format(value);
-  };
-  
+  // Calculate percentages for display
+  const totalCapital = capitalData.reduce((sum, item) => sum + item.value, 0);
+  const calledPercentage = totalCapital > 0 
+    ? Math.round((capitalData[0]?.value || 0) / totalCapital * 100) 
+    : 0;
+    
   return (
     <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-md font-medium">Called vs. Uncalled Capital</CardTitle>
+      <CardHeader>
+        <CardTitle>Called vs. Uncalled Capital</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-          <div>
-            <div className="h-[180px]">
+        {capitalData.length > 0 ? (
+          <div className="flex flex-col xs:flex-row items-center justify-between gap-4">
+            <div className="h-48 w-full max-w-[180px]">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
-                    data={chartData}
+                    data={capitalData}
                     cx="50%"
                     cy="50%"
-                    innerRadius={50}
-                    outerRadius={70}
+                    startAngle={90}
+                    endAngle={-270}
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={0}
                     dataKey="value"
-                    label={({ value }) => `${value}%`}
                   >
-                    {chartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.fill} />
+                    {capitalData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value: any) => [`${value}%`, '']} />
+                  <Legend verticalAlign="bottom" height={36}/>
+                  <Tooltip 
+                    formatter={(value: number) => [`${formatCurrency(value)}`, `Amount`]}
+                  />
                 </PieChart>
               </ResponsiveContainer>
             </div>
-          </div>
-          
-          <div className="flex flex-col justify-center space-y-4">
-            <div>
-              <div className="flex items-center mb-1">
-                <span className="h-3 w-3 rounded-full bg-[#0088FE] mr-2"></span>
-                <span className="text-sm font-medium">Called Capital</span>
-                <Badge variant="outline" className="ml-2 font-normal">{calledRatio}%</Badge>
-              </div>
-              <p className="text-xl font-semibold ml-5">{formatCurrency(calledCapital)}</p>
-            </div>
             
-            <div>
-              <div className="flex items-center mb-1">
-                <span className="h-3 w-3 rounded-full bg-[#EBEDF0] mr-2"></span>
-                <span className="text-sm font-medium">Uncalled Capital</span>
-                <Badge variant="outline" className="ml-2 font-normal">{uncalledRatio}%</Badge>
+            <div className="flex flex-col gap-4 grow">
+              <div className="text-center xs:text-left">
+                <p className="text-xs text-neutral-500 mb-1">Called Rate</p>
+                <p className="text-2xl sm:text-3xl font-semibold">{calledPercentage}%</p>
               </div>
-              <p className="text-xl font-semibold ml-5">{formatCurrency(uncalledCapital)}</p>
+              
+              <div className="grid grid-cols-2 gap-2 sm:gap-4">
+                <div>
+                  <p className="text-xs text-neutral-500 mb-1">Called</p>
+                  <p className="text-lg font-medium">{formatCurrency(capitalData[0]?.value || 0)}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-neutral-500 mb-1">Uncalled</p>
+                  <p className="text-lg font-medium">{formatCurrency(capitalData[1]?.value || 0)}</p>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-8 text-neutral-500">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-neutral-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p>No allocation data available to calculate capital ratios.</p>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
-}
+};
+
+export default CalledCapitalRatio;
