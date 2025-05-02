@@ -72,7 +72,6 @@ export default function DealsTable({ deals, onEdit, onAllocate, onUpdateStatus, 
                 <TableCell className="py-1.5 sm:py-2.5 px-2 sm:px-4">
                   <div className="flex flex-col">
                     <div className="font-medium text-xs sm:text-sm md:text-base text-neutral-900 truncate">{deal.name}</div>
-                    <div className="text-[8px] xs:text-2xs sm:text-xs text-neutral-500 truncate">In DD since {formatDate(deal.updatedAt)}</div>
                   </div>
                 </TableCell>
                 <TableCell className="py-2 sm:py-3 px-2 sm:px-4 hidden xs:table-cell">
