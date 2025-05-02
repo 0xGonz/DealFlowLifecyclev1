@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
@@ -90,6 +90,14 @@ const CustomTooltip = ({ active, payload, sectorData }: TooltipProps) => {
 };
 
 export default function SectorDistributionChart() {
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const { data: sectorStats = [], isLoading } = useQuery<SectorStatItem[]>({
     queryKey: ['/api/dashboard/sector-stats'],
   });
@@ -139,12 +147,12 @@ export default function SectorDistributionChart() {
             <p className="text-neutral-500">No sector data available</p>
           </div>
         ) : (
-          <div className="h-[350px] sm:pr-[150px] relative">
+          <div className="h-[350px] w-full pr-0 sm:pr-[10%] md:pr-[15%] lg:pr-[20%] xl:pr-[25%] relative">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
                   data={processedData}
-                  cx="40%"
+                  cx={windowWidth < 768 ? "50%" : "40%"}
                   cy="50%"
                   labelLine={false}
                   label={renderCustomizedLabel}
