@@ -94,8 +94,8 @@ export default function Pipeline() {
       <div className="flex-1 overflow-y-auto p-6 pb-20">
         
         {/* Filters */}
-        <div className="flex items-center justify-between mb-6 gap-4 flex-wrap">
-          <div className="relative max-w-md w-full">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4 w-full">
+          <div className="relative w-full md:max-w-md">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-500 h-4 w-4" />
             <Input
               type="text"
@@ -106,9 +106,9 @@ export default function Pipeline() {
             />
           </div>
           
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-3 w-full md:w-auto">
             <Select value={sectorFilter} onValueChange={setSectorFilter}>
-              <SelectTrigger className="w-[180px] bg-white border-neutral-300">
+              <SelectTrigger className="w-full sm:w-[180px] bg-white border-neutral-300">
                 <SelectValue placeholder="All Sectors" />
               </SelectTrigger>
               <SelectContent>
@@ -120,7 +120,7 @@ export default function Pipeline() {
             </Select>
             
             <Select value={dateFilter} onValueChange={setDateFilter}>
-              <SelectTrigger className="w-[180px] bg-white border-neutral-300">
+              <SelectTrigger className="w-full sm:w-[180px] bg-white border-neutral-300">
                 <SelectValue placeholder="All Returns" />
               </SelectTrigger>
               <SelectContent>
@@ -132,7 +132,7 @@ export default function Pipeline() {
             </Select>
             
             <Select value={stageFilter} onValueChange={setStageFilter}>
-              <SelectTrigger className="w-[180px] bg-white border-neutral-300">
+              <SelectTrigger className="w-full sm:w-[180px] bg-white border-neutral-300">
                 <SelectValue placeholder="All Statuses" />
               </SelectTrigger>
               <SelectContent>
@@ -144,7 +144,7 @@ export default function Pipeline() {
             </Select>
             
             <Select value="all" onValueChange={() => {}}>
-              <SelectTrigger className="w-[150px] bg-white border-neutral-300">
+              <SelectTrigger className="w-full sm:w-[150px] bg-white border-neutral-300">
                 <SelectValue placeholder="Any Time" />
               </SelectTrigger>
               <SelectContent>
@@ -159,17 +159,19 @@ export default function Pipeline() {
         
         {/* Pipeline Views - Deal Stages as Tabs */}
         <Tabs defaultValue="all" className="space-y-4">
-          <TabsList className="overflow-x-auto flex-wrap">
-            <TabsTrigger value="all">All Deals</TabsTrigger>
-            {Object.entries(DealStageLabels).map(([stage, label]) => (
-              <TabsTrigger key={stage} value={stage}>
-                {label}
-                <span className="ml-2 text-xs bg-neutral-100 px-2 py-0.5 rounded-full">
-                  {dealsByStage?.[stage]?.length || 0}
-                </span>
-              </TabsTrigger>
-            ))}
-          </TabsList>
+          <div className="overflow-x-auto pb-2">
+            <TabsList className="flex-wrap">
+              <TabsTrigger value="all">All Deals</TabsTrigger>
+              {Object.entries(DealStageLabels).map(([stage, label]) => (
+                <TabsTrigger key={stage} value={stage}>
+                  {label}
+                  <span className="ml-2 text-xs bg-neutral-100 px-2 py-0.5 rounded-full">
+                    {dealsByStage?.[stage]?.length || 0}
+                  </span>
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </div>
           
           {/* All Deals Tab */}
           <TabsContent value="all" className="space-y-4">
@@ -178,8 +180,8 @@ export default function Pipeline() {
             ) : filteredDeals?.length === 0 ? (
               <div className="py-12 text-center text-neutral-500">No deals found matching the criteria.</div>
             ) : (
-              <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-                <table className="w-full">
+              <div className="bg-white rounded-lg shadow-sm overflow-hidden overflow-x-auto">
+                <table className="w-full min-w-[800px]">
                   <thead className="bg-neutral-50 border-b">
                     <tr>
                       <th className="text-left px-6 py-3 text-sm font-medium text-neutral-500">Name</th>
@@ -298,8 +300,8 @@ export default function Pipeline() {
               ) : !dealsByStage?.[stage] || dealsByStage[stage]?.length === 0 ? (
                 <div className="py-12 text-center text-neutral-500">No deals in {label.toLowerCase()} stage.</div>
               ) : (
-                <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-                  <table className="w-full">
+                <div className="bg-white rounded-lg shadow-sm overflow-hidden overflow-x-auto">
+                  <table className="w-full min-w-[800px]">
                     <thead className="bg-neutral-50 border-b">
                       <tr>
                         <th className="text-left px-6 py-3 text-sm font-medium text-neutral-500">Name</th>
