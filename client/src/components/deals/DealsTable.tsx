@@ -45,12 +45,12 @@ export default function DealsTable({ deals, onEdit, onAllocate, onUpdateStatus, 
     <div className="rounded-md border bg-white overflow-x-auto">
       <Table>
         <TableHeader>
-          <TableRow className="bg-muted/50">
-            <TableHead className="w-[200px] font-semibold">Deal Name</TableHead>
-            <TableHead className="w-[100px] font-semibold">Type</TableHead>
-            <TableHead className="w-[300px] font-semibold">Description</TableHead>
-            <TableHead className="w-[80px] font-semibold text-right">Return %</TableHead>
-            <TableHead className="w-[120px] font-semibold">Status</TableHead>
+          <TableRow className="bg-white border-b">
+            <TableHead className="w-[180px] font-semibold">Deal Name</TableHead>
+            <TableHead className="w-[80px] font-semibold">Type</TableHead>
+            <TableHead className="font-semibold">Description</TableHead>
+            <TableHead className="w-[70px] font-semibold text-right">Return</TableHead>
+            <TableHead className="w-[100px] font-semibold">Status</TableHead>
             <TableHead className="w-[100px] text-center font-semibold">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -68,23 +68,23 @@ export default function DealsTable({ deals, onEdit, onAllocate, onUpdateStatus, 
               .toUpperCase();
               
             return (
-              <TableRow key={deal.id}>
-                <TableCell>
+              <TableRow key={deal.id} className="hover:bg-neutral-50 cursor-default">
+                <TableCell className="py-3">
                   <div className="flex flex-col">
                     <div className="font-medium text-neutral-900">{deal.name}</div>
                     <div className="text-xs text-neutral-500">In DD since {formatDate(deal.updatedAt)}</div>
                   </div>
                 </TableCell>
-                <TableCell>
+                <TableCell className="py-3">
                   <span className="text-sm">{deal.sector || 'Private Credit'}</span>
                 </TableCell>
-                <TableCell>
-                  <p className="text-sm line-clamp-2 max-w-[280px]">{deal.description}</p>
+                <TableCell className="py-3">
+                  <p className="text-sm line-clamp-2">{deal.description}</p>
                 </TableCell>
-                <TableCell className="text-right">
+                <TableCell className="text-right py-3">
                   <span className="text-sm font-medium text-emerald-700">10-15%</span>
                 </TableCell>
-                <TableCell>
+                <TableCell className="py-3">
                   <DropdownMenu>
                     <DropdownMenuTrigger className="focus:outline-none" asChild>
                       <div className="flex items-center gap-2 cursor-pointer">
@@ -108,7 +108,7 @@ export default function DealsTable({ deals, onEdit, onAllocate, onUpdateStatus, 
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>
-                <TableCell>
+                <TableCell className="py-3">
                   <div className="flex justify-center gap-2">
                     <Button
                       variant="ghost"
