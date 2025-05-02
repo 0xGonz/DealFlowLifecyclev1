@@ -222,7 +222,7 @@ export default function DealDetail() {
         }
         
         {/* Back button and page title */}
-        <div className="flex items-center mb-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-0 mb-6">
           <Button variant="ghost" className="mr-2" asChild>
             <a href="/pipeline">
               <ChevronLeft className="h-4 w-4 mr-1" />
@@ -231,7 +231,7 @@ export default function DealDetail() {
           </Button>
           <h1 className="text-2xl font-semibold text-neutral-800">{deal?.name}</h1>
           
-          <div className="ml-auto space-x-2">
+          <div className="w-full sm:w-auto sm:ml-auto flex flex-wrap gap-2 justify-start sm:justify-end">
             <Button variant="outline" onClick={handleStarDeal}>
               <Star className={`h-4 w-4 mr-2 ${deal?.starCount ? 'fill-accent text-accent' : ''}`} />
               {deal?.starCount ? `Starred (${deal.starCount})` : 'Star'}
@@ -269,7 +269,7 @@ export default function DealDetail() {
         {/* Deal Overview Card */}
         <Card className="mb-6">
           <CardHeader>
-            <div className="flex justify-between items-start">
+            <div className="flex flex-col sm:flex-row justify-between items-start gap-4 sm:gap-0">
               <div>
                 <Badge className={`${getDealStageBadgeClass(deal?.stage || '')} mb-2`}>
                   {deal?.stageLabel}
@@ -303,7 +303,7 @@ export default function DealDetail() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
               <div>
                 <h3 className="text-sm font-medium text-neutral-500 mb-2">Deal Details</h3>
                 <div className="space-y-3">
@@ -402,7 +402,7 @@ export default function DealDetail() {
           }} 
           className="space-y-4"
         >
-          <TabsList>
+          <TabsList className="flex flex-wrap overflow-x-auto">
             <TabsTrigger value="workflow">Workflow</TabsTrigger>
             <TabsTrigger value="timeline">Timeline</TabsTrigger>
             <TabsTrigger value="memos">Mini-Memos</TabsTrigger>
@@ -433,8 +433,8 @@ export default function DealDetail() {
           </TabsContent>
           
           <TabsContent value="timeline">
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-              <div className="md:col-span-8">
+            <div className="grid grid-cols-1 sm:grid-cols-12 gap-6">
+              <div className="sm:col-span-8 md:col-span-8">
                 <Card>
                   <CardHeader>
                     <CardTitle>Timeline & Notes</CardTitle>
@@ -448,7 +448,7 @@ export default function DealDetail() {
                 </Card>
               </div>
               
-              <div className="md:col-span-4">
+              <div className="sm:col-span-4 md:col-span-4">
                 <Card>
                   <CardHeader>
                     <CardTitle>Add Note</CardTitle>
