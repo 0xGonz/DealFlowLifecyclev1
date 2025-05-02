@@ -41,12 +41,24 @@ router.get('/stats', async (req: Request, res: Response) => {
       ['diligence', 'ic_review', 'closing', 'closed', 'invested'].includes(deal.stage)).length : 0;
     const earlyStageDeals = totalDeals - lateStageDeals;
     
+    // Define baseline constants for trend calculations
+    const BASELINE_TOTAL_DEALS = 5;
+    const BASELINE_ACTIVE_PIPELINE_PERCENT = 75;
+    const BASELINE_NEW_DEALS_PERCENT = 40;
+    const BASELINE_IC_REVIEW_PERCENT = 25;
+    const BASELINE_INVESTMENT_RATE = 30;
+    const BASELINE_AUM_PER_DEAL_MILLIONS = 10;
+    
     // Calculate trends as relative change metrics (not just percentages but change indicators)
-    const totalDealsTrend = totalDeals > 5 ? Math.round((totalDeals / 5 - 1) * 100) : 10; // Based on baseline of 5 deals
-    const activePipelineTrend = totalDeals > 0 ? Math.round((activeDeals / totalDeals) * 100) - 75 : 0; // Against 75% baseline
-    const newDealsTrend = totalDeals > 0 ? Math.round((newDeals / totalDeals) * 100) - 40 : 0; // Against 40% baseline
-    const icReviewTrend = totalDeals > 0 ? Math.round((inIcReview / Math.max(lateStageDeals, 1)) * 100) - 25 : 0; // Against 25% baseline
-    const investmentRateTrend = investmentRate - 30; // Against industry avg of 30%
+    const totalDealsTrend = totalDeals > BASELINE_TOTAL_DEALS ? 
+      Math.round((totalDeals / BASELINE_TOTAL_DEALS - 1) * 100) : 10;
+    const activePipelineTrend = totalDeals > 0 ? 
+      Math.round((activeDeals / totalDeals) * 100) - BASELINE_ACTIVE_PIPELINE_PERCENT : 0;
+    const newDealsTrend = totalDeals > 0 ? 
+      Math.round((newDeals / totalDeals) * 100) - BASELINE_NEW_DEALS_PERCENT : 0;
+    const icReviewTrend = totalDeals > 0 ? 
+      Math.round((inIcReview / Math.max(lateStageDeals, 1)) * 100) - BASELINE_IC_REVIEW_PERCENT : 0;
+    const investmentRateTrend = investmentRate - BASELINE_INVESTMENT_RATE;
     
     // For backwards compatibility, include the original response fields
     const response = {
@@ -65,7 +77,7 @@ router.get('/stats', async (req: Request, res: Response) => {
       investmentRate,
       investmentRateTrend,
       totalAum,
-      aumTrend: totalAum > 0 ? Math.round((totalAum / 1000000) / Math.max(investedDeals, 1)) - 10 : 0 // Calculated from AUM per invested deal against $10M baseline
+      aumTrend: totalAum > 0 ? Math.round((totalAum / 1000000) / Math.max(investedDeals, 1)) - BASELINE_AUM_PER_DEAL_MILLIONS : 0
     };
     
     console.log('Dashboard stats: Sending response', response);
@@ -76,40 +88,55 @@ router.get('/stats', async (req: Request, res: Response) => {
   }
 });
 
+// Helper function to get sector/industry stats to avoid code duplication
+async function getSectorStats(logPrefix: string, useIndustryField = false) {
+  console.log(`${logPrefix}: Getting storage instance`);
+  const storage = StorageFactory.getStorage();
+  console.log(`${logPrefix}: Fetching deals`);
+  const deals = await storage.getDeals();
+  console.log(`${logPrefix}: Retrieved ${deals ? deals.length : 0} deals`);
+  
+  if (!deals || deals.length === 0) {
+    console.log(`${logPrefix}: No deals found, returning empty array`);
+    return [];
+  }
+  
+  // Count deals by sector
+  const sectorCount: Record<string, number> = {};
+  deals.forEach(deal => {
+    const sector = deal.sector || 'Other';
+    sectorCount[sector] = (sectorCount[sector] || 0) + 1;
+  });
+  
+  // Transform into array format for chart
+  const sectorStats = Object.entries(sectorCount).map(([sector, count]) => {
+    const result: Record<string, any> = {
+      count,
+      percentage: Math.round((count / deals.length) * 100)
+    };
+    
+    // Use either 'sector' or 'industry' field based on parameter
+    if (useIndustryField) {
+      result.industry = sector;
+    } else {
+      result.sector = sector;
+    }
+    
+    return result;
+  });
+  
+  // Sort by count (descending)
+  sectorStats.sort((a, b) => b.count - a.count);
+  
+  console.log(`${logPrefix}: Sending response`, sectorStats);
+  return sectorStats;
+}
+
 // Get sector distribution stats
 router.get('/sector-stats', async (req: Request, res: Response) => {
   try {
-    console.log('Sector stats: Getting storage instance');
-    // Get all deals to compute sector stats
-    const storage = StorageFactory.getStorage();
-    console.log('Sector stats: Fetching deals');
-    const deals = await storage.getDeals();
-    console.log(`Sector stats: Retrieved ${deals ? deals.length : 0} deals`);
-    
-    if (!deals || deals.length === 0) {
-      console.log('Sector stats: No deals found, returning empty array');
-      return res.json([]);
-    }
-    
-    // Count deals by sector
-    const sectorCount: Record<string, number> = {};
-    deals.forEach(deal => {
-      const sector = deal.sector || 'Other';
-      sectorCount[sector] = (sectorCount[sector] || 0) + 1;
-    });
-    
-    // Transform into array format for chart
-    const sectorStats = Object.entries(sectorCount).map(([sector, count]) => ({
-      sector,
-      count,
-      percentage: Math.round((count / deals.length) * 100)
-    }));
-    
-    // Sort by count (descending)
-    sectorStats.sort((a, b) => b.count - a.count);
-    
-    console.log('Sector stats: Sending response', sectorStats);
-    res.json(sectorStats);
+    const stats = await getSectorStats('Sector stats');
+    res.json(stats);
   } catch (error) {
     console.error('Error fetching sector statistics:', error);
     res.status(500).json({ message: 'Failed to fetch sector statistics' });
@@ -119,37 +146,8 @@ router.get('/sector-stats', async (req: Request, res: Response) => {
 // Redirect old endpoint to new one for backward compatibility
 router.get('/industry-stats', async (req: Request, res: Response) => {
   try {
-    console.log('Industry stats: Getting storage instance');
-    // Get sector statistics formatted to match the old industry-stats endpoint
-    const storage = StorageFactory.getStorage();
-    console.log('Industry stats: Fetching deals');
-    const deals = await storage.getDeals();
-    console.log(`Industry stats: Retrieved ${deals ? deals.length : 0} deals`);
-    
-    if (!deals || deals.length === 0) {
-      console.log('Industry stats: No deals found, returning empty array');
-      return res.json([]);
-    }
-    
-    // Count deals by sector
-    const sectorCount: Record<string, number> = {};
-    deals.forEach(deal => {
-      const sector = deal.sector || 'Other';
-      sectorCount[sector] = (sectorCount[sector] || 0) + 1;
-    });
-    
-    // Transform into array format for chart
-    const sectorStats = Object.entries(sectorCount).map(([sector, count]) => ({
-      industry: sector, // Using 'industry' key for backward compatibility
-      count,
-      percentage: Math.round((count / deals.length) * 100)
-    }));
-    
-    // Sort by count (descending)
-    sectorStats.sort((a, b) => b.count - a.count);
-    
-    console.log('Industry stats: Sending response', sectorStats);
-    res.json(sectorStats);
+    const stats = await getSectorStats('Industry stats', true);
+    res.json(stats);
   } catch (error) {
     console.error('Error fetching industry statistics:', error);
     res.status(500).json({ message: 'Failed to fetch industry statistics' });

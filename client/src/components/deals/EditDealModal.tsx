@@ -35,6 +35,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { generateDealNotification } from "@/lib/utils/notification-utils";
 import { DealStageLabels } from "@shared/schema";
+import { DEAL_SECTORS } from "@/lib/constants/sectors";
 
 // Form schema with validation rules
 const dealFormSchema = z.object({
