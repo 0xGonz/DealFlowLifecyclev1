@@ -10,21 +10,18 @@ import Leaderboard from "@/pages/Leaderboard";
 import Funds from "@/pages/Funds";
 import FundDetail from "@/pages/FundDetail";
 import DealDetail from "@/pages/DealDetail";
-import AuthPage from "@/pages/auth-page";
-import { AuthProvider } from "@/hooks/use-auth";
-import { ProtectedRoute } from "@/lib/protected-route";
+import { AuthProvider } from "@/lib/context/auth-context";
 import ErrorBoundary from "@/components/common/ErrorBoundary";
 
 function Router() {
   return (
     <Switch>
-      <ProtectedRoute path="/" component={Dashboard} />
-      <ProtectedRoute path="/pipeline" component={Pipeline} />
-      <ProtectedRoute path="/leaderboard" component={Leaderboard} />
-      <ProtectedRoute path="/funds" component={Funds} />
-      <ProtectedRoute path="/funds/:id" component={FundDetail} />
-      <ProtectedRoute path="/deals/:id" component={DealDetail} />
-      <Route path="/auth" component={AuthPage} />
+      <Route path="/" component={Dashboard} />
+      <Route path="/pipeline" component={Pipeline} />
+      <Route path="/leaderboard" component={Leaderboard} />
+      <Route path="/funds" component={Funds} />
+      <Route path="/funds/:id" component={FundDetail} />
+      <Route path="/deals/:id" component={DealDetail} />
       <Route component={NotFound} />
     </Switch>
   );

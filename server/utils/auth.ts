@@ -1,146 +1,82 @@
 import { Request, Response, NextFunction } from 'express';
-import { scrypt, randomBytes, timingSafeEqual } from 'crypto';
-import { promisify } from 'util';
 import { AppError } from './errorHandlers';
+import { StorageFactory } from '../storage-factory';
 
-const scryptAsync = promisify(scrypt);
-
-/**
- * Hashes a password using scrypt, returning the hash and salt.
- * 
- * @param password - Plain text password to hash
- * @returns String in format 'hash.salt'
- */
-export async function hashPassword(password: string): Promise<string> {
-  const salt = randomBytes(16).toString('hex');
-  const buf = (await scryptAsync(password, salt, 64)) as Buffer;
-  return `${buf.toString('hex')}.${salt}`;
+// Types for session data
+declare module 'express-session' {
+  interface SessionData {
+    userId?: number;
+    username?: string;
+    role?: string;
+  }
 }
 
-/**
- * Compares a supplied password against a stored hashed password.
- * 
- * @param suppliedPassword - Plain text password to check
- * @param storedPassword - Stored password hash in format 'hash.salt'
- * @returns Boolean indicating if the passwords match
- */
-export async function comparePasswords(
-  suppliedPassword: string,
-  storedPassword: string
-): Promise<boolean> {
-  const [hashedPart, salt] = storedPassword.split('.');
-  const hashedSuppliedBuf = (await scryptAsync(suppliedPassword, salt, 64)) as Buffer;
-  const storedBuf = Buffer.from(hashedPart, 'hex');
-  return timingSafeEqual(storedBuf, hashedSuppliedBuf);
-}
-
-/**
- * Middleware to ensure a user is authenticated before accessing a route.
- * 
- * @param req - Express request object
- * @param res - Express response object
- * @param next - Express next function
- */
+// Authentication middleware
 export function requireAuth(req: Request, res: Response, next: NextFunction) {
-  // Log information for debugging
-  console.log('Session:', req.session);
-  console.log('User ID in session:', req.session.userId);
-  console.log('User in request:', req.user);
-  
-  if (!req.session || !req.session.userId) {
-    // Clear the session to be safe
-    if (req.session) {
-      req.session.destroy((err) => {
-        if (err) console.error('Error destroying session:', err);
-      });
-    }
-    
-    return res.status(401).json({
-      status: 'fail',
-      message: 'Not authenticated'
-    });
+  if (!req.session.userId) {
+    return next(new AppError('Authentication required', 401));
   }
-  
-  // Make sure req.user is populated
-  if (!req.user) {
-    return res.status(401).json({
-      status: 'fail',
-      message: 'User not found'
-    });
-  }
-  
   next();
 }
 
-/**
- * Middleware to ensure a user has admin role before accessing a route.
- * 
- * @param req - Express request object
- * @param res - Express response object
- * @param next - Express next function
- */
-export function requireAdmin(req: Request, res: Response, next: NextFunction) {
-  if (!req.session || !req.session.userId) {
-    return res.status(401).json({
-      status: 'fail',
-      message: 'Not authenticated'
-    });
-  }
+// Role-based authorization middleware
+export function requireRole(roles: string | string[]) {
+  const allowedRoles = Array.isArray(roles) ? roles : [roles];
   
-  // Make sure req.user is populated
-  if (!req.user) {
-    return res.status(401).json({
-      status: 'fail',
-      message: 'User not found'
-    });
-  }
-  
-  // Check user has 'admin' role
-  const userRole = req.user.role;
-  
-  if (userRole !== 'admin') {
-    return res.status(403).json({
-      status: 'fail',
-      message: 'You do not have permission to perform this action'
-    });
-  }
-  
-  next();
-}
-
-/**
- * Middleware to ensure a user has at least one of the specified roles.
- * 
- * @param roles - Array of roles that are allowed to access the route
- * @returns Express middleware function
- */
-export function requireRole(roles: string[]) {
   return (req: Request, res: Response, next: NextFunction) => {
-    if (!req.session || !req.session.userId) {
-      return res.status(401).json({
-        status: 'fail',
-        message: 'Not authenticated'
-      });
+    if (!req.session.userId) {
+      return next(new AppError('Authentication required', 401));
     }
     
-    // Make sure req.user is populated
-    if (!req.user) {
-      return res.status(401).json({
-        status: 'fail',
-        message: 'User not found'
-      });
-    }
-    
-    // Check user has one of the required roles
-    const userRole = req.user.role;
-    
-    if (!userRole || !roles.includes(userRole)) {
-      return res.status(403).json({
-        status: 'fail',
-        message: 'You do not have permission to perform this action'
-      });
+    if (!req.session.role || !allowedRoles.includes(req.session.role)) {
+      return next(new AppError('You do not have permission to access this resource', 403));
     }
     
     next();
   };
+}
+
+// Helper to get the current user from the session
+export async function getCurrentUser(req: Request) {
+  if (!req.session.userId) {
+    return null;
+  }
+  
+  try {
+    const storage = StorageFactory.getStorage();
+    const user = await storage.getUser(req.session.userId);
+    return user || null;
+  } catch (error) {
+    console.error('Error getting current user:', error);
+    return null;
+  }
+}
+
+// Login helper
+export async function login(req: Request, username: string, password: string) {
+  const storage = StorageFactory.getStorage();
+  const user = await storage.getUserByUsername(username);
+  
+  if (!user || user.password !== password) { // In production, use proper password hashing
+    throw new AppError('Invalid username or password', 401);
+  }
+  
+  // Set session data
+  req.session.userId = user.id;
+  req.session.username = user.username;
+  req.session.role = user.role;
+  
+  return user;
+}
+
+// Logout helper
+export function logout(req: Request) {
+  return new Promise<void>((resolve, reject) => {
+    req.session.destroy((err) => {
+      if (err) {
+        return reject(err);
+      }
+      resolve();
+    });
+  });
 }

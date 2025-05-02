@@ -16,7 +16,6 @@ export const users = pgTable("users", {
 
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
-  initials: true, // We generate initials on the server based on fullName
 });
 
 // Deal model
@@ -30,16 +29,14 @@ export const deals = pgTable("deals", {
   }).notNull().default("initial_review"),
   rejectionReason: text("rejection_reason"),
   rejectedAt: timestamp("rejected_at"),
-  round: text("round").notNull().default("seed"),
+  round: text("round").notNull(),
   targetRaise: text("target_raise"),
   valuation: text("valuation"),
   leadInvestor: text("lead_investor"),
-  projectedReturn: real("projected_return").default(0),
   targetReturn: text("target_return"),
   score: integer("score"),
   contactEmail: text("contact_email"),
   notes: text("notes"),
-  callTarget: boolean("call_target").default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
   createdBy: integer("created_by").notNull(),
