@@ -39,12 +39,12 @@ export default function DealsTable({ deals, onEdit, onAllocate, isLoading }: Dea
       <Table>
         <TableHeader>
           <TableRow className="bg-muted/50">
-            <TableHead className="w-[250px] font-semibold">Deal Name</TableHead>
-            <TableHead className="w-[120px] font-semibold">Type</TableHead>
-            <TableHead className="font-semibold">Description</TableHead>
-            <TableHead className="w-[80px] font-semibold text-right">%</TableHead>
-            <TableHead className="w-[150px] font-semibold">Status</TableHead>
-            <TableHead className="w-[130px] text-center font-semibold">Actions</TableHead>
+            <TableHead className="w-[200px] font-semibold">Deal Name</TableHead>
+            <TableHead className="w-[100px] font-semibold">Type</TableHead>
+            <TableHead className="w-[300px] font-semibold">Description</TableHead>
+            <TableHead className="w-[60px] font-semibold text-right">%</TableHead>
+            <TableHead className="w-[120px] font-semibold">Status</TableHead>
+            <TableHead className="w-[100px] text-center font-semibold">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -72,7 +72,7 @@ export default function DealsTable({ deals, onEdit, onAllocate, isLoading }: Dea
                   <span className="text-sm">{deal.sector || 'Private Credit'}</span>
                 </TableCell>
                 <TableCell>
-                  <p className="text-sm">{deal.description}</p>
+                  <p className="text-sm line-clamp-2 max-w-[280px]">{deal.description}</p>
                 </TableCell>
                 <TableCell className="text-right">
                   <span className="text-sm font-medium text-emerald-700">10-15%</span>
