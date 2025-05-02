@@ -63,6 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Login mutation
   const loginMutation = useMutation<User, Error, LoginData>({
     mutationFn: async (credentials) => {
+      console.log("Sending login credentials to /api/auth/login");
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: {
@@ -98,21 +99,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Register mutation
   const registerMutation = useMutation<User, Error, RegisterData>({
     mutationFn: async (userData) => {
-      console.log("Sending register data:", userData);
-      const res = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(userData),
-      });
+      console.log("Sending register data to /api/auth/register:", userData);
+      
+      try {
+        const res = await fetch("/api/auth/register", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(userData),
+          credentials: 'include' // Important for cookies/session
+        });
 
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Registration failed");
+        console.log("Registration response status:", res.status);
+        
+        if (!res.ok) {
+          const errorData = await res.json();
+          console.error("Registration error response:", errorData);
+          throw new Error(errorData.message || "Registration failed");
+        }
+
+        const data = await res.json();
+        console.log("Registration success response:", data);
+        return data;
+      } catch (err) {
+        console.error("Registration fetch error:", err);
+        throw err;
       }
-
-      return res.json();
     },
     onSuccess: (data) => {
       queryClient.setQueryData(["/api/auth/me"], data);

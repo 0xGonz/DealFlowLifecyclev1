@@ -69,20 +69,32 @@ export default function AuthPage() {
 
   const onRegisterSubmit = (data: z.infer<typeof registerSchema>) => {
     // Calculate initials if not provided
-    if (!data.initials) {
-      const nameParts = data.fullName.split(" ");
-      data.initials = nameParts.length > 1
-        ? (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase()
-        : data.fullName.substring(0, 2).toUpperCase();
-    }
+    // Default to the first two letters of the full name if not provided
+    const nameParts = data.fullName.split(" ");
+    const calculatedInitials = nameParts.length > 1
+      ? (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase()
+      : data.fullName.substring(0, 2).toUpperCase();
 
-    console.log('Registration data:', data);
+    console.log('Form submitted with data:', data);
     // Make sure role is properly typed
     const role = data.role as "admin" | "partner" | "analyst" | "observer";
     
+    console.log('About to call registerMutation.mutate');
     registerMutation.mutate({
-      ...data,
-      role: role
+      username: data.username,
+      password: data.password,
+      fullName: data.fullName,
+      email: data.email,
+      role: role,
+      initials: calculatedInitials,
+      avatarColor: `#${Math.floor(Math.random()*16777215).toString(16)}`
+    }, {
+      onSuccess: (user) => {
+        console.log('Registration successful:', user);
+      },
+      onError: (error) => {
+        console.error('Registration failed:', error);
+      }
     });
   };
 
