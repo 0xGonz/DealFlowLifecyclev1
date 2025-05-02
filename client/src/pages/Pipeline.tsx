@@ -86,7 +86,7 @@ export default function Pipeline() {
 
   return (
     <AppLayout>
-      <div className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 pb-20">
+      <div className="flex-1 overflow-y-auto pb-20">
         {/* Filters */}
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4 w-full">
           <div className="relative w-full md:max-w-md">

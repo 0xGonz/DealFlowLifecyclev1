@@ -14,14 +14,15 @@ export default function AppLayout({ children }: AppLayoutProps) {
   return (
     <div className="flex h-screen bg-neutral-100 relative md:pl-48">
       {/* Mobile sidebar toggle */}
-      <div className="md:hidden fixed top-4 left-4 z-50">
+      <div className="md:hidden fixed top-3 left-3 z-50">
         <Button 
           variant="ghost" 
           size="icon" 
-          className="bg-white shadow-md rounded-full h-10 w-10 flex items-center justify-center"
+          className="bg-white shadow-sm hover:shadow-md rounded-full h-9 w-9 flex items-center justify-center transition-all duration-200"
           onClick={() => setSidebarOpen(!sidebarOpen)}
+          aria-label="Toggle menu"
         >
-          <Menu className="h-5 w-5" />
+          <Menu className="h-4 w-4" />
         </Button>
       </div>
 
@@ -29,6 +30,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
       <div 
         className={`fixed inset-0 bg-black transition-opacity duration-300 ease-in-out z-40 md:hidden ${sidebarOpen ? 'opacity-50 pointer-events-auto' : 'opacity-0 pointer-events-none'}`} 
         onClick={() => setSidebarOpen(false)}
+        aria-hidden="true"
       />
 
       {/* Sidebar - hidden on mobile unless toggled, fixed positioning regardless of screen size */}
@@ -36,11 +38,13 @@ export default function AppLayout({ children }: AppLayoutProps) {
         <Sidebar onCloseMobile={() => setSidebarOpen(false)} />
       </div>
 
-      {/* Main content - not using md:pl-64 anymore, instead using w-full */}
+      {/* Main content area */}
       <div className="flex-1 flex flex-col overflow-y-auto w-full max-w-full">
         <Header />
         <div className="flex-1 overflow-y-auto pb-16 w-full max-w-full">
-          {children}
+          <main className="pt-2 sm:pt-4 px-3 sm:px-4 md:px-6"> {/* Added consistent padding container */}
+            {children}
+          </main>
         </div>
       </div>
     </div>

@@ -422,13 +422,25 @@ export default function DealDetail() {
           }} 
           className="space-y-4"
         >
-          <TabsList className="flex flex-wrap overflow-x-auto">
-            <TabsTrigger value="workflow">Workflow</TabsTrigger>
-            <TabsTrigger value="timeline">Timeline</TabsTrigger>
-            <TabsTrigger value="memos">Mini-Memos</TabsTrigger>
-            <TabsTrigger value="documents">Documents</TabsTrigger>
-            <TabsTrigger value="allocation">Fund Allocation</TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto pb-1">
+            <TabsList className="flex w-auto min-w-full sm:w-full sm:min-w-0">
+              <TabsTrigger value="workflow" className="text-xs sm:text-sm h-8 sm:h-10 px-2 sm:px-4 flex-1">
+                Workflow
+              </TabsTrigger>
+              <TabsTrigger value="timeline" className="text-xs sm:text-sm h-8 sm:h-10 px-2 sm:px-4 flex-1">
+                Timeline
+              </TabsTrigger>
+              <TabsTrigger value="memos" className="text-xs sm:text-sm h-8 sm:h-10 px-2 sm:px-4 flex-1">
+                Mini-Memos
+              </TabsTrigger>
+              <TabsTrigger value="documents" className="text-xs sm:text-sm h-8 sm:h-10 px-2 sm:px-4 flex-1">
+                Documents
+              </TabsTrigger>
+              <TabsTrigger value="allocation" className="text-xs sm:text-sm h-8 sm:h-10 px-2 sm:px-4 flex-1">
+                Fund Allocation
+              </TabsTrigger>
+            </TabsList>
+          </div>
           
           <TabsContent value="workflow">
             <Card>
@@ -508,13 +520,13 @@ export default function DealDetail() {
               </CardHeader>
               <CardContent>
                 {deal?.miniMemos?.length ? (
-                  <div className="space-y-6">
+                  <div className="space-y-4 sm:space-y-6">
                     {deal.miniMemos.map((memo: MiniMemo) => (
-                      <div key={memo.id} className="border rounded-lg p-4">
+                      <div key={memo.id} className="border rounded-lg p-3 sm:p-4 shadow-sm">
                         <div className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between gap-2 sm:gap-0 mb-3">
                           <div className="flex items-center">
-                            <Avatar className="h-8 w-8 mr-2">
-                              <AvatarFallback style={{ backgroundColor: memo.user?.avatarColor }}>
+                            <Avatar className="h-7 w-7 sm:h-8 sm:w-8 mr-2">
+                              <AvatarFallback style={{ backgroundColor: memo.user?.avatarColor }} className="text-xs sm:text-sm">
                                 {memo.user?.initials}
                               </AvatarFallback>
                             </Avatar>
@@ -523,24 +535,24 @@ export default function DealDetail() {
                               <p className="text-xs text-neutral-500">{memo.user?.role}</p>
                             </div>
                           </div>
-                          <Badge variant="outline">Score: {memo.score}</Badge>
+                          <Badge variant="outline" className="mt-1 sm:mt-0 text-xs px-2 py-0.5">Score: {memo.score}</Badge>
                         </div>
                         
                         <div className="space-y-3">
                           <div>
-                            <h4 className="text-sm font-medium">Investment Thesis</h4>
-                            <p className="text-sm text-neutral-600">{memo.thesis}</p>
+                            <h4 className="text-xs sm:text-sm font-medium text-neutral-700">Investment Thesis</h4>
+                            <p className="text-xs sm:text-sm text-neutral-600 mt-1">{memo.thesis}</p>
                           </div>
                           {memo.risksAndMitigations && (
                             <div>
-                              <h4 className="text-sm font-medium">Risks & Mitigations</h4>
-                              <p className="text-sm text-neutral-600">{memo.risksAndMitigations}</p>
+                              <h4 className="text-xs sm:text-sm font-medium text-neutral-700">Risks & Mitigations</h4>
+                              <p className="text-xs sm:text-sm text-neutral-600 mt-1">{memo.risksAndMitigations}</p>
                             </div>
                           )}
                           {memo.pricingConsideration && (
                             <div>
-                              <h4 className="text-sm font-medium">Pricing Considerations</h4>
-                              <p className="text-sm text-neutral-600">{memo.pricingConsideration}</p>
+                              <h4 className="text-xs sm:text-sm font-medium text-neutral-700">Pricing Considerations</h4>
+                              <p className="text-xs sm:text-sm text-neutral-600 mt-1">{memo.pricingConsideration}</p>
                             </div>
                           )}
                         </div>
@@ -548,11 +560,11 @@ export default function DealDetail() {
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-8 text-neutral-500">
-                    <FileText className="h-12 w-12 mx-auto mb-3 opacity-30" />
-                    <p>No mini-memos have been submitted for this deal yet.</p>
-                    <Button className="mt-4">
-                      <FileText className="h-4 w-4 mr-2" />
+                  <div className="text-center py-6 sm:py-8 text-neutral-500">
+                    <FileText className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-2 sm:mb-3 opacity-30" />
+                    <p className="text-sm sm:text-base">No mini-memos have been submitted for this deal yet.</p>
+                    <Button size="sm" className="mt-3 sm:mt-4 h-8 sm:h-9 text-xs sm:text-sm px-3 sm:px-4">
+                      <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
                       Create Mini-Memo
                     </Button>
                   </div>
@@ -589,11 +601,11 @@ export default function DealDetail() {
                     {/* Show allocations */}
                   </div>
                 ) : (
-                  <div className="text-center py-8 text-neutral-500">
-                    <DollarSign className="h-12 w-12 mx-auto mb-3 opacity-30" />
-                    <p>This deal has not been allocated to any funds yet.</p>
-                    <Button className="mt-4">
-                      <DollarSign className="h-4 w-4 mr-2" />
+                  <div className="text-center py-6 sm:py-8 text-neutral-500">
+                    <DollarSign className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-2 sm:mb-3 opacity-30" />
+                    <p className="text-sm sm:text-base">This deal has not been allocated to any funds yet.</p>
+                    <Button size="sm" className="mt-3 sm:mt-4 h-8 sm:h-9 text-xs sm:text-sm px-3 sm:px-4">
+                      <DollarSign className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
                       Allocate to Fund
                     </Button>
                   </div>
