@@ -19,11 +19,12 @@ dashboardRouter.get('/stats', asyncHandler(async (req, res) => {
   // Calculate total AUM (simple sum of fund sizes)
   const totalAUM = funds.reduce((total, fund) => total + (fund.aum || 0), 0);
   
-  // Calculate pipeline value (simple sum of deal sizes)
+  // Calculate pipeline value (simple sum of estimated deal values)
   const pipelineValue = deals.reduce((total, deal) => {
     // Only count deals in active pipeline stages
     if (['initial_review', 'screening', 'diligence', 'ic_review'].includes(deal.stage)) {
-      return total + (deal.projectedReturn || 0);
+      // Since we don't have a deal value field, we'll use a generic value for now
+      return total + 1000000; // Placeholder value
     }
     return total;
   }, 0);
