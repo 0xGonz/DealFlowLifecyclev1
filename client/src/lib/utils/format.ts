@@ -65,10 +65,12 @@ export function formatDealStage(stage: string): string {
     initial_review: "Initial Review",
     screening: "Screening",
     diligence: "Diligence",
+    due_diligence: "Diligence", // Keeping both for backward compatibility
     ic_review: "IC Review",
     closing: "Closing",
     closed: "Closed",
-    passed: "Passed"
+    invested: "Invested",
+    rejected: "Rejected"
   };
   
   return stageMap[stage] || stage;
@@ -81,12 +83,13 @@ export function getDealStageBadgeClass(stage: string): string {
   const stageClasses: Record<string, string> = {
     initial_review: "bg-neutral-200 text-neutral-800 font-medium",
     screening: "bg-sky-100 text-sky-800 font-medium",
-    due_diligence: "bg-blue-100 text-blue-800 font-medium",
     diligence: "bg-blue-100 text-blue-800 font-medium",
+    due_diligence: "bg-blue-100 text-blue-800 font-medium", // Keeping both for backward compatibility
     ic_review: "bg-violet-100 text-violet-800 font-medium",
     closing: "bg-amber-100 text-amber-800 font-medium",
     closed: "bg-green-100 text-green-800 font-medium",
-    passed: "bg-red-100 text-red-800 font-medium"
+    invested: "bg-green-100 text-green-800 font-medium",
+    rejected: "bg-red-100 text-red-800 font-medium"
   };
   
   return stageClasses[stage] || "bg-neutral-200 text-neutral-700 font-medium";
