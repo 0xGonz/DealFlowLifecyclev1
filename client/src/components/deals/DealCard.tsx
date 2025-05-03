@@ -124,48 +124,48 @@ export default function DealCard({ deal: rawDeal, compact = false, onEdit, onAll
         <Button 
           variant="ghost" 
           size="sm" 
-          className="text-neutral-600 hover:text-primary text-xs sm:text-sm flex-1 min-w-0 px-1.5 sm:px-3 h-7 sm:h-8"
+          className="text-neutral-600 hover:text-primary text-xs sm:text-sm flex-1 min-w-0 px-1 sm:px-3 h-7 sm:h-8"
           onClick={(e) => {
             e.stopPropagation();
             if (onEdit) onEdit();
           }}
         >
-          <Edit className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
-          <span className="whitespace-nowrap overflow-hidden">Edit</span>
+          <Edit className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-0.5 sm:mr-1 flex-shrink-0" />
+          <span className="truncate">Edit</span>
         </Button>
         
         <Button 
           variant="ghost" 
           size="sm" 
-          className={`text-xs sm:text-sm flex-1 min-w-0 px-1.5 sm:px-3 h-7 sm:h-8 ${deal.starCount ? 'text-accent' : 'text-neutral-600 hover:text-primary'}`}
+          className={`text-xs sm:text-sm flex-1 min-w-0 px-1 sm:px-3 h-7 sm:h-8 ${deal.starCount ? 'text-accent' : 'text-neutral-600 hover:text-primary'}`}
           onClick={handleStarDeal}
         >
-          <Star className={`h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 flex-shrink-0 ${deal.starCount ? 'fill-current' : ''}`} />
-          <span className="whitespace-nowrap overflow-hidden">{deal.starCount ? `${deal.starCount}` : 'Star'}</span>
+          <Star className={`h-3.5 w-3.5 sm:h-4 sm:w-4 mr-0.5 sm:mr-1 flex-shrink-0 ${deal.starCount ? 'fill-current' : ''}`} />
+          <span className="truncate">{deal.starCount ? `${deal.starCount}` : 'Star'}</span>
         </Button>
         
         {deal.stage === 'invested' && onAllocate ? (
           <Button 
             variant="ghost" 
             size="sm" 
-            className="text-neutral-600 hover:text-primary text-xs sm:text-sm flex-1 min-w-0 px-1.5 sm:px-3 h-7 sm:h-8"
+            className="text-neutral-600 hover:text-primary text-xs sm:text-sm flex-1 min-w-0 px-1 sm:px-3 h-7 sm:h-8"
             onClick={(e) => {
               e.stopPropagation();
               onAllocate();
             }}
           >
-            <DollarSign className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
-            <span className="whitespace-nowrap overflow-hidden">Allocate</span>
+            <DollarSign className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-0.5 sm:mr-1 flex-shrink-0" />
+            <span className="truncate">Allocate</span>
           </Button>
         ) : (
           <Button 
             variant="ghost" 
             size="sm" 
-            className="text-neutral-600 hover:text-primary text-xs sm:text-sm flex-1 min-w-0 px-1.5 sm:px-3 h-7 sm:h-8"
+            className="text-neutral-600 hover:text-primary text-xs sm:text-sm flex-1 min-w-0 px-1 sm:px-3 h-7 sm:h-8"
             onClick={(e) => e.stopPropagation()}
           >
-            <Share2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
-            <span className="whitespace-nowrap overflow-hidden">Share</span>
+            <Share2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-0.5 sm:mr-1 flex-shrink-0" />
+            <span className="truncate">Share</span>
           </Button>
         )}
       </CardFooter>
