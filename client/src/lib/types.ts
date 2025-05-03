@@ -23,6 +23,7 @@ export interface Deal {
   leadInvestor?: string;
   contactEmail?: string;
   notes?: string;
+  targetReturn?: string; // Expected or target return percentage
   rejectionReason?: string;
   rejectedAt?: string;
   createdAt: string;
