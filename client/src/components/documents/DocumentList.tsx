@@ -108,18 +108,47 @@ export default function DocumentList({ dealId }: DocumentListProps) {
   const handleUpload = async () => {
     if (!uploadingFile) return;
 
-    // Instead of FormData, let's use a regular JSON object since our server expects JSON
-    const uploadData = {
-      fileName: uploadingFile.name,
-      fileType: uploadingFile.type,
-      fileSize: uploadingFile.size,
-      dealId: dealId.toString(),
-      documentType,
-      uploadedBy: '1', // Admin user ID (only ID 1 exists in the database)
-      description: description || null
-    };
+    // Create FormData for file upload
+    const formData = new FormData();
+    formData.append('file', uploadingFile);
+    formData.append('fileName', uploadingFile.name);
+    formData.append('fileType', uploadingFile.type);
+    formData.append('fileSize', uploadingFile.size.toString());
+    formData.append('dealId', dealId.toString());
+    formData.append('documentType', documentType);
+    formData.append('uploadedBy', '1'); // Admin user ID
+    if (description) {
+      formData.append('description', description);
+    }
 
-    uploadMutation.mutate(uploadData);
+    // Use a direct fetch call instead of apiRequest for FormData upload
+    try {
+      const res = await fetch('/api/documents/upload', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!res.ok) {
+        throw new Error('Failed to upload document');
+      }
+      
+      // Handle success manually
+      queryClient.invalidateQueries({ queryKey: [`/api/documents/deal/${dealId}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/deals/${dealId}`] });
+      toast({
+        title: 'Document uploaded',
+        description: 'Your document has been successfully uploaded.',
+      });
+      setIsUploadDialogOpen(false);
+      setUploadingFile(null);
+      setDescription('');
+    } catch (error) {
+      toast({
+        title: 'Upload failed',
+        description: 'There was an error uploading your document. Please try again.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const getDocumentTypeLabel = (type: string) => {

@@ -6,6 +6,7 @@ import * as schema from '@shared/schema';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as crypto from 'crypto';
+import multer from 'multer';
 
 const router = Router();
 
@@ -83,14 +84,33 @@ router.get('/:id/download', async (req: Request, res: Response) => {
     // Set appropriate content type
     res.setHeader('Content-Type', document.fileType);
     
+    // For PDFs, set Content-Disposition to inline (displays in browser)
+    if (document.fileType === 'application/pdf' || document.fileName.toLowerCase().endsWith('.pdf')) {
+      res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(document.fileName)}"`);
+    } else {
+      // For other file types, set to attachment (forces download)
+      res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(document.fileName)}"`);
+    }
+    
     // Try to serve the actual file if it exists in the uploads directory
     const actualFilePath = path.join(process.cwd(), 'public', document.filePath);
+    
+    // Log the path we're trying to serve from
+    console.log(`Attempting to serve document from: ${actualFilePath}`);
     
     // Check if the actual file exists first
     if (fs.existsSync(actualFilePath)) {
       console.log(`Serving actual file from: ${actualFilePath}`);
-      const fileContent = fs.readFileSync(actualFilePath);
-      return res.send(fileContent);
+      // Stream the file instead of loading it into memory
+      const fileStream = fs.createReadStream(actualFilePath);
+      fileStream.pipe(res);
+      
+      // Handle stream errors
+      fileStream.on('error', (err) => {
+        console.error('Error streaming document:', err);
+        res.status(500).json({ message: 'Error serving document' });
+      });
+      return;
     }
     
     // Fallback to the sample PDF for testing
@@ -99,8 +119,15 @@ router.get('/:id/download', async (req: Request, res: Response) => {
       try {
         if (fs.existsSync(samplePdfPath)) {
           console.log(`Serving sample PDF from: ${samplePdfPath}`);
-          const fileContent = fs.readFileSync(samplePdfPath);
-          return res.send(fileContent);
+          const fileStream = fs.createReadStream(samplePdfPath);
+          fileStream.pipe(res);
+          
+          // Handle stream errors
+          fileStream.on('error', (err) => {
+            console.error('Error streaming sample PDF:', err);
+            res.status(500).json({ message: 'Error serving document' });
+          });
+          return;
         }
       } catch (error) {
         console.error('Error reading sample PDF file:', error);
