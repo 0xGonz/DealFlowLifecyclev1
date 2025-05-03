@@ -1,15 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogHeader,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, FileText, Loader2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Download, Loader2, FileText } from 'lucide-react';
+import { Card, CardContent } from "@/components/ui/card";
 
 // Set the worker source to avoid network requests
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
@@ -17,14 +10,12 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   import.meta.url,
 ).toString();
 
-interface PDFViewerProps {
-  isOpen: boolean;
-  onClose: () => void;
+interface EmbeddedPDFViewerProps {
   documentId: number;
   documentName: string;
 }
 
-export default function PDFViewer({ isOpen, onClose, documentId, documentName }: PDFViewerProps) {
+export default function EmbeddedPDFViewer({ documentId, documentName }: EmbeddedPDFViewerProps) {
   const [numPages, setNumPages] = useState<number | null>(null);
   const [pageNumber, setPageNumber] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
@@ -59,16 +50,19 @@ export default function PDFViewer({ isOpen, onClose, documentId, documentName }:
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-3xl max-h-[90vh]">
-        <DialogHeader>
-          <DialogTitle className="truncate pr-8">{documentName}</DialogTitle>
-          <DialogDescription>
-            PDF Preview{numPages ? ` (Page ${pageNumber} of ${numPages})` : ''}
-          </DialogDescription>
-        </DialogHeader>
+    <Card className="w-full">
+      <CardContent className="p-6">
+        <div className="mb-4 flex justify-between items-center">
+          <h3 className="text-lg font-medium truncate mr-2">{documentName}</h3>
+          <Button variant="outline" size="sm" asChild>
+            <a href={`/api/documents/${documentId}/download`} target="_blank" rel="noopener noreferrer">
+              <Download className="h-4 w-4 mr-1" />
+              Download
+            </a>
+          </Button>
+        </div>
         
-        <div className="flex flex-col items-center overflow-y-auto">
+        <div className="flex flex-col items-center">
           {isLoading && (
             <div className="flex flex-col items-center justify-center py-16">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -125,16 +119,7 @@ export default function PDFViewer({ isOpen, onClose, documentId, documentName }:
             </Button>
           </div>
         )}
-        
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Close</Button>
-          <Button asChild>
-            <a href={`/api/documents/${documentId}/download`} target="_blank" rel="noopener noreferrer">
-              Download
-            </a>
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      </CardContent>
+    </Card>
   );
 }

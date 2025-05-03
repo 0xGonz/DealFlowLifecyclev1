@@ -9,6 +9,7 @@ import { Document } from '@/lib/types';
 import { formatDistanceToNow } from 'date-fns';
 import { formatBytes } from '@/lib/utils/format';
 import PDFViewer from './PDFViewer';
+import EmbeddedPDFViewer from './EmbeddedPDFViewer';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -254,66 +255,94 @@ export default function DocumentList({ dealId }: DocumentListProps) {
       </div>
 
       {documents && documents.length > 0 ? (
-        <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
-          {documents.map((document) => (
-            <Card className="p-4 flex" key={document.id}>
-              <div className="mr-4 flex-shrink-0 flex items-center justify-center bg-neutral-100 p-3 rounded-lg">
-                {getDocumentTypeIcon(document.documentType)}
-              </div>
-              <div className="flex-grow overflow-hidden">
-                <h4 className="font-medium text-neutral-800 truncate">{document.fileName}</h4>
-                <p className="text-sm text-neutral-500 mb-2">
-                  {getDocumentTypeLabel(document.documentType)} • {formatBytes(document.fileSize)}
-                </p>
-                {document.description && (
-                  <p className="text-sm text-neutral-600 mb-2 line-clamp-2">{document.description}</p>
-                )}
-                <p className="text-xs text-neutral-400">
-                  Uploaded {formatDistanceToNow(new Date(document.uploadedAt), { addSuffix: true })}
-                </p>
-              </div>
-              <div className="flex flex-col justify-center space-y-2 ml-2">
-                <Button 
-                  variant="secondary" 
-                  size="sm" 
-                  onClick={() => handleViewDocument(document)}
-                >
-                  <Eye className="h-4 w-4 mr-1" />
-                  View
-                </Button>
-                <Button variant="outline" size="sm" asChild>
-                  <a href={`/api/documents/${document.id}/download`} target="_blank" rel="noopener noreferrer">
-                    <Download className="h-4 w-4 mr-1" />
-                    Download
-                  </a>
-                </Button>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="ghost" size="sm">
-                      <Trash2 className="h-4 w-4 mr-1" />
-                      Delete
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        This will permanently delete this document and cannot be undone.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={() => deleteMutation.mutate(document.id)}
-                      >
-                        {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
-            </Card>
-          ))}
+        <div className="space-y-8">
+          {/* Display latest PDF document at the top if it exists */}
+          {documents.some(doc => doc.fileType === 'application/pdf' || doc.fileName.toLowerCase().endsWith('.pdf')) && (
+            <div className="mb-8">
+              {/* Get the latest PDF document */}
+              {(() => {
+                const pdfDocs = documents.filter(doc => 
+                  doc.fileType === 'application/pdf' || doc.fileName.toLowerCase().endsWith('.pdf')
+                );
+                if (pdfDocs.length > 0) {
+                  // Sort by date and get the most recent PDF
+                  const latestPdf = pdfDocs.sort((a, b) => 
+                    new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()
+                  )[0];
+                  return (
+                    <EmbeddedPDFViewer 
+                      documentId={latestPdf.id} 
+                      documentName={latestPdf.fileName} 
+                    />
+                  );
+                }
+                return null;
+              })()}
+            </div>
+          )}
+          
+          {/* Document list */}
+          <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+            {documents.map((document) => (
+              <Card className="p-4 flex" key={document.id}>
+                <div className="mr-4 flex-shrink-0 flex items-center justify-center bg-neutral-100 p-3 rounded-lg">
+                  {getDocumentTypeIcon(document.documentType)}
+                </div>
+                <div className="flex-grow overflow-hidden">
+                  <h4 className="font-medium text-neutral-800 truncate">{document.fileName}</h4>
+                  <p className="text-sm text-neutral-500 mb-2">
+                    {getDocumentTypeLabel(document.documentType)} • {formatBytes(document.fileSize)}
+                  </p>
+                  {document.description && (
+                    <p className="text-sm text-neutral-600 mb-2 line-clamp-2">{document.description}</p>
+                  )}
+                  <p className="text-xs text-neutral-400">
+                    Uploaded {formatDistanceToNow(new Date(document.uploadedAt), { addSuffix: true })}
+                  </p>
+                </div>
+                <div className="flex flex-col justify-center space-y-2 ml-2">
+                  <Button 
+                    variant="secondary" 
+                    size="sm" 
+                    onClick={() => handleViewDocument(document)}
+                  >
+                    <Eye className="h-4 w-4 mr-1" />
+                    View
+                  </Button>
+                  <Button variant="outline" size="sm" asChild>
+                    <a href={`/api/documents/${document.id}/download`} target="_blank" rel="noopener noreferrer">
+                      <Download className="h-4 w-4 mr-1" />
+                      Download
+                    </a>
+                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="ghost" size="sm">
+                        <Trash2 className="h-4 w-4 mr-1" />
+                        Delete
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This will permanently delete this document and cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => deleteMutation.mutate(document.id)}
+                        >
+                          {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              </Card>
+            ))}
+          </div>
         </div>
       ) : (
         <div className="text-center py-8 text-neutral-500 bg-white rounded-lg shadow-sm">
