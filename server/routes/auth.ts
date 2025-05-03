@@ -21,7 +21,8 @@ router.post('/login', asyncHandler(async (req: Request, res: Response) => {
   
   // Return user info (without password)
   const { password: _, ...userWithoutPassword } = user;
-  return res.json({ user: userWithoutPassword });
+  // Return user directly, not wrapped in an object
+  return res.json(userWithoutPassword);
 }));
 
 // Logout route
@@ -40,7 +41,8 @@ router.get('/me', asyncHandler(async (req: Request, res: Response) => {
   
   // Return user info (without password)
   const { password: _, ...userWithoutPassword } = user;
-  return res.json({ user: userWithoutPassword });
+  // Return user directly, not wrapped in an object
+  return res.json(userWithoutPassword);
 }));
 
 export default router;
