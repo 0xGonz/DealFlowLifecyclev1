@@ -27,6 +27,28 @@ export default function ProfileEditModal({
   const { toast } = useToast();
   const [isUpdating, setIsUpdating] = useState(false);
   
+  interface User {
+    id: number;
+    username: string;
+    fullName: string;
+    initials: string;
+    role: string;
+    avatarColor?: string | null;
+  }
+
+  // Get current user to determine ID for update
+  const { data: currentUser } = useQuery<User>({
+    queryKey: ["/api/auth/me"],
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+
+  // Sync props with state when they change
+  useEffect(() => {
+    setName(currentName);
+    setRole(currentRole);
+  }, [currentName, currentRole]);
+
   const handleSubmit = async () => {
     if (!name?.trim()) {
       toast({
@@ -39,23 +61,24 @@ export default function ProfileEditModal({
     
     setIsUpdating(true);
     try {
-      // In a production app, this would update the actual user profile
-      // using a proper API endpoint
-      console.log("Profile updated:", { name, role });
+      // Determine the user ID to update
+      // If authenticated, use the current user's ID, otherwise default to 1
+      const userId = (currentUser && 'id' in currentUser) ? currentUser.id : 1;
       
-      // For this demo, we'll update the first user in the database
-      await apiRequest("PATCH", "/api/users/1", {
+      // Update the user
+      await apiRequest("PATCH", `/api/users/${userId}`, {
         fullName: name,
         role: role
       });
       
       // Refresh user data and timeline events
       await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] }),
         queryClient.invalidateQueries({ queryKey: ["/api/users"] }),
         queryClient.invalidateQueries({ queryKey: ["/api/activity"] }),
         queryClient.invalidateQueries({ queryKey: ["/api/deals"] }),
-        // Invalidate all timeline data
-        queryClient.invalidateQueries({ queryKey: ["/api/deals/1/timeline"] })
+        // Invalidate all timeline data for all deals
+        queryClient.invalidateQueries({ queryKey: ["/api/deals"] }),
       ]);
       
       toast({
@@ -124,9 +147,9 @@ export default function ProfileEditModal({
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={handleSubmit} className="bg-primary hover:bg-primary-dark text-white">
-            Save Changes
+          <Button variant="outline" onClick={onClose} disabled={isUpdating}>Cancel</Button>
+          <Button onClick={handleSubmit} className="bg-primary hover:bg-primary-dark text-white" disabled={isUpdating}>
+            {isUpdating ? "Saving..." : "Save Changes"}
           </Button>
         </DialogFooter>
       </DialogContent>
