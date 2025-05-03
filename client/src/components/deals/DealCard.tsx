@@ -71,7 +71,7 @@ export default function DealCard({ deal: rawDeal, compact = false, onEdit, onAll
     >
       <CardContent className="p-3 sm:p-4">
         <div className="flex justify-between items-start mb-2 sm:mb-3">
-          <h3 className="font-semibold text-sm sm:text-lg truncate mr-2">{deal.name}</h3>
+          <h3 className="font-semibold text-sm sm:text-base md:text-lg truncate mr-2 max-w-[65%] sm:max-w-[70%]">{deal.name}</h3>
           <span className={`deal-stage-badge text-[10px] sm:text-xs px-1.5 py-0.5 sm:px-2 sm:py-1 leading-none whitespace-nowrap ${getDealStageBadgeClass(deal.stage)}`}>
             {deal.stageLabel}
           </span>
@@ -118,52 +118,52 @@ export default function DealCard({ deal: rawDeal, compact = false, onEdit, onAll
         </div>
       </CardContent>
       
-      <CardFooter className="border-t border-neutral-200 p-2 sm:p-3 flex flex-wrap sm:flex-nowrap justify-between gap-1">
+      <CardFooter className="border-t border-neutral-200 p-2 sm:p-3 flex flex-wrap sm:flex-nowrap justify-between gap-1 sm:gap-2">
         <Button 
           variant="ghost" 
           size="sm" 
-          className="text-neutral-600 hover:text-primary text-xs sm:text-sm flex-1 sm:flex-auto px-2 sm:px-3 h-7 sm:h-8"
+          className="text-neutral-600 hover:text-primary text-xs sm:text-sm flex-1 min-w-0 px-1.5 sm:px-3 h-7 sm:h-8"
           onClick={(e) => {
             e.stopPropagation();
             if (onEdit) onEdit();
           }}
         >
-          <Edit className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" />
-          <span className="whitespace-nowrap">Edit</span>
+          <Edit className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
+          <span className="whitespace-nowrap overflow-hidden">Edit</span>
         </Button>
         
         <Button 
           variant="ghost" 
           size="sm" 
-          className={`text-xs sm:text-sm flex-1 sm:flex-auto px-2 sm:px-3 h-7 sm:h-8 ${deal.starCount ? 'text-accent' : 'text-neutral-600 hover:text-primary'}`}
+          className={`text-xs sm:text-sm flex-1 min-w-0 px-1.5 sm:px-3 h-7 sm:h-8 ${deal.starCount ? 'text-accent' : 'text-neutral-600 hover:text-primary'}`}
           onClick={handleStarDeal}
         >
-          <Star className={`h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 ${deal.starCount ? 'fill-current' : ''}`} />
-          <span className="whitespace-nowrap">{deal.starCount ? `${deal.starCount}` : 'Star'}</span>
+          <Star className={`h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 flex-shrink-0 ${deal.starCount ? 'fill-current' : ''}`} />
+          <span className="whitespace-nowrap overflow-hidden">{deal.starCount ? `${deal.starCount}` : 'Star'}</span>
         </Button>
         
         {deal.stage === 'invested' && onAllocate ? (
           <Button 
             variant="ghost" 
             size="sm" 
-            className="text-neutral-600 hover:text-primary text-xs sm:text-sm flex-1 sm:flex-auto px-2 sm:px-3 h-7 sm:h-8"
+            className="text-neutral-600 hover:text-primary text-xs sm:text-sm flex-1 min-w-0 px-1.5 sm:px-3 h-7 sm:h-8"
             onClick={(e) => {
               e.stopPropagation();
               onAllocate();
             }}
           >
-            <DollarSign className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" />
-            <span className="whitespace-nowrap">Allocate</span>
+            <DollarSign className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
+            <span className="whitespace-nowrap overflow-hidden">Allocate</span>
           </Button>
         ) : (
           <Button 
             variant="ghost" 
             size="sm" 
-            className="text-neutral-600 hover:text-primary text-xs sm:text-sm flex-1 sm:flex-auto px-2 sm:px-3 h-7 sm:h-8"
+            className="text-neutral-600 hover:text-primary text-xs sm:text-sm flex-1 min-w-0 px-1.5 sm:px-3 h-7 sm:h-8"
             onClick={(e) => e.stopPropagation()}
           >
-            <Share2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" />
-            <span className="whitespace-nowrap">Share</span>
+            <Share2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
+            <span className="whitespace-nowrap overflow-hidden">Share</span>
           </Button>
         )}
       </CardFooter>
