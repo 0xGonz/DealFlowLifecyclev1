@@ -111,7 +111,7 @@ export default function DocumentList({ dealId }: DocumentListProps) {
       fileSize: uploadingFile.size,
       dealId: dealId.toString(),
       documentType,
-      uploadedBy: '2', // Current user ID (John Doe)
+      uploadedBy: '1', // Admin user ID (only ID 1 exists in the database)
       description: description || null
     };
 

@@ -137,7 +137,7 @@ router.post('/upload', async (req: Request, res: Response) => {
       dealId: parseInt(dealId),
       eventType: 'document_upload',
       content: `Document uploaded: ${fileName}`,
-      createdBy: parseInt(uploadedBy),
+      createdBy: 1, // Admin user ID (only ID 1 exists in the database)
       createdAt: new Date(),
       metadata: { documentId: document.id }
     });
