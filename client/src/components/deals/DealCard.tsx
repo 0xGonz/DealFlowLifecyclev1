@@ -10,7 +10,6 @@ import {
   Edit, 
   Share2, 
   Star,
-  Users,
   DollarSign,
   Tag
 } from "lucide-react";
@@ -83,11 +82,6 @@ export default function DealCard({ deal: rawDeal, compact = false, onEdit, onAll
         </p>
         
         <div className="flex flex-col gap-2 mb-3">
-          <div className="flex items-center text-xs sm:text-sm text-neutral-500">
-            <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" />
-            <span className="truncate">{deal.round || "Unknown Round"}</span>
-          </div>
-          
           <div className="flex items-center text-xs sm:text-sm">
             <Tag className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 text-primary" />
             <span className="text-primary-dark font-medium truncate">
@@ -95,17 +89,6 @@ export default function DealCard({ deal: rawDeal, compact = false, onEdit, onAll
             </span>
           </div>
         </div>
-        
-        {!compact && (
-          <div className="flex items-center text-xs sm:text-sm text-neutral-500 mb-3 sm:mb-4">
-            <DollarSign className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" />
-            <span className="truncate">
-              {(deal.targetRaise || deal.valuation) 
-                ? `${deal.targetRaise || ''} ${deal.targetRaise && deal.valuation ? ', ' : ''} ${deal.valuation || ''}` 
-                : 'No financial details'}
-            </span>
-          </div>
-        )}
         
         <div className="flex items-center justify-between">
           <div className="flex -space-x-1.5 sm:-space-x-2">

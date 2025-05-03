@@ -334,20 +334,7 @@ export default function DealDetail() {
                       <p className="text-xs sm:text-sm text-neutral-600 truncate">{deal?.sector || 'Not specified'}</p>
                     </div>
                   </div>
-                  <div className="flex items-start">
-                    <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-neutral-500 mt-0.5 mr-1.5 sm:mr-2 flex-shrink-0" />
-                    <div>
-                      <p className="text-xs sm:text-sm font-medium">Round</p>
-                      <p className="text-xs sm:text-sm text-neutral-600 truncate">{deal?.round || 'Not specified'}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start">
-                    <DollarSign className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-neutral-500 mt-0.5 mr-1.5 sm:mr-2 flex-shrink-0" />
-                    <div>
-                      <p className="text-xs sm:text-sm font-medium">Target Raise</p>
-                      <p className="text-xs sm:text-sm text-neutral-600 truncate">{deal?.targetRaise || 'Not specified'}</p>
-                    </div>
-                  </div>
+
                 </div>
               </div>
               
@@ -361,13 +348,7 @@ export default function DealDetail() {
                       <p className="text-xs sm:text-sm text-neutral-600 truncate">{deal?.contactEmail || 'Not specified'}</p>
                     </div>
                   </div>
-                  <div className="flex items-start">
-                    <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-neutral-500 mt-0.5 mr-1.5 sm:mr-2 flex-shrink-0" />
-                    <div className="min-w-0">
-                      <p className="text-xs sm:text-sm font-medium">Lead Investor</p>
-                      <p className="text-xs sm:text-sm text-neutral-600 truncate">{deal?.leadInvestor || 'Not specified'}</p>
-                    </div>
-                  </div>
+
                   <div className="flex items-start">
                     <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-neutral-500 mt-0.5 mr-1.5 sm:mr-2 flex-shrink-0" />
                     <div>
