@@ -94,7 +94,7 @@ export default function StageDistribution({ deals, stage }: StageDistributionPro
                   <div className="flex items-center ml-auto sm:ml-0">
                     <span className="text-xs sm:text-sm text-black mr-1.5 sm:mr-2 whitespace-nowrap">{cat.count} deals</span>
                     <span className="text-[10px] sm:text-xs text-black bg-neutral-100 px-1.5 py-0.5 rounded-full whitespace-nowrap">
-                      {cat.percentage}%
+                      <span className="font-bold">{cat.percentage}%</span>
                     </span>
                   </div>
                 </div>
@@ -165,7 +165,7 @@ export default function StageDistribution({ deals, stage }: StageDistributionPro
                 <div className="flex items-center ml-auto sm:ml-0">
                   <span className="text-xs sm:text-sm text-black mr-1.5 sm:mr-2 whitespace-nowrap">{stat.count} deals</span>
                   <span className="text-[10px] sm:text-xs text-black bg-neutral-100 px-1.5 py-0.5 rounded-full whitespace-nowrap">
-                    {stat.percentage}%
+                    <span className="font-bold">{stat.percentage}%</span>
                   </span>
                 </div>
               </div>
