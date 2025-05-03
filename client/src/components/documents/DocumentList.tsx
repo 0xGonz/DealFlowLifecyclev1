@@ -54,29 +54,8 @@ export default function DocumentList({ dealId }: DocumentListProps) {
     enabled: !!dealId,
   });
 
-  const uploadMutation = useMutation({
-    mutationFn: async (data: any) => {
-      return apiRequest('POST', '/api/documents/upload', data);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/documents/deal/${dealId}`] });
-      queryClient.invalidateQueries({ queryKey: [`/api/deals/${dealId}`] });
-      toast({
-        title: 'Document uploaded',
-        description: 'Your document has been successfully uploaded.',
-      });
-      setIsUploadDialogOpen(false);
-      setUploadingFile(null);
-      setDescription('');
-    },
-    onError: () => {
-      toast({
-        title: 'Upload failed',
-        description: 'There was an error uploading your document. Please try again.',
-        variant: 'destructive',
-      });
-    },
-  });
+  // Document uploads use the native fetch API with FormData directly
+  // instead of using the query client, since we need to send files
 
   const deleteMutation = useMutation({
     mutationFn: async (documentId: number) => {
@@ -108,18 +87,22 @@ export default function DocumentList({ dealId }: DocumentListProps) {
   const handleUpload = async () => {
     if (!uploadingFile) return;
 
-    // Create FormData for file upload
+    // Create FormData for file upload - this matches the multer implementation on the server
     const formData = new FormData();
+    // The key 'file' must match the multer field name in upload.single('file')
     formData.append('file', uploadingFile);
-    formData.append('fileName', uploadingFile.name);
-    formData.append('fileType', uploadingFile.type);
-    formData.append('fileSize', uploadingFile.size.toString());
     formData.append('dealId', dealId.toString());
     formData.append('documentType', documentType);
     formData.append('uploadedBy', '1'); // Admin user ID
     if (description) {
       formData.append('description', description);
     }
+
+    // Show loading state
+    const uploadingToast = toast({
+      title: 'Uploading document',
+      description: 'Please wait while your document is being uploaded...',
+    });
 
     // Use a direct fetch call instead of apiRequest for FormData upload
     try {
@@ -132,7 +115,7 @@ export default function DocumentList({ dealId }: DocumentListProps) {
         throw new Error('Failed to upload document');
       }
       
-      // Handle success manually
+      // Handle success
       queryClient.invalidateQueries({ queryKey: [`/api/documents/deal/${dealId}`] });
       queryClient.invalidateQueries({ queryKey: [`/api/deals/${dealId}`] });
       toast({
@@ -143,6 +126,7 @@ export default function DocumentList({ dealId }: DocumentListProps) {
       setUploadingFile(null);
       setDescription('');
     } catch (error) {
+      console.error('Document upload error:', error);
       toast({
         title: 'Upload failed',
         description: 'There was an error uploading your document. Please try again.',
@@ -274,9 +258,9 @@ export default function DocumentList({ dealId }: DocumentListProps) {
               <Button variant="outline" onClick={() => setIsUploadDialogOpen(false)}>Cancel</Button>
               <Button 
                 onClick={handleUpload} 
-                disabled={!uploadingFile || uploadMutation.isPending}
+                disabled={!uploadingFile}
               >
-                {uploadMutation.isPending ? 'Uploading...' : 'Upload Document'}
+                Upload Document
               </Button>
             </DialogFooter>
           </DialogContent>

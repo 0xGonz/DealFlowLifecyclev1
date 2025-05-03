@@ -10,6 +10,30 @@ import multer from 'multer';
 
 const router = Router();
 
+// Set up multer storage
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = path.join(process.cwd(), 'public/uploads');
+    // Ensure the upload directory exists
+    if (!fs.existsSync(uploadDir)){
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    // Generate a unique filename to prevent overwriting
+    const uniqueId = crypto.randomUUID();
+    cb(null, `${uniqueId}-${file.originalname}`);
+  }
+});
+
+const upload = multer({
+  storage,
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB file size limit
+  },
+});
+
 // Get all documents for a deal
 router.get('/deal/:dealId', async (req: Request, res: Response) => {
   try {
@@ -146,29 +170,37 @@ router.get('/:id/download', async (req: Request, res: Response) => {
 });
 
 // Upload a document
-router.post('/upload', async (req: Request, res: Response) => {
+router.post('/upload', upload.single('file'), async (req: Request, res: Response) => {
   try {
-    // This works with both FormData and JSON payload
-    const storage = StorageFactory.getStorage();
     console.log('Received document upload request:', req.body);
+    console.log('File info:', req.file);
     
-    const { dealId, fileName, fileType, documentType, description, uploadedBy } = req.body;
-    const fileSize = req.body.fileSize || 1024; // Default file size if not provided
+    // Access the uploaded file via req.file and form fields via req.body
+    const storageClient = StorageFactory.getStorage();
     
-    if (!dealId || !fileName || !documentType || !uploadedBy) {
-      console.error('Missing required fields:', { dealId, fileName, documentType, uploadedBy });
+    // Get form fields from request body
+    const { dealId, documentType, description, uploadedBy } = req.body;
+    
+    // If we don't have a file or required fields, return an error
+    if (!req.file || !dealId || !documentType || !uploadedBy) {
+      console.error('Missing required fields:', { file: !!req.file, dealId, documentType, uploadedBy });
       return res.status(400).json({ message: 'Missing required fields' });
     }
     
-    // Generate a unique ID for the file
-    const fileId = crypto.randomUUID();
-    const filePath = `/uploads/${fileId}-${fileName}`;
+    // Use file information from multer
+    const fileName = req.file.originalname;
+    const fileType = req.file.mimetype;
+    const fileSize = req.file.size;
+    
+    // The file path is now controlled by multer
+    // The file is saved to public/uploads/<uniqueId>-<originalname>
+    const filePath = `/uploads/${path.basename(req.file.path)}`;
     
     const documentData = {
       dealId: parseInt(dealId),
       fileName,
-      fileType: fileType || 'application/pdf',
-      fileSize: parseInt(fileSize),
+      fileType,
+      fileSize,
       filePath,
       uploadedBy: parseInt(uploadedBy),
       documentType,
@@ -177,30 +209,11 @@ router.post('/upload', async (req: Request, res: Response) => {
     };
     
     console.log('Creating document with data:', documentData);
-    const document = await storage.createDocument(documentData);
+    const document = await storageClient.createDocument(documentData);
     console.log('Document created successfully:', document);
     
-    // For demo purposes, copy the sample PDF to the expected path
-    // In a real implementation, you would save the uploaded file contents here
-    try {
-      const samplePdfPath = path.join(process.cwd(), 'public/uploads/sample-upload.pdf');
-      const actualFilePath = path.join(process.cwd(), 'public', filePath);
-      if (fs.existsSync(samplePdfPath)) {
-        // Make sure the directory exists
-        const dir = path.dirname(actualFilePath);
-        if (!fs.existsSync(dir)) {
-          fs.mkdirSync(dir, { recursive: true });
-        }
-        // Copy the sample file to the expected path
-        fs.copyFileSync(samplePdfPath, actualFilePath);
-        console.log(`Copied sample PDF to ${actualFilePath}`);
-      }
-    } catch (error) {
-      console.error('Error copying sample file:', error);
-    }
-    
     // Also create a timeline event for the document upload
-    await storage.createTimelineEvent({
+    await storageClient.createTimelineEvent({
       dealId: parseInt(dealId),
       eventType: 'document_upload',
       content: `Document uploaded: ${fileName}`,
