@@ -80,16 +80,26 @@ router.get('/:id/download', async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'Document not found' });
     }
     
-    // For in-memory storage, documents are stored in memory and don't have actual files
-    // In a real implementation, you'd send the actual file from storage
-    // For now, we'll send a mock file as example
-    
-    // This is a placeholder. In a real app, you'd use the document.filePath to find the file
+    // For in-memory storage, we'll use a sample PDF file for demonstration
+    // In a real implementation, you'd use document.fileData or document.filePath to serve the actual file
     res.setHeader('Content-Disposition', `attachment; filename="${document.fileName}"`);
     res.setHeader('Content-Type', document.fileType);
     
-    // Create a simple sample file based on the document type
-    const content = `This is a mock ${document.documentType} file for ${document.fileName}`;
+    // Serve a sample PDF for testing
+    const fs = require('fs');
+    const path = require('path');
+    
+    // Check file type and serve an appropriate file
+    if (document.fileType === 'application/pdf' || document.fileName.toLowerCase().endsWith('.pdf')) {
+      const pdfPath = path.join(process.cwd(), 'public/documents/sample.pdf');
+      if (fs.existsSync(pdfPath)) {
+        const fileContent = fs.readFileSync(pdfPath);
+        return res.send(fileContent);
+      }
+    }
+    
+    // Fallback if file doesn't exist or isn't a PDF
+    const content = `This is a document file for ${document.fileName}`;
     res.send(Buffer.from(content));
     
   } catch (error) {
@@ -139,7 +149,7 @@ router.post('/upload', async (req: Request, res: Response) => {
       content: `Document uploaded: ${fileName}`,
       createdBy: 1, // Admin user ID (only ID 1 exists in the database)
       createdAt: new Date(),
-      metadata: { documentId: document.id }
+      metadata: JSON.stringify({ documentId: document.id })
     });
     
     return res.status(201).json(document);
