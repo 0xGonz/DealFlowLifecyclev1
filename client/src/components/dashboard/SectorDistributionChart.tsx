@@ -147,7 +147,7 @@ export default function SectorDistributionChart() {
             <p className="text-neutral-500">No sector data available</p>
           </div>
         ) : (
-          <div className="h-[280px] xs:h-[320px] sm:h-[350px] w-full relative">
+          <div className="h-[260px] xs:h-[280px] sm:h-[320px] md:h-[350px] w-full relative overflow-hidden">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -156,8 +156,8 @@ export default function SectorDistributionChart() {
                   cy="50%"
                   labelLine={false}
                   label={renderCustomizedLabel}
-                  innerRadius={windowWidth < 480 ? 40 : windowWidth < 640 ? 50 : 60}
-                  outerRadius={windowWidth < 480 ? 80 : windowWidth < 640 ? 90 : 100}
+                  innerRadius={windowWidth < 375 ? 30 : windowWidth < 480 ? 35 : windowWidth < 640 ? 45 : 60}
+                  outerRadius={windowWidth < 375 ? 60 : windowWidth < 480 ? 70 : windowWidth < 640 ? 85 : 100}
                   fill="#8884d8"
                   dataKey="count"
                 >

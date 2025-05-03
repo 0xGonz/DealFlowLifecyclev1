@@ -124,7 +124,7 @@ export default function NotificationDropdown() {
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-0" align="end">
+      <PopoverContent className="w-[80vw] max-w-[320px] p-0" align="end">
         <Card className="border-0 shadow-none">
           <CardHeader className="pb-2 pt-4 px-4">
             <div className="flex justify-between items-center">
@@ -161,15 +161,15 @@ export default function NotificationDropdown() {
                     key={notification.id} 
                     className={`p-4 hover:bg-neutral-50 ${!notification.isRead ? 'bg-blue-50/30' : ''}`}
                   >
-                    <div className="flex justify-between">
-                      <div>
-                        <div className="font-medium text-sm">{notification.title}</div>
-                        <p className="text-sm text-gray-500 mt-1">{notification.message}</p>
-                        <div className="flex items-center gap-2 mt-2">
-                          <Badge variant="outline" className={`${getTypeColor(notification.type)} border-0`}>
+                    <div className="flex justify-between gap-1">
+                      <div className="min-w-0 flex-grow">
+                        <div className="font-medium text-sm truncate">{notification.title}</div>
+                        <p className="text-sm text-gray-500 mt-1 line-clamp-2">{notification.message}</p>
+                        <div className="flex flex-wrap items-center gap-1 sm:gap-2 mt-2">
+                          <Badge variant="outline" className={`${getTypeColor(notification.type)} border-0 text-[10px] px-1.5 py-0.5 leading-none`}>
                             {notification.type.charAt(0).toUpperCase() + notification.type.slice(1)}
                           </Badge>
-                          <span className="text-xs text-gray-400">
+                          <span className="text-[10px] text-gray-400">
                             {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
                           </span>
                         </div>

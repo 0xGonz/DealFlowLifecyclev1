@@ -42,7 +42,7 @@ export default function Dashboard() {
 
   return (
     <AppLayout>
-      <div className="p-4 sm:p-6 pb-20">
+      <div className="p-2 sm:p-4 lg:p-6 pb-20 w-full overflow-hidden">
         {/* Dashboard Overview */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-6 mb-6 sm:mb-8">
           {/* Quick Stats */}

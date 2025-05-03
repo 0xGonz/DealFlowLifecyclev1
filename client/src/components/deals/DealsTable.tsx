@@ -43,7 +43,7 @@ export default function DealsTable({ deals, onEdit, onAllocate, onUpdateStatus, 
 
   return (
     <div className="rounded-md border bg-white w-full overflow-hidden">
-      <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+      <div className="overflow-x-auto w-full scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
         <Table>
           <TableHeader>
             <TableRow className="bg-white border-b">

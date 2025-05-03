@@ -42,8 +42,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
       <div className="flex-1 flex flex-col overflow-y-auto w-full max-w-full">
         <Header />
         <div className="flex-1 overflow-y-auto pb-16 w-full max-w-full">
-          <main className="pt-2 sm:pt-4 px-3 sm:px-4 md:px-6"> {/* Added consistent padding container */}
-            {children}
+          <main className="pt-2 sm:pt-4 px-2 sm:px-4 md:px-6 w-full overflow-hidden"> {/* Improved responsive padding */}
+            <div className="w-full overflow-hidden">{children}</div>
           </main>
         </div>
       </div>
