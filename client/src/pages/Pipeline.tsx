@@ -20,11 +20,23 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { enrichDealsWithComputedProps } from "@/lib/utils";
 import { Deal } from "@/lib/types";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useLocation } from "wouter";
 
 export default function Pipeline() {
   const [isNewDealModalOpen, setIsNewDealModalOpen] = useState(false);
   const [isEditDealModalOpen, setIsEditDealModalOpen] = useState(false);
   const [isAllocateFundModalOpen, setIsAllocateFundModalOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedDealId, setSelectedDealId] = useState<number | null>(null);
   const [selectedDealName, setSelectedDealName] = useState<string>("");
   const [stageFilter, setStageFilter] = useState("all");
@@ -32,6 +44,7 @@ export default function Pipeline() {
   const [searchTerm, setSearchTerm] = useState("");
   const [dateFilter, setDateFilter] = useState("all");
   const { toast } = useToast();
+  const [_, navigate] = useLocation();
 
   // Mutation for updating deal status
   const updateDealStatusMutation = useMutation({

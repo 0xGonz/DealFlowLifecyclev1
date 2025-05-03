@@ -3,7 +3,7 @@ import { Link } from 'wouter';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { MoreHorizontal, ChevronDown, User, FileText, Check } from "lucide-react";
+import { MoreHorizontal, ChevronDown, User, FileText, Check, Edit, Trash2, FileSearch } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,10 +20,12 @@ type DealsTableProps = {
   onEdit: (dealId: number) => void;
   onAllocate: (dealId: number, dealName: string) => void;
   onUpdateStatus?: (dealId: number, newStatus: string) => void;
+  onViewDocuments?: (dealId: number) => void;
+  onDelete?: (dealId: number, dealName: string) => void;
   isLoading: boolean;
 };
 
-export default function DealsTable({ deals, onEdit, onAllocate, onUpdateStatus, isLoading }: DealsTableProps) {
+export default function DealsTable({ deals, onEdit, onAllocate, onUpdateStatus, onViewDocuments, onDelete, isLoading }: DealsTableProps) {
   if (isLoading) {
     return (
       <div className="py-8 text-center text-neutral-500">
@@ -115,24 +117,29 @@ export default function DealsTable({ deals, onEdit, onAllocate, onUpdateStatus, 
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 p-0 hidden sm:inline-flex"
-                      >
-                        <User className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 text-neutral-600" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 p-0 hidden sm:inline-flex"
-                      >
-                        <FileText className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 text-neutral-600" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
                         onClick={() => onEdit(deal.id)}
                         className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 p-0"
+                        title="Edit deal"
                       >
-                        <MoreHorizontal className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 text-neutral-600" />
+                        <Edit className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 text-neutral-600" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onViewDocuments ? onViewDocuments(deal.id) : null}
+                        className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 p-0"
+                        title="View documents"
+                      >
+                        <FileSearch className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 text-neutral-600" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onDelete ? onDelete(deal.id, deal.name) : null}
+                        className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 p-0"
+                        title="Delete deal"
+                      >
+                        <Trash2 className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 text-red-600" />
                       </Button>
                     </div>
                   </TableCell>
