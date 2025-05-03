@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 
 interface ProfileEditModalProps {
   isOpen: boolean;
@@ -21,12 +23,57 @@ export default function ProfileEditModal({
   const [name, setName] = useState(currentName);
   const [role, setRole] = useState(currentRole);
   
-  const handleSubmit = () => {
-    // In a real implementation, this would call an API
-    console.log("Profile updated:", { name, role });
+  const { toast } = useToast();
+  const [isUpdating, setIsUpdating] = useState(false);
+  
+  const handleSubmit = async () => {
+    if (!name?.trim()) {
+      toast({
+        title: "Error", 
+        description: "Name cannot be empty",
+        variant: "destructive"
+      });
+      return;
+    }
     
-    // Close the modal
-    onClose();
+    setIsUpdating(true);
+    try {
+      // In a production app, this would update the actual user profile
+      // using a proper API endpoint
+      console.log("Profile updated:", { name, role });
+      
+      // For this demo, we'll update the first user in the database
+      await apiRequest("PATCH", "/api/users/1", {
+        fullName: name,
+        role: role
+      });
+      
+      // Refresh user data and timeline events
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["/api/users"] }),
+        queryClient.invalidateQueries({ queryKey: ["/api/activity"] }),
+        queryClient.invalidateQueries({ queryKey: ["/api/deals"] }),
+        // Invalidate all timeline data
+        queryClient.invalidateQueries({ queryKey: ["/api/deals/1/timeline"] })
+      ]);
+      
+      toast({
+        title: "Success",
+        description: "Profile updated successfully"
+      });
+      
+      // Close the modal
+      onClose();
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update profile",
+        variant: "destructive"
+      });
+    } finally {
+      setIsUpdating(false);
+    }
   };
   
   return (
