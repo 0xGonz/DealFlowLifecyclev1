@@ -46,6 +46,7 @@ const dealFormSchema = z.object({
   sector: z.string().min(1, "Sector is required"),
   contactEmail: z.string().email("Invalid email address").optional().or(z.literal("")),
   notes: z.string().optional(),
+  targetReturn: z.string().optional().or(z.literal("")),
   stage: z.enum(DEAL_STAGES),
   tags: z.array(z.string()).optional()
 });
@@ -71,6 +72,7 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
       sector: "",
       contactEmail: "",
       notes: "",
+      targetReturn: "",
       stage: "initial_review",
       tags: []
     }
@@ -274,23 +276,42 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="notes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Notes</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      placeholder="Any initial notes or reminders" 
-                      rows={2} 
-                      {...field} 
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="targetReturn"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Target Return</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="e.g., 20%" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="notes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Notes</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="Any initial notes or reminders" 
+                        rows={2} 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             <FormField
               control={form.control}
