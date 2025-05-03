@@ -95,7 +95,6 @@ export default function EditDealModal({ isOpen, onClose, dealId }: EditDealModal
       form.reset({
         name: deal.name,
         description: deal.description,
-        industry: deal.industry,
         sector: deal.sector || "",
         contactEmail: deal.contactEmail || "",
         notes: deal.notes || "",
