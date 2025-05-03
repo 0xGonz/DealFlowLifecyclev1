@@ -279,20 +279,13 @@ export default function DocumentList({ dealId }: DocumentListProps) {
                             </a>
                           </Button>
                         </div>
-                        <div className="flex items-center justify-center p-8 bg-neutral-50 rounded-lg border">
-                          <div className="text-center">
-                            <FileText className="h-16 w-16 mx-auto mb-4 text-primary opacity-70" />
-                            <h4 className="text-lg font-medium mb-1">Pitch Deck</h4>
-                            <p className="text-sm text-neutral-500 mb-4">
-                              {formatBytes(latestPitchDeck.fileSize)} • Uploaded {formatDistanceToNow(new Date(latestPitchDeck.uploadedAt), { addSuffix: true })}
-                            </p>
-                            <Button asChild size="sm">
-                              <a href={`/api/documents/${latestPitchDeck.id}/download`} target="_blank" rel="noopener noreferrer">
-                                <Download className="h-4 w-4 mr-1" />
-                                Download to View
-                              </a>
-                            </Button>
-                          </div>
+                        <div className="border rounded-lg overflow-hidden">
+                          <iframe 
+                            src={`/api/documents/${latestPitchDeck.id}/download`} 
+                            className="w-full h-[500px] border-0" 
+                            title={latestPitchDeck.fileName}
+                            sandbox="allow-same-origin"
+                          />
                         </div>
                       </CardContent>
                     </Card>
