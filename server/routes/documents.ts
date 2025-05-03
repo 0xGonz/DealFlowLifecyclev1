@@ -80,26 +80,35 @@ router.get('/:id/download', async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'Document not found' });
     }
     
-    // For in-memory storage, we'll use a sample PDF file for demonstration
-    // In a real implementation, you'd use document.fileData or document.filePath to serve the actual file
+    // Set appropriate content type
     res.setHeader('Content-Type', document.fileType);
     
-    // Serve a sample PDF for testing
+    // Try to serve the actual file if it exists in the uploads directory
+    const actualFilePath = path.join(process.cwd(), 'public', document.filePath);
     
-    // Check file type and serve an appropriate file
+    // Check if the actual file exists first
+    if (fs.existsSync(actualFilePath)) {
+      console.log(`Serving actual file from: ${actualFilePath}`);
+      const fileContent = fs.readFileSync(actualFilePath);
+      return res.send(fileContent);
+    }
+    
+    // Fallback to the sample PDF for testing
     if (document.fileType === 'application/pdf' || document.fileName.toLowerCase().endsWith('.pdf')) {
-      const pdfPath = path.join(process.cwd(), 'public/documents/sample.pdf');
+      const samplePdfPath = path.join(process.cwd(), 'public/uploads/sample-upload.pdf');
       try {
-        if (fs.existsSync(pdfPath)) {
-          const fileContent = fs.readFileSync(pdfPath);
+        if (fs.existsSync(samplePdfPath)) {
+          console.log(`Serving sample PDF from: ${samplePdfPath}`);
+          const fileContent = fs.readFileSync(samplePdfPath);
           return res.send(fileContent);
         }
       } catch (error) {
-        console.error('Error reading PDF file:', error);
+        console.error('Error reading sample PDF file:', error);
       }
     }
     
-    // Fallback if file doesn't exist or isn't a PDF
+    // Final fallback
+    console.log(`Using text fallback for: ${document.fileName}`);
     const content = `This is a document file for ${document.fileName}`;
     res.send(Buffer.from(content));
     
