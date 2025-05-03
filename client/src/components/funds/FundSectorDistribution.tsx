@@ -67,7 +67,7 @@ const FundSectorDistribution: React.FC<FundSectorDistributionProps> = ({
       <CardContent>
         {sectorData.length > 0 ? (
           <div className="flex flex-col items-center">
-            <div className="h-56 w-full max-w-md">
+            <div className="h-48 sm:h-52 md:h-56 w-full max-w-[280px] sm:max-w-md mx-auto">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -75,10 +75,16 @@ const FundSectorDistribution: React.FC<FundSectorDistributionProps> = ({
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    outerRadius={80}
+                    outerRadius={70}
                     fill="#8884d8"
                     dataKey="value"
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    label={({ name, percent }) => {
+                      // Truncate long sector names on small screens
+                      const displayName = window.innerWidth < 640 && name.length > 10 
+                        ? `${name.substring(0, 9)}...` 
+                        : name;
+                      return `${displayName} ${(percent * 100).toFixed(0)}%`;
+                    }}
                   >
                     {sectorData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
@@ -91,8 +97,8 @@ const FundSectorDistribution: React.FC<FundSectorDistributionProps> = ({
                 </PieChart>
               </ResponsiveContainer>
             </div>
-            <div className="text-xs sm:text-sm text-center text-neutral-500 mt-2">
-              Based on ${totalFundSize.toLocaleString()} in investments
+            <div className="text-xs sm:text-sm text-center text-neutral-500 mt-2 px-2 sm:px-4">
+              <span className="whitespace-nowrap">Based on</span> <span className="font-medium whitespace-nowrap">${totalFundSize.toLocaleString()}</span> <span className="whitespace-nowrap">in investments</span>
             </div>
           </div>
         ) : (

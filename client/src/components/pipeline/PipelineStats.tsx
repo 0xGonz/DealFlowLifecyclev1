@@ -162,17 +162,17 @@ export default function PipelineStats({ deals, filteredDeals, stage }: PipelineS
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 xs:gap-3 sm:gap-4 mb-6">
       {stats.map((stat, index) => (
-        <Card key={index} className="bg-white overflow-hidden">
-          <CardContent className="pt-4 sm:pt-6 p-3 sm:p-6">
-            <div className="flex justify-between items-center mb-2 sm:mb-3">
-              <h3 className="text-xs sm:text-sm font-medium text-neutral-600 truncate mr-1">{stat.label}</h3>
-              <div className={`rounded-full ${stat.iconColor} p-1.5 sm:p-2.5 flex-shrink-0`}>
-                <div className="h-3.5 w-3.5 sm:h-5 sm:w-5">{stat.icon}</div>
+        <Card key={index} className="bg-white overflow-hidden h-full">
+          <CardContent className="pt-3 xs:pt-4 sm:pt-6 p-2 xs:p-3 sm:p-6 h-full flex flex-col">
+            <div className="flex justify-between items-start mb-1 xs:mb-2 sm:mb-3">
+              <h3 className="text-[10px] xs:text-xs sm:text-sm font-medium text-neutral-600 truncate mr-1 max-w-[75%]">{stat.label}</h3>
+              <div className={`rounded-full ${stat.iconColor} p-1 xs:p-1.5 sm:p-2.5 flex-shrink-0`}>
+                <div className="h-3 w-3 xs:h-3.5 xs:w-3.5 sm:h-5 sm:w-5">{stat.icon}</div>
               </div>
             </div>
             
-            <div className="flex items-end flex-wrap">
-              <span className="text-base sm:text-xl md:text-2xl font-bold mr-1 sm:mr-2 truncate max-w-full">
+            <div className="flex items-end flex-wrap mt-auto">
+              <span className="text-sm xs:text-base sm:text-xl md:text-2xl font-bold mr-1 sm:mr-2 truncate max-w-full">
                 {stat.value}
               </span>
               
@@ -180,13 +180,13 @@ export default function PipelineStats({ deals, filteredDeals, stage }: PipelineS
               {stat.trend !== undefined && (
                 <div className="flex items-center">
                   {stat.trend > 0 ? (
-                    <div className="text-success flex items-center text-xs">
-                      <TrendingUp className="h-3 w-3 mr-1" />
+                    <div className="text-success flex items-center text-[9px] xs:text-xs">
+                      <TrendingUp className="h-2.5 w-2.5 xs:h-3 xs:w-3 mr-0.5 xs:mr-1" />
                       {stat.trend}%
                     </div>
                   ) : stat.trend < 0 ? (
-                    <div className="text-danger flex items-center text-xs">
-                      <TrendingDown className="h-3 w-3 mr-1" />
+                    <div className="text-danger flex items-center text-[9px] xs:text-xs">
+                      <TrendingDown className="h-2.5 w-2.5 xs:h-3 xs:w-3 mr-0.5 xs:mr-1" />
                       {Math.abs(stat.trend)}%
                     </div>
                   ) : null}
