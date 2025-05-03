@@ -1,5 +1,6 @@
 import { db } from './db';
 import { IStorage } from './storage';
+import { eq, and } from 'drizzle-orm';
 import {
   User, InsertUser,
   Deal, InsertDeal,
@@ -14,7 +15,6 @@ import {
   users, deals, timelineEvents, dealStars, miniMemos, documents,
   funds, fundAllocations, dealAssignments, notifications
 } from '@shared/schema';
-import { eq, and } from 'drizzle-orm';
 
 /**
  * PostgreSQL database implementation of the storage interface
@@ -41,6 +41,25 @@ export class DatabaseStorage implements IStorage {
   
   async getUsers(): Promise<User[]> {
     return await db.select().from(users);
+  }
+  
+  async updateUser(id: number, userUpdate: Partial<InsertUser>): Promise<User | undefined> {
+    if (!db) {
+      throw new Error('Database not initialized');
+    }
+    
+    try {
+      const [updatedUser] = await db
+        .update(users)
+        .set(userUpdate)
+        .where(eq(users.id, id))
+        .returning();
+      
+      return updatedUser || undefined;
+    } catch (error) {
+      console.error('Error updating user:', error);
+      return undefined;
+    }
   }
   
   // Deal operations

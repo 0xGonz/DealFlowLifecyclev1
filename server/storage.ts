@@ -21,6 +21,7 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUser(id: number, user: Partial<InsertUser>): Promise<User | undefined>;
   getUsers(): Promise<User[]>;
 
   // Deal operations
@@ -366,6 +367,32 @@ export class MemStorage implements IStorage {
   
   async getUsers(): Promise<User[]> {
     return Array.from(this.users.values());
+  }
+
+  async updateUser(id: number, userUpdate: Partial<InsertUser>): Promise<User | undefined> {
+    const existingUser = this.users.get(id);
+    if (!existingUser) {
+      return undefined;
+    }
+    
+    const updatedUser = {
+      ...existingUser,
+      ...userUpdate,
+    };
+    
+    this.users.set(id, updatedUser);
+    
+    // If timeline events exist with this user, update them automatically
+    for (const [eventId, event] of this.timelineEvents.entries()) {
+      if (event.createdBy === id) {
+        // Just updating the timeline events is sufficient - no need to return them
+        this.timelineEvents.set(eventId, {
+          ...event
+        });
+      }
+    }
+    
+    return updatedUser;
   }
 
   // Deal operations
