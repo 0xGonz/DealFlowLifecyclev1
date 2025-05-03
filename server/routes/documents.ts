@@ -86,15 +86,17 @@ router.get('/:id/download', async (req: Request, res: Response) => {
     res.setHeader('Content-Type', document.fileType);
     
     // Serve a sample PDF for testing
-    const fs = require('fs');
-    const path = require('path');
     
     // Check file type and serve an appropriate file
     if (document.fileType === 'application/pdf' || document.fileName.toLowerCase().endsWith('.pdf')) {
       const pdfPath = path.join(process.cwd(), 'public/documents/sample.pdf');
-      if (fs.existsSync(pdfPath)) {
-        const fileContent = fs.readFileSync(pdfPath);
-        return res.send(fileContent);
+      try {
+        if (fs.existsSync(pdfPath)) {
+          const fileContent = fs.readFileSync(pdfPath);
+          return res.send(fileContent);
+        }
+      } catch (error) {
+        console.error('Error reading PDF file:', error);
       }
     }
     
