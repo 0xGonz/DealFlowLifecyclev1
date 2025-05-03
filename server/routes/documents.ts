@@ -82,7 +82,6 @@ router.get('/:id/download', async (req: Request, res: Response) => {
     
     // For in-memory storage, we'll use a sample PDF file for demonstration
     // In a real implementation, you'd use document.fileData or document.filePath to serve the actual file
-    res.setHeader('Content-Disposition', `attachment; filename="${document.fileName}"`);
     res.setHeader('Content-Type', document.fileType);
     
     // Serve a sample PDF for testing
@@ -150,8 +149,7 @@ router.post('/upload', async (req: Request, res: Response) => {
       eventType: 'document_upload',
       content: `Document uploaded: ${fileName}`,
       createdBy: 1, // Admin user ID (only ID 1 exists in the database)
-      createdAt: new Date(),
-      metadata: JSON.stringify({ documentId: document.id })
+      metadata: { documentId: document.id }
     });
     
     return res.status(201).json(document);

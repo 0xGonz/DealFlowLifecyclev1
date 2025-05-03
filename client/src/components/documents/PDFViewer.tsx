@@ -29,12 +29,16 @@ export default function PDFViewer({ isOpen, onClose, documentId, documentName }:
         </DialogHeader>
         
         <div className="border rounded-lg overflow-hidden h-[600px]">
-          <iframe 
-            src={`/api/documents/${documentId}/download`} 
-            className="w-full h-full border-0" 
+          <object
+            data={`/api/documents/${documentId}/download`}
+            type="application/pdf"
+            className="w-full h-full border-0"
             title={documentName}
-            sandbox="allow-same-origin"
-          />
+          >
+            <p className="text-center p-4">
+              Your browser doesn't support embedded PDFs. Click the Download button below to view it.
+            </p>
+          </object>
         </div>
         
         <DialogFooter>
