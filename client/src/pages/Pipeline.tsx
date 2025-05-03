@@ -44,8 +44,36 @@ export default function Pipeline() {
   const [searchTerm, setSearchTerm] = useState("");
   const [dateFilter, setDateFilter] = useState("all");
   const { toast } = useToast();
-  const [_, navigate] = useLocation();
+  const [, navigate] = useLocation();
 
+  // Mutation for deleting a deal
+  const deleteDealMutation = useMutation({
+    mutationFn: async (dealId: number) => {
+      return apiRequest("DELETE", `/api/deals/${dealId}`);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Deal deleted",
+        description: `${selectedDealName} has been deleted.`
+      });
+      
+      // Close any open modals
+      setIsDeleteDialogOpen(false);
+      setSelectedDealId(null);
+      setSelectedDealName("");
+      
+      // Refresh deals data
+      queryClient.invalidateQueries({ queryKey: ["/api/deals"] });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete deal. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+  
   // Mutation for updating deal status
   const updateDealStatusMutation = useMutation({
     mutationFn: async ({ dealId, stage }: { dealId: number; stage: string }) => {
@@ -252,6 +280,14 @@ export default function Pipeline() {
                   onUpdateStatus={(dealId, stage) => {
                     updateDealStatusMutation.mutate({ dealId, stage });
                   }}
+                  onViewDocuments={(dealId) => {
+                    navigate(`/deals/${dealId}?tab=documents`);
+                  }}
+                  onDelete={(dealId, dealName) => {
+                    setSelectedDealId(dealId);
+                    setSelectedDealName(dealName);
+                    setIsDeleteDialogOpen(true);
+                  }}
                 />
               </>
             )}
@@ -288,6 +324,14 @@ export default function Pipeline() {
                     }}
                     onUpdateStatus={(dealId, stage) => {
                       updateDealStatusMutation.mutate({ dealId, stage });
+                    }}
+                    onViewDocuments={(dealId) => {
+                      navigate(`/deals/${dealId}?tab=documents`);
+                    }}
+                    onDelete={(dealId, dealName) => {
+                      setSelectedDealId(dealId);
+                      setSelectedDealName(dealName);
+                      setIsDeleteDialogOpen(true);
                     }}
                   />
                 </>
@@ -328,6 +372,27 @@ export default function Pipeline() {
             dealName={selectedDealName}
           />
         )}
+        
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure you want to delete this deal?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will permanently delete <span className="font-medium">{selectedDealName}</span> and all associated data including documents, memos, and timeline events. This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => selectedDealId && deleteDealMutation.mutate(selectedDealId)}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {deleteDealMutation.isPending ? "Deleting..." : "Delete Deal"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </AppLayout>
   );
