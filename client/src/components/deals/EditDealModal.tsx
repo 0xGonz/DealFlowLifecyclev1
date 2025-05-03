@@ -35,7 +35,6 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { generateDealNotification } from "@/lib/utils/notification-utils";
 import { DEAL_SECTORS } from "@/lib/constants/sectors";
-import { FUNDING_ROUNDS } from "@/lib/constants/funding-rounds";
 import { DEAL_STAGES, DealStage, DealStageLabels } from "@/lib/constants/deal-stages";
 
 // Form schema with validation rules
@@ -44,10 +43,7 @@ const dealFormSchema = z.object({
   description: z.string().min(1, "Description is required"),
   industry: z.string().min(1, "Sector is required"),
   sector: z.string().optional(),
-  round: z.string().optional(),
-  targetRaise: z.string().optional(),
-  valuation: z.string().optional(),
-  leadInvestor: z.string().optional(),
+
   contactEmail: z.string().email("Invalid email address").optional().or(z.literal("")),
   notes: z.string().optional(),
   stage: z.enum(DEAL_STAGES),
@@ -80,10 +76,6 @@ export default function EditDealModal({ isOpen, onClose, dealId }: EditDealModal
       description: "",
       industry: "",
       sector: "",
-      round: "",
-      targetRaise: "",
-      valuation: "",
-      leadInvestor: "",
       contactEmail: "",
       notes: "",
       stage: "initial_review",
@@ -94,10 +86,6 @@ export default function EditDealModal({ isOpen, onClose, dealId }: EditDealModal
       description: deal.description,
       industry: deal.industry,
       sector: deal.sector || "",
-      round: deal.round || "",
-      targetRaise: deal.targetRaise || "",
-      valuation: deal.valuation || "",
-      leadInvestor: deal.leadInvestor || "",
       contactEmail: deal.contactEmail || "",
       notes: deal.notes || "",
       stage: deal.stage,
@@ -113,10 +101,6 @@ export default function EditDealModal({ isOpen, onClose, dealId }: EditDealModal
         description: deal.description,
         industry: deal.industry,
         sector: deal.sector || "",
-        round: deal.round || "",
-        targetRaise: deal.targetRaise || "",
-        valuation: deal.valuation || "",
-        leadInvestor: deal.leadInvestor || "",
         contactEmail: deal.contactEmail || "",
         notes: deal.notes || "",
         stage: deal.stage,
@@ -254,96 +238,7 @@ export default function EditDealModal({ isOpen, onClose, dealId }: EditDealModal
                 )}
               />
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="round"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Funding Round</FormLabel>
-                      <Select 
-                        onValueChange={field.onChange} 
-                        defaultValue={field.value}
-                        value={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select round" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {FUNDING_ROUNDS.map((round) => (
-                            <SelectItem key={round} value={round}>{round}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
 
-                <FormField
-                  control={form.control}
-                  name="targetRaise"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Target Raise</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-neutral-500">
-                            $
-                          </span>
-                          <Input 
-                            placeholder="e.g. 10,000,000" 
-                            className="pl-7" 
-                            {...field} 
-                          />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="valuation"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Valuation</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-neutral-500">
-                            $
-                          </span>
-                          <Input 
-                            placeholder="e.g. 50,000,000" 
-                            className="pl-7" 
-                            {...field} 
-                          />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="leadInvestor"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Lead Investor</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter if known" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
 
               <FormField
                 control={form.control}
