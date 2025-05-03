@@ -36,19 +36,17 @@ import { useToast } from "@/hooks/use-toast";
 import { generateDealNotification } from "@/lib/utils/notification-utils";
 import { FileUp, File } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { DEAL_SECTORS } from "@/lib/constants/sectors";
+import { DEAL_STAGES, DealStage, DealStageLabels } from "@/lib/constants/deal-stages";
 
 // Form schema with validation rules
 const dealFormSchema = z.object({
   name: z.string().min(1, "Company name is required"),
   description: z.string().min(1, "Description is required"),
   sector: z.string().min(1, "Sector is required"),
-  round: z.string().optional(),
-  targetRaise: z.string().optional(),
-  valuation: z.string().optional(),
-  leadInvestor: z.string().optional(),
   contactEmail: z.string().email("Invalid email address").optional().or(z.literal("")),
   notes: z.string().optional(),
-  stage: z.enum(["initial_review", "screening"]),
+  stage: z.enum(DEAL_STAGES),
   tags: z.array(z.string()).optional()
 });
 
@@ -71,10 +69,6 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
       name: "",
       description: "",
       sector: "",
-      round: "",
-      targetRaise: "",
-      valuation: "",
-      leadInvestor: "",
       contactEmail: "",
       notes: "",
       stage: "initial_review",
@@ -231,26 +225,9 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="Private Credit">Private Credit</SelectItem>
-                        <SelectItem value="Buyout">Buyout</SelectItem>
-                        <SelectItem value="Crypto">Crypto</SelectItem>
-                        <SelectItem value="GP Stakes">GP Stakes</SelectItem>
-                        <SelectItem value="Energy">Energy</SelectItem>
-                        <SelectItem value="Venture">Venture</SelectItem>
-                        <SelectItem value="Technology">Technology</SelectItem>
-                        <SelectItem value="SaaS">SaaS</SelectItem>
-                        <SelectItem value="Fintech">Fintech</SelectItem>
-                        <SelectItem value="AI/ML">AI/ML</SelectItem>
-                        <SelectItem value="Cybersecurity">Cybersecurity</SelectItem>
-                        <SelectItem value="Healthcare">Healthcare</SelectItem>
-                        <SelectItem value="Biotech">Biotech</SelectItem>
-                        <SelectItem value="Renewable Energy">Renewable Energy</SelectItem>
-                        <SelectItem value="Clean Tech">Clean Tech</SelectItem>
-                        <SelectItem value="Consumer Goods">Consumer Goods</SelectItem>
-                        <SelectItem value="E-commerce">E-commerce</SelectItem>
-                        <SelectItem value="Retail">Retail</SelectItem>
-                        <SelectItem value="Real Estate">Real Estate</SelectItem>
-                        <SelectItem value="Other">Other</SelectItem>
+                        {DEAL_SECTORS.map((sector) => (
+                          <SelectItem key={sector} value={sector}>{sector}</SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -277,98 +254,7 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
               )}
             />
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="round"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Funding Round</FormLabel>
-                    <Select 
-                      onValueChange={field.onChange} 
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select round" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="Seed">Seed</SelectItem>
-                        <SelectItem value="Seed Extension">Seed Extension</SelectItem>
-                        <SelectItem value="Series A">Series A</SelectItem>
-                        <SelectItem value="Series B">Series B</SelectItem>
-                        <SelectItem value="Series C">Series C</SelectItem>
-                        <SelectItem value="Series D+">Series D+</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
 
-              <FormField
-                control={form.control}
-                name="targetRaise"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Target Raise</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-neutral-500">
-                          $
-                        </span>
-                        <Input 
-                          placeholder="e.g. 10,000,000" 
-                          className="pl-7" 
-                          {...field} 
-                        />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="valuation"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Valuation</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-neutral-500">
-                          $
-                        </span>
-                        <Input 
-                          placeholder="e.g. 50,000,000" 
-                          className="pl-7" 
-                          {...field} 
-                        />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="leadInvestor"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Lead Investor</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter if known" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
 
             <FormField
               control={form.control}
@@ -416,16 +302,15 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
                     <RadioGroup
                       onValueChange={field.onChange}
                       defaultValue={field.value}
-                      className="flex flex-col xs:flex-row space-y-2 xs:space-y-0 xs:space-x-3"
+                      className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4"
                     >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="initial_review" id="initial-review" />
-                        <Label htmlFor="initial-review">Initial Review</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="screening" id="screening" />
-                        <Label htmlFor="screening">Screening</Label>
-                      </div>
+                      {/* Only show initial stages for new deals */}
+                      {['initial_review', 'screening'].map((value) => (
+                        <div key={value} className="flex items-center space-x-2">
+                          <RadioGroupItem value={value} id={`stage-${value}`} />
+                          <Label htmlFor={`stage-${value}`}>{DealStageLabels[value as DealStage]}</Label>
+                        </div>
+                      ))}
                     </RadioGroup>
                   </FormControl>
                   <FormMessage />
