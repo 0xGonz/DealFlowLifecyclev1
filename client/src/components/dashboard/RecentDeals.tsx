@@ -49,7 +49,7 @@ export default function RecentDeals() {
         <div className="flex flex-col justify-between items-stretch gap-3 mb-5">
           <div className="flex flex-wrap gap-2 w-full space-y-2 sm:space-y-0">
             <Select value={stageFilter} onValueChange={setStageFilter}>
-              <SelectTrigger className="h-8 sm:h-9 text-xs sm:text-sm w-full sm:w-[120px] md:w-[150px]">
+              <SelectTrigger className="h-8 sm:h-9 text-xs sm:text-sm w-full xs:w-[48%] sm:w-[120px] md:w-[150px]">
                 <SelectValue placeholder="All Stages" />
               </SelectTrigger>
               <SelectContent>
@@ -63,7 +63,7 @@ export default function RecentDeals() {
             </Select>
             
             <Select value={dateFilter} onValueChange={setDateFilter}>
-              <SelectTrigger className="h-8 sm:h-9 text-xs sm:text-sm w-full sm:w-[120px] md:w-[150px]">
+              <SelectTrigger className="h-8 sm:h-9 text-xs sm:text-sm w-full xs:w-[48%] sm:w-[120px] md:w-[150px]">
                 <SelectValue placeholder="Last 30 Days" />
               </SelectTrigger>
               <SelectContent>
@@ -75,7 +75,7 @@ export default function RecentDeals() {
             </Select>
             
             <button 
-              className="flex items-center justify-center h-8 sm:h-9 px-3 py-1 text-xs sm:text-sm text-primary hover:text-primary-dark ml-auto"
+              className="flex items-center justify-center h-8 sm:h-9 px-3 py-1 text-xs sm:text-sm text-primary hover:text-primary-dark ml-auto xs:ml-0 sm:ml-auto mt-2 xs:mt-0"
               onClick={() => navigate("/pipeline")}
             >
               View All
