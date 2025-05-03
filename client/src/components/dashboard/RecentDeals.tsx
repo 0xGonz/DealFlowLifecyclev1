@@ -46,8 +46,8 @@ export default function RecentDeals() {
       </CardHeader>
       
       <CardContent className="flex-1">
-        <div className="flex flex-col justify-between items-stretch gap-2 mb-4">
-          <div className="flex flex-wrap gap-2 w-full">
+        <div className="flex flex-col justify-between items-stretch gap-3 mb-5">
+          <div className="flex flex-wrap gap-2 w-full space-y-2 sm:space-y-0">
             <Select value={stageFilter} onValueChange={setStageFilter}>
               <SelectTrigger className="h-8 sm:h-9 text-xs sm:text-sm w-full sm:w-[120px] md:w-[150px]">
                 <SelectValue placeholder="All Stages" />

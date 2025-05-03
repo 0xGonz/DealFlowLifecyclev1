@@ -31,14 +31,14 @@ export default function StatsCard({
   const trendColorClass = isTrendUp ? "text-success" : "text-danger";
 
   return (
-    <Card className="bg-white p-2 sm:p-3 rounded-lg shadow">
-      <div className="flex justify-between items-start">
-        <div>
-          <p className="text-[10px] xs:text-xs text-neutral-600 mb-0.5">{title}</p>
+    <Card className="bg-white p-2 sm:p-3 rounded-lg shadow w-full overflow-hidden">
+      <div className="flex justify-between items-start gap-2">
+        <div className="min-w-0 flex-1">
+          <p className="text-[10px] xs:text-xs text-neutral-600 mb-0.5 truncate">{title}</p>
           {isLoading ? (
             <Skeleton className="h-5 sm:h-6 w-16 sm:w-24" />
           ) : (
-            <h3 className="text-base sm:text-lg md:text-xl font-semibold leading-tight">{value}</h3>
+            <h3 className="text-base sm:text-lg md:text-xl font-semibold leading-tight truncate">{value}</h3>
           )}
         </div>
         <div className="p-1 sm:p-1.5 bg-opacity-20 rounded-lg" style={{ backgroundColor: 'var(--primary-light-alpha-20)' }}>

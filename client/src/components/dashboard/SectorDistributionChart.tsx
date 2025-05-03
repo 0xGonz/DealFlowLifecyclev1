@@ -137,7 +137,7 @@ export default function SectorDistributionChart() {
       <CardHeader className="pb-3">
         <CardTitle>Sector Distribution</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-2 sm:px-6">
         {isLoading ? (
           <div className="flex justify-center items-center h-[300px]">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -191,7 +191,7 @@ export default function SectorDistributionChart() {
                     })
                   }
                   iconSize={windowWidth < 640 ? 8 : 10}
-                  wrapperStyle={windowWidth < 640 ? { bottom: 0 } : { right: 0, top: 20 }}
+                  wrapperStyle={windowWidth < 640 ? { bottom: 0, maxWidth: '100%', overflowX: 'hidden' } : { right: 0, top: 20 }}
                   formatter={(value: string) => <span className="text-[10px] xs:text-xs sm:text-sm font-medium">{value}</span>}
                 />
               </PieChart>
