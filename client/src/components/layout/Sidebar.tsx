@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { 
@@ -13,14 +13,32 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ProfileEditModal from "@/components/profile/ProfileEditModal";
+import { useQuery } from "@tanstack/react-query";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface SidebarProps {
   onCloseMobile?: () => void;
 }
 
+interface User {
+  id: number;
+  username: string;
+  fullName: string;
+  initials: string;
+  role: string;
+  avatarColor?: string | null;
+}
+
 export default function Sidebar({ onCloseMobile }: SidebarProps) {
   const [location] = useLocation();
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  
+  // Fetch current user
+  const { data: currentUser, isLoading } = useQuery<User>({
+    queryKey: ["/api/auth/me"],
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
 
   // Navigation items
   const mainNavItems = [
@@ -69,13 +87,35 @@ export default function Sidebar({ onCloseMobile }: SidebarProps) {
             className="flex items-center space-x-2 cursor-pointer hover:bg-neutral-50 p-1 rounded-md transition-colors" 
             onClick={() => setIsProfileModalOpen(true)}
           >
-            <Avatar className="h-8 w-8">
-              <AvatarFallback className="bg-primary text-white">JD</AvatarFallback>
-            </Avatar>
-            <div className="flex flex-col">
-              <span className="text-sm font-medium">John Doe</span>
-              <span className="text-xs text-neutral-500">Partner</span>
-            </div>
+            {isLoading ? (
+              <>
+                <Skeleton className="h-8 w-8 rounded-full" />
+                <div className="flex flex-col">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-3 w-16 mt-1" />
+                </div>
+              </>
+            ) : currentUser ? (
+              <>
+                <Avatar className="h-8 w-8" style={currentUser.avatarColor ? {backgroundColor: currentUser.avatarColor} : {}}>
+                  <AvatarFallback className="bg-primary text-white">{currentUser.initials}</AvatarFallback>
+                </Avatar>
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium">{currentUser.fullName}</span>
+                  <span className="text-xs text-neutral-500 capitalize">{currentUser.role}</span>
+                </div>
+              </>
+            ) : (
+              <>
+                <Avatar className="h-8 w-8">
+                  <AvatarFallback className="bg-primary text-white">GU</AvatarFallback>
+                </Avatar>
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium">Guest User</span>
+                  <span className="text-xs text-neutral-500">Not signed in</span>
+                </div>
+              </>
+            )}
           </div>
           {onCloseMobile && (
             <Button 
@@ -150,8 +190,8 @@ export default function Sidebar({ onCloseMobile }: SidebarProps) {
         <ProfileEditModal
           isOpen={isProfileModalOpen}
           onClose={() => setIsProfileModalOpen(false)}
-          currentName="John Doe"
-          currentRole="partner"
+          currentName={currentUser?.fullName ?? ''}
+          currentRole={currentUser?.role ?? ''}
         />
       </div>
     </aside>
