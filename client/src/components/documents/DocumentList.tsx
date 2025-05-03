@@ -270,23 +270,10 @@ export default function DocumentList({ dealId }: DocumentListProps) {
                   return (
                     <Card className="w-full">
                       <CardContent className="p-6">
-                        <div className="mb-4 flex justify-between items-center">
-                          <h3 className="text-lg font-medium truncate mr-2">{latestPitchDeck.fileName}</h3>
-                          <Button variant="outline" size="sm" asChild>
-                            <a href={`/api/documents/${latestPitchDeck.id}/download`} target="_blank" rel="noopener noreferrer">
-                              <Download className="h-4 w-4 mr-1" />
-                              Download
-                            </a>
-                          </Button>
-                        </div>
-                        <div className="border rounded-lg overflow-hidden">
-                          <iframe 
-                            src={`/api/documents/${latestPitchDeck.id}/download`} 
-                            className="w-full h-[500px] border-0" 
-                            title={latestPitchDeck.fileName}
-                            sandbox="allow-same-origin"
-                          />
-                        </div>
+                        <EmbeddedPDFViewer 
+                          documentId={latestPitchDeck.id} 
+                          documentName={latestPitchDeck.fileName} 
+                        />
                       </CardContent>
                     </Card>
                   );
