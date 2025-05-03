@@ -69,9 +69,9 @@ export default function DealDetail() {
   const getActiveTab = () => {
     const searchParams = new URLSearchParams(window.location.search);
     const tab = searchParams.get('tab');
-    return tab === 'workflow' || tab === 'timeline' || tab === 'memos' || tab === 'documents' || tab === 'allocation' 
+    return tab === 'timeline' || tab === 'memos' || tab === 'documents'
       ? tab 
-      : 'workflow'; // Default tab
+      : 'timeline'; // Default tab
   };
   
   const [activeTab, setActiveTab] = useState(getActiveTab());
@@ -405,9 +405,6 @@ export default function DealDetail() {
         >
           <div className="overflow-x-auto pb-1">
             <TabsList className="flex w-auto min-w-full sm:w-full sm:min-w-0">
-              <TabsTrigger value="workflow" className="text-xs sm:text-sm h-8 sm:h-10 px-2 sm:px-4 flex-1">
-                Workflow
-              </TabsTrigger>
               <TabsTrigger value="timeline" className="text-xs sm:text-sm h-8 sm:h-10 px-2 sm:px-4 flex-1">
                 Timeline
               </TabsTrigger>
@@ -417,33 +414,10 @@ export default function DealDetail() {
               <TabsTrigger value="documents" className="text-xs sm:text-sm h-8 sm:h-10 px-2 sm:px-4 flex-1">
                 Documents
               </TabsTrigger>
-              <TabsTrigger value="allocation" className="text-xs sm:text-sm h-8 sm:h-10 px-2 sm:px-4 flex-1">
-                Fund Allocation
-              </TabsTrigger>
             </TabsList>
           </div>
           
-          <TabsContent value="workflow">
-            <Card>
-              <CardHeader className="pb-2 sm:pb-4">
-                <CardTitle className="text-base sm:text-xl">Deal Stage Progression</CardTitle>
-                <CardDescription className="text-xs sm:text-sm">
-                  Track and update the investment lifecycle stage for this deal
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {deal && (
-                  <StageProgression 
-                    deal={deal} 
-                    onStageUpdated={() => {
-                      // Refresh deal data when stage is updated
-                      queryClient.invalidateQueries({ queryKey: [`/api/deals/${dealId}`] });
-                    }}
-                  />
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
+
           
           <TabsContent value="timeline">
             <div className="grid grid-cols-1 sm:grid-cols-12 gap-6">
@@ -568,32 +542,7 @@ export default function DealDetail() {
             </Card>
           </TabsContent>
           
-          <TabsContent value="allocation">
-            <Card>
-              <CardHeader className="pb-2 sm:pb-4">
-                <CardTitle className="text-base sm:text-xl">Fund Allocation</CardTitle>
-                <CardDescription className="text-xs sm:text-sm">
-                  Allocate this deal to investment funds
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {deal?.allocations?.length ? (
-                  <div>
-                    {/* Show allocations */}
-                  </div>
-                ) : (
-                  <div className="text-center py-6 sm:py-8 text-neutral-500">
-                    <DollarSign className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-2 sm:mb-3 opacity-30" />
-                    <p className="text-sm sm:text-base">This deal has not been allocated to any funds yet.</p>
-                    <Button size="sm" className="mt-3 sm:mt-4 h-8 sm:h-9 text-xs sm:text-sm px-3 sm:px-4">
-                      <DollarSign className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
-                      Allocate to Fund
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
+
         </Tabs>
       </div>
     </AppLayout>

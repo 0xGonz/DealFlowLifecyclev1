@@ -148,18 +148,22 @@ router.get('/:id/download', async (req: Request, res: Response) => {
       path.join(process.cwd(), 'public/uploads/sample-upload.pdf')
     ];
     
+    // Try each alternative path
+    let foundFile = false;
     for (const altPath of alternativePaths) {
-      if (fs.existsSync(altPath)) {
+      if (fs.existsSync(altPath) && !foundFile) {
+        foundFile = true;
         console.log(`Serving file from alternative location: ${altPath}`);
         const fileStream = fs.createReadStream(altPath);
-        fileStream.pipe(res);
         
         // Handle stream errors
         fileStream.on('error', (err) => {
           console.error('Error streaming document from alternative path:', err);
-          // Continue to next alternative
-          continue;
+          foundFile = false;
+          res.status(500).json({ message: 'Error serving document' });
         });
+        
+        fileStream.pipe(res);
         return;
       }
     }
@@ -167,8 +171,7 @@ router.get('/:id/download', async (req: Request, res: Response) => {
     // Still no file found, create a basic PDF error message
     console.log(`No file found for: ${document.fileName}. Showing error message.`);
     res.status(404).send(`<html><body><h1>Document Not Found</h1><p>The document "${document.fileName}" could not be found on the server.</p><p>Please upload the document again.</p></body></html>`);
-    
-    
+
   } catch (error) {
     console.error('Error downloading document:', error);
     return res.status(500).json({ message: 'Failed to download document' });
