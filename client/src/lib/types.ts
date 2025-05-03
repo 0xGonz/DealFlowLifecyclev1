@@ -122,6 +122,7 @@ export interface LeaderboardItem {
   score: number;
   starCount: number;
   change: number;
+  recentActivity?: number; // Number of recent timeline events (last 14 days)
 }
 
 // Document types

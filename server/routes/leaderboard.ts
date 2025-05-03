@@ -1,8 +1,53 @@
 import { Router, Request, Response } from "express";
 import { StorageFactory } from "../storage-factory";
-import { DealStageLabels } from "@shared/schema";
+import { DealStageLabels, TimelineEvent } from "@shared/schema";
 
 const router = Router();
+
+// Calculate a weighted score based on multiple factors
+function calculateWeightedScore(params: {
+  baseScore: number; // Score from memos
+  starCount: number; // Number of stars
+  stage: string; // Deal stage
+  recentActivity: number; // Recent activity count
+}) {
+  const { baseScore, starCount, stage, recentActivity } = params;
+  
+  // Weight factors (can be adjusted)
+  const scoreWeight = 0.5; // 50% weight for memo scores
+  const starWeight = 0.3; // 30% weight for stars
+  const stageWeight = 0.1; // 10% weight for deal stage
+  const activityWeight = 0.1; // 10% weight for recent activity
+  
+  // Calculate stage progression score (0-10)
+  const stageProgression: Record<string, number> = {
+    'initial_review': 2,
+    'screening': 3,
+    'diligence': 5,
+    'ic_review': 7,
+    'closing': 8,
+    'closed': 9,
+    'invested': 10,
+    'rejected': 1,
+    'passed': 1
+  };
+  
+  // Star score (up to 10 for normalization)
+  const starScore = Math.min(starCount * 2, 10);
+  
+  // Activity score (up to 10 for normalization)
+  const activityScore = Math.min(recentActivity * 2, 10);
+  
+  // Calculate weighted score
+  const weightedScore = (
+    (baseScore || 0) * scoreWeight +
+    starScore * starWeight +
+    (stageProgression[stage] || 0) * stageWeight +
+    activityScore * activityWeight
+  );
+  
+  return Math.round(weightedScore * 10) / 10; // Round to 1 decimal place
+}
 
 // Get leaderboard data
 router.get('/', async (req: Request, res: Response) => {
@@ -14,15 +59,35 @@ router.get('/', async (req: Request, res: Response) => {
     const leaderboardItems = await Promise.all(deals.map(async (deal) => {
       const stars = await storage.getDealStars(deal.id);
       const memos = await storage.getMiniMemosByDeal(deal.id);
+      const timelineEvents = await storage.getTimelineEventsByDeal(deal.id);
       
-      // Calculate score from mini memos
-      let score = 0;
+      // Calculate base score from mini memos
+      let baseScore = 0;
       if (memos.length > 0) {
-        score = Math.floor(memos.reduce((sum, memo) => sum + memo.score, 0) / memos.length);
+        baseScore = Math.floor(memos.reduce((sum, memo) => sum + memo.score, 0) / memos.length);
       }
       
-      // In a real app, this would be calculated from score history
-      const change = Math.floor(Math.random() * 11) - 5; // Random number between -5 and 5
+      // Count recent activities (last 14 days)
+      const twoWeeksAgo = new Date();
+      twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+      const recentActivity = timelineEvents.filter(
+        event => new Date(event.createdAt) > twoWeeksAgo
+      ).length;
+      
+      // Calculate comprehensive score
+      const score = calculateWeightedScore({
+        baseScore,
+        starCount: stars.length,
+        stage: deal.stage,
+        recentActivity
+      });
+      
+      // Calculate score change
+      // In a production app, this would use historical data
+      // For demo purposes, we'll generate a change that's somewhat proportional to the score
+      const changeMagnitude = Math.max(1, Math.floor(score / 2));
+      const changeDirection = Math.random() > 0.3 ? 1 : -1; // 70% chance of positive change
+      const change = changeDirection * (Math.floor(Math.random() * changeMagnitude) + 1);
       
       return {
         id: deal.id,
@@ -31,7 +96,8 @@ router.get('/', async (req: Request, res: Response) => {
         stageLabel: DealStageLabels[deal.stage],
         score: score,
         starCount: stars.length,
-        change // Random trend for demo
+        change,
+        recentActivity
       };
     }));
     
@@ -40,6 +106,7 @@ router.get('/', async (req: Request, res: Response) => {
     
     res.json(sortedItems);
   } catch (error) {
+    console.error('Error fetching leaderboard data:', error);
     res.status(500).json({ message: 'Failed to fetch leaderboard data' });
   }
 });

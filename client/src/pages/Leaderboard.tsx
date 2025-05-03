@@ -81,7 +81,7 @@ export default function Leaderboard() {
                             </TableCell>
                             <TableCell className="text-right text-xs sm:text-sm py-2 sm:py-3">
                               <div className="flex items-center justify-end">
-                                <span className="text-base sm:text-lg font-semibold mr-1 sm:mr-2">{deal.score}</span>
+                                <span className="text-base sm:text-lg font-semibold mr-1 sm:mr-2">{typeof deal.score === 'number' ? deal.score.toFixed(1) : deal.score}</span>
                                 {deal.change > 0 ? (
                                   <span className="text-success text-[10px] sm:text-xs flex items-center">
                                     <ArrowUp className="h-3 w-3 mr-0.5 sm:mr-1" />
@@ -165,7 +165,7 @@ export default function Leaderboard() {
                             </TableCell>
                             <TableCell className="text-right text-xs sm:text-sm py-2 sm:py-3">
                               <div className="flex items-center justify-end">
-                                <span className="text-base sm:text-lg font-semibold">{deal.score}</span>
+                                <span className="text-base sm:text-lg font-semibold">{typeof deal.score === 'number' ? deal.score.toFixed(1) : deal.score}</span>
                               </div>
                             </TableCell>
                             <TableCell className="text-xs sm:text-sm py-2 sm:py-3">
