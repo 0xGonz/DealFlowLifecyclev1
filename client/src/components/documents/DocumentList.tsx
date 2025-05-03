@@ -256,23 +256,27 @@ export default function DocumentList({ dealId }: DocumentListProps) {
 
       {documents && documents.length > 0 ? (
         <div className="space-y-8">
-          {/* Display latest PDF document at the top if it exists */}
-          {documents.some(doc => doc.fileType === 'application/pdf' || doc.fileName.toLowerCase().endsWith('.pdf')) && (
+          {/* Display latest pitch deck PDF document at the top if it exists */}
+          {documents.some(doc => 
+            (doc.documentType === 'pitch_deck') && 
+            (doc.fileType === 'application/pdf' || doc.fileName.toLowerCase().endsWith('.pdf'))
+          ) && (
             <div className="mb-8">
-              {/* Get the latest PDF document */}
+              {/* Get the latest pitch deck PDF document */}
               {(() => {
-                const pdfDocs = documents.filter(doc => 
-                  doc.fileType === 'application/pdf' || doc.fileName.toLowerCase().endsWith('.pdf')
+                const pitchDeckPDFs = documents.filter(doc => 
+                  doc.documentType === 'pitch_deck' && 
+                  (doc.fileType === 'application/pdf' || doc.fileName.toLowerCase().endsWith('.pdf'))
                 );
-                if (pdfDocs.length > 0) {
-                  // Sort by date and get the most recent PDF
-                  const latestPdf = pdfDocs.sort((a, b) => 
+                if (pitchDeckPDFs.length > 0) {
+                  // Sort by date and get the most recent pitch deck PDF
+                  const latestPitchDeck = pitchDeckPDFs.sort((a, b) => 
                     new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()
                   )[0];
                   return (
                     <EmbeddedPDFViewer 
-                      documentId={latestPdf.id} 
-                      documentName={latestPdf.fileName} 
+                      documentId={latestPitchDeck.id} 
+                      documentName={latestPitchDeck.fileName} 
                     />
                   );
                 }
