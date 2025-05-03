@@ -66,55 +66,57 @@ export default function DealCard({ deal: rawDeal, compact = false, onEdit, onAll
 
   return (
     <Card 
-      className="bg-white rounded-lg shadow pipeline-card overflow-hidden cursor-pointer hover:shadow-md transition-shadow duration-200"
+      className="bg-white rounded-lg shadow pipeline-card overflow-hidden cursor-pointer hover:shadow-md transition-shadow duration-200 h-full flex flex-col"
       onClick={() => navigate(`/deals/${deal.id}`)}
     >
-      <CardContent className="p-3 sm:p-4">
-        <div className="flex flex-wrap sm:flex-nowrap justify-between items-start mb-2 sm:mb-3 gap-1">
-          <h3 className="font-semibold text-sm sm:text-base md:text-lg truncate mr-2 max-w-full sm:max-w-[70%]">{deal.name}</h3>
-          <span className={`deal-stage-badge text-[10px] sm:text-xs px-1.5 py-0.5 sm:px-2 sm:py-1 leading-none whitespace-nowrap flex-shrink-0 ${getDealStageBadgeClass(deal.stage)}`}>
-            {deal.stageLabel}
-          </span>
-        </div>
-        
-        <p className="text-xs sm:text-sm text-neutral-600 mb-3 line-clamp-2">
-          {deal.description}
-        </p>
-        
-        <div className="flex flex-col gap-2 mb-3">
-          <div className="flex items-center text-xs sm:text-sm">
-            <Tag className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 text-primary" />
-            <span className="text-primary-dark font-medium truncate">
-              {deal.sector}
+      <CardContent className="p-3 sm:p-4 flex-1">
+        <div className="flex flex-col h-full">
+          <div className="flex flex-wrap sm:flex-nowrap justify-between items-start mb-2 sm:mb-3 gap-1">
+            <h3 className="font-semibold text-sm sm:text-base md:text-lg truncate mr-2 max-w-full sm:max-w-[70%]">{deal.name}</h3>
+            <span className={`deal-stage-badge text-[10px] sm:text-xs px-1.5 py-0.5 sm:px-2 sm:py-1 leading-none whitespace-nowrap flex-shrink-0 ${getDealStageBadgeClass(deal.stage)}`}>
+              {deal.stageLabel}
             </span>
           </div>
-        </div>
-        
-        <div className="flex items-center justify-between">
-          <div className="flex -space-x-1.5 sm:-space-x-2">
-            {assignedUsers.slice(0, 3).map((user: User) => (
-              <Avatar key={user.id} className="w-6 h-6 sm:w-7 sm:h-7 border-2 border-white">
-                <AvatarFallback style={{ backgroundColor: user.avatarColor }} className="text-[10px] sm:text-xs">
-                  {user.initials}
-                </AvatarFallback>
-              </Avatar>
-            ))}
-            {assignedUsers.length > 3 && (
-              <Avatar className="w-6 h-6 sm:w-7 sm:h-7 border-2 border-white">
-                <AvatarFallback className="bg-neutral-300 text-neutral-700 text-[10px] sm:text-xs">
-                  +{assignedUsers.length - 3}
-                </AvatarFallback>
-              </Avatar>
-            )}
-          </div>
           
-          {!compact && (
-            <div className="flex items-center">
-              <span className="text-[10px] sm:text-xs text-neutral-500 max-w-[120px] sm:max-w-none truncate">
-                Updated {formatDistanceToNow(new Date(deal.updatedAt), { addSuffix: true })}
+          <p className="text-xs sm:text-sm text-neutral-600 mb-3 line-clamp-2">
+            {deal.description}
+          </p>
+          
+          <div className="flex flex-col gap-2 mb-3">
+            <div className="flex items-center text-xs sm:text-sm">
+              <Tag className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 text-primary" />
+              <span className="text-primary-dark font-medium truncate">
+                {deal.sector}
               </span>
             </div>
-          )}
+          </div>
+          
+          <div className="flex items-center justify-between mt-auto">
+            <div className="flex -space-x-1.5 sm:-space-x-2">
+              {assignedUsers.slice(0, 3).map((user: User) => (
+                <Avatar key={user.id} className="w-6 h-6 sm:w-7 sm:h-7 border-2 border-white">
+                  <AvatarFallback style={{ backgroundColor: user.avatarColor }} className="text-[10px] sm:text-xs">
+                    {user.initials}
+                  </AvatarFallback>
+                </Avatar>
+              ))}
+              {assignedUsers.length > 3 && (
+                <Avatar className="w-6 h-6 sm:w-7 sm:h-7 border-2 border-white">
+                  <AvatarFallback className="bg-neutral-300 text-neutral-700 text-[10px] sm:text-xs">
+                    +{assignedUsers.length - 3}
+                  </AvatarFallback>
+                </Avatar>
+              )}
+            </div>
+            
+            {!compact && (
+              <div className="flex items-center">
+                <span className="text-[10px] sm:text-xs text-neutral-500 max-w-[120px] sm:max-w-none truncate">
+                  Updated {formatDistanceToNow(new Date(deal.updatedAt), { addSuffix: true })}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
       </CardContent>
       
