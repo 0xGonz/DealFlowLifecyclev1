@@ -125,22 +125,22 @@ export default function SectorDistribution({ deals, stage }: SectorDistributionP
     : `Sector Distribution - ${stage.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}`;
 
   return (
-    <Card className="mb-6">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base sm:text-lg">{title}</CardTitle>
+    <Card className="mb-6 h-full w-full flex flex-col">
+      <CardHeader className="pb-3">
+        <CardTitle>{title}</CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="h-[220px] sm:h-[240px] md:h-[260px] w-full relative">
+      <CardContent className="px-2 sm:px-6">
+        <div className="h-[260px] xs:h-[280px] sm:h-[320px] md:h-[350px] w-full relative overflow-hidden">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
                 data={processedData}
-                cx="50%"
+                cx={isMobile ? "50%" : "40%"}
                 cy="50%"
                 labelLine={false}
                 label={renderCustomizedLabel}
-                innerRadius={45}
-                outerRadius={80}
+                innerRadius={isSmallScreen ? 35 : isMobile ? 45 : 60}
+                outerRadius={isSmallScreen ? 70 : isMobile ? 85 : 100}
                 fill="#8884d8"
                 dataKey="value"
                 nameKey="name"
@@ -154,25 +154,29 @@ export default function SectorDistribution({ deals, stage }: SectorDistributionP
               </Pie>
               <Tooltip content={<CustomTooltip />} />
               <Legend 
-                verticalAlign="bottom"
-                align="center"
-                layout="horizontal"
+                verticalAlign={isMobile ? "bottom" : "middle"}
+                align={isMobile ? "center" : "right"}
+                layout={isMobile ? "horizontal" : "vertical"}
                 payload={
                   processedData.map((item, index) => {
                     const totalCount = processedData.reduce((sum, i) => sum + i.value, 0);
                     const percentage = (item.value / totalCount * 100).toFixed(0);
                     // Truncate long names on small screens
-                    const displayName = item.name.length > 15 ? item.name.substring(0, 12) + '...' : item.name;
+                    const displayName = isMobile && item.name.length > 12 ? 
+                      item.name.substring(0, 10) + '...' : item.name;
                     return {
-                      value: `${displayName} (${percentage}%)`,
+                      value: isMobile ? 
+                        `${displayName}` : 
+                        `${item.name} (${percentage}%)`,
                       type: 'circle',
                       id: item.name,
                       color: SECTOR_COLORS[index % SECTOR_COLORS.length],
                     };
                   })
                 }
-                iconSize={8}
-                formatter={(value: string) => <span className="text-[10px] xs:text-xs sm:text-sm font-medium truncate max-w-[120px]">{value}</span>}
+                iconSize={isMobile ? 8 : 10}
+                wrapperStyle={isMobile ? { bottom: 0, maxWidth: '100%', overflowX: 'hidden' } : { right: 0, top: 20 }}
+                formatter={(value: string) => <span className="text-[10px] xs:text-xs sm:text-sm font-medium truncate">{value}</span>}
               />
             </PieChart>
           </ResponsiveContainer>
