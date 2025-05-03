@@ -80,9 +80,9 @@ const CustomTooltip = ({ active, payload, sectorData }: TooltipProps) => {
     
     return (
       <div className="bg-white p-2 border border-neutral-200 rounded-md shadow-sm">
-        <p className="font-medium">{data.sector}</p>
-        <p><span className="font-medium">Count:</span> {data.count}</p>
-        <p><span className="font-medium">Percentage:</span> {percentage}%</p>
+        <p className="font-medium text-black">{data.sector}</p>
+        <p className="text-black"><span className="font-medium text-black">Count:</span> {data.count}</p>
+        <p className="text-black"><span className="font-medium text-black">Percentage:</span> {percentage}%</p>
       </div>
     );
   }
@@ -192,7 +192,7 @@ export default function SectorDistributionChart() {
                   }
                   iconSize={windowWidth < 640 ? 8 : 10}
                   wrapperStyle={windowWidth < 640 ? { bottom: 0, maxWidth: '100%', overflowX: 'hidden' } : { right: 0, top: 20 }}
-                  formatter={(value: string) => <span className="text-[10px] xs:text-xs sm:text-sm font-medium">{value}</span>}
+                  formatter={(value: string) => <span className="text-[10px] xs:text-xs sm:text-sm font-medium text-black">{value}</span>}
                 />
               </PieChart>
             </ResponsiveContainer>

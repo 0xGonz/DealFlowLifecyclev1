@@ -89,11 +89,11 @@ export default function StageDistribution({ deals, stage }: StageDistributionPro
                 <div className="flex flex-wrap sm:flex-nowrap justify-between items-center">
                   <div className="flex items-center mb-1 sm:mb-0 min-w-[100px] sm:min-w-[120px] max-w-[65%] sm:max-w-[70%]">
                     <div className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full ${colorClass} mr-1.5 sm:mr-2 flex-shrink-0`}></div>
-                    <span className="text-xs sm:text-sm font-medium truncate">{cat.label}</span>
+                    <span className="text-xs sm:text-sm font-medium truncate text-black">{cat.label}</span>
                   </div>
                   <div className="flex items-center ml-auto sm:ml-0">
-                    <span className="text-xs sm:text-sm text-neutral-500 mr-1.5 sm:mr-2 whitespace-nowrap">{cat.count} deals</span>
-                    <span className="text-[10px] sm:text-xs text-neutral-500 bg-neutral-100 px-1.5 py-0.5 rounded-full whitespace-nowrap">
+                    <span className="text-xs sm:text-sm text-black mr-1.5 sm:mr-2 whitespace-nowrap">{cat.count} deals</span>
+                    <span className="text-[10px] sm:text-xs text-black bg-neutral-100 px-1.5 py-0.5 rounded-full whitespace-nowrap">
                       {cat.percentage}%
                     </span>
                   </div>
@@ -110,11 +110,11 @@ export default function StageDistribution({ deals, stage }: StageDistributionPro
           
           {/* List of deals with their days in stage */}
           <div className="mt-4 space-y-2">
-            <h4 className="text-xs font-medium text-neutral-500">Individual Deals</h4>
+            <h4 className="text-xs font-medium text-black">Individual Deals</h4>
             {dealDays.map((deal) => (
               <div key={deal.id} className="flex justify-between items-center text-xs py-1 border-b border-neutral-100">
-                <span className="font-medium truncate max-w-[65%] sm:max-w-[75%] md:max-w-[80%]">{deal.name}</span>
-                <span className="text-neutral-500 text-[10px] xs:text-xs whitespace-nowrap">{deal.days} days</span>
+                <span className="font-medium truncate max-w-[65%] sm:max-w-[75%] md:max-w-[80%] text-black">{deal.name}</span>
+                <span className="text-black text-[10px] xs:text-xs whitespace-nowrap">{deal.days} days</span>
               </div>
             ))}
           </div>
@@ -160,11 +160,11 @@ export default function StageDistribution({ deals, stage }: StageDistributionPro
               <div className="flex flex-wrap sm:flex-nowrap justify-between items-center">
                 <div className="flex items-center mb-1 sm:mb-0 min-w-[100px] sm:min-w-[120px] max-w-[65%] sm:max-w-[70%]">
                   <div className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full ${stat.colorClass} mr-1.5 sm:mr-2 flex-shrink-0`}></div>
-                  <span className="text-xs sm:text-sm font-medium truncate">{stat.label}</span>
+                  <span className="text-xs sm:text-sm font-medium truncate text-black">{stat.label}</span>
                 </div>
                 <div className="flex items-center ml-auto sm:ml-0">
-                  <span className="text-xs sm:text-sm text-neutral-500 mr-1.5 sm:mr-2 whitespace-nowrap">{stat.count} deals</span>
-                  <span className="text-[10px] sm:text-xs text-neutral-500 bg-neutral-100 px-1.5 py-0.5 rounded-full whitespace-nowrap">
+                  <span className="text-xs sm:text-sm text-black mr-1.5 sm:mr-2 whitespace-nowrap">{stat.count} deals</span>
+                  <span className="text-[10px] sm:text-xs text-black bg-neutral-100 px-1.5 py-0.5 rounded-full whitespace-nowrap">
                     {stat.percentage}%
                   </span>
                 </div>
