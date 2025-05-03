@@ -137,31 +137,37 @@ router.get('/:id/download', async (req: Request, res: Response) => {
       return;
     }
     
-    // Fallback to the sample PDF for testing
-    if (document.fileType === 'application/pdf' || document.fileName.toLowerCase().endsWith('.pdf')) {
-      const samplePdfPath = path.join(process.cwd(), 'public/uploads/sample-upload.pdf');
-      try {
-        if (fs.existsSync(samplePdfPath)) {
-          console.log(`Serving sample PDF from: ${samplePdfPath}`);
-          const fileStream = fs.createReadStream(samplePdfPath);
-          fileStream.pipe(res);
-          
-          // Handle stream errors
-          fileStream.on('error', (err) => {
-            console.error('Error streaming sample PDF:', err);
-            res.status(500).json({ message: 'Error serving document' });
-          });
-          return;
-        }
-      } catch (error) {
-        console.error('Error reading sample PDF file:', error);
+    // If the file doesn't exist in the expected location, check for it with different paths/formats
+    // This helps handle cases where filenames have spaces or special characters
+    const alternativePaths = [
+      // Try without encodeURIComponent in the filename
+      path.join(process.cwd(), 'public/uploads', path.basename(document.filePath)),
+      // Just the filename without the UUID prefix
+      path.join(process.cwd(), 'public/uploads', document.fileName),
+      // Sample file for demo purposes
+      path.join(process.cwd(), 'public/uploads/sample-upload.pdf')
+    ];
+    
+    for (const altPath of alternativePaths) {
+      if (fs.existsSync(altPath)) {
+        console.log(`Serving file from alternative location: ${altPath}`);
+        const fileStream = fs.createReadStream(altPath);
+        fileStream.pipe(res);
+        
+        // Handle stream errors
+        fileStream.on('error', (err) => {
+          console.error('Error streaming document from alternative path:', err);
+          // Continue to next alternative
+          continue;
+        });
+        return;
       }
     }
     
-    // Final fallback
-    console.log(`Using text fallback for: ${document.fileName}`);
-    const content = `This is a document file for ${document.fileName}`;
-    res.send(Buffer.from(content));
+    // Still no file found, create a basic PDF error message
+    console.log(`No file found for: ${document.fileName}. Showing error message.`);
+    res.status(404).send(`<html><body><h1>Document Not Found</h1><p>The document "${document.fileName}" could not be found on the server.</p><p>Please upload the document again.</p></body></html>`);
+    
     
   } catch (error) {
     console.error('Error downloading document:', error);
