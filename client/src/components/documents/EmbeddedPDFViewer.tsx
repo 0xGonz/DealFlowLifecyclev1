@@ -4,11 +4,12 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Download, Loader2, FileText } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 
-// Set the worker source to avoid network requests
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  'pdfjs-dist/build/pdf.worker.min.js',
-  import.meta.url,
-).toString();
+// Import the worker directly
+import * as pdfWorker from 'pdfjs-dist/build/pdf.worker.mjs';
+
+// Set up the worker by setting a global variable
+// @ts-ignore
+window.pdfjsWorker = pdfWorker;
 
 interface EmbeddedPDFViewerProps {
   documentId: number;

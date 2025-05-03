@@ -11,11 +11,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, FileText, Loader2 } from 'lucide-react';
 
-// Set the worker source to avoid network requests
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  'pdfjs-dist/build/pdf.worker.min.js',
-  import.meta.url,
-).toString();
+// Import the worker directly
+import * as pdfWorker from 'pdfjs-dist/build/pdf.worker.mjs';
+
+// Set up the worker by setting a global variable
+// @ts-ignore
+window.pdfjsWorker = pdfWorker;
 
 interface PDFViewerProps {
   isOpen: boolean;
