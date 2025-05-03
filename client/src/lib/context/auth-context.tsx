@@ -33,8 +33,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const checkAuthStatus = async () => {
       try {
         // Try to get the current user from the server
-        const data = await apiService.auth.getCurrentUser();
-        setUser(data.user);
+        const userData = await apiService.auth.getCurrentUser();
+        setUser(userData);
       } catch (error) {
         // If it fails, user is not authenticated
         console.log('No active session found');
@@ -50,15 +50,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (username: string, password: string) => {
     try {
       setIsLoading(true);
-      const data = await apiService.auth.login(username, password);
-      setUser(data.user);
+      const userData = await apiService.auth.login(username, password);
+      setUser(userData);
       
       // In a real app, store the token
       // localStorage.setItem('authToken', data.token);
       
       toast({
         title: "Login successful",
-        description: `Welcome back, ${data.user.fullName}!`
+        description: `Welcome back, ${userData.fullName}!`
       });
     } catch (error) {
       toast({
