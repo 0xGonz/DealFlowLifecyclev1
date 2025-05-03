@@ -4,10 +4,11 @@ import { queryClient, apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { FileText, Download, Trash2, FileUp, File } from 'lucide-react';
+import { FileText, Download, Trash2, FileUp, File, Eye } from 'lucide-react';
 import { Document } from '@/lib/types';
 import { formatDistanceToNow } from 'date-fns';
 import { formatBytes } from '@/lib/utils/format';
+import PDFViewer from './PDFViewer';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -42,6 +43,8 @@ export default function DocumentList({ dealId }: DocumentListProps) {
   const [uploadingFile, setUploadingFile] = useState<File | null>(null);
   const [documentType, setDocumentType] = useState('pitch_deck');
   const [description, setDescription] = useState('');
+  const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
+  const [isPdfViewerOpen, setIsPdfViewerOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -133,6 +136,16 @@ export default function DocumentList({ dealId }: DocumentListProps) {
   const getDocumentTypeIcon = (type: string, className = 'h-10 w-10') => {
     // Default icon
     return <FileText className={className} />;
+  };
+  
+  const handleViewDocument = (document: Document) => {
+    if (document.fileType === 'application/pdf' || document.fileName.toLowerCase().endsWith('.pdf')) {
+      setSelectedDocument(document);
+      setIsPdfViewerOpen(true);
+    } else {
+      // For non-PDF documents, just download them
+      window.open(`/api/documents/${document.id}/download`, '_blank');
+    }
   };
 
   if (isLoading) {
@@ -260,6 +273,14 @@ export default function DocumentList({ dealId }: DocumentListProps) {
                 </p>
               </div>
               <div className="flex flex-col justify-center space-y-2 ml-2">
+                <Button 
+                  variant="secondary" 
+                  size="sm" 
+                  onClick={() => handleViewDocument(document)}
+                >
+                  <Eye className="h-4 w-4 mr-1" />
+                  View
+                </Button>
                 <Button variant="outline" size="sm" asChild>
                   <a href={`/api/documents/${document.id}/download`} target="_blank" rel="noopener noreferrer">
                     <Download className="h-4 w-4 mr-1" />
@@ -306,6 +327,16 @@ export default function DocumentList({ dealId }: DocumentListProps) {
             Upload Document
           </Button>
         </div>
+      )}
+      
+      {/* PDF Viewer */}
+      {selectedDocument && (
+        <PDFViewer
+          isOpen={isPdfViewerOpen}
+          onClose={() => setIsPdfViewerOpen(false)}
+          documentId={selectedDocument.id}
+          documentName={selectedDocument.fileName}
+        />
       )}
     </div>
   );
