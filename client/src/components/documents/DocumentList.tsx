@@ -3,7 +3,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient, apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { FileText, Download, Trash2, FileUp, File, Eye } from 'lucide-react';
 import { Document } from '@/lib/types';
 import { formatDistanceToNow } from 'date-fns';
@@ -256,28 +256,46 @@ export default function DocumentList({ dealId }: DocumentListProps) {
 
       {documents && documents.length > 0 ? (
         <div className="space-y-8">
-          {/* Display latest pitch deck PDF document at the top if it exists */}
-          {documents.some(doc => 
-            (doc.documentType === 'pitch_deck') && 
-            (doc.fileType === 'application/pdf' || doc.fileName.toLowerCase().endsWith('.pdf'))
-          ) && (
+          {/* Display latest pitch deck document at the top if it exists */}
+          {documents.some(doc => doc.documentType === 'pitch_deck') && (
             <div className="mb-8">
-              {/* Get the latest pitch deck PDF document */}
+              {/* Get the latest pitch deck document */}
               {(() => {
-                const pitchDeckPDFs = documents.filter(doc => 
-                  doc.documentType === 'pitch_deck' && 
-                  (doc.fileType === 'application/pdf' || doc.fileName.toLowerCase().endsWith('.pdf'))
-                );
-                if (pitchDeckPDFs.length > 0) {
-                  // Sort by date and get the most recent pitch deck PDF
-                  const latestPitchDeck = pitchDeckPDFs.sort((a, b) => 
+                const pitchDecks = documents.filter(doc => doc.documentType === 'pitch_deck');
+                if (pitchDecks.length > 0) {
+                  // Sort by date and get the most recent pitch deck
+                  const latestPitchDeck = pitchDecks.sort((a, b) => 
                     new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()
                   )[0];
                   return (
-                    <EmbeddedPDFViewer 
-                      documentId={latestPitchDeck.id} 
-                      documentName={latestPitchDeck.fileName} 
-                    />
+                    <Card className="w-full">
+                      <CardContent className="p-6">
+                        <div className="mb-4 flex justify-between items-center">
+                          <h3 className="text-lg font-medium truncate mr-2">{latestPitchDeck.fileName}</h3>
+                          <Button variant="outline" size="sm" asChild>
+                            <a href={`/api/documents/${latestPitchDeck.id}/download`} target="_blank" rel="noopener noreferrer">
+                              <Download className="h-4 w-4 mr-1" />
+                              Download
+                            </a>
+                          </Button>
+                        </div>
+                        <div className="flex items-center justify-center p-8 bg-neutral-50 rounded-lg border">
+                          <div className="text-center">
+                            <FileText className="h-16 w-16 mx-auto mb-4 text-primary opacity-70" />
+                            <h4 className="text-lg font-medium mb-1">Pitch Deck</h4>
+                            <p className="text-sm text-neutral-500 mb-4">
+                              {formatBytes(latestPitchDeck.fileSize)} • Uploaded {formatDistanceToNow(new Date(latestPitchDeck.uploadedAt), { addSuffix: true })}
+                            </p>
+                            <Button asChild size="sm">
+                              <a href={`/api/documents/${latestPitchDeck.id}/download`} target="_blank" rel="noopener noreferrer">
+                                <Download className="h-4 w-4 mr-1" />
+                                Download to View
+                              </a>
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
                   );
                 }
                 return null;

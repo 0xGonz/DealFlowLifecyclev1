@@ -11,8 +11,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, FileText, Loader2 } from 'lucide-react';
 
-// Set the worker source to avoid network requests
-pdfjs.GlobalWorkerOptions.workerSrc = `//cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
+// Configure worker
+pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
 
 interface PDFViewerProps {
   isOpen: boolean;
