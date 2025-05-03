@@ -40,49 +40,49 @@ export default function ActivityFeed() {
     switch (eventType) {
       case 'stage_change':
         return (
-          <div className="absolute left-0 top-0 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-primary-light flex items-center justify-center z-10">
+          <div className="absolute -left-2.5 sm:-left-3 top-0 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-primary-light flex items-center justify-center z-10">
             <CheckCircle className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-white" />
           </div>
         );
       case 'memo_added':
         return (
-          <div className="absolute left-0 top-0 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-accent flex items-center justify-center z-10">
+          <div className="absolute -left-2.5 sm:-left-3 top-0 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-accent flex items-center justify-center z-10">
             <FileEdit className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-white" />
           </div>
         );
       case 'note':
         return (
-          <div className="absolute left-0 top-0 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-secondary flex items-center justify-center z-10">
+          <div className="absolute -left-2.5 sm:-left-3 top-0 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-secondary flex items-center justify-center z-10">
             <FileEdit className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-white" />
           </div>
         );
       case 'star_added':
         return (
-          <div className="absolute left-0 top-0 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-accent flex items-center justify-center z-10">
+          <div className="absolute -left-2.5 sm:-left-3 top-0 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-accent flex items-center justify-center z-10">
             <Star className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-white" />
           </div>
         );
       case 'document_upload':
         return (
-          <div className="absolute left-0 top-0 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-info flex items-center justify-center z-10">
+          <div className="absolute -left-2.5 sm:-left-3 top-0 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-info flex items-center justify-center z-10">
             <FileText className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-white" />
           </div>
         );
       case 'fund_allocation':
         return (
-          <div className="absolute left-0 top-0 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-success flex items-center justify-center z-10">
+          <div className="absolute -left-2.5 sm:-left-3 top-0 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-success flex items-center justify-center z-10">
             <DollarSign className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-white" />
           </div>
         );
       case 'ai_analysis':
         return (
-          <div className="absolute left-0 top-0 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-primary flex items-center justify-center z-10">
+          <div className="absolute -left-2.5 sm:-left-3 top-0 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-primary flex items-center justify-center z-10">
             <Info className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-white" />
           </div>
         );
       default:
         return (
-          <div className="absolute left-0 top-0 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-info flex items-center justify-center z-10">
+          <div className="absolute -left-2.5 sm:-left-3 top-0 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-info flex items-center justify-center z-10">
             <Info className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-white" />
           </div>
         );
@@ -106,7 +106,7 @@ export default function ActivityFeed() {
           </div>
         ) : (
           activities.map((activity) => (
-            <div key={activity.id} className="timeline-dot relative pl-6 sm:pl-8 pb-5 sm:pb-6">
+            <div key={activity.id} className="timeline-dot relative pl-6 sm:pl-8 pb-5 sm:pb-6 border-l border-neutral-200 ml-2.5 sm:ml-3">
               {getEventIcon(activity.eventType)}
               <div>
                 <div className="flex flex-col xs:flex-row justify-between">

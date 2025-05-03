@@ -46,7 +46,7 @@ export default function RecentDeals() {
       </CardHeader>
       
       <CardContent className="flex-1">
-        <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 mb-4">
+        <div className="flex flex-col justify-between items-stretch gap-2 mb-4">
           <div className="flex flex-wrap gap-2 w-full">
             <Select value={stageFilter} onValueChange={setStageFilter}>
               <SelectTrigger className="h-8 sm:h-9 text-xs sm:text-sm w-full sm:w-[120px] md:w-[150px]">
@@ -100,7 +100,7 @@ export default function RecentDeals() {
             <p className="text-sm sm:text-base text-neutral-500">No deals found matching your filters.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
+          <div className="grid grid-cols-1 gap-3 sm:gap-4">
             {filteredDeals.map(deal => (
               <DealCard key={deal.id} deal={deal} compact={false} />
             ))}
