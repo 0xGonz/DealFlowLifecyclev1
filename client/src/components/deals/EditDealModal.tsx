@@ -41,9 +41,7 @@ import { DEAL_STAGES, DealStage, DealStageLabels } from "@/lib/constants/deal-st
 const dealFormSchema = z.object({
   name: z.string().min(1, "Company name is required"),
   description: z.string().min(1, "Description is required"),
-  industry: z.string().min(1, "Sector is required"),
-  sector: z.string().optional(),
-
+  sector: z.string().min(1, "Sector is required"),
   contactEmail: z.string().email("Invalid email address").optional().or(z.literal("")),
   notes: z.string().optional(),
   stage: z.enum(DEAL_STAGES),
@@ -74,7 +72,6 @@ export default function EditDealModal({ isOpen, onClose, dealId }: EditDealModal
     defaultValues: {
       name: "",
       description: "",
-      industry: "",
       sector: "",
       contactEmail: "",
       notes: "",
@@ -84,7 +81,6 @@ export default function EditDealModal({ isOpen, onClose, dealId }: EditDealModal
     values: deal ? {
       name: deal.name,
       description: deal.description,
-      industry: deal.industry,
       sector: deal.sector || "",
       contactEmail: deal.contactEmail || "",
       notes: deal.notes || "",
