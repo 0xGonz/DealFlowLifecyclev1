@@ -57,7 +57,7 @@ const CalledCapitalRatio: React.FC<CalledCapitalRatioProps> = ({
       <CardContent>
         {capitalData.length > 0 ? (
           <div className="flex flex-col xs:flex-row items-center justify-between gap-4">
-            <div className="h-48 w-full max-w-[180px]">
+            <div className="h-44 sm:h-48 w-full max-w-[140px] xs:max-w-[170px] sm:max-w-[180px]">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -66,8 +66,8 @@ const CalledCapitalRatio: React.FC<CalledCapitalRatioProps> = ({
                     cy="50%"
                     startAngle={90}
                     endAngle={-270}
-                    innerRadius={60}
-                    outerRadius={80}
+                    innerRadius={45}
+                    outerRadius={65}
                     paddingAngle={0}
                     dataKey="value"
                   >
@@ -83,20 +83,20 @@ const CalledCapitalRatio: React.FC<CalledCapitalRatioProps> = ({
               </ResponsiveContainer>
             </div>
             
-            <div className="flex flex-col gap-4 grow">
+            <div className="flex flex-col gap-3 sm:gap-4 grow">
               <div className="text-center xs:text-left">
-                <p className="text-xs text-neutral-500 mb-1">Called Rate</p>
-                <p className="text-2xl sm:text-3xl font-semibold">{calledPercentage}%</p>
+                <p className="text-xs text-neutral-500 mb-0.5 sm:mb-1">Called Rate</p>
+                <p className="text-xl sm:text-2xl md:text-3xl font-semibold">{calledPercentage}%</p>
               </div>
               
               <div className="grid grid-cols-2 gap-2 sm:gap-4">
                 <div>
-                  <p className="text-xs text-neutral-500 mb-1">Called</p>
-                  <p className="text-lg font-medium">{formatCurrency(capitalData[0]?.value || 0)}</p>
+                  <p className="text-xs text-neutral-500 mb-0.5 sm:mb-1">Called</p>
+                  <p className="text-sm sm:text-base md:text-lg font-medium truncate">{formatCurrency(capitalData[0]?.value || 0)}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-neutral-500 mb-1">Uncalled</p>
-                  <p className="text-lg font-medium">{formatCurrency(capitalData[1]?.value || 0)}</p>
+                  <p className="text-xs text-neutral-500 mb-0.5 sm:mb-1">Uncalled</p>
+                  <p className="text-sm sm:text-base md:text-lg font-medium truncate">{formatCurrency(capitalData[1]?.value || 0)}</p>
                 </div>
               </div>
             </div>
