@@ -56,7 +56,7 @@ const CustomTooltip = ({ active, payload }: any) => {
       <div className="bg-white p-2 border border-neutral-200 rounded-md shadow-sm">
         <p className="font-medium text-black">{data.name}</p>
         <p className="text-black"><span className="font-medium text-black">Count:</span> {data.value} deals</p>
-        <p className="text-black"><span className="font-medium text-black">Percentage:</span> {(data.percent * 100).toFixed(0)}%</p>
+        <p className="text-black"><span className="font-medium text-black">Percentage:</span> <span className="font-bold">{(data.percent * 100).toFixed(0)}%</span></p>
       </div>
     );
   }
@@ -167,7 +167,7 @@ export default function SectorDistribution({ deals, stage }: SectorDistributionP
                     return {
                       value: isMobile ? 
                         `${displayName}` : 
-                        `${item.name} (${percentage}%)`,
+                        `${item.name} `,
                       type: 'circle',
                       id: item.name,
                       color: SECTOR_COLORS[index % SECTOR_COLORS.length],

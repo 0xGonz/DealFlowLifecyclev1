@@ -82,7 +82,7 @@ const CustomTooltip = ({ active, payload, sectorData }: TooltipProps) => {
       <div className="bg-white p-2 border border-neutral-200 rounded-md shadow-sm">
         <p className="font-medium text-black">{data.sector}</p>
         <p className="text-black"><span className="font-medium text-black">Count:</span> {data.count}</p>
-        <p className="text-black"><span className="font-medium text-black">Percentage:</span> {percentage}%</p>
+        <p className="text-black"><span className="font-medium text-black">Percentage:</span> <span className="font-bold">{percentage}%</span></p>
       </div>
     );
   }
@@ -183,7 +183,7 @@ export default function SectorDistributionChart() {
                       return {
                         value: windowWidth < 640 ? 
                           `${displayName}` : 
-                          `${item.sector} (${percentage}%)`,
+                          `${item.sector} `,
                         type: 'circle',
                         id: item.sector,
                         color: SECTOR_COLORS[index % SECTOR_COLORS.length],
@@ -192,7 +192,20 @@ export default function SectorDistributionChart() {
                   }
                   iconSize={windowWidth < 640 ? 8 : 10}
                   wrapperStyle={windowWidth < 640 ? { bottom: 0, maxWidth: '100%', overflowX: 'hidden' } : { right: 0, top: 20 }}
-                  formatter={(value: string) => <span className="text-[10px] xs:text-xs sm:text-sm font-medium text-black">{value}</span>}
+                  formatter={(value: string, entry) => {
+                    const totalCount = processedData.reduce((sum, i) => sum + i.count, 0);
+                    const item = processedData.find(item => item.sector === entry.id);
+                    if (!item) return <span className="text-[10px] xs:text-xs sm:text-sm font-medium text-black">{value}</span>;
+                    const percentage = (item.count / totalCount * 100).toFixed(0);
+                    return (
+                      <span className="text-[10px] xs:text-xs sm:text-sm font-medium text-black">
+                        {value}
+                        {windowWidth >= 640 && (
+                          <span className="font-bold">({percentage}%)</span>
+                        )}
+                      </span>
+                    );
+                  }}
                 />
               </PieChart>
             </ResponsiveContainer>
