@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { AppError } from './errorHandlers';
 import { StorageFactory } from '../storage-factory';
+import * as bcrypt from 'bcrypt';
 
 // Types for session data
 declare module 'express-session' {
@@ -52,12 +53,48 @@ export async function getCurrentUser(req: Request) {
   }
 }
 
+// Constants for bcrypt
+const SALT_ROUNDS = 10;
+
+// Function to hash a password
+export async function hashPassword(password: string): Promise<string> {
+  return bcrypt.hash(password, SALT_ROUNDS);
+}
+
+// Function to verify a password against a hash
+export async function verifyPassword(password: string, hashedPassword: string): Promise<boolean> {
+  return bcrypt.compare(password, hashedPassword);
+}
+
 // Login helper
 export async function login(req: Request, username: string, password: string) {
   const storage = StorageFactory.getStorage();
   const user = await storage.getUserByUsername(username);
   
-  if (!user || user.password !== password) { // In production, use proper password hashing
+  if (!user) {
+    throw new AppError('Invalid username or password', 401);
+  }
+  
+  // Check if the password is hashed by seeing if it starts with $2b$ (bcrypt identifier)
+  let passwordValid = false;
+  if (user.password.startsWith('$2b$')) {
+    // If the password is hashed, use bcrypt to verify
+    passwordValid = await verifyPassword(password, user.password);
+  } else {
+    // Fallback for plain text passwords during transition
+    // This allows old accounts to still log in
+    passwordValid = user.password === password;
+    
+    // Optionally hash the password for next time if it matches
+    if (passwordValid) {
+      // Update the user's password hash in the database
+      const hashedPassword = await hashPassword(password);
+      await storage.updateUser(user.id, { password: hashedPassword });
+      console.log(`Upgraded password hash for user ${username}`);
+    }
+  }
+  
+  if (!passwordValid) {
     throw new AppError('Invalid username or password', 401);
   }
   
