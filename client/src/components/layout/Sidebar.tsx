@@ -62,6 +62,11 @@ export default function Sidebar({ onCloseMobile }: SidebarProps) {
       label: "Funds", 
       icon: <FileText className="h-5 w-5 mr-2" /> 
     },
+    { 
+      href: "/team", 
+      label: "Team", 
+      icon: <Users className="h-5 w-5 mr-2" /> 
+    },
   ];
 
   const adminNavItems = [
