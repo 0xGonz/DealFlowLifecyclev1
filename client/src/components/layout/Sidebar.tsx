@@ -9,7 +9,8 @@ import {
   LogOut, 
   Settings, 
   Users,
-  X
+  X,
+  DollarSign
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ProfileEditModal from "@/components/profile/ProfileEditModal";
@@ -61,6 +62,11 @@ export default function Sidebar({ onCloseMobile }: SidebarProps) {
       href: "/funds", 
       label: "Funds", 
       icon: <FileText className="h-5 w-5 mr-2" /> 
+    },
+    { 
+      href: "/capital-calls", 
+      label: "Capital Calls", 
+      icon: <DollarSign className="h-5 w-5 mr-2" /> 
     },
     { 
       href: "/team", 
