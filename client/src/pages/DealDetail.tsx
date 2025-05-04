@@ -77,7 +77,7 @@ export default function DealDetail() {
     const tab = searchParams.get('tab');
     return tab === 'timeline' || tab === 'memos' || tab === 'documents'
       ? tab 
-      : 'timeline'; // Default tab
+      : 'documents'; // Default tab
   };
   
   const [activeTab, setActiveTab] = useState(getActiveTab());
@@ -452,14 +452,14 @@ export default function DealDetail() {
         >
           <div className="overflow-x-auto pb-1">
             <TabsList className="flex w-auto min-w-full sm:w-full sm:min-w-0">
+              <TabsTrigger value="documents" className="text-xs sm:text-sm h-8 sm:h-10 px-2 sm:px-4 flex-1">
+                Documents
+              </TabsTrigger>
               <TabsTrigger value="timeline" className="text-xs sm:text-sm h-8 sm:h-10 px-2 sm:px-4 flex-1">
                 Timeline
               </TabsTrigger>
               <TabsTrigger value="memos" className="text-xs sm:text-sm h-8 sm:h-10 px-2 sm:px-4 flex-1">
                 Mini-Memos
-              </TabsTrigger>
-              <TabsTrigger value="documents" className="text-xs sm:text-sm h-8 sm:h-10 px-2 sm:px-4 flex-1">
-                Documents
               </TabsTrigger>
             </TabsList>
           </div>
