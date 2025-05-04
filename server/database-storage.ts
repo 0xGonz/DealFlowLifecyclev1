@@ -73,6 +73,9 @@ export class DatabaseStorage implements IStorage {
   
   // Deal operations
   async createDeal(deal: InsertDeal): Promise<Deal> {
+    if (!db) {
+      throw new Error('Database not initialized');
+    }
     const [newDeal] = await db.insert(deals).values(deal).returning();
     return newDeal;
   }

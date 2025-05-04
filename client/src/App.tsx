@@ -54,17 +54,17 @@ function Router() {
       </Route>
       
       <Route path="/funds/:id">
-        {(params) => (
+        {() => (
           <ProtectedRoute>
-            <FundDetail id={params.id} />
+            <FundDetail />
           </ProtectedRoute>
         )}
       </Route>
       
       <Route path="/deals/:id">
-        {(params) => (
+        {() => (
           <ProtectedRoute>
-            <DealDetail id={params.id} />
+            <DealDetail />
           </ProtectedRoute>
         )}
       </Route>
