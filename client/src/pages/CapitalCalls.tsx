@@ -99,11 +99,11 @@ const CapitalCalls = () => {
   }, [capitalCalls]);
 
   // Custom day render function for the calendar
-  const renderDay = (day: Date) => {
-    const dateStr = format(day, 'yyyy-MM-dd');
+  const renderDay = (date: Date) => {
+    const dateStr = format(date, 'yyyy-MM-dd');
     const highlight = calendarHighlights[dateStr];
     
-    const isPastDate = isPast(day) && !isToday(day);
+    const isPastDate = isPast(date) && !isToday(date);
     const isSelected = selectedDate && format(selectedDate, 'yyyy-MM-dd') === dateStr;
     
     let bgClass = '';
@@ -125,7 +125,7 @@ const CapitalCalls = () => {
     return (
       <div className={`w-full h-full flex items-center justify-center rounded-md relative ${bgClass}`}>
         <span className={`${isPastDate ? 'text-neutral-400' : ''}`}>
-          {format(day, 'd')}
+          {format(date, 'd')}
         </span>
         {highlight && (
           <div className="absolute bottom-1 flex gap-0.5 justify-center">
@@ -194,9 +194,9 @@ const CapitalCalls = () => {
                 onSelect={setSelectedDate}
                 className="rounded-md border"
                 components={{
-                  Day: ({ day, ...props }) => (
+                  Day: (props) => (
                     <button {...props} className="h-9 w-9 p-0 font-normal">
-                      {renderDay(day)}
+                      {renderDay(props.date)}
                     </button>
                   ),
                 }}
