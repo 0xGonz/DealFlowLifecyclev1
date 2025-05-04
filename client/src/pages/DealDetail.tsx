@@ -433,47 +433,7 @@ export default function DealDetail() {
                 </div>
               </div>
               
-              {/* Row 2 */}
-              <div className="sm:col-span-2 lg:col-span-2">
-                <h3 className="text-xs sm:text-sm font-medium text-neutral-500 mb-1.5 sm:mb-2">Deal Stats</h3>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 p-3 bg-neutral-50 rounded-md">
-                  <div>
-                    <p className="text-xs font-medium text-neutral-500">Deal Size</p>
-                    <p className="text-sm font-semibold">
-                      {deal?.amount 
-                        ? new Intl.NumberFormat('en-US', {
-                            style: 'currency',
-                            currency: 'USD',
-                            maximumFractionDigits: 0,
-                            minimumFractionDigits: 0
-                          }).format(deal.amount)
-                        : 'N/A'
-                      }
-                    </p>
-                  </div>
-                  
-                  <div>
-                    <p className="text-xs font-medium text-neutral-500">Ownership</p>
-                    <p className="text-sm font-semibold">
-                      {deal?.ownershipPercentage ? `${deal.ownershipPercentage}%` : 'N/A'}
-                    </p>
-                  </div>
-                  
-                  <div>
-                    <p className="text-xs font-medium text-neutral-500">Memos</p>
-                    <p className="text-sm font-semibold">{deal?.miniMemos?.length || 0}</p>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="sm:col-span-2 lg:col-span-2">
-                <h3 className="text-xs sm:text-sm font-medium text-neutral-500 mb-1.5 sm:mb-2">Investment Thesis</h3>
-                <div className="p-3 bg-neutral-50 rounded-md">
-                  <p className="text-xs sm:text-sm text-neutral-700 line-clamp-3">
-                    {deal?.investmentThesis || 'No investment thesis provided.'}
-                  </p>
-                </div>
-              </div>
+              {/* Row 2 - Removed deal size, ownership, memos, and investment thesis sections as requested */}
             </div>
           </CardContent>
         </Card>
