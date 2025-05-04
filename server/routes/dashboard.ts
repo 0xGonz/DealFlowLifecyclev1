@@ -28,8 +28,17 @@ router.get('/stats', async (req: Request, res: Response) => {
     const investedDeals = deals ? deals.filter(deal => deal.stage === 'invested').length : 0;
     const investmentRate = totalDeals > 0 ? Math.round((investedDeals / totalDeals) * 100) : 0;
     
-    // Calculate total AUM
-    const totalAum = funds ? funds.reduce((sum, fund) => sum + (fund.aum || 0), 0) : 0;
+    // Calculate total AUM based on actual allocations
+    let totalAum = 0;
+    if (funds && funds.length > 0) {
+      const storage = StorageFactory.getStorage();
+      // Get all allocations for all funds
+      const allAllocations = await Promise.all(funds.map(fund => 
+        storage.getAllocationsByFund(fund.id)
+      ));
+      // Flatten the array of allocations and sum them up
+      totalAum = allAllocations.flat().reduce((sum, allocation) => sum + allocation.amount, 0);
+    }
     
     // Calculate trends based on real data patterns
     // Simulate historical data comparison by creating relative change values

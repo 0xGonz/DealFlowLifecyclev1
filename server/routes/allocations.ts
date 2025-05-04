@@ -33,6 +33,11 @@ router.post('/', async (req: Request, res: Response) => {
       });
     }
     
+    // Update fund AUM based on actual allocations
+    const fundAllocations = await storage.getAllocationsByFund(fund.id);
+    const totalAllocationAmount = fundAllocations.reduce((sum, allocation) => sum + allocation.amount, 0);
+    await storage.updateFund(fund.id, { aum: totalAllocationAmount });
+    
     res.status(201).json(newAllocation);
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -64,6 +69,36 @@ router.get('/deal/:dealId', async (req: Request, res: Response) => {
     res.json(allocations);
   } catch (error) {
     res.status(500).json({ message: 'Failed to fetch allocations' });
+  }
+});
+
+// Delete an allocation
+router.delete('/:id', async (req: Request, res: Response) => {
+  try {
+    const storage = StorageFactory.getStorage();
+    const allocationId = Number(req.params.id);
+    
+    // Find the allocation first to get fundId
+    const allocation = await storage.getFundAllocation(allocationId);
+    if (!allocation) {
+      return res.status(404).json({ message: 'Allocation not found' });
+    }
+    
+    // Delete the allocation
+    const result = await storage.deleteFundAllocation(allocationId);
+    if (!result) {
+      return res.status(404).json({ message: 'Allocation not found or could not be deleted' });
+    }
+    
+    // Update fund AUM based on remaining allocations
+    const fundAllocations = await storage.getAllocationsByFund(allocation.fundId);
+    const totalAllocationAmount = fundAllocations.reduce((sum, alloc) => sum + alloc.amount, 0);
+    await storage.updateFund(allocation.fundId, { aum: totalAllocationAmount });
+    
+    res.status(200).json({ message: 'Allocation deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting fund allocation:', error);
+    res.status(500).json({ message: 'Failed to delete fund allocation' });
   }
 });
 

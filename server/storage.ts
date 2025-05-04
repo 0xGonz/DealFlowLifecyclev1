@@ -67,6 +67,8 @@ export interface IStorage {
   createFundAllocation(allocation: InsertFundAllocation): Promise<FundAllocation>;
   getAllocationsByFund(fundId: number): Promise<FundAllocation[]>;
   getAllocationsByDeal(dealId: number): Promise<FundAllocation[]>;
+  getFundAllocation(id: number): Promise<FundAllocation | undefined>;
+  deleteFundAllocation(id: number): Promise<boolean>;
   
   // Capital Calls
   createCapitalCall(capitalCall: InsertCapitalCall): Promise<CapitalCall>;
@@ -75,7 +77,6 @@ export interface IStorage {
   getCapitalCallsByAllocation(allocationId: number): Promise<CapitalCall[]>;
   getCapitalCallsByDeal(dealId: number): Promise<CapitalCall[]>;
   updateCapitalCallStatus(id: number, status: CapitalCall['status'], paidAmount?: number): Promise<CapitalCall | undefined>;
-  getFundAllocation(id: number): Promise<FundAllocation | undefined>;
   
   // Deal assignments
   assignUserToDeal(assignment: InsertDealAssignment): Promise<DealAssignment>;
