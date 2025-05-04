@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Deal } from "@/lib/types";
 import { getDealStageBadgeClass, formatCurrency, formatDate, formatPercentage } from "@/lib/utils/format";
 import { DealStageLabels } from "@shared/schema";
+import { DEFAULT_DEAL_SECTOR, DEAL_STAGES } from "@/lib/constants/deal-constants";
 
 type DealsTableProps = {
   deals: Deal[] | undefined;
@@ -78,7 +79,7 @@ export default function DealsTable({ deals, onEdit, onAllocate, onUpdateStatus, 
                     </div>
                   </TableCell>
                   <TableCell className="py-2 sm:py-3 px-2 sm:px-4 hidden xs:table-cell">
-                    <span className="text-2xs xs:text-xs sm:text-sm">{deal.sector || 'Private Credit'}</span>
+                    <span className="text-2xs xs:text-xs sm:text-sm">{deal.sector || DEFAULT_DEAL_SECTOR}</span>
                   </TableCell>
                   <TableCell className="py-1.5 sm:py-2.5 px-2 sm:px-4 hidden sm:table-cell">
                     <p className="text-2xs xs:text-xs sm:text-sm line-clamp-1 sm:line-clamp-2">{deal.description}</p>
@@ -135,7 +136,7 @@ export default function DealsTable({ deals, onEdit, onAllocate, onUpdateStatus, 
                       >
                         <FileSearch className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 text-neutral-600" />
                       </Button>
-                      {deal.stage === 'invested' && (
+                      {deal.stage === DEAL_STAGES.INVESTED && (
                         <Button
                           variant="ghost"
                           size="sm"

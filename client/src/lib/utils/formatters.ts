@@ -1,4 +1,5 @@
 import { format, parseISO } from 'date-fns';
+import { DATE_FORMATS } from '../constants/format-constants';
 
 /**
  * Utility functions for consistent data formatting throughout the application
@@ -8,10 +9,10 @@ import { format, parseISO } from 'date-fns';
  * Format a date string into a consistent display format
  * 
  * @param dateString ISO date string
- * @param formatStr Date format string (defaults to 'MMM d, yyyy')
+ * @param formatStr Date format string (defaults to DATE_FORMATS.DEFAULT)
  * @returns Formatted date string
  */
-export function formatDate(dateString: string, formatStr: string = 'MMM d, yyyy'): string {
+export function formatDate(dateString: string, formatStr: string = DATE_FORMATS.DEFAULT): string {
   if (!dateString) return 'N/A';
   try {
     const date = typeof dateString === 'string' ? parseISO(dateString) : dateString;
@@ -42,7 +43,7 @@ export function formatRelativeTime(dateString: string): string {
     if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)} days ago`;
     if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 604800)} weeks ago`;
     
-    return format(date, 'MMM d, yyyy');
+    return format(date, DATE_FORMATS.DEFAULT);
   } catch (error) {
     console.error('Error formatting relative time:', error);
     return 'Invalid date';

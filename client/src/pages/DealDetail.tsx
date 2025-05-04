@@ -62,6 +62,8 @@ import { formatDistanceToNow } from "date-fns";
 import { getDealStageBadgeClass } from "@/lib/utils/format";
 import { enrichDealWithComputedProps } from "@/lib/utils";
 import { Deal, MiniMemo, User } from "@/lib/types";
+import { DEFAULT_EMPTY_TEXT, DEFAULT_AVATAR_TEXT, COMPANY_LABELS } from "@/lib/constants/display-constants";
+import { DEAL_STAGES } from "@/lib/constants/deal-constants";
 
 export default function DealDetail() {
   const [match, params] = useRoute("/deals/:id");
@@ -280,7 +282,7 @@ export default function DealDetail() {
                 <Edit className="h-4 w-4 sm:mr-1" />
                 <span className="hidden sm:inline">Edit</span>
               </Button>
-              {deal?.stage === 'invested' && (
+              {deal?.stage === DEAL_STAGES.INVESTED && (
                 <Button 
                   size="sm"
                   variant="outline"
@@ -345,7 +347,7 @@ export default function DealDetail() {
                     </Avatar>
                   )) : (
                     <Avatar className="border-2 border-white h-7 w-7 sm:h-8 sm:w-8">
-                      <AvatarFallback className="text-xs sm:text-sm">NA</AvatarFallback>
+                      <AvatarFallback className="text-xs sm:text-sm">{DEFAULT_AVATAR_TEXT}</AvatarFallback>
                     </Avatar>
                   )}
                 </div>
@@ -371,7 +373,7 @@ export default function DealDetail() {
                     <Building className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-neutral-500 mt-0.5 mr-1.5 sm:mr-2 flex-shrink-0" />
                     <div>
                       <p className="text-xs sm:text-sm font-medium">Sector</p>
-                      <p className="text-xs sm:text-sm text-neutral-600 truncate">{deal?.sector || 'Not specified'}</p>
+                      <p className="text-xs sm:text-sm text-neutral-600 truncate">{deal?.sector || DEFAULT_EMPTY_TEXT}</p>
                     </div>
                   </div>
                   
@@ -394,7 +396,7 @@ export default function DealDetail() {
                     <Mail className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-neutral-500 mt-0.5 mr-1.5 sm:mr-2 flex-shrink-0" />
                     <div className="min-w-0">
                       <p className="text-xs sm:text-sm font-medium">Contact</p>
-                      <p className="text-xs sm:text-sm text-neutral-600 truncate">{deal?.contactEmail || 'Not specified'}</p>
+                      <p className="text-xs sm:text-sm text-neutral-600 truncate">{deal?.contactEmail || DEFAULT_EMPTY_TEXT}</p>
                     </div>
                   </div>
                   
@@ -403,7 +405,7 @@ export default function DealDetail() {
                     <div>
                       <p className="text-xs sm:text-sm font-medium">Company Stage</p>
                       <p className="text-xs sm:text-sm text-neutral-600">
-                        {deal?.companyStage || 'Not specified'}
+                        {deal?.companyStage || DEFAULT_EMPTY_TEXT}
                       </p>
                     </div>
                   </div>

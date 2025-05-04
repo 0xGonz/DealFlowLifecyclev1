@@ -1,3 +1,5 @@
+import { DEAL_STAGE_BADGE_CLASSES } from '../constants/style-constants';
+
 /**
  * Format a number as currency
  * @param amount The amount to format
@@ -74,28 +76,7 @@ export const formatRatio = (value: number | undefined | null, decimals = 2): str
  * @returns CSS class for the badge
  */
 export const getDealStageBadgeClass = (stage: string): string => {
-  switch (stage) {
-    case 'initial_review':
-      return 'bg-gray-200 text-gray-800';
-    case 'screening':
-      return 'bg-blue-200 text-blue-800';
-    case 'diligence': 
-      return 'bg-indigo-200 text-indigo-800';
-    case 'ic_review':
-      return 'bg-purple-200 text-purple-800';
-    case 'closing':
-      return 'bg-amber-200 text-amber-800';
-    case 'closed':
-      return 'bg-emerald-200 text-emerald-800';
-    case 'invested':
-      return 'bg-teal-200 text-teal-800';
-    case 'rejected':
-      return 'bg-red-200 text-red-800';
-    case 'passed':
-      return 'bg-yellow-200 text-yellow-800';
-    default:
-      return 'bg-gray-200 text-gray-800';
-  }
+  return DEAL_STAGE_BADGE_CLASSES[stage] || DEAL_STAGE_BADGE_CLASSES.default;
 };
 
 /**

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { format, isPast, addDays, isToday } from 'date-fns';
+import { CAPITAL_CALL_STATUS_COLORS } from '@/lib/constants/style-constants';
+import { DATE_FORMATS } from '@/lib/constants/format-constants';
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -10,13 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import AppLayout from '@/components/layout/AppLayout';
 
-const statusColors = {
-  scheduled: 'bg-blue-100 text-blue-800 border-blue-300',
-  called: 'bg-amber-100 text-amber-800 border-amber-300',
-  partial: 'bg-purple-100 text-purple-800 border-purple-300',
-  paid: 'bg-green-100 text-green-800 border-green-300',
-  defaulted: 'bg-red-100 text-red-800 border-red-300'
-};
+// Status colors are now imported from style-constants.ts
 
 interface CapitalCall {
   id: number;
@@ -45,7 +41,7 @@ const CapitalCalls = () => {
   const filteredCalls = React.useMemo(() => {
     if (!selectedDate) return [];
     
-    const dateStr = format(selectedDate, 'yyyy-MM-dd');
+    const dateStr = format(selectedDate, DATE_FORMATS.ISO);
     let filtered = capitalCalls.filter(call => {
       const callDateMatch = call.callDate.startsWith(dateStr);
       const dueDateMatch = call.dueDate.startsWith(dateStr);
@@ -100,11 +96,11 @@ const CapitalCalls = () => {
 
   // Custom day render function for the calendar
   const renderDay = (date: Date) => {
-    const dateStr = format(date, 'yyyy-MM-dd');
+    const dateStr = format(date, DATE_FORMATS.ISO);
     const highlight = calendarHighlights[dateStr];
     
     const isPastDate = isPast(date) && !isToday(date);
-    const isSelected = selectedDate && format(selectedDate, 'yyyy-MM-dd') === dateStr;
+    const isSelected = selectedDate && format(selectedDate, DATE_FORMATS.ISO) === dateStr;
     
     let bgClass = '';
     if (highlight) {
@@ -226,7 +222,7 @@ const CapitalCalls = () => {
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
                 <h2 className="text-xl font-semibold">
-                  {format(selectedDate, 'MMMM d, yyyy')}
+                  {format(selectedDate, DATE_FORMATS.FULL)}
                 </h2>
                 <Button variant="outline" size="icon" onClick={nextDate}>
                   <ChevronRight className="h-4 w-4" />
@@ -243,7 +239,7 @@ const CapitalCalls = () => {
                 <CardContent className="p-6">
                   <div className="text-center text-neutral-500">
                     {selectedDate 
-                      ? `No capital calls for ${format(selectedDate, 'MMMM d, yyyy')}` 
+                      ? `No capital calls for ${format(selectedDate, DATE_FORMATS.FULL)}` 
                       : 'Select a date to view capital calls'}
                   </div>
                 </CardContent>
@@ -258,7 +254,7 @@ const CapitalCalls = () => {
                           <CardTitle>{call.dealName}</CardTitle>
                           <CardDescription>{call.fundName}</CardDescription>
                         </div>
-                        <Badge className={statusColors[call.status]}>
+                        <Badge className={CAPITAL_CALL_STATUS_COLORS[call.status]}>
                           {call.status.charAt(0).toUpperCase() + call.status.slice(1)}
                         </Badge>
                       </div>
@@ -276,11 +272,11 @@ const CapitalCalls = () => {
                         </div>
                         <div>
                           <div className="text-sm font-medium">Call Date</div>
-                          <div className="text-base">{format(new Date(call.callDate), 'MMM d, yyyy')}</div>
+                          <div className="text-base">{format(new Date(call.callDate), DATE_FORMATS.DEFAULT)}</div>
                         </div>
                         <div>
                           <div className="text-sm font-medium">Due Date</div>
-                          <div className="text-base">{format(new Date(call.dueDate), 'MMM d, yyyy')}</div>
+                          <div className="text-base">{format(new Date(call.dueDate), DATE_FORMATS.DEFAULT)}</div>
                         </div>
                       </div>
                       {call.notes && (
