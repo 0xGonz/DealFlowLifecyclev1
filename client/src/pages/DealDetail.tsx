@@ -9,6 +9,7 @@ import StageProgression from "@/components/deals/StageProgression";
 import DocumentList from "@/components/documents/DocumentList";
 import { MiniMemoForm } from "@/components/memos/MiniMemoForm";
 import { MiniMemoDisplay } from "@/components/memos/MiniMemoDisplay";
+import { MemoDetailDialog } from "@/components/memos/MemoDetailDialog";
 import { 
   Card, 
   CardHeader, 
@@ -67,6 +68,8 @@ export default function DealDetail() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [, setLocation] = useLocation();
+  const [selectedMemo, setSelectedMemo] = useState<MiniMemo | null>(null);
+  const [isMemoDetailOpen, setIsMemoDetailOpen] = useState(false);
   
   // Get the active tab from URL query parameter
   const getActiveTab = () => {

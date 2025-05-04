@@ -22,7 +22,7 @@ const DUE_DILIGENCE_CHECKLIST = {
 };
 
 // Takes a Mini Memo object and displays it in a nice format
-export function MiniMemoDisplay({ memo }: { memo: any }) {
+export function MiniMemoDisplay({ memo, expanded = false, onClick }: { memo: any, expanded?: boolean, onClick?: () => void }) {
   // Extract assessment data if available
   const assessmentData = useMemo(() => {
     // Check if thesis has embedded assessment data
@@ -81,7 +81,10 @@ export function MiniMemoDisplay({ memo }: { memo: any }) {
   }, [hasAssessment, assessmentData]);
 
   return (
-    <Card className="border rounded-lg p-3 sm:p-4 shadow-sm hover:shadow-md transition-shadow duration-200">
+    <Card 
+      className={`border rounded-lg p-3 sm:p-4 shadow-sm transition-all duration-200 ${onClick ? 'hover:shadow-md hover:border-primary-300 cursor-pointer' : ''} ${expanded ? 'shadow-md' : ''}`}
+      onClick={onClick}
+    >
       <div className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between gap-2 sm:gap-0 mb-3">
         <div className="flex items-center">
           <Avatar className="h-7 w-7 sm:h-8 sm:w-8 mr-2">
