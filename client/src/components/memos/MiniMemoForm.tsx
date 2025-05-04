@@ -67,12 +67,30 @@ const miniMemoSchema = z.object({
 type MiniMemoFormValues = z.infer<typeof miniMemoSchema>;
 
 interface MiniMemoFormProps {
-  isOpen: boolean;
-  onClose: () => void;
+  isOpen?: boolean;
+  onClose?: () => void;
   dealId?: number;
+  // Button customization
+  buttonLabel?: string;
+  buttonVariant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
+  buttonSize?: "default" | "sm" | "lg" | "icon";
+  buttonIcon?: React.ReactNode;
+  className?: string;
+  // Callback after submission
+  onSubmit?: () => void;
 }
 
-export default function MiniMemoForm({ isOpen, onClose, dealId }: MiniMemoFormProps) {
+export function MiniMemoForm({ 
+  isOpen, 
+  onClose, 
+  dealId,
+  buttonLabel = "Create Mini-Memo",
+  buttonVariant = "default",
+  buttonSize = "default",
+  buttonIcon,
+  className,
+  onSubmit: onSubmitCallback
+}: MiniMemoFormProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
@@ -185,7 +203,12 @@ export default function MiniMemoForm({ isOpen, onClose, dealId }: MiniMemoFormPr
       });
 
       // Close form and redirect if needed
-      onClose();
+      if (onClose) {
+        onClose();
+      }
+      if (onSubmitCallback) {
+        onSubmitCallback();
+      }
       if (!dealId && finalDealId) {
         navigate(`/deals/${finalDealId}?tab=memos`);
       }
@@ -199,8 +222,40 @@ export default function MiniMemoForm({ isOpen, onClose, dealId }: MiniMemoFormPr
     }
   };
 
+  // Handle the case where we only want to show a button that triggers the dialog
+  const [dialogOpen, setDialogOpen] = useState(isOpen || false);
+  
+  // If Dialog open state changes externally, update our internal state
+  useEffect(() => {
+    if (isOpen !== undefined) {
+      setDialogOpen(isOpen);
+    }
+  }, [isOpen]);
+  
+  // Handle dialog close (triggered internally)
+  const handleDialogOpenChange = (open: boolean) => {
+    setDialogOpen(open);
+    if (!open && onClose) {
+      onClose();
+    }
+  };
+
+  // Render just the button if we're in button mode
+  if (!isOpen && !dialogOpen) {
+    return (
+      <Button
+        onClick={() => setDialogOpen(true)}
+        variant={buttonVariant}
+        size={buttonSize}
+        className={className}
+      >
+        {buttonIcon}{buttonLabel}
+      </Button>
+    );
+  }
+  
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={dialogOpen} onOpenChange={handleDialogOpenChange}>
       <DialogContent className="sm:max-w-[725px]">
         <DialogHeader>
           <DialogTitle>Create Collaborative Mini-Memo</DialogTitle>
@@ -246,8 +301,8 @@ export default function MiniMemoForm({ isOpen, onClose, dealId }: MiniMemoFormPr
             {/* Team member selector */}
             <div className="flex items-center gap-4 bg-neutral-50 p-3 rounded-md">
               <div className="flex-1">
-                <FormLabel className="block mb-2">Team Member</FormLabel>
-                <Select value={selectedUserId?.toString() || (user?.id.toString() || "")} onValueChange={(value) => setSelectedUserId(Number(value))}>
+                <FormLabel className="block mb-2">Submitting As Team Member</FormLabel>
+                <Select value={selectedUserId?.toString() || (user?.id?.toString() || "")} onValueChange={(value) => setSelectedUserId(Number(value))}>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select team member" />
                   </SelectTrigger>
@@ -259,11 +314,21 @@ export default function MiniMemoForm({ isOpen, onClose, dealId }: MiniMemoFormPr
                     ))}
                   </SelectContent>
                 </Select>
+                <div className="text-xs text-muted-foreground mt-1">
+                  This memo will be attributed to the selected team member
+                </div>
               </div>
               <div className="flex-shrink-0">
                 <Avatar className="h-12 w-12 border-2 border-primary-100">
                   <AvatarFallback className="bg-primary-100 text-primary-800">
-                    {user?.fullName ? user.fullName.substring(0, 2).toUpperCase() : (user?.username ? user.username.substring(0, 2).toUpperCase() : "U")}
+                    {(() => {
+                      const selectedMember = selectedUserId ? users.find(u => u.id === selectedUserId) : user;
+                      return selectedMember?.fullName 
+                        ? selectedMember.fullName.substring(0, 2).toUpperCase() 
+                        : (selectedMember?.username 
+                          ? selectedMember.username.substring(0, 2).toUpperCase() 
+                          : "U");
+                    })()}
                   </AvatarFallback>
                 </Avatar>
               </div>

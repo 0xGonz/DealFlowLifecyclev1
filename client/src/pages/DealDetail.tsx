@@ -7,6 +7,8 @@ import EditDealModal from "@/components/deals/EditDealModal";
 import AssignUserModal from "@/components/deals/AssignUserModal";
 import StageProgression from "@/components/deals/StageProgression";
 import DocumentList from "@/components/documents/DocumentList";
+import { MiniMemoForm } from "@/components/memos/MiniMemoForm";
+import { MiniMemoDisplay } from "@/components/memos/MiniMemoDisplay";
 import { 
   Card, 
   CardHeader, 
@@ -47,7 +49,8 @@ import {
   FileText, 
   Users, 
   DollarSign, 
-  Building, 
+  Building,
+  Info as InfoIcon,
   Calendar, 
   Mail,
   BarChart4,
@@ -93,7 +96,7 @@ export default function DealDetail() {
     return <AppLayout><div className="p-6">Redirecting...</div></AppLayout>;
   }
   
-  const { data: rawDeal, isLoading } = useQuery<Deal>({
+  const { data: rawDeal, isLoading, refetch } = useQuery<Deal>({
     queryKey: [`/api/deals/${dealId}`],
     enabled: !!dealId,
   });
@@ -476,52 +479,45 @@ export default function DealDetail() {
               <CardContent>
                 {deal?.miniMemos?.length ? (
                   <div className="space-y-4 sm:space-y-6">
-                    {deal.miniMemos.map((memo: MiniMemo) => (
-                      <div key={memo.id} className="border rounded-lg p-3 sm:p-4 shadow-sm">
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between gap-2 sm:gap-0 mb-3">
-                          <div className="flex items-center">
-                            <Avatar className="h-7 w-7 sm:h-8 sm:w-8 mr-2">
-                              <AvatarFallback style={{ backgroundColor: memo.user?.avatarColor }} className="text-xs sm:text-sm">
-                                {memo.user?.initials}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <p className="text-sm font-medium">{memo.user?.fullName}</p>
-                              <p className="text-xs text-neutral-500">{memo.user?.role}</p>
-                            </div>
-                          </div>
-                          <Badge variant="outline" className="mt-1 sm:mt-0 text-xs px-2 py-0.5">Score: {memo.score}</Badge>
-                        </div>
-                        
-                        <div className="space-y-3">
-                          <div>
-                            <h4 className="text-xs sm:text-sm font-medium text-neutral-700">Investment Thesis</h4>
-                            <p className="text-xs sm:text-sm text-neutral-600 mt-1">{memo.thesis}</p>
-                          </div>
-                          {memo.risksAndMitigations && (
-                            <div>
-                              <h4 className="text-xs sm:text-sm font-medium text-neutral-700">Risks & Mitigations</h4>
-                              <p className="text-xs sm:text-sm text-neutral-600 mt-1">{memo.risksAndMitigations}</p>
-                            </div>
-                          )}
-                          {memo.pricingConsideration && (
-                            <div>
-                              <h4 className="text-xs sm:text-sm font-medium text-neutral-700">Pricing Considerations</h4>
-                              <p className="text-xs sm:text-sm text-neutral-600 mt-1">{memo.pricingConsideration}</p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ))}
+                    {/* Display header explaining team assessments */}
+                    <div className="text-sm text-muted-foreground p-2 rounded bg-muted/50">
+                      <InfoIcon className="h-4 w-4 inline-block mr-2" />
+                      Team members can submit individual assessments for collaborative evaluation.
+                    </div>
+                    
+                    {/* Add button to create a new memo */}
+                    <div className="flex justify-end">
+                      <MiniMemoForm
+                        dealId={deal.id}
+                        onSubmit={() => refetch()}
+                        buttonLabel="Add Team Assessment"
+                        buttonVariant="outline"
+                        buttonSize="sm"
+                        buttonIcon={<Users className="h-3.5 w-3.5 mr-1.5" />}
+                      />
+                    </div>
+                    
+                    {/* Loop through deal's mini memos but display as multiple cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {deal.miniMemos.map((memo: MiniMemo) => (
+                        <MiniMemoDisplay key={memo.id} memo={memo} />
+                      ))}
+                    </div>
                   </div>
                 ) : (
                   <div className="text-center py-6 sm:py-8 text-neutral-500">
                     <FileText className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-2 sm:mb-3 opacity-30" />
-                    <p className="text-sm sm:text-base">No mini-memos have been submitted for this deal yet.</p>
-                    <Button size="sm" className="mt-3 sm:mt-4 h-8 sm:h-9 text-xs sm:text-sm px-3 sm:px-4">
-                      <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
-                      Create Mini-Memo
-                    </Button>
+                    <p className="text-sm sm:text-base">No team assessments have been submitted for this deal yet.</p>
+                    {deal && (
+                      <MiniMemoForm
+                        dealId={deal.id}
+                        onSubmit={() => refetch()}
+                        buttonLabel="Create Team Assessment"
+                        buttonSize="sm"
+                        buttonIcon={<FileText className="h-3.5 w-3.5 mr-1.5" />}
+                        className="mt-3 inline-flex"
+                      />
+                    )}
                   </div>
                 )}
               </CardContent>
