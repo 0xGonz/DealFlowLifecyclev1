@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
@@ -31,6 +31,9 @@ import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { User } from "@shared/schema";
 
 export const DUE_DILIGENCE_CHECKLIST = {
   financialReview: 'Financial Review',
@@ -76,6 +79,17 @@ export default function MiniMemoForm({ isOpen, onClose, dealId }: MiniMemoFormPr
   const [selectedDealId, setSelectedDealId] = useState<number | null>(dealId || null);
   const [deals, setDeals] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
+
+  // Get current user
+  const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState("thesis");
+  
+  // Fetch all users for team member selection
+  const { data: users = [] } = useQuery<User[]>({
+    queryKey: ["/api/users"],
+    enabled: isOpen
+  });
 
   // Fetch deals if no dealId is provided
   useEffect(() => {
@@ -93,10 +107,6 @@ export default function MiniMemoForm({ isOpen, onClose, dealId }: MiniMemoFormPr
         });
     }
   }, [dealId, isOpen]);
-
-  // Get current user
-  const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState("thesis");
   
   // Initialize due diligence checklist
   const initialChecklist: Record<string, boolean> = {};
@@ -134,8 +144,15 @@ export default function MiniMemoForm({ isOpen, onClose, dealId }: MiniMemoFormPr
         return;
       }
 
+      // Find selected team member
+      const finalUserId = selectedUserId || user?.id;
+      const teamMember = users.find(u => u.id === finalUserId) || user;
+
       // Get all the assessment scores
       const assessmentData = {
+        userId: finalUserId,
+        username: teamMember?.username || user?.username,
+        userFullName: teamMember?.fullName || user?.fullName,
         marketRiskScore: values.marketRiskScore,
         executionRiskScore: values.executionRiskScore,
         teamStrengthScore: values.teamStrengthScore,
@@ -143,6 +160,7 @@ export default function MiniMemoForm({ isOpen, onClose, dealId }: MiniMemoFormPr
         valuationScore: values.valuationScore,
         competitiveAdvantageScore: values.competitiveAdvantageScore,
         dueDiligenceChecklist: values.dueDiligenceChecklist,
+        timestamp: new Date().toISOString(),
       };
 
       // Store the assessment data in the thesis field as JSON to work with existing schema
@@ -160,9 +178,10 @@ export default function MiniMemoForm({ isOpen, onClose, dealId }: MiniMemoFormPr
       // Invalidate deal queries to refresh data
       queryClient.invalidateQueries({ queryKey: [`/api/deals/${finalDealId}`] });
       
+      const submitterName = teamMember?.fullName || teamMember?.username || user?.fullName || 'selected team member';
       toast({
         title: "Success",
-        description: `Mini memo has been created by ${user?.fullName || 'you'}`,
+        description: `Mini memo has been created by ${submitterName}`,
       });
 
       // Close form and redirect if needed
@@ -223,6 +242,32 @@ export default function MiniMemoForm({ isOpen, onClose, dealId }: MiniMemoFormPr
                 )}
               />
             )}
+
+            {/* Team member selector */}
+            <div className="flex items-center gap-4 bg-neutral-50 p-3 rounded-md">
+              <div className="flex-1">
+                <FormLabel className="block mb-2">Team Member</FormLabel>
+                <Select value={selectedUserId?.toString() || (user?.id.toString() || "")} onValueChange={(value) => setSelectedUserId(Number(value))}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select team member" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {users.map((teamMember) => (
+                      <SelectItem key={teamMember.id} value={teamMember.id.toString()}>
+                        {teamMember.fullName || teamMember.username}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex-shrink-0">
+                <Avatar className="h-12 w-12 border-2 border-primary-100">
+                  <AvatarFallback className="bg-primary-100 text-primary-800">
+                    {user?.fullName ? user.fullName.substring(0, 2).toUpperCase() : (user?.username ? user.username.substring(0, 2).toUpperCase() : "U")}
+                  </AvatarFallback>
+                </Avatar>
+              </div>
+            </div>
 
             <Tabs
               value={activeTab}
@@ -471,7 +516,14 @@ export default function MiniMemoForm({ isOpen, onClose, dealId }: MiniMemoFormPr
                 Cancel
               </Button>
               <Button type="submit">
-                {user ? `Submit as ${user.fullName}` : 'Create Mini-Memo'}
+                {(() => {
+                  const teamMember = selectedUserId 
+                    ? users.find(u => u.id === selectedUserId) 
+                    : user;
+                  return teamMember 
+                    ? `Submit as ${teamMember.fullName || teamMember.username}` 
+                    : 'Create Mini-Memo';
+                })()}
               </Button>
             </DialogFooter>
           </form>

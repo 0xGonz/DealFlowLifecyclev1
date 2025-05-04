@@ -86,15 +86,38 @@ export function MiniMemoDisplay({ memo }: { memo: any }) {
         <div className="flex items-center">
           <Avatar className="h-7 w-7 sm:h-8 sm:w-8 mr-2">
             <AvatarFallback 
-              style={{ backgroundColor: memo.user?.avatarColor }} 
-              className="text-xs sm:text-sm"
+              className="text-xs sm:text-sm bg-primary-100 text-primary-800"
             >
-              {memo.user?.initials}
+              {assessmentData?.userFullName 
+                ? assessmentData.userFullName.substring(0, 2).toUpperCase() 
+                : assessmentData?.username 
+                  ? assessmentData.username.substring(0, 2).toUpperCase() 
+                  : memo.user?.initials || "?"
+              }
             </AvatarFallback>
           </Avatar>
           <div>
-            <p className="text-sm font-medium">{memo.user?.fullName}</p>
-            <p className="text-xs text-neutral-500">{memo.user?.role}</p>
+            <p className="text-sm font-medium">
+              {assessmentData?.userFullName || assessmentData?.username || memo.user?.fullName || "Team Member"}
+            </p>
+            <p className="text-xs text-neutral-500">
+              {assessmentData?.timestamp 
+                ? new Date(assessmentData.timestamp).toLocaleString(undefined, {
+                    month: 'short',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit'
+                  })
+                : memo.createdAt 
+                  ? new Date(memo.createdAt).toLocaleString(undefined, {
+                      month: 'short',
+                      day: 'numeric',
+                      hour: 'numeric',
+                      minute: '2-digit'
+                    })
+                  : ""
+              }
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
