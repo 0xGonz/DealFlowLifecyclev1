@@ -71,10 +71,10 @@ export default function DealsTable({ deals, onEdit, onAllocate, onUpdateStatus, 
                 .toUpperCase();
                 
               return (
-                <TableRow key={deal.id} className="hover:bg-neutral-50 cursor-default">
+                <TableRow key={deal.id} className="group hover:bg-blue-50 hover:shadow-sm transition-all cursor-pointer" onClick={() => window.location.href = `/deals/${deal.id}`}>
                   <TableCell className="py-1.5 sm:py-2.5 px-2 sm:px-4">
                     <div className="flex flex-col">
-                      <div className="font-medium text-xs sm:text-sm md:text-base text-neutral-900 truncate">{deal.name}</div>
+                      <div className="font-medium text-xs sm:text-sm md:text-base text-neutral-900 truncate group-hover:text-blue-700 transition-colors">{deal.name}</div>
                     </div>
                   </TableCell>
                   <TableCell className="py-2 sm:py-3 px-2 sm:px-4 hidden xs:table-cell">
@@ -91,7 +91,7 @@ export default function DealsTable({ deals, onEdit, onAllocate, onUpdateStatus, 
                   <TableCell className="py-1 sm:py-2 px-2 sm:px-4">
                     <DropdownMenu>
                       <DropdownMenuTrigger className="focus:outline-none" asChild>
-                        <div className="flex items-center gap-1 sm:gap-2 cursor-pointer max-w-full">
+                        <div className="flex items-center gap-1 sm:gap-2 cursor-pointer max-w-full" onClick={(e) => e.stopPropagation()}>
                           <Badge variant="outline" className={`${stageBadgeClass} text-[9px] xs:text-xs sm:text-sm px-1.5 py-0.5 truncate max-w-[85%] sm:max-w-none`}>
                             {dealStageLabel}
                           </Badge>
@@ -103,7 +103,10 @@ export default function DealsTable({ deals, onEdit, onAllocate, onUpdateStatus, 
                           <DropdownMenuItem 
                             key={stage} 
                             className="flex items-center justify-between text-xs sm:text-sm"
-                            onClick={() => onUpdateStatus ? onUpdateStatus(deal.id, stage) : console.log(`Changed status to ${stage}`)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onUpdateStatus ? onUpdateStatus(deal.id, stage) : console.log(`Changed status to ${stage}`);
+                            }}
                           >
                             <span>{label}</span>
                             {stage === deal.stage && <Check className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-primary" />}
@@ -113,11 +116,11 @@ export default function DealsTable({ deals, onEdit, onAllocate, onUpdateStatus, 
                     </DropdownMenu>
                   </TableCell>
                   <TableCell className="py-1 sm:py-2 px-2 sm:px-4">
-                    <div className="flex justify-center gap-1 md:gap-2">
+                    <div className="flex justify-center gap-1 md:gap-2" onClick={(e) => e.stopPropagation()}>
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => onEdit(deal.id)}
+                        onClick={(e) => { e.stopPropagation(); onEdit(deal.id); }}
                         className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 p-0"
                         title="Edit deal"
                       >
@@ -126,7 +129,7 @@ export default function DealsTable({ deals, onEdit, onAllocate, onUpdateStatus, 
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => onViewDocuments ? onViewDocuments(deal.id) : null}
+                        onClick={(e) => { e.stopPropagation(); onViewDocuments && onViewDocuments(deal.id); }}
                         className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 p-0"
                         title="View documents"
                       >
@@ -135,23 +138,13 @@ export default function DealsTable({ deals, onEdit, onAllocate, onUpdateStatus, 
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => onDelete ? onDelete(deal.id, deal.name) : null}
+                        onClick={(e) => { e.stopPropagation(); onDelete && onDelete(deal.id, deal.name); }}
                         className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 p-0"
                         title="Delete deal"
                       >
                         <Trash2 className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 text-red-600" />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        asChild
-                        className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 p-0 hidden xs:flex"
-                        title="View deal page"
-                      >
-                        <Link href={`/deals/${deal.id}`}>
-                          <User className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 text-neutral-600" />
-                        </Link>
-                      </Button>
+
                     </div>
                   </TableCell>
                 </TableRow>
