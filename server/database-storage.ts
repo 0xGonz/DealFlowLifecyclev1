@@ -12,8 +12,10 @@ import {
   FundAllocation, InsertFundAllocation,
   DealAssignment, InsertDealAssignment,
   Notification, InsertNotification,
+  CapitalCall, InsertCapitalCall,
+  MemoComment, InsertMemoComment,
   users, deals, timelineEvents, dealStars, miniMemos, documents,
-  funds, fundAllocations, dealAssignments, notifications
+  funds, fundAllocations, dealAssignments, notifications, capitalCalls, memoComments
 } from '@shared/schema';
 
 /**
@@ -330,5 +332,78 @@ export class DatabaseStorage implements IStorage {
       .set({ isRead: true })
       .where(eq(notifications.userId, userId));
     return !!result;
+  }
+  
+  // Memo Comments
+  async createMemoComment(comment: InsertMemoComment): Promise<MemoComment> {
+    const [newComment] = await db.insert(memoComments).values(comment).returning();
+    return newComment;
+  }
+  
+  async getMemoComments(memoId: number): Promise<MemoComment[]> {
+    return await db
+      .select()
+      .from(memoComments)
+      .where(eq(memoComments.memoId, memoId));
+  }
+  
+  async getMemoCommentsByDeal(dealId: number): Promise<MemoComment[]> {
+    return await db
+      .select()
+      .from(memoComments)
+      .where(eq(memoComments.dealId, dealId));
+  }
+  
+  // Capital Calls
+  async createCapitalCall(capitalCall: InsertCapitalCall): Promise<CapitalCall> {
+    const [newCapitalCall] = await db.insert(capitalCalls).values(capitalCall).returning();
+    return newCapitalCall;
+  }
+  
+  async getCapitalCall(id: number): Promise<CapitalCall | undefined> {
+    const [capitalCall] = await db.select().from(capitalCalls).where(eq(capitalCalls.id, id));
+    return capitalCall || undefined;
+  }
+  
+  async getCapitalCallsByAllocation(allocationId: number): Promise<CapitalCall[]> {
+    return await db
+      .select()
+      .from(capitalCalls)
+      .where(eq(capitalCalls.allocationId, allocationId));
+  }
+  
+  async getCapitalCallsByDeal(dealId: number): Promise<CapitalCall[]> {
+    // First get all allocations for the deal
+    const allocations = await this.getAllocationsByDeal(dealId);
+    if (!allocations.length) return [];
+    
+    // Then get all capital calls for those allocations
+    const allocationIds = allocations.map(allocation => allocation.id);
+    
+    // We need to join the tables to get the capital calls
+    return await db
+      .select()
+      .from(capitalCalls)
+      .where(({ inArray }) => inArray(capitalCalls.allocationId, allocationIds));
+  }
+  
+  async updateCapitalCallStatus(id: number, status: CapitalCall['status'], paidAmount?: number): Promise<CapitalCall | undefined> {
+    const updateData: any = { status };
+    
+    if (paidAmount !== undefined) {
+      updateData.paidAmount = paidAmount;
+    }
+    
+    if (status === 'paid') {
+      updateData.paidDate = new Date();
+    }
+    
+    const [updatedCapitalCall] = await db
+      .update(capitalCalls)
+      .set(updateData)
+      .where(eq(capitalCalls.id, id))
+      .returning();
+      
+    return updatedCapitalCall || undefined;
   }
 }

@@ -224,6 +224,27 @@ export const insertNotificationSchema = createInsertSchema(notifications).omit({
   createdAt: true,
 });
 
+// Capital Calls - Track capital calls for investments
+export const capitalCalls = pgTable("capital_calls", {
+  id: serial("id").primaryKey(),
+  allocationId: integer("allocation_id").notNull().references(() => fundAllocations.id, { onDelete: "cascade" }),
+  callAmount: real("call_amount").notNull(),
+  callDate: timestamp("call_date").notNull().defaultNow(),
+  dueDate: timestamp("due_date").notNull(),
+  paidAmount: real("paid_amount").default(0),
+  paidDate: timestamp("paid_date"),
+  status: text("status", { enum: ["scheduled", "called", "partial", "paid", "defaulted"] }).notNull().default("scheduled"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const insertCapitalCallSchema = createInsertSchema(capitalCalls).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Type definitions
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -245,6 +266,9 @@ export type InsertFund = z.infer<typeof insertFundSchema>;
 
 export type FundAllocation = typeof fundAllocations.$inferSelect;
 export type InsertFundAllocation = z.infer<typeof insertFundAllocationSchema>;
+
+export type CapitalCall = typeof capitalCalls.$inferSelect;
+export type InsertCapitalCall = z.infer<typeof insertCapitalCallSchema>;
 
 export type DealAssignment = typeof dealAssignments.$inferSelect;
 export type InsertDealAssignment = z.infer<typeof insertDealAssignmentSchema>;

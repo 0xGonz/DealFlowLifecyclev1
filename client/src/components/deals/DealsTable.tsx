@@ -3,7 +3,7 @@ import { Link } from 'wouter';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { MoreHorizontal, ChevronDown, User, FileText, Check, Edit, Trash2, FileSearch } from "lucide-react";
+import { MoreHorizontal, ChevronDown, User, FileText, Check, Edit, Trash2, FileSearch, DollarSign } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -135,6 +135,17 @@ export default function DealsTable({ deals, onEdit, onAllocate, onUpdateStatus, 
                       >
                         <FileSearch className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 text-neutral-600" />
                       </Button>
+                      {deal.stage === 'invested' && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => { e.stopPropagation(); onAllocate(deal.id, deal.name); }}
+                          className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 p-0"
+                          title="Allocate to fund"
+                        >
+                          <DollarSign className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 text-green-600" />
+                        </Button>
+                      )}
                       <Button
                         variant="ghost"
                         size="sm"

@@ -5,6 +5,7 @@ import AppLayout from "@/components/layout/AppLayout";
 import Timeline from "@/components/deals/Timeline";
 import EditDealModal from "@/components/deals/EditDealModal";
 import AssignUserModal from "@/components/deals/AssignUserModal";
+import AllocateFundModal from "@/components/deals/AllocateFundModal";
 import StageProgression from "@/components/deals/StageProgression";
 import DocumentList from "@/components/documents/DocumentList";
 import { MiniMemoForm } from "@/components/memos/MiniMemoForm";
@@ -70,6 +71,7 @@ export default function DealDetail() {
   const [, setLocation] = useLocation();
   const [selectedMemo, setSelectedMemo] = useState<MiniMemo | null>(null);
   const [isMemoDetailOpen, setIsMemoDetailOpen] = useState(false);
+  const [isAllocateModalOpen, setIsAllocateModalOpen] = useState(false);
   
   // Get the active tab from URL query parameter
   const getActiveTab = () => {
@@ -241,6 +243,16 @@ export default function DealDetail() {
           />
         )}
         
+        {/* Allocate Fund Modal */}
+        {deal && (
+          <AllocateFundModal
+            isOpen={isAllocateModalOpen}
+            onClose={() => setIsAllocateModalOpen(false)}
+            dealId={Number(dealId)}
+            dealName={deal.name}
+          />
+        )}
+        
         {/* Back button and page title */}
         <div className="flex flex-col gap-4 mb-6">
           <div className="flex items-center justify-between">
@@ -268,6 +280,17 @@ export default function DealDetail() {
                 <Edit className="h-4 w-4 sm:mr-1" />
                 <span className="hidden sm:inline">Edit</span>
               </Button>
+              {deal?.stage === 'invested' && (
+                <Button 
+                  size="sm"
+                  variant="outline"
+                  className="h-9 px-2 sm:px-3 text-green-600 border-green-600 hover:bg-green-50"
+                  onClick={() => setIsAllocateModalOpen(true)}
+                >
+                  <DollarSign className="h-4 w-4 sm:mr-1" />
+                  <span className="hidden sm:inline">Allocate</span>
+                </Button>
+              )}
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button 

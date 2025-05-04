@@ -8,7 +8,9 @@ import {
   FundAllocation, InsertFundAllocation,
   DealAssignment, InsertDealAssignment,
   Notification, InsertNotification,
-  Document, InsertDocument
+  Document, InsertDocument,
+  MemoComment, InsertMemoComment,
+  CapitalCall, InsertCapitalCall
 } from "@shared/schema";
 
 // This file defines the storage interface and in-memory implementation
@@ -66,6 +68,13 @@ export interface IStorage {
   getAllocationsByFund(fundId: number): Promise<FundAllocation[]>;
   getAllocationsByDeal(dealId: number): Promise<FundAllocation[]>;
   
+  // Capital Calls
+  createCapitalCall(capitalCall: InsertCapitalCall): Promise<CapitalCall>;
+  getCapitalCall(id: number): Promise<CapitalCall | undefined>;
+  getCapitalCallsByAllocation(allocationId: number): Promise<CapitalCall[]>;
+  getCapitalCallsByDeal(dealId: number): Promise<CapitalCall[]>;
+  updateCapitalCallStatus(id: number, status: CapitalCall['status'], paidAmount?: number): Promise<CapitalCall | undefined>;
+  
   // Deal assignments
   assignUserToDeal(assignment: InsertDealAssignment): Promise<DealAssignment>;
   getDealAssignments(dealId: number): Promise<DealAssignment[]>;
@@ -98,6 +107,7 @@ export class MemStorage implements IStorage {
   private dealAssignments: Map<number, DealAssignment>;
   private notifications: Map<number, Notification>;
   private memoComments: Map<number, MemoComment>;
+  private capitalCalls: Map<number, CapitalCall>;
   
   private userIdCounter: number;
   private dealIdCounter: number;
@@ -110,6 +120,7 @@ export class MemStorage implements IStorage {
   private assignmentIdCounter: number;
   private notificationIdCounter: number;
   private commentIdCounter: number;
+  private capitalCallIdCounter: number;
 
   constructor() {
     this.users = new Map();
@@ -123,6 +134,7 @@ export class MemStorage implements IStorage {
     this.dealAssignments = new Map();
     this.notifications = new Map();
     this.memoComments = new Map();
+    this.capitalCalls = new Map();
     
     this.userIdCounter = 1;
     this.dealIdCounter = 1;
@@ -135,6 +147,7 @@ export class MemStorage implements IStorage {
     this.assignmentIdCounter = 1;
     this.notificationIdCounter = 1;
     this.commentIdCounter = 1;
+    this.capitalCallIdCounter = 1;
     
     // Initialize with some sample data
     this.initSampleData();
@@ -748,6 +761,54 @@ export class MemStorage implements IStorage {
     return Array.from(this.memoComments.values())
       .filter(comment => comment.dealId === dealId)
       .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+  }
+
+  // Capital Calls implementation
+  async createCapitalCall(capitalCall: InsertCapitalCall): Promise<CapitalCall> {
+    const id = this.capitalCallIdCounter++;
+    const createdAt = new Date();
+    const updatedAt = new Date();
+    const newCapitalCall: CapitalCall = { ...capitalCall, id, createdAt, updatedAt };
+    this.capitalCalls.set(id, newCapitalCall);
+    return newCapitalCall;
+  }
+
+  async getCapitalCall(id: number): Promise<CapitalCall | undefined> {
+    return this.capitalCalls.get(id);
+  }
+
+  async getCapitalCallsByAllocation(allocationId: number): Promise<CapitalCall[]> {
+    return Array.from(this.capitalCalls.values())
+      .filter(call => call.allocationId === allocationId)
+      .sort((a, b) => new Date(a.callDate).getTime() - new Date(b.callDate).getTime());
+  }
+
+  async getCapitalCallsByDeal(dealId: number): Promise<CapitalCall[]> {
+    // First get all allocations for the deal
+    const allocations = await this.getAllocationsByDeal(dealId);
+    if (!allocations.length) return [];
+    
+    // Then get all capital calls for those allocations
+    const allocationIds = allocations.map(allocation => allocation.id);
+    return Array.from(this.capitalCalls.values())
+      .filter(call => allocationIds.includes(call.allocationId))
+      .sort((a, b) => new Date(a.callDate).getTime() - new Date(b.callDate).getTime());
+  }
+
+  async updateCapitalCallStatus(id: number, status: CapitalCall['status'], paidAmount?: number): Promise<CapitalCall | undefined> {
+    const capitalCall = this.capitalCalls.get(id);
+    if (!capitalCall) return undefined;
+    
+    const updatedCapitalCall: CapitalCall = {
+      ...capitalCall,
+      status,
+      updatedAt: new Date(),
+      ...(paidAmount !== undefined && { paidAmount }),
+      ...(status === 'paid' && { paidDate: new Date() })
+    };
+    
+    this.capitalCalls.set(id, updatedCapitalCall);
+    return updatedCapitalCall;
   }
 }
 
