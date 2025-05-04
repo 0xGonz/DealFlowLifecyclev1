@@ -10,65 +10,18 @@ import Leaderboard from "@/pages/Leaderboard";
 import Funds from "@/pages/Funds";
 import FundDetail from "@/pages/FundDetail";
 import DealDetail from "@/pages/DealDetail";
-import Login from "@/pages/Login";
 import { AuthProvider } from "@/lib/context/auth-context";
 import ErrorBoundary from "@/components/common/ErrorBoundary";
-
-import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
 function Router() {
   return (
     <Switch>
-      <Route path="/login" component={Login} />
-      
-      <Route path="/">
-        {() => (
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        )}
-      </Route>
-      
-      <Route path="/pipeline">
-        {() => (
-          <ProtectedRoute>
-            <Pipeline />
-          </ProtectedRoute>
-        )}
-      </Route>
-      
-      <Route path="/leaderboard">
-        {() => (
-          <ProtectedRoute>
-            <Leaderboard />
-          </ProtectedRoute>
-        )}
-      </Route>
-      
-      <Route path="/funds">
-        {() => (
-          <ProtectedRoute>
-            <Funds />
-          </ProtectedRoute>
-        )}
-      </Route>
-      
-      <Route path="/funds/:id">
-        {() => (
-          <ProtectedRoute>
-            <FundDetail />
-          </ProtectedRoute>
-        )}
-      </Route>
-      
-      <Route path="/deals/:id">
-        {() => (
-          <ProtectedRoute>
-            <DealDetail />
-          </ProtectedRoute>
-        )}
-      </Route>
-      
+      <Route path="/" component={Dashboard} />
+      <Route path="/pipeline" component={Pipeline} />
+      <Route path="/leaderboard" component={Leaderboard} />
+      <Route path="/funds" component={Funds} />
+      <Route path="/funds/:id" component={FundDetail} />
+      <Route path="/deals/:id" component={DealDetail} />
       <Route component={NotFound} />
     </Switch>
   );

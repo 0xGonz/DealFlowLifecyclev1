@@ -21,31 +21,43 @@ interface AuthContextType {
   isAuthenticated: boolean;
 }
 
+// Create a mock user for development
+const mockUser: User = {
+  id: 1,
+  username: "admin",
+  fullName: "Admin User",
+  initials: "AU",
+  email: "admin@example.com",
+  role: "admin",
+  avatarColor: "#4f46e5"
+};
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  // Initialize with mock user for bypassing login during development
+  const [user, setUser] = useState<User | null>(mockUser);
+  const [isLoading, setIsLoading] = useState(false); // Set to false since we've already set the mock user
   const { toast } = useToast();
 
-  // Check for existing session on load
-  useEffect(() => {
-    const checkAuthStatus = async () => {
-      try {
-        // Try to get the current user from the server
-        const userData = await apiService.auth.getCurrentUser();
-        setUser(userData);
-      } catch (error) {
-        // If it fails, user is not authenticated
-        console.log('No active session found');
-        setUser(null);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    checkAuthStatus();
-  }, []);
+  // Development bypass - commenting out the real auth check
+  // useEffect(() => {
+  //   const checkAuthStatus = async () => {
+  //     try {
+  //       // Try to get the current user from the server
+  //       const userData = await apiService.auth.getCurrentUser();
+  //       setUser(userData);
+  //     } catch (error) {
+  //       // If it fails, user is not authenticated
+  //       console.log('No active session found');
+  //       setUser(null);
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //   };
+  //   
+  //   checkAuthStatus();
+  // }, []);
 
   const login = async (username: string, password: string) => {
     try {
