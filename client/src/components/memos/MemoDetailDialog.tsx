@@ -25,11 +25,18 @@ import { MessageCircle } from 'lucide-react';
 
 interface Comment {
   id: number;
+  memoId: number;
+  dealId: number;
   userId: number;
-  username: string;
-  fullName?: string;
   text: string;
   createdAt: string;
+  user?: {
+    id: number;
+    fullName: string;
+    initials: string;
+    avatarColor: string;
+    role: string;
+  };
 }
 
 interface MemoDetailDialogProps {
@@ -84,18 +91,25 @@ export function MemoDetailDialog({ isOpen, onOpenChange, memo, dealId }: MemoDet
       await apiRequest('POST', `/api/deals/${dealId}/memos/${memo.id}/comments`, {
         text: newComment,
         userId: user?.id,
-        username: user?.username,
-        fullName: user?.fullName,
+        dealId: dealId,
+        memoId: memo.id
       });
       
       // Add comment to local state (optimistic update)
       const newCommentObj: Comment = {
         id: Date.now(), // Temporary ID until we refresh
+        memoId: memo.id,
+        dealId: dealId,
         userId: user?.id || 0,
-        username: user?.username || 'Anonymous',
-        fullName: user?.fullName,
         text: newComment,
         createdAt: new Date().toISOString(),
+        user: {
+          id: user?.id || 0,
+          fullName: user?.fullName || 'Anonymous',
+          initials: user?.initials || user?.fullName?.substring(0, 2) || 'AN',
+          avatarColor: user?.avatarColor || '#4338ca',
+          role: user?.role || 'observer'
+        }
       };
       
       setComments([...comments, newCommentObj]);
@@ -143,20 +157,25 @@ export function MemoDetailDialog({ isOpen, onOpenChange, memo, dealId }: MemoDet
           </CardHeader>
           
           <CardContent className="p-0 space-y-4">
-            {comments.length > 0 ? (
+            {loading ? (
+              <div className="flex justify-center items-center py-8">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+              </div>
+            ) : comments.length > 0 ? (
               comments.map((comment) => (
                 <Card key={comment.id} className="p-3 bg-slate-50">
                   <div className="flex items-start gap-2">
                     <Avatar className="h-7 w-7">
-                      <AvatarFallback className="text-xs bg-primary-100 text-primary-800">
-                        {comment.fullName 
-                          ? comment.fullName.substring(0, 2).toUpperCase() 
-                          : comment.username.substring(0, 2).toUpperCase()}
+                      <AvatarFallback 
+                        className="text-xs" 
+                        style={{ backgroundColor: comment.user?.avatarColor || '#4338ca', color: '#fff' }}
+                      >
+                        {comment.user?.initials || '--'}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
                       <div className="flex justify-between items-center">
-                        <p className="text-sm font-medium">{comment.fullName || comment.username}</p>
+                        <p className="text-sm font-medium">{comment.user?.fullName || 'Anonymous'}</p>
                         <p className="text-xs text-gray-500">
                           {new Date(comment.createdAt).toLocaleString(undefined, {
                             month: 'short',
@@ -193,7 +212,12 @@ export function MemoDetailDialog({ isOpen, onOpenChange, memo, dealId }: MemoDet
                 disabled={isSubmitting || !newComment.trim()}
                 className="absolute bottom-2 right-2"
               >
-                Post
+                {isSubmitting ? (
+                  <div className="flex items-center">
+                    <div className="h-3 w-3 mr-1 animate-spin rounded-full border-b-2 border-white"></div>
+                    <span>Posting...</span>
+                  </div>
+                ) : 'Post'}
               </Button>
             </div>
           </CardFooter>

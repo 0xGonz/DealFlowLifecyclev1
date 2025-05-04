@@ -231,6 +231,16 @@ export default function DealDetail() {
           />
         }
         
+        {/* Memo Detail Dialog */}
+        {selectedMemo && deal && (
+          <MemoDetailDialog
+            isOpen={isMemoDetailOpen}
+            onOpenChange={setIsMemoDetailOpen}
+            memo={selectedMemo}
+            dealId={Number(dealId)}
+          />
+        )}
+        
         {/* Back button and page title */}
         <div className="flex flex-col gap-4 mb-6">
           <div className="flex items-center justify-between">
@@ -329,7 +339,8 @@ export default function DealDetail() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+              {/* Row 1 */}
               <div>
                 <h3 className="text-xs sm:text-sm font-medium text-neutral-500 mb-1.5 sm:mb-2">Deal Details</h3>
                 <div className="space-y-2 sm:space-y-3">
@@ -340,7 +351,16 @@ export default function DealDetail() {
                       <p className="text-xs sm:text-sm text-neutral-600 truncate">{deal?.sector || 'Not specified'}</p>
                     </div>
                   </div>
-
+                  
+                  <div className="flex items-start">
+                    <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-neutral-500 mt-0.5 mr-1.5 sm:mr-2 flex-shrink-0" />
+                    <div>
+                      <p className="text-xs sm:text-sm font-medium">Added</p>
+                      <p className="text-xs sm:text-sm text-neutral-600 truncate">
+                        {deal?.createdAt ? formatDistanceToNow(new Date(deal.createdAt), { addSuffix: true }) : 'Recently'}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
               
@@ -354,13 +374,13 @@ export default function DealDetail() {
                       <p className="text-xs sm:text-sm text-neutral-600 truncate">{deal?.contactEmail || 'Not specified'}</p>
                     </div>
                   </div>
-
+                  
                   <div className="flex items-start">
-                    <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-neutral-500 mt-0.5 mr-1.5 sm:mr-2 flex-shrink-0" />
+                    <InfoIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-neutral-500 mt-0.5 mr-1.5 sm:mr-2 flex-shrink-0" />
                     <div>
-                      <p className="text-xs sm:text-sm font-medium">Added</p>
-                      <p className="text-xs sm:text-sm text-neutral-600 truncate">
-                        {deal?.createdAt ? formatDistanceToNow(new Date(deal.createdAt), { addSuffix: true }) : 'Recently'}
+                      <p className="text-xs sm:text-sm font-medium">Company Stage</p>
+                      <p className="text-xs sm:text-sm text-neutral-600">
+                        {deal?.companyStage || 'Not specified'}
                       </p>
                     </div>
                   </div>
@@ -377,6 +397,7 @@ export default function DealDetail() {
                       <p className="text-xs sm:text-sm text-neutral-600 font-semibold">{deal?.score || 'Not rated'}</p>
                     </div>
                   </div>
+                  
                   <div className="flex items-start">
                     <Star className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-neutral-500 mt-0.5 mr-1.5 sm:mr-2 flex-shrink-0" />
                     <div>
@@ -384,13 +405,73 @@ export default function DealDetail() {
                       <p className="text-xs sm:text-sm text-neutral-600">{deal?.starCount || 0}</p>
                     </div>
                   </div>
+                </div>
+              </div>
+              
+              <div>
+                <h3 className="text-xs sm:text-sm font-medium text-neutral-500 mb-1.5 sm:mb-2">Projected Returns</h3>
+                <div className="space-y-2 sm:space-y-3">
                   <div className="flex items-start">
-                    <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-neutral-500 mt-0.5 mr-1.5 sm:mr-2 flex-shrink-0" />
+                    <DollarSign className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-neutral-500 mt-0.5 mr-1.5 sm:mr-2 flex-shrink-0" />
                     <div>
-                      <p className="text-xs sm:text-sm font-medium">Mini-Memos</p>
-                      <p className="text-xs sm:text-sm text-neutral-600">{deal?.miniMemos?.length || 0} submitted</p>
+                      <p className="text-xs sm:text-sm font-medium">Projected IRR</p>
+                      <p className="text-xs sm:text-sm text-neutral-600">
+                        {deal?.projectedIrr ? `${deal.projectedIrr}%` : '20-25%'}
+                      </p>
                     </div>
                   </div>
+                  
+                  <div className="flex items-start">
+                    <DollarSign className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-neutral-500 mt-0.5 mr-1.5 sm:mr-2 flex-shrink-0" />
+                    <div>
+                      <p className="text-xs sm:text-sm font-medium">Projected Multiple</p>
+                      <p className="text-xs sm:text-sm text-neutral-600">
+                        {deal?.projectedMultiple ? `${deal.projectedMultiple}x` : '2.5-3.0x'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Row 2 */}
+              <div className="sm:col-span-2 lg:col-span-2">
+                <h3 className="text-xs sm:text-sm font-medium text-neutral-500 mb-1.5 sm:mb-2">Deal Stats</h3>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 p-3 bg-neutral-50 rounded-md">
+                  <div>
+                    <p className="text-xs font-medium text-neutral-500">Deal Size</p>
+                    <p className="text-sm font-semibold">
+                      {deal?.amount 
+                        ? new Intl.NumberFormat('en-US', {
+                            style: 'currency',
+                            currency: 'USD',
+                            maximumFractionDigits: 0,
+                            minimumFractionDigits: 0
+                          }).format(deal.amount)
+                        : 'N/A'
+                      }
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <p className="text-xs font-medium text-neutral-500">Ownership</p>
+                    <p className="text-sm font-semibold">
+                      {deal?.ownershipPercentage ? `${deal.ownershipPercentage}%` : 'N/A'}
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <p className="text-xs font-medium text-neutral-500">Memos</p>
+                    <p className="text-sm font-semibold">{deal?.miniMemos?.length || 0}</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="sm:col-span-2 lg:col-span-2">
+                <h3 className="text-xs sm:text-sm font-medium text-neutral-500 mb-1.5 sm:mb-2">Investment Thesis</h3>
+                <div className="p-3 bg-neutral-50 rounded-md">
+                  <p className="text-xs sm:text-sm text-neutral-700 line-clamp-3">
+                    {deal?.investmentThesis || 'No investment thesis provided.'}
+                  </p>
                 </div>
               </div>
             </div>
@@ -503,7 +584,14 @@ export default function DealDetail() {
                     {/* Loop through deal's mini memos but display as multiple cards */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {deal.miniMemos.map((memo: MiniMemo) => (
-                        <MiniMemoDisplay key={memo.id} memo={memo} />
+                        <MiniMemoDisplay 
+                          key={memo.id} 
+                          memo={memo} 
+                          onClick={() => {
+                            setSelectedMemo(memo);
+                            setIsMemoDetailOpen(true);
+                          }}
+                        />
                       ))}
                     </div>
                   </div>

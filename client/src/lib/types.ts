@@ -30,6 +30,15 @@ export interface Deal {
   updatedAt: string;
   createdBy: number;
   tags: string[];
+  // Investment details
+  amount?: number; // Deal size
+  ownershipPercentage?: number; // Ownership percentage
+  companyStage?: string; // Stage of the target company
+  investmentThesis?: string; // Investment thesis
+  riskFactors?: string; // Risk factors
+  projectedIrr?: number; // Projected IRR as percentage
+  projectedMultiple?: number; // Projected return multiple
+  // Frontend computed properties
   assignedUsers?: User[]; // Frontend computed property from deal assignments
   starCount?: number; // Frontend computed property from stars count
   score?: number; // Frontend computed property from average memo scores

@@ -78,6 +78,11 @@ export interface IStorage {
   getUnreadNotificationsCount(userId: number): Promise<number>;
   markNotificationAsRead(id: number): Promise<boolean>;
   markAllNotificationsAsRead(userId: number): Promise<boolean>;
+  
+  // Memo Comments
+  createMemoComment(comment: InsertMemoComment): Promise<MemoComment>;
+  getMemoComments(memoId: number): Promise<MemoComment[]>;
+  getMemoCommentsByDeal(dealId: number): Promise<MemoComment[]>;
 }
 
 // In-memory storage implementation
@@ -92,6 +97,7 @@ export class MemStorage implements IStorage {
   private fundAllocations: Map<number, FundAllocation>;
   private dealAssignments: Map<number, DealAssignment>;
   private notifications: Map<number, Notification>;
+  private memoComments: Map<number, MemoComment>;
   
   private userIdCounter: number;
   private dealIdCounter: number;
@@ -103,6 +109,7 @@ export class MemStorage implements IStorage {
   private allocationIdCounter: number;
   private assignmentIdCounter: number;
   private notificationIdCounter: number;
+  private commentIdCounter: number;
 
   constructor() {
     this.users = new Map();
@@ -115,6 +122,7 @@ export class MemStorage implements IStorage {
     this.fundAllocations = new Map();
     this.dealAssignments = new Map();
     this.notifications = new Map();
+    this.memoComments = new Map();
     
     this.userIdCounter = 1;
     this.dealIdCounter = 1;
@@ -126,6 +134,7 @@ export class MemStorage implements IStorage {
     this.allocationIdCounter = 1;
     this.assignmentIdCounter = 1;
     this.notificationIdCounter = 1;
+    this.commentIdCounter = 1;
     
     // Initialize with some sample data
     this.initSampleData();
@@ -718,6 +727,27 @@ export class MemStorage implements IStorage {
     });
     
     return true;
+  }
+  
+  // Memo Comments
+  async createMemoComment(comment: InsertMemoComment): Promise<MemoComment> {
+    const id = this.commentIdCounter++;
+    const createdAt = new Date();
+    const newComment: MemoComment = { ...comment, id, createdAt };
+    this.memoComments.set(id, newComment);
+    return newComment;
+  }
+  
+  async getMemoComments(memoId: number): Promise<MemoComment[]> {
+    return Array.from(this.memoComments.values())
+      .filter(comment => comment.memoId === memoId)
+      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+  }
+  
+  async getMemoCommentsByDeal(dealId: number): Promise<MemoComment[]> {
+    return Array.from(this.memoComments.values())
+      .filter(comment => comment.dealId === dealId)
+      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
   }
 }
 

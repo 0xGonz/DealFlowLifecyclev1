@@ -121,6 +121,21 @@ export const insertMiniMemoSchema = createInsertSchema(miniMemos).omit({
   updatedAt: true,
 });
 
+// Comments for mini memos
+export const memoComments = pgTable("memo_comments", {
+  id: serial("id").primaryKey(),
+  memoId: integer("memo_id").notNull(),
+  dealId: integer("deal_id").notNull(), // To enable easier filtering by deal
+  userId: integer("user_id").notNull(),
+  text: text("text").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertMemoCommentSchema = createInsertSchema(memoComments).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Default due diligence checklist items
 export const DEFAULT_DUE_DILIGENCE_CHECKLIST = {
   "financialReview": false,
@@ -239,6 +254,9 @@ export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 
 export type Document = typeof documents.$inferSelect;
 export type InsertDocument = z.infer<typeof insertDocumentSchema>;
+
+export type MemoComment = typeof memoComments.$inferSelect;
+export type InsertMemoComment = z.infer<typeof insertMemoCommentSchema>;
 
 // Helper enum for stages display
 export const DealStageLabels: Record<Deal['stage'], string> = {

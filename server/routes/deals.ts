@@ -5,6 +5,7 @@ import {
   insertTimelineEventSchema, 
   insertDealStarSchema,
   insertMiniMemoSchema,
+  insertMemoCommentSchema,
   DealStageLabels
 } from "@shared/schema";
 import { z } from "zod";
@@ -642,6 +643,91 @@ router.post('/:dealId/memos', async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'Invalid memo data', errors: error.errors });
     }
     res.status(500).json({ message: 'Failed to create mini memo' });
+  }
+});
+
+// Get comments for a memo
+router.get('/:dealId/memos/:memoId/comments', async (req: Request, res: Response) => {
+  try {
+    const memoId = Number(req.params.memoId);
+    
+    const storage = getStorage();
+    const comments = await storage.getMemoComments(memoId);
+    
+    // Get user info for each comment
+    const userIds = Array.from(new Set(comments.map(c => c.userId)));
+    const users = await Promise.all(userIds.map(id => storage.getUser(id)));
+    
+    const commentsWithUserInfo = comments.map(comment => {
+      const user = users.find(u => u?.id === comment.userId);
+      return {
+        ...comment,
+        user: user ? {
+          id: user.id,
+          fullName: user.fullName,
+          initials: user.initials,
+          avatarColor: user.avatarColor,
+          role: user.role
+        } : null
+      };
+    });
+    
+    res.json(commentsWithUserInfo);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch memo comments' });
+  }
+});
+
+// Add a comment to a memo
+router.post('/:dealId/memos/:memoId/comments', async (req: Request, res: Response) => {
+  try {
+    const dealId = Number(req.params.dealId);
+    const memoId = Number(req.params.memoId);
+    const user = (req as any).user;
+    
+    // Check if user is authenticated
+    if (!user) {
+      // For development purposes, we'll allow commenting without authentication
+      // and use a default user ID of 1
+      console.log('User not authenticated, using default user ID 1');
+    }
+    
+    const userId = user ? user.id : 1; // Use default user ID 1 if not authenticated
+    
+    const storage = getStorage();
+    // Make sure memo exists
+    const memo = await storage.getMiniMemo(memoId);
+    if (!memo) {
+      return res.status(404).json({ message: 'Memo not found' });
+    }
+    
+    const commentData = insertMemoCommentSchema.parse({
+      ...req.body,
+      dealId,
+      memoId,
+      userId
+    });
+    
+    const newComment = await storage.createMemoComment(commentData);
+    
+    // Return with user info
+    const userInfo = await storage.getUser(userId);
+    res.status(201).json({
+      ...newComment,
+      user: userInfo ? {
+        id: userInfo.id,
+        fullName: userInfo.fullName,
+        initials: userInfo.initials,
+        avatarColor: userInfo.avatarColor,
+        role: userInfo.role
+      } : null
+    });
+  } catch (error) {
+    console.error('Error creating memo comment:', error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: 'Invalid comment data', errors: error.errors });
+    }
+    res.status(500).json({ message: 'Failed to create memo comment' });
   }
 });
 
