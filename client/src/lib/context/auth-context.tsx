@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 import { useToast } from "@/hooks/use-toast";
 import { apiService } from "@/lib/services/api";
 import { apiRequest } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
 
 interface User {
   id: number;
@@ -13,51 +14,34 @@ interface User {
   avatarColor: string;
 }
 
+interface RegisterData {
+  username: string;
+  password: string;
+  passwordConfirm: string;
+  fullName: string;
+  email: string;
+  role?: string;
+  initials?: string;
+  avatarColor?: string;
+}
+
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   login: (username: string, password: string) => Promise<void>;
+  register: (userData: RegisterData) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
 }
 
-// Create a mock user for development
-const mockUser: User = {
-  id: 1,
-  username: "admin",
-  fullName: "Admin User",
-  initials: "AU",
-  email: "admin@example.com",
-  role: "admin",
-  avatarColor: "#4f46e5"
-};
-
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  // Initialize with mock user for bypassing login during development
-  const [user, setUser] = useState<User | null>(mockUser);
-  const [isLoading, setIsLoading] = useState(false); // Set to false since we've already set the mock user
+  // Initialize with null user, we'll check auth status on mount
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true); // Start as loading until we check auth
   const { toast } = useToast();
 
-  // Development bypass - commenting out the real auth check
-  // useEffect(() => {
-  //   const checkAuthStatus = async () => {
-  //     try {
-  //       // Try to get the current user from the server
-  //       const userData = await apiService.auth.getCurrentUser();
-  //       setUser(userData);
-  //     } catch (error) {
-  //       // If it fails, user is not authenticated
-  //       console.log('No active session found');
-  //       setUser(null);
-  //     } finally {
-  //       setIsLoading(false);
-  //     }
-  //   };
-  //   
-  //   checkAuthStatus();
-  // }, []);
 
   const login = async (username: string, password: string) => {
     try {
@@ -92,6 +76,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         title: "Logged out",
         description: "You have been logged out successfully"
       });
+      // Invalidate any cached user data
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
     } catch (error) {
       console.error('Logout error:', error);
       toast({
@@ -102,12 +88,56 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const register = async (userData: RegisterData) => {
+    try {
+      setIsLoading(true);
+      const newUser = await apiService.auth.register(userData);
+      setUser(newUser);
+      toast({
+        title: "Registration successful",
+        description: `Welcome, ${newUser.fullName}! Your account has been created.`
+      });
+    } catch (error) {
+      console.error('Registration error:', error);
+      const errorMsg = error instanceof Error ? error.message : 'Registration failed';
+      toast({
+        title: "Registration failed",
+        description: errorMsg,
+        variant: "destructive"
+      });
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // When component mounts, check if user is already logged in
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      try {
+        setIsLoading(true);
+        // Try to get the current user from the server
+        const userData = await apiService.auth.getCurrentUser();
+        setUser(userData);
+      } catch (error) {
+        // If it fails, user is not authenticated
+        console.log('No active session found');
+        setUser(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    checkAuthStatus();
+  }, []);
+
   return (
     <AuthContext.Provider
       value={{
         user,
         isLoading,
         login,
+        register,
         logout,
         isAuthenticated: !!user
       }}

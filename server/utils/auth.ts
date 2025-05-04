@@ -117,3 +117,37 @@ export function logout(req: Request) {
     });
   });
 }
+
+// Register user helper
+export async function registerUser(req: Request, userData: any) {
+  const storage = StorageFactory.getStorage();
+  
+  // Check if the username already exists
+  const existingUser = await storage.getUserByUsername(userData.username);
+  if (existingUser) {
+    throw new AppError('Username already exists', 400);
+  }
+  
+  // Check if the email already exists
+  const users = await storage.getUsers();
+  const existingEmail = users.find(u => u.email === userData.email);
+  if (existingEmail) {
+    throw new AppError('Email already exists', 400);
+  }
+  
+  // Hash the password
+  const hashedPassword = await hashPassword(userData.password);
+  
+  // Create the user with hashed password
+  const newUser = await storage.createUser({
+    ...userData,
+    password: hashedPassword,
+  });
+  
+  // Set session data (auto-login)
+  req.session.userId = newUser.id;
+  req.session.username = newUser.username;
+  req.session.role = newUser.role;
+  
+  return newUser;
+}

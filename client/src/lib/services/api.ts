@@ -21,6 +21,19 @@ export const apiService = {
       const response = await apiRequest('GET', '/api/auth/me');
       return response.json();
     },
+    register: async (userData: {
+      username: string;
+      password: string;
+      passwordConfirm: string;
+      fullName: string;
+      email: string;
+      role?: string;
+      initials?: string;
+      avatarColor?: string;
+    }) => {
+      const response = await apiRequest('POST', '/api/auth/register', userData);
+      return response.json();
+    },
   },
 
   // Users
