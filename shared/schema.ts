@@ -103,6 +103,14 @@ export const miniMemos = pgTable("mini_memos", {
   risksAndMitigations: text("risks_and_mitigations"),
   pricingConsideration: text("pricing_consideration"),
   score: integer("score").notNull().default(0),
+  // New fields for enhanced evaluation
+  marketRiskScore: integer("market_risk_score"), // 1-10 score for market risk
+  executionRiskScore: integer("execution_risk_score"), // 1-10 score for execution risk
+  teamStrengthScore: integer("team_strength_score"), // 1-10 score for team strength
+  productFitScore: integer("product_fit_score"), // 1-10 score for product market fit
+  valuationScore: integer("valuation_score"), // 1-10 score for valuation attractiveness
+  competitiveAdvantageScore: integer("competitive_advantage_score"), // 1-10 score for competitive advantage
+  dueDiligenceChecklist: jsonb("due_diligence_checklist").$type<Record<string, boolean>>().default({}), // Checklist for due diligence items
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
@@ -112,6 +120,20 @@ export const insertMiniMemoSchema = createInsertSchema(miniMemos).omit({
   createdAt: true,
   updatedAt: true,
 });
+
+// Default due diligence checklist items
+export const DEFAULT_DUE_DILIGENCE_CHECKLIST = {
+  "financialReview": false,
+  "legalReview": false,
+  "marketAnalysis": false,
+  "teamAssessment": false,
+  "customerInterviews": false,
+  "competitorAnalysis": false,
+  "technologyReview": false,
+  "businessModelValidation": false,
+  "regulatoryCompliance": false,
+  "esgAssessment": false
+};
 
 // Funds
 export const funds = pgTable("funds", {

@@ -6,6 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
+import { useAuth } from "@/lib/context/auth-context";
 
 import {
   Dialog,
@@ -22,10 +23,27 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+
+const DUE_DILIGENCE_CHECKLIST = {
+  financialReview: 'Financial Review',
+  legalReview: 'Legal Review',
+  marketAnalysis: 'Market Analysis',
+  teamAssessment: 'Team Assessment', 
+  customerInterviews: 'Customer Interviews',
+  competitorAnalysis: 'Competitor Analysis',
+  technologyReview: 'Technology Review',
+  businessModelValidation: 'Business Model Validation',
+  regulatoryCompliance: 'Regulatory Compliance',
+  esgAssessment: 'ESG Assessment'
+};
 
 const miniMemoSchema = z.object({
   dealId: z.number().optional(),
@@ -33,6 +51,14 @@ const miniMemoSchema = z.object({
   risksAndMitigations: z.string().optional(),
   pricingConsideration: z.string().optional(),
   score: z.number().min(1).max(10),
+  // New fields for enhanced evaluation
+  marketRiskScore: z.number().min(1).max(10).optional(),
+  executionRiskScore: z.number().min(1).max(10).optional(),
+  teamStrengthScore: z.number().min(1).max(10).optional(),
+  productFitScore: z.number().min(1).max(10).optional(),
+  valuationScore: z.number().min(1).max(10).optional(),
+  competitiveAdvantageScore: z.number().min(1).max(10).optional(),
+  dueDiligenceChecklist: z.record(z.boolean()).optional(),
 });
 
 type MiniMemoFormValues = z.infer<typeof miniMemoSchema>;
@@ -68,6 +94,16 @@ export default function MiniMemoForm({ isOpen, onClose, dealId }: MiniMemoFormPr
     }
   }, [dealId, isOpen]);
 
+  // Get current user
+  const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState("thesis");
+  
+  // Initialize due diligence checklist
+  const initialChecklist: Record<string, boolean> = {};
+  Object.keys(DUE_DILIGENCE_CHECKLIST).forEach(key => {
+    initialChecklist[key] = false;
+  });
+
   const form = useForm<MiniMemoFormValues>({
     resolver: zodResolver(miniMemoSchema),
     defaultValues: {
@@ -76,6 +112,13 @@ export default function MiniMemoForm({ isOpen, onClose, dealId }: MiniMemoFormPr
       risksAndMitigations: "",
       pricingConsideration: "",
       score: 5,
+      marketRiskScore: 5,
+      executionRiskScore: 5,
+      teamStrengthScore: 5,
+      productFitScore: 5,
+      valuationScore: 5,
+      competitiveAdvantageScore: 5,
+      dueDiligenceChecklist: initialChecklist,
     },
   });
 
@@ -91,7 +134,7 @@ export default function MiniMemoForm({ isOpen, onClose, dealId }: MiniMemoFormPr
         return;
       }
 
-      // Submit the mini memo
+      // Submit the mini memo with enhanced fields
       await apiRequest(`/api/deals/${finalDealId}/memos`, {
         method: "POST",
         data: {
@@ -99,6 +142,13 @@ export default function MiniMemoForm({ isOpen, onClose, dealId }: MiniMemoFormPr
           risksAndMitigations: values.risksAndMitigations || null,
           pricingConsideration: values.pricingConsideration || null,
           score: values.score,
+          marketRiskScore: values.marketRiskScore,
+          executionRiskScore: values.executionRiskScore,
+          teamStrengthScore: values.teamStrengthScore,
+          productFitScore: values.productFitScore,
+          valuationScore: values.valuationScore,
+          competitiveAdvantageScore: values.competitiveAdvantageScore,
+          dueDiligenceChecklist: values.dueDiligenceChecklist,
         },
       });
 
@@ -107,7 +157,7 @@ export default function MiniMemoForm({ isOpen, onClose, dealId }: MiniMemoFormPr
       
       toast({
         title: "Success",
-        description: "Mini memo has been created",
+        description: "Mini memo has been created by "+(user?.fullName || "you"),
       });
 
       // Close form and redirect if needed
