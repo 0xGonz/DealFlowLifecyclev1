@@ -32,7 +32,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 
-const DUE_DILIGENCE_CHECKLIST = {
+export const DUE_DILIGENCE_CHECKLIST = {
   financialReview: 'Financial Review',
   legalReview: 'Legal Review',
   marketAnalysis: 'Market Analysis',
@@ -112,12 +112,12 @@ export default function MiniMemoForm({ isOpen, onClose, dealId }: MiniMemoFormPr
       risksAndMitigations: "",
       pricingConsideration: "",
       score: 5,
-      marketRiskScore: 5,
-      executionRiskScore: 5,
-      teamStrengthScore: 5,
-      productFitScore: 5,
-      valuationScore: 5,
-      competitiveAdvantageScore: 5,
+      marketRiskScore: 5 as number,
+      executionRiskScore: 5 as number,
+      teamStrengthScore: 5 as number,
+      productFitScore: 5 as number,
+      valuationScore: 5 as number,
+      competitiveAdvantageScore: 5 as number,
       dueDiligenceChecklist: initialChecklist,
     },
   });
@@ -134,22 +134,27 @@ export default function MiniMemoForm({ isOpen, onClose, dealId }: MiniMemoFormPr
         return;
       }
 
-      // Submit the mini memo with enhanced fields
-      await apiRequest(`/api/deals/${finalDealId}/memos`, {
-        method: "POST",
-        data: {
-          thesis: values.thesis,
-          risksAndMitigations: values.risksAndMitigations || null,
-          pricingConsideration: values.pricingConsideration || null,
-          score: values.score,
-          marketRiskScore: values.marketRiskScore,
-          executionRiskScore: values.executionRiskScore,
-          teamStrengthScore: values.teamStrengthScore,
-          productFitScore: values.productFitScore,
-          valuationScore: values.valuationScore,
-          competitiveAdvantageScore: values.competitiveAdvantageScore,
-          dueDiligenceChecklist: values.dueDiligenceChecklist,
-        },
+      // Get all the assessment scores
+      const assessmentData = {
+        marketRiskScore: values.marketRiskScore,
+        executionRiskScore: values.executionRiskScore,
+        teamStrengthScore: values.teamStrengthScore,
+        productFitScore: values.productFitScore,
+        valuationScore: values.valuationScore,
+        competitiveAdvantageScore: values.competitiveAdvantageScore,
+        dueDiligenceChecklist: values.dueDiligenceChecklist,
+      };
+
+      // Store the assessment data in the thesis field as JSON to work with existing schema
+      // This is a temporary solution until we can migrate the database
+      const enhancedThesis = `${values.thesis}\n\n---ASSESSMENT_DATA---\n${JSON.stringify(assessmentData)}`;
+      
+      // Submit the mini memo
+      await apiRequest('POST', `/api/deals/${finalDealId}/memos`, {
+        thesis: enhancedThesis,
+        risksAndMitigations: values.risksAndMitigations || null,
+        pricingConsideration: values.pricingConsideration || null,
+        score: values.score,
       });
 
       // Invalidate deal queries to refresh data
@@ -157,7 +162,7 @@ export default function MiniMemoForm({ isOpen, onClose, dealId }: MiniMemoFormPr
       
       toast({
         title: "Success",
-        description: "Mini memo has been created by "+(user?.fullName || "you"),
+        description: `Mini memo has been created by ${user?.fullName || 'you'}`,
       });
 
       // Close form and redirect if needed
@@ -177,11 +182,11 @@ export default function MiniMemoForm({ isOpen, onClose, dealId }: MiniMemoFormPr
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[625px]">
+      <DialogContent className="sm:max-w-[725px]">
         <DialogHeader>
-          <DialogTitle>Create Mini-Memo</DialogTitle>
+          <DialogTitle>Create Collaborative Mini-Memo</DialogTitle>
           <DialogDescription>
-            Share your investment thesis and evaluation.
+            Share your investment thesis and detailed evaluation.
           </DialogDescription>
         </DialogHeader>
 
@@ -219,86 +224,254 @@ export default function MiniMemoForm({ isOpen, onClose, dealId }: MiniMemoFormPr
               />
             )}
 
-            <FormField
-              control={form.control}
-              name="thesis"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Investment Thesis *</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Outline your investment thesis for this deal"
-                      className="min-h-[100px]"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <Tabs
+              value={activeTab}
+              onValueChange={setActiveTab}
+              className="w-full"
+            >
+              <TabsList className="grid grid-cols-3 w-full mb-2">
+                <TabsTrigger value="thesis">Thesis & Detail</TabsTrigger>
+                <TabsTrigger value="assessment">Assessment</TabsTrigger>
+                <TabsTrigger value="diligence">Due Diligence</TabsTrigger>
+              </TabsList>
 
-            <FormField
-              control={form.control}
-              name="risksAndMitigations"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Risks & Mitigations</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Describe key risks and potential mitigations"
-                      className="min-h-[100px]"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              <TabsContent value="thesis" className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="thesis"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Investment Thesis *</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Outline your investment thesis for this deal"
+                          className="min-h-[100px]"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-            <FormField
-              control={form.control}
-              name="pricingConsideration"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Pricing Considerations</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Discuss pricing and valuation considerations"
-                      className="min-h-[100px]"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                <FormField
+                  control={form.control}
+                  name="risksAndMitigations"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Risks & Mitigations</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Describe key risks and potential mitigations"
+                          className="min-h-[100px]"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-            <FormField
-              control={form.control}
-              name="score"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Score (1-10): {field.value}</FormLabel>
-                  <FormControl>
-                    <Slider
-                      min={1}
-                      max={10}
-                      step={1}
-                      defaultValue={[field.value]}
-                      onValueChange={(vals) => field.onChange(vals[0])}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                <FormField
+                  control={form.control}
+                  name="pricingConsideration"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Pricing Considerations</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Discuss pricing and valuation considerations"
+                          className="min-h-[100px]"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </TabsContent>
+
+              <TabsContent value="assessment" className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="marketRiskScore"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Market Risk: {field.value || 5}</FormLabel>
+                        <FormDescription className="text-xs">Lower score = higher risk</FormDescription>
+                        <FormControl>
+                          <Slider
+                            min={1}
+                            max={10}
+                            step={1}
+                            defaultValue={[5]}
+                            onValueChange={(vals) => field.onChange(vals[0])}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="executionRiskScore"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Execution Risk: {field.value || 5}</FormLabel>
+                        <FormDescription className="text-xs">Lower score = higher risk</FormDescription>
+                        <FormControl>
+                          <Slider
+                            min={1}
+                            max={10}
+                            step={1}
+                            defaultValue={[5]}
+                            onValueChange={(vals) => field.onChange(vals[0])}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="teamStrengthScore"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Team Strength: {field.value || 5}</FormLabel>
+                        <FormDescription className="text-xs">Higher score = stronger team</FormDescription>
+                        <FormControl>
+                          <Slider
+                            min={1}
+                            max={10}
+                            step={1}
+                            defaultValue={[5]}
+                            onValueChange={(vals) => field.onChange(vals[0])}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="productFitScore"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Product Market Fit: {field.value || 5}</FormLabel>
+                        <FormDescription className="text-xs">Higher score = better fit</FormDescription>
+                        <FormControl>
+                          <Slider
+                            min={1}
+                            max={10}
+                            step={1}
+                            defaultValue={[5]}
+                            onValueChange={(vals) => field.onChange(vals[0])}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="valuationScore"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Valuation: {field.value || 5}</FormLabel>
+                        <FormDescription className="text-xs">Higher score = more attractive valuation</FormDescription>
+                        <FormControl>
+                          <Slider
+                            min={1}
+                            max={10}
+                            step={1}
+                            defaultValue={[5]}
+                            onValueChange={(vals) => field.onChange(vals[0])}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="competitiveAdvantageScore"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Competitive Advantage: {field.value || 5}</FormLabel>
+                        <FormDescription className="text-xs">Higher score = stronger advantage</FormDescription>
+                        <FormControl>
+                          <Slider
+                            min={1}
+                            max={10}
+                            step={1}
+                            defaultValue={[5]}
+                            onValueChange={(vals) => field.onChange(vals[0])}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <FormField
+                  control={form.control}
+                  name="score"
+                  render={({ field }) => (
+                    <FormItem className="pt-4 border-t border-gray-200">
+                      <FormLabel className="text-base font-medium">Overall Score: {field.value}</FormLabel>
+                      <FormDescription>Your overall assessment of the investment opportunity</FormDescription>
+                      <FormControl>
+                        <Slider
+                          min={1}
+                          max={10}
+                          step={1}
+                          defaultValue={[5]}
+                          onValueChange={(vals) => field.onChange(vals[0])}
+                          className="mt-2"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </TabsContent>
+
+              <TabsContent value="diligence" className="space-y-4">
+                <div className="space-y-1">
+                  <Label className="text-base font-medium">Due Diligence Checklist</Label>
+                  <p className="text-xs text-gray-500 mb-3">Check items that have been completed</p>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {Object.entries(DUE_DILIGENCE_CHECKLIST).map(([key, label]) => (
+                      <div key={key} className="flex items-center space-x-2">
+                        <Checkbox 
+                          id={key} 
+                          checked={form.watch(`dueDiligenceChecklist.${key}`)} 
+                          onCheckedChange={(checked) => {
+                            form.setValue(`dueDiligenceChecklist.${key}`, checked as boolean);
+                          }}
+                        />
+                        <Label htmlFor={key} className="text-sm font-normal">{label}</Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </TabsContent>
+            </Tabs>
 
             <DialogFooter>
               <Button variant="outline" type="button" onClick={onClose}>
                 Cancel
               </Button>
               <Button type="submit">
-                Create Mini-Memo
+                {user ? `Submit as ${user.fullName}` : 'Create Mini-Memo'}
               </Button>
             </DialogFooter>
           </form>
