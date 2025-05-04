@@ -71,9 +71,11 @@ export interface IStorage {
   // Capital Calls
   createCapitalCall(capitalCall: InsertCapitalCall): Promise<CapitalCall>;
   getCapitalCall(id: number): Promise<CapitalCall | undefined>;
+  getAllCapitalCalls(): Promise<CapitalCall[]>;
   getCapitalCallsByAllocation(allocationId: number): Promise<CapitalCall[]>;
   getCapitalCallsByDeal(dealId: number): Promise<CapitalCall[]>;
   updateCapitalCallStatus(id: number, status: CapitalCall['status'], paidAmount?: number): Promise<CapitalCall | undefined>;
+  getFundAllocation(id: number): Promise<FundAllocation | undefined>;
   
   // Deal assignments
   assignUserToDeal(assignment: InsertDealAssignment): Promise<DealAssignment>;
@@ -775,6 +777,14 @@ export class MemStorage implements IStorage {
 
   async getCapitalCall(id: number): Promise<CapitalCall | undefined> {
     return this.capitalCalls.get(id);
+  }
+
+  async getAllCapitalCalls(): Promise<CapitalCall[]> {
+    return Array.from(this.capitalCalls.values());
+  }
+
+  async getFundAllocation(id: number): Promise<FundAllocation | undefined> {
+    return this.fundAllocations.get(id);
   }
 
   async getCapitalCallsByAllocation(allocationId: number): Promise<CapitalCall[]> {

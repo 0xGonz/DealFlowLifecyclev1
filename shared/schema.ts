@@ -37,6 +37,11 @@ export const deals = pgTable("deals", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
   createdBy: integer("created_by").notNull(),
   tags: jsonb("tags").$type<string[]>().default([]),
+  // Keeping the existing columns
+  round: text("round"),
+  targetRaise: text("target_raise"),
+  valuation: text("valuation"),
+  leadInvestor: text("lead_investor"),
 });
 
 export const insertDealSchema = createInsertSchema(deals).omit({

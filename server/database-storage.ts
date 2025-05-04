@@ -1,6 +1,6 @@
 import { db } from './db';
 import { IStorage } from './storage';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, sql, inArray } from 'drizzle-orm';
 import {
   User, InsertUser,
   Deal, InsertDeal,
@@ -356,16 +356,40 @@ export class DatabaseStorage implements IStorage {
   
   // Capital Calls
   async createCapitalCall(capitalCall: InsertCapitalCall): Promise<CapitalCall> {
+    if (!db) {
+      throw new Error('Database not initialized');
+    }
     const [newCapitalCall] = await db.insert(capitalCalls).values(capitalCall).returning();
     return newCapitalCall;
   }
   
   async getCapitalCall(id: number): Promise<CapitalCall | undefined> {
+    if (!db) {
+      throw new Error('Database not initialized');
+    }
     const [capitalCall] = await db.select().from(capitalCalls).where(eq(capitalCalls.id, id));
     return capitalCall || undefined;
   }
   
+  async getAllCapitalCalls(): Promise<CapitalCall[]> {
+    if (!db) {
+      throw new Error('Database not initialized');
+    }
+    return await db.select().from(capitalCalls);
+  }
+  
+  async getFundAllocation(id: number): Promise<FundAllocation | undefined> {
+    if (!db) {
+      throw new Error('Database not initialized');
+    }
+    const [allocation] = await db.select().from(fundAllocations).where(eq(fundAllocations.id, id));
+    return allocation || undefined;
+  }
+  
   async getCapitalCallsByAllocation(allocationId: number): Promise<CapitalCall[]> {
+    if (!db) {
+      throw new Error('Database not initialized');
+    }
     return await db
       .select()
       .from(capitalCalls)
@@ -373,6 +397,9 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getCapitalCallsByDeal(dealId: number): Promise<CapitalCall[]> {
+    if (!db) {
+      throw new Error('Database not initialized');
+    }
     // First get all allocations for the deal
     const allocations = await this.getAllocationsByDeal(dealId);
     if (!allocations.length) return [];
@@ -380,14 +407,17 @@ export class DatabaseStorage implements IStorage {
     // Then get all capital calls for those allocations
     const allocationIds = allocations.map(allocation => allocation.id);
     
-    // We need to join the tables to get the capital calls
+    // We need to get capital calls where allocationId is in the list
     return await db
       .select()
       .from(capitalCalls)
-      .where(({ inArray }) => inArray(capitalCalls.allocationId, allocationIds));
+      .where(inArray(capitalCalls.allocationId, allocationIds));
   }
   
   async updateCapitalCallStatus(id: number, status: CapitalCall['status'], paidAmount?: number): Promise<CapitalCall | undefined> {
+    if (!db) {
+      throw new Error('Database not initialized');
+    }
     const updateData: any = { status };
     
     if (paidAmount !== undefined) {

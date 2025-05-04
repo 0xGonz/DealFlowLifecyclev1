@@ -11,6 +11,7 @@ import Funds from "@/pages/Funds";
 import FundDetail from "@/pages/FundDetail";
 import DealDetail from "@/pages/DealDetail";
 import TeamPage from "@/pages/TeamPage";
+import CapitalCalls from "@/pages/CapitalCalls";
 import AuthPage from "@/pages/auth-page";
 import { AuthProvider } from "@/lib/context/auth-context";
 import ErrorBoundary from "@/components/common/ErrorBoundary";
@@ -26,6 +27,7 @@ function Router() {
       <ProtectedRoute path="/funds/:id" component={FundDetail} />
       <ProtectedRoute path="/deals/:id" component={DealDetail} />
       <ProtectedRoute path="/team" component={TeamPage} />
+      <ProtectedRoute path="/capital-calls" component={CapitalCalls} />
       <Route path="/auth" component={AuthPage} />
       <Route component={NotFound} />
     </Switch>
