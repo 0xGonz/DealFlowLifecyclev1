@@ -7,7 +7,19 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
-import { DUE_DILIGENCE_CHECKLIST } from './MiniMemoForm';
+// Import due diligence checklist directly to avoid circular dependency
+const DUE_DILIGENCE_CHECKLIST = {
+  financialReview: 'Financial Review',
+  legalReview: 'Legal Review',
+  marketAnalysis: 'Market Analysis',
+  teamAssessment: 'Team Assessment', 
+  customerInterviews: 'Customer Interviews',
+  competitorAnalysis: 'Competitor Analysis',
+  technologyReview: 'Technology Review',
+  businessModelValidation: 'Business Model Validation',
+  regulatoryCompliance: 'Regulatory Compliance',
+  esgAssessment: 'ESG Assessment'
+};
 
 // Takes a Mini Memo object and displays it in a nice format
 export function MiniMemoDisplay({ memo }: { memo: any }) {
@@ -214,7 +226,7 @@ export function MiniMemoDisplay({ memo }: { memo: any }) {
             <div className="p-3 border rounded-md bg-gray-50">
               <div className="flex items-center justify-between mb-2">
                 <h4 className="text-xs sm:text-sm font-medium">Due Diligence Progress</h4>
-                <Badge variant={dueDiligenceStats.percent >= 70 ? "success" : "secondary"} className="text-xs">
+                <Badge variant="secondary" className={`text-xs ${dueDiligenceStats.percent >= 70 ? "bg-green-100 text-green-800" : ""}`}>
                   {dueDiligenceStats.completed}/{dueDiligenceStats.total} ({dueDiligenceStats.percent}%)
                 </Badge>
               </div>
