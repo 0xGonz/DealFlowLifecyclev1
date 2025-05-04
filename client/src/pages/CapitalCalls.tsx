@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { format, isPast, addDays, isToday } from 'date-fns';
 import { CAPITAL_CALL_STATUS_COLORS } from '@/lib/constants/style-constants';
 import { DATE_FORMATS } from '@/lib/constants/format-constants';
+import { CAPITAL_CALL_STATUS, CAPITAL_CALL_STATUS_LABELS } from '@/lib/constants/allocation-constants';
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -22,7 +23,7 @@ interface CapitalCall {
   dueDate: string;
   paidAmount: number;
   paidDate: string | null;
-  status: 'scheduled' | 'called' | 'partial' | 'paid' | 'defaulted';
+  status: typeof CAPITAL_CALL_STATUS[keyof typeof CAPITAL_CALL_STATUS];
   notes: string | null;
   dealName: string; // Added through API join
   fundName: string; // Added through API join
@@ -170,11 +171,11 @@ const CapitalCalls = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="scheduled">Scheduled</SelectItem>
-                <SelectItem value="called">Called</SelectItem>
-                <SelectItem value="partial">Partially Paid</SelectItem>
-                <SelectItem value="paid">Paid</SelectItem>
-                <SelectItem value="defaulted">Defaulted</SelectItem>
+                <SelectItem value={CAPITAL_CALL_STATUS.SCHEDULED}>Scheduled</SelectItem>
+                <SelectItem value={CAPITAL_CALL_STATUS.CALLED}>Called</SelectItem>
+                <SelectItem value={CAPITAL_CALL_STATUS.PARTIAL}>Partially Paid</SelectItem>
+                <SelectItem value={CAPITAL_CALL_STATUS.PAID}>Paid</SelectItem>
+                <SelectItem value={CAPITAL_CALL_STATUS.DEFAULTED}>Defaulted</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -255,7 +256,7 @@ const CapitalCalls = () => {
                           <CardDescription>{call.fundName}</CardDescription>
                         </div>
                         <Badge className={CAPITAL_CALL_STATUS_COLORS[call.status]}>
-                          {call.status.charAt(0).toUpperCase() + call.status.slice(1)}
+                          {CAPITAL_CALL_STATUS_LABELS[call.status]}
                         </Badge>
                       </div>
                     </CardHeader>

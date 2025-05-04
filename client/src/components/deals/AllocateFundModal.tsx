@@ -46,7 +46,7 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
     customSchedule: '', // JSON string for custom payment structure
     notes: '',
     // Always committed for new allocations
-    status: "committed",
+    status: ALLOCATION_STATUS.COMMITTED,
     // These fields are initialized but not shown in the form
     portfolioWeight: 0,
     interestPaid: 0,
@@ -92,7 +92,7 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
         customSchedule: '',
         notes: '',
         // Reset investment tracking fields
-        status: "committed",
+        status: ALLOCATION_STATUS.COMMITTED,
         portfolioWeight: 0,
         interestPaid: 0,
         distributionPaid: 0,
@@ -140,7 +140,7 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
   
   // Show or hide additional fields based on capital call schedule selection
   useEffect(() => {
-    if (allocationData.capitalCallSchedule === 'custom') {
+    if (allocationData.capitalCallSchedule === CAPITAL_CALL_SCHEDULES.CUSTOM) {
       setShowCustomFields(true);
     } else {
       setShowCustomFields(false);
@@ -179,7 +179,7 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
     // Validate capital call schedule if one is selected
     if (allocationData.capitalCallSchedule) {
       // For regular schedules, validate the percentage
-      if (allocationData.capitalCallSchedule !== 'custom' && (!allocationData.callPercentage || allocationData.callPercentage <= 0)) {
+      if (allocationData.capitalCallSchedule !== CAPITAL_CALL_SCHEDULES.CUSTOM && (!allocationData.callPercentage || allocationData.callPercentage <= 0)) {
         toast({
           title: "Error",
           description: "Please enter a valid payment percentage greater than 0",
@@ -189,7 +189,7 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
       }
       
       // For custom schedule, validate entries
-      if (allocationData.capitalCallSchedule === 'custom') {
+      if (allocationData.capitalCallSchedule === CAPITAL_CALL_SCHEDULES.CUSTOM) {
         if (customCalls.length === 0) {
           toast({
             title: "Error",
@@ -308,26 +308,25 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
                 <SelectValue placeholder="Select payment schedule" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="single">Single Payment</SelectItem>
-                <SelectItem value="quarterly">Quarterly</SelectItem>
-                <SelectItem value="monthly">Monthly</SelectItem>
-                <SelectItem value="biannual">Bi-Annual</SelectItem>
-                <SelectItem value="annual">Annual</SelectItem>
-                <SelectItem value="custom">Custom Schedule</SelectItem>
+                <SelectItem value={CAPITAL_CALL_SCHEDULES.SINGLE}>{PAYMENT_SCHEDULE_LABELS[CAPITAL_CALL_SCHEDULES.SINGLE]}</SelectItem>
+                <SelectItem value={CAPITAL_CALL_SCHEDULES.QUARTERLY}>{PAYMENT_SCHEDULE_LABELS[CAPITAL_CALL_SCHEDULES.QUARTERLY]}</SelectItem>
+                <SelectItem value={CAPITAL_CALL_SCHEDULES.MONTHLY}>{PAYMENT_SCHEDULE_LABELS[CAPITAL_CALL_SCHEDULES.MONTHLY]}</SelectItem>
+                <SelectItem value={CAPITAL_CALL_SCHEDULES.BIANNUAL}>{PAYMENT_SCHEDULE_LABELS[CAPITAL_CALL_SCHEDULES.BIANNUAL]}</SelectItem>
+                <SelectItem value={CAPITAL_CALL_SCHEDULES.ANNUAL}>{PAYMENT_SCHEDULE_LABELS[CAPITAL_CALL_SCHEDULES.ANNUAL]}</SelectItem>
+                <SelectItem value={CAPITAL_CALL_SCHEDULES.CUSTOM}>{PAYMENT_SCHEDULE_LABELS[CAPITAL_CALL_SCHEDULES.CUSTOM]}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           {/* Conditional fields based on capital call schedule */}
-          {allocationData.capitalCallSchedule && allocationData.capitalCallSchedule !== 'custom' && (
+          {allocationData.capitalCallSchedule && allocationData.capitalCallSchedule !== CAPITAL_CALL_SCHEDULES.CUSTOM && (
             <div className="space-y-4 border rounded-lg p-4 bg-gray-50">
               <h4 className="font-medium text-sm">Capital Call Details</h4>
               
               {/* Percentage field for all non-custom schedules */}
               <div className="space-y-2">
                 <Label htmlFor="callPercentage">
-                  {allocationData.capitalCallSchedule === 'single' ? 'Payment Percentage' : 
-                    `${allocationData.capitalCallSchedule.charAt(0).toUpperCase() + allocationData.capitalCallSchedule.slice(1)} Payment Percentage`}
+                  {PAYMENT_SCHEDULE_LABELS[allocationData.capitalCallSchedule as keyof typeof PAYMENT_SCHEDULE_LABELS]} Payment Percentage
                 </Label>
                 <div className="relative">
                   <span className="absolute inset-y-0 right-3 flex items-center text-neutral-500">
@@ -365,7 +364,7 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
               </div>
               
               {/* Number of calls (not applicable for single payment) */}
-              {allocationData.capitalCallSchedule !== 'single' && (
+              {allocationData.capitalCallSchedule !== CAPITAL_CALL_SCHEDULES.SINGLE && (
                 <div className="space-y-2">
                   <Label htmlFor="callCount">Number of Payments</Label>
                   <Input
