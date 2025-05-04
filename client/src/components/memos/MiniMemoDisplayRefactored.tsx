@@ -9,7 +9,7 @@ import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { MiniMemo } from '@shared/schema';
 
-// Import due diligence checklist as a constant to be used throughout the app
+// Define checklist items as a constant for reuse across components
 export const DUE_DILIGENCE_CHECKLIST = {
   financialReview: 'Financial Review',
   legalReview: 'Legal Review',
@@ -36,22 +36,32 @@ interface ExtendedMiniMemo extends MiniMemo {
   user?: MemoUser | null;
 }
 
-// Takes a Mini Memo object and displays it in a nice format
-export function MiniMemoDisplay({ 
+interface MiniMemoDisplayProps {
+  memo: ExtendedMiniMemo;
+  expanded?: boolean;
+  onClick?: () => void;
+}
+
+/**
+ * MiniMemoDisplay component displays a memo with proper typed structures 
+ * using the schema fields directly instead of embedded JSON strings.
+ */
+export function MiniMemoDisplayRefactored({ 
   memo, 
   expanded = false, 
   onClick 
-}: { 
-  memo: ExtendedMiniMemo, 
-  expanded?: boolean, 
-  onClick?: () => void 
-}) {
-  // Use proper structured fields from the schema
-  const hasAssessment = !!memo.marketRiskScore || !!memo.executionRiskScore || 
-                       !!memo.teamStrengthScore || !!memo.productFitScore || 
-                       !!memo.valuationScore || !!memo.competitiveAdvantageScore;
+}: MiniMemoDisplayProps) {
+  // Determine if this memo has any assessment data
+  const hasAssessment = useMemo(() => {
+    return !!memo.marketRiskScore || 
+           !!memo.executionRiskScore || 
+           !!memo.teamStrengthScore || 
+           !!memo.productFitScore || 
+           !!memo.valuationScore || 
+           !!memo.competitiveAdvantageScore;
+  }, [memo]);
 
-  // Calculate assessment average directly from memo fields
+  // Calculate assessment average from available scores
   const assessmentAverage = useMemo(() => {
     if (!hasAssessment) return null;
     
@@ -70,7 +80,7 @@ export function MiniMemoDisplay({
     return Math.round((sum / scores.length) * 10) / 10;
   }, [memo, hasAssessment]);
 
-  // Count completed due diligence items
+  // Track due diligence progress
   const dueDiligenceStats = useMemo(() => {
     if (!memo.dueDiligenceChecklist) {
       return { completed: 0, total: Object.keys(DUE_DILIGENCE_CHECKLIST).length, percent: 0 };
@@ -256,9 +266,9 @@ export function MiniMemoDisplay({
                   const isChecked = memo.dueDiligenceChecklist?.[key] || false;
                   return (
                     <div key={key} className="flex items-center space-x-2">
-                      <Checkbox id={`readonly-${key}`} checked={isChecked} disabled />
+                      <Checkbox id={`readonly-${key}-${memo.id}`} checked={isChecked} disabled />
                       <Label 
-                        htmlFor={`readonly-${key}`} 
+                        htmlFor={`readonly-${key}-${memo.id}`} 
                         className={`text-xs ${isChecked ? 'font-medium' : 'text-gray-500'}`}
                       >
                         {label as string}
@@ -293,3 +303,6 @@ export function MiniMemoDisplay({
     </Card>
   );
 }
+
+// Backward compatible alias
+export const MiniMemoDisplay = MiniMemoDisplayRefactored;

@@ -164,13 +164,16 @@ export function MiniMemoForm({
 
       // Find selected team member
       const finalUserId = selectedUserId || user?.id;
-      const teamMember = users.find(u => u.id === finalUserId) || user;
-
-      // Get all the assessment scores
-      const assessmentData = {
-        userId: finalUserId,
-        username: teamMember?.username || user?.username,
-        userFullName: teamMember?.fullName || user?.fullName,
+      
+      // Submit the mini memo with all structured fields
+      await apiRequest('POST', `/api/deals/${finalDealId}/memos`, {
+        // Basic fields
+        thesis: values.thesis,
+        risksAndMitigations: values.risksAndMitigations || null,
+        pricingConsideration: values.pricingConsideration || null,
+        score: values.score,
+        
+        // Assessment fields directly using schema fields
         marketRiskScore: values.marketRiskScore,
         executionRiskScore: values.executionRiskScore,
         teamStrengthScore: values.teamStrengthScore,
@@ -178,25 +181,17 @@ export function MiniMemoForm({
         valuationScore: values.valuationScore,
         competitiveAdvantageScore: values.competitiveAdvantageScore,
         dueDiligenceChecklist: values.dueDiligenceChecklist,
-        timestamp: new Date().toISOString(),
-      };
-
-      // Store the assessment data in the thesis field as JSON to work with existing schema
-      // This is a temporary solution until we can migrate the database
-      const enhancedThesis = `${values.thesis}\n\n---ASSESSMENT_DATA---\n${JSON.stringify(assessmentData)}`;
-      
-      // Submit the mini memo
-      await apiRequest('POST', `/api/deals/${finalDealId}/memos`, {
-        thesis: enhancedThesis,
-        risksAndMitigations: values.risksAndMitigations || null,
-        pricingConsideration: values.pricingConsideration || null,
-        score: values.score,
+        
+        // User details
+        userId: finalUserId
       });
 
       // Invalidate deal queries to refresh data
       queryClient.invalidateQueries({ queryKey: [`/api/deals/${finalDealId}`] });
       
-      const submitterName = teamMember?.fullName || teamMember?.username || user?.fullName || 'selected team member';
+      // Get the selected team member's name
+      const selectedTeamMember = users.find(u => u.id === finalUserId) || user;
+      const submitterName = selectedTeamMember?.fullName || selectedTeamMember?.username || 'selected team member';
       toast({
         title: "Success",
         description: `Mini memo has been created by ${submitterName}`,

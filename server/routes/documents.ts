@@ -1,4 +1,14 @@
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
+import { Express } from 'express-serve-static-core';
+
+declare global {
+  namespace Express {
+    interface Request {
+      isAuthenticated(): boolean;
+      user?: any;
+    }
+  }
+}
 import { StorageFactory } from '../storage-factory';
 import { z } from 'zod';
 import { createInsertSchema } from 'drizzle-zod';
@@ -7,6 +17,25 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as crypto from 'crypto';
 import multer from 'multer';
+
+// Authentication middleware
+const requireAuth = (req: Request, res: Response, next: NextFunction) => {
+  // Skip auth check during development if auth system isn't complete
+  const skipAuth = process.env.NODE_ENV === 'development';
+  
+  if (skipAuth || req.isAuthenticated()) {
+    return next();
+  }
+  
+  return res.status(401).json({ message: 'Unauthorized: Authentication required' });
+};
+
+// Middleware to sanitize file paths and ensure they don't escape the intended directory
+const sanitizeFilePath = (filePath: string): string => {
+  // Remove any parent directory traversal attempts
+  const sanitized = path.normalize(filePath).replace(/^\/+|\.\.+\//g, '');
+  return sanitized;
+};
 
 const router = Router();
 
@@ -34,8 +63,8 @@ const upload = multer({
   },
 });
 
-// Get all documents for a deal
-router.get('/deal/:dealId', async (req: Request, res: Response) => {
+// Get all documents for a deal - requires authentication
+router.get('/deal/:dealId', requireAuth, async (req: Request, res: Response) => {
   try {
     const dealId = parseInt(req.params.dealId);
     if (isNaN(dealId)) {
@@ -51,8 +80,8 @@ router.get('/deal/:dealId', async (req: Request, res: Response) => {
   }
 });
 
-// Get documents for a deal filtered by type
-router.get('/deal/:dealId/type/:documentType', async (req: Request, res: Response) => {
+// Get documents for a deal filtered by type - requires authentication
+router.get('/deal/:dealId/type/:documentType', requireAuth, async (req: Request, res: Response) => {
   try {
     const dealId = parseInt(req.params.dealId);
     const { documentType } = req.params;
@@ -70,8 +99,8 @@ router.get('/deal/:dealId/type/:documentType', async (req: Request, res: Respons
   }
 });
 
-// Get a single document by ID
-router.get('/:id', async (req: Request, res: Response) => {
+// Get a single document by ID - requires authentication
+router.get('/:id', requireAuth, async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
@@ -91,8 +120,8 @@ router.get('/:id', async (req: Request, res: Response) => {
   }
 });
 
-// Download a document
-router.get('/:id/download', async (req: Request, res: Response) => {
+// Download a document - requires authentication
+router.get('/:id/download', requireAuth, async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
@@ -178,8 +207,8 @@ router.get('/:id/download', async (req: Request, res: Response) => {
   }
 });
 
-// Upload a document
-router.post('/upload', upload.single('file'), async (req: Request, res: Response) => {
+// Upload a document - requires authentication
+router.post('/upload', requireAuth, upload.single('file'), async (req: Request, res: Response) => {
   try {
     console.log('Received document upload request:', req.body);
     console.log('File info:', req.file);
@@ -237,8 +266,8 @@ router.post('/upload', upload.single('file'), async (req: Request, res: Response
   }
 });
 
-// Delete a document
-router.delete('/:id', async (req: Request, res: Response) => {
+// Delete a document - requires authentication
+router.delete('/:id', requireAuth, async (req: Request, res: Response) => {
   try {
     const storage = StorageFactory.getStorage();
     const id = parseInt(req.params.id);

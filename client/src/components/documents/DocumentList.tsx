@@ -8,7 +8,7 @@ import { FileText, Download, Trash2, FileUp, File, Eye } from 'lucide-react';
 import { Document } from '@/lib/types';
 import { formatDistanceToNow } from 'date-fns';
 import { formatBytes } from '@/lib/utils/format';
-import PDFViewer from './PDFViewer';
+import EnhancedPDFViewer from './EnhancedPDFViewer';
 import EmbeddedPDFViewer from './EmbeddedPDFViewer';
 import {
   AlertDialog,
@@ -375,7 +375,7 @@ export default function DocumentList({ dealId }: DocumentListProps) {
       
       {/* PDF Viewer */}
       {selectedDocument && (
-        <PDFViewer
+        <EnhancedPDFViewer
           isOpen={isPdfViewerOpen}
           onClose={() => setIsPdfViewerOpen(false)}
           documentId={selectedDocument.id}
