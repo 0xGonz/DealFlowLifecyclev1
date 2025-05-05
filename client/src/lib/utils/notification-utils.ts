@@ -1,4 +1,5 @@
 import { apiRequest } from '@/lib/queryClient';
+import { DealStageLabels } from '@shared/schema';
 
 interface CreateNotificationParams {
   userId: number;
@@ -59,7 +60,8 @@ export const generateDealNotification = async (
       title = 'Deal stage changed';
       // If new stage is provided, include it in the message
       if (newStage) {
-        const stageLabel = newStage.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+        // Import the DealStageLabels to use the predefined labels
+        const stageLabel = DealStageLabels[newStage as keyof typeof DealStageLabels] || newStage.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
         message = `${dealName} deal moved to ${stageLabel} stage`;
       } else {
         message = `${dealName} deal moved to a new stage`;
