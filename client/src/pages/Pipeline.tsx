@@ -80,10 +80,16 @@ export default function Pipeline() {
       return apiRequest("PATCH", `/api/deals/${dealId}`, { stage });
     },
     onSuccess: async (data: any) => {
+      // Log the data response
+      console.log('Deal update response:', data);
+      
+      // Get the stage label
+      const stageLabel = data.stage ? DealStageLabels[data.stage as keyof typeof DealStageLabels] : 'a new stage';
+      
       // Show success toast
       toast({
         title: "Status updated",
-        description: `Deal has been moved to ${DealStageLabels[data.stage as keyof typeof DealStageLabels]}`,
+        description: `Deal has been moved to ${stageLabel}`,
       });
       
       // Create notification for stage change
