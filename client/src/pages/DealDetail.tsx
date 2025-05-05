@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useRoute, useLocation } from "wouter";
+import { usePermissions } from "@/hooks/use-permissions";
 import AppLayout from "@/components/layout/AppLayout";
 import Timeline from "@/components/deals/Timeline";
 import EditDealModal from "@/components/deals/EditDealModal";
@@ -88,6 +89,7 @@ export default function DealDetail() {
   const [activeTab, setActiveTab] = useState(getActiveTab());
   
   const { toast } = useToast();
+  const { canEdit, canDelete, canCreate } = usePermissions();
   
   // Safety check - redirect if ID is invalid
   const dealId = params?.id;
@@ -291,15 +293,17 @@ export default function DealDetail() {
                 <Star className={`h-4 w-4 sm:mr-1 ${hasUserStarred ? 'fill-accent text-accent' : ''}`} />
                 <span className="hidden sm:inline">{hasUserStarred ? 'Starred' : 'Star'} {deal?.starCount ? `(${deal.starCount})` : ''}</span>
               </Button>
-              <Button 
-                size="sm"
-                className="h-9 px-2 sm:px-3"
-                onClick={() => setIsEditModalOpen(true)}
-              >
-                <Edit className="h-4 w-4 sm:mr-1" />
-                <span className="hidden sm:inline">Edit</span>
-              </Button>
-              {deal?.stage === DEAL_STAGES.INVESTED && (
+              {canEdit('deal') && (
+                <Button 
+                  size="sm"
+                  className="h-9 px-2 sm:px-3"
+                  onClick={() => setIsEditModalOpen(true)}
+                >
+                  <Edit className="h-4 w-4 sm:mr-1" />
+                  <span className="hidden sm:inline">Edit</span>
+                </Button>
+              )}
+              {deal?.stage === DEAL_STAGES.INVESTED && canEdit('fund') && (
                 <Button 
                   size="sm"
                   variant="outline"
@@ -310,33 +314,35 @@ export default function DealDetail() {
                   <span className="hidden sm:inline">Allocate</span>
                 </Button>
               )}
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button 
-                    variant="destructive" 
-                    size="sm"
-                    className="h-9 px-2 sm:px-3"
-                  >
-                    <Trash2 className="h-4 w-4 sm:mr-1" />
-                    <span className="hidden sm:inline">Delete</span>
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Are you sure you want to delete this deal?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This action cannot be undone. This will permanently delete the deal
-                      and all its associated data including timeline events, memos, and allocations.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDeleteDeal}>
-                      {deleteDealMutation.isPending ? "Deleting..." : "Delete Deal"}
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+              {canDelete('deal') && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button 
+                      variant="destructive" 
+                      size="sm"
+                      className="h-9 px-2 sm:px-3"
+                    >
+                      <Trash2 className="h-4 w-4 sm:mr-1" />
+                      <span className="hidden sm:inline">Delete</span>
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you sure you want to delete this deal?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This action cannot be undone. This will permanently delete the deal
+                        and all its associated data including timeline events, memos, and allocations.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleDeleteDeal}>
+                        {deleteDealMutation.isPending ? "Deleting..." : "Delete Deal"}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
             </div>
           </div>
           
@@ -368,15 +374,17 @@ export default function DealDetail() {
                     </Avatar>
                   )}
                 </div>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  className="h-7 sm:h-8 px-2 sm:px-3 text-xs sm:text-sm" 
-                  onClick={() => setIsAssignModalOpen(true)}
-                >
-                  <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                  Assign
-                </Button>
+                {canEdit('deal') && (
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="h-7 sm:h-8 px-2 sm:px-3 text-xs sm:text-sm" 
+                    onClick={() => setIsAssignModalOpen(true)}
+                  >
+                    <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                    Assign
+                  </Button>
+                )}
               </div>
             </div>
           </CardHeader>

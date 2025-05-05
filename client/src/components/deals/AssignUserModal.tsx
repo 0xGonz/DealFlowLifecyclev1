@@ -23,22 +23,24 @@ interface AssignUserModalProps {
   dealId: number;
 }
 
-type UserRole = "admin" | "partner" | "analyst" | "observer";
+type UserRole = "admin" | "partner" | "analyst" | "observer" | "intern";
 
-const roleOrder: UserRole[] = ["admin", "partner", "analyst", "observer"];
+const roleOrder: UserRole[] = ["admin", "partner", "analyst", "observer", "intern"];
 
 const roleLabels: Record<UserRole, string> = {
   admin: "Administrators",
   partner: "Partners",
   analyst: "Analysts",
-  observer: "Observers"
+  observer: "Observers",
+  intern: "Interns"
 };
 
 const roleBadgeColors: Record<UserRole, string> = {
   admin: "bg-red-100 text-red-800",
   partner: "bg-blue-100 text-blue-800",
   analyst: "bg-green-100 text-green-800",
-  observer: "bg-purple-100 text-purple-800"
+  observer: "bg-purple-100 text-purple-800",
+  intern: "bg-green-100 text-green-800"
 };
 
 export default function AssignUserModal({ isOpen, onClose, dealId }: AssignUserModalProps) {

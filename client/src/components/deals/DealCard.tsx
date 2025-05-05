@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
+import { usePermissions } from "@/hooks/use-permissions";
 import { formatDistanceToNow } from "date-fns";
 import { 
   Edit, 
@@ -28,6 +29,7 @@ interface DealCardProps {
 export default function DealCard({ deal: rawDeal, compact = false, onEdit, onAllocate }: DealCardProps) {
   const [, navigate] = useLocation();
   const { toast } = useToast();
+  const { canEdit, canCreate } = usePermissions();
 
   // Enrich deal with computed properties
   const deal = enrichDealWithComputedProps(rawDeal);
@@ -147,18 +149,20 @@ export default function DealCard({ deal: rawDeal, compact = false, onEdit, onAll
       </CardContent>
       
       <CardFooter className="border-t border-neutral-200 p-2 sm:p-3 flex flex-wrap gap-1 sm:gap-2 w-full">
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          className="text-neutral-600 hover:text-primary text-xs sm:text-sm flex-1 min-w-0 px-1 sm:px-3 h-7 sm:h-8"
-          onClick={(e) => {
-            e.stopPropagation();
-            if (onEdit) onEdit();
-          }}
-        >
-          <Edit className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-0.5 sm:mr-1 flex-shrink-0" />
-          <span className="truncate">Edit</span>
-        </Button>
+        {canEdit('deal') && (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="text-neutral-600 hover:text-primary text-xs sm:text-sm flex-1 min-w-0 px-1 sm:px-3 h-7 sm:h-8"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onEdit) onEdit();
+            }}
+          >
+            <Edit className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-0.5 sm:mr-1 flex-shrink-0" />
+            <span className="truncate">Edit</span>
+          </Button>
+        )}
         
         <Button 
           variant="ghost" 
@@ -176,7 +180,7 @@ export default function DealCard({ deal: rawDeal, compact = false, onEdit, onAll
           <span className="truncate">{hasUserStarred ? 'Starred' : 'Star'} {deal.starCount ? `(${deal.starCount})` : ''}</span>
         </Button>
         
-        {deal.stage === 'invested' && onAllocate ? (
+        {deal.stage === 'invested' && onAllocate && canEdit('fund') ? (
           <Button 
             variant="ghost" 
             size="sm" 

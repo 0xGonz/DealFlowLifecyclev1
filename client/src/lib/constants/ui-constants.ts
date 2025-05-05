@@ -86,7 +86,8 @@ export const USER_ROLE_DESCRIPTIONS = {
   ADMIN: 'Full system access, including user management',
   PARTNER: 'Create/edit deals, approve investments, view all content',
   ANALYST: 'Create/edit deals, view all content, suggest investments',
-  OBSERVER: 'View-only access to deals and content'
+  OBSERVER: 'View-only access to deals and content',
+  INTERN: 'View access to all content and ability to add new deals only'
 };
 
 // Icon size constants for consistent sizing across components
