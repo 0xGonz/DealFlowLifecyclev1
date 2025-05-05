@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/lib/context/auth-context";
+import { useAuth } from "@/hooks/use-auth";
 import { formatDistanceToNow } from "date-fns";
 import { 
   Edit, 
@@ -41,7 +41,7 @@ export default function DealCard({ deal: rawDeal, compact = false, onEdit, onAll
   const assignedUsers = deal.assignedUsers || [];
 
   // Get current user to check if the user has already starred this deal
-  const { user: currentUser } = useAuth();
+  const { data: currentUser } = useAuth();
   
   // Check if the current user has already starred this deal
   const { data: stars = [] } = useQuery<DealStar[]>({

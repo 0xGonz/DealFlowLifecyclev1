@@ -13,7 +13,7 @@ import DealDetail from "@/pages/DealDetail";
 import TeamPage from "@/pages/TeamPage";
 import CapitalCalls from "@/pages/CapitalCalls";
 import AuthPage from "@/pages/auth-page";
-import { AuthProvider } from "@/lib/context/auth-context";
+import { AuthProvider } from "@/hooks/use-auth";
 import ErrorBoundary from "@/components/common/ErrorBoundary";
 import { ProtectedRoute } from "@/components/common/ProtectedRoute";
 

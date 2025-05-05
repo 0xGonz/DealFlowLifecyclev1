@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useLocation } from 'wouter';
-import { useAuth } from '@/lib/context/auth-context';
+import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -28,7 +28,7 @@ export default function Login() {
 
     try {
       setIsSubmitting(true);
-      await login(username, password);
+      await login.mutateAsync({ username, password });
       setLocation('/');
     } catch (error) {
       // Error is already handled in auth-context

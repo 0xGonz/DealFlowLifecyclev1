@@ -3,7 +3,7 @@ import { useLocation, Redirect } from 'wouter';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useAuth } from '@/lib/context/auth-context';
+import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -125,48 +125,22 @@ export default function AuthPage() {
               <TabsContent value="login">
                 <LoginForm onSubmit={async (username, password) => {
                   try {
-                    const res = await fetch('/api/auth/login', {
-                      method: 'POST',
-                      headers: {
-                        'Content-Type': 'application/json'
-                      },
-                      body: JSON.stringify({ username, password }),
-                      credentials: 'include'
-                    });
-                    
-                    if (!res.ok) {
-                      const errorText = await res.text();
-                      throw new Error(errorText || 'Login failed');
-                    }
-                    
-                    const userData = await res.json();
-                    console.log('Login successful:', userData);
-                    
-                    // Show success toast
-                    toast({
-                      title: 'Login Successful',
-                      description: 'Welcome back!',
-                      variant: 'default'
-                    });
-                    
-                    // Force refresh user data in the auth context
-                    queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
-                    
-                    // Show the loading animation
+                    // Use the login mutation from auth context
+                    const { login } = useAuth();
                     setIsAuthenticating(true);
+                    await login.mutateAsync({ username, password });
+                    
+                    console.log('Login successful, showing animation');
                     
                     // Add a slight delay before redirect to show the animation
                     setTimeout(() => {
-                      // Redirect to home page
-                      window.location.href = '/';
+                      // Use navigate from wouter instead of window.location
+                      navigate('/');
                     }, 1500);
                   } catch (error) {
+                    setIsAuthenticating(false);
                     console.error('Login error:', error);
-                    toast({
-                      title: 'Login Failed',
-                      description: error instanceof Error ? error.message : 'Unknown error occurred',
-                      variant: 'destructive'
-                    });
+                    // Error handling is already in the auth context
                   }
                 }} isLoading={isLoading} />
               </TabsContent>
@@ -175,54 +149,27 @@ export default function AuthPage() {
               <TabsContent value="register">
                 <RegisterForm onSubmit={async (data) => {
                   try {
-                    const res = await fetch('/api/auth/register', {
-                      method: 'POST',
-                      headers: {
-                        'Content-Type': 'application/json'
-                      },
-                      body: JSON.stringify({
-                        username: data.username,
-                        fullName: data.fullName,
-                        email: data.email,
-                        password: data.password,
-                        passwordConfirm: data.passwordConfirm
-                      }),
-                      credentials: 'include'
-                    });
-                    
-                    if (!res.ok) {
-                      const errorText = await res.text();
-                      throw new Error(errorText || 'Registration failed');
-                    }
-                    
-                    const userData = await res.json();
-                    console.log('Registration successful:', userData);
-                    
-                    // Show success toast
-                    toast({
-                      title: 'Registration Successful',
-                      description: 'Your account has been created.',
-                      variant: 'default'
-                    });
-                    
-                    // Force refresh user data in the auth context
-                    queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
-                    
-                    // Show the loading animation
+                    // Use the register mutation from auth context
+                    const { register } = useAuth();
                     setIsAuthenticating(true);
+                    await register.mutateAsync({
+                      username: data.username,
+                      fullName: data.fullName,
+                      email: data.email,
+                      password: data.password
+                    });
+                    
+                    console.log('Registration successful, showing animation');
                     
                     // Add a slight delay before redirect to show the animation
                     setTimeout(() => {
-                      // Redirect to home page
-                      window.location.href = '/';
+                      // Use navigate from wouter instead of window.location
+                      navigate('/');
                     }, 1500);
                   } catch (error) {
+                    setIsAuthenticating(false);
                     console.error('Registration error:', error);
-                    toast({
-                      title: 'Registration Failed',
-                      description: error instanceof Error ? error.message : 'Unknown error occurred',
-                      variant: 'destructive'
-                    });
+                    // Error handling is already in the auth context
                   }
                 }} isLoading={isLoading} />
               </TabsContent>
