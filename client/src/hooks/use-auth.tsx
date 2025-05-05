@@ -1,8 +1,9 @@
-import { createContext, ReactNode, useContext } from "react";
+import { createContext, ReactNode, useContext, useEffect } from "react";
 import {
   useQuery,
   useMutation,
-  UseMutationResult
+  UseMutationResult,
+  useQueryClient
 } from "@tanstack/react-query";
 import { User } from "@/lib/types";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -15,6 +16,7 @@ type AuthContextType = {
   login: UseMutationResult<User, Error, LoginData>;
   logout: UseMutationResult<void, Error, void>;
   register: UseMutationResult<User, Error, RegisterData>;
+  refreshAuth: () => Promise<User | null>;
 };
 
 type LoginData = {
@@ -29,19 +31,61 @@ type RegisterData = {
   password: string;
 };
 
+async function fetchCurrentUser(): Promise<User | null> {
+  try {
+    console.log('Fetching current user data');
+    const response = await fetch('/api/auth/me', {
+      credentials: 'include',
+      headers: {
+        'Accept': 'application/json',
+        'Cache-Control': 'no-cache'
+      }
+    });
+    
+    if (response.status === 401) {
+      console.log('User is not authenticated (401 response)');
+      return null;
+    }
+    
+    if (!response.ok) {
+      console.error('Error fetching user:', response.status, response.statusText);
+      throw new Error(`Failed to fetch user: ${response.statusText}`);
+    }
+    
+    const userData = await response.json();
+    console.log('Current user data fetched successfully:', userData);
+    return userData;
+  } catch (error) {
+    console.error('Exception in fetchCurrentUser:', error);
+    return null;
+  }
+}
+
 export const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
+  const localQueryClient = useQueryClient();
   
   const {
     data,
     error,
     isLoading,
+    refetch,
   } = useQuery<User | null>({
     queryKey: ["/api/auth/me"],
+    queryFn: fetchCurrentUser,
     staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 1,
+    retryDelay: 1000,
   });
+
+  // Refresh auth method that can be called manually
+  const refreshAuth = async (): Promise<User | null> => {
+    console.log('Manual auth refresh requested');
+    const result = await refetch();
+    return result.data ?? null;
+  };
 
   const login = useMutation({
     mutationFn: async (credentials: LoginData) => {
@@ -56,9 +100,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw error;
       }
     },
-    onSuccess: (user: User) => {
+    onSuccess: async (user: User) => {
       console.log('Login mutation onSuccess handler, setting user data:', user);
-      queryClient.setQueryData(["/api/auth/me"], user);
+      localQueryClient.setQueryData(["/api/auth/me"], user);
+      
+      // Force a refresh to ensure we have the correct data
+      await refreshAuth();
     },
     onError: (error: Error) => {
       console.error('Login mutation onError handler:', error);
@@ -75,7 +122,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await apiRequest("POST", "/api/auth/logout");
     },
     onSuccess: () => {
-      queryClient.setQueryData(["/api/auth/me"], null);
+      localQueryClient.setQueryData(["/api/auth/me"], null);
+      localQueryClient.invalidateQueries({queryKey: ["/api/auth/me"]});
       window.location.href = "/auth";
     },
     onError: (error: Error) => {
@@ -92,8 +140,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const res = await apiRequest("POST", "/api/auth/register", userData);
       return await res.json();
     },
-    onSuccess: (user: User) => {
-      queryClient.setQueryData(["/api/auth/me"], user);
+    onSuccess: async (user: User) => {
+      localQueryClient.setQueryData(["/api/auth/me"], user);
+      
+      // Force a refresh to ensure we have the correct data
+      await refreshAuth();
     },
     onError: (error: Error) => {
       toast({
@@ -104,6 +155,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
   });
 
+  // Check for session on page load
+  useEffect(() => {
+    console.log('Auth provider mounted - checking authentication status');
+    refreshAuth();
+  }, []);
+
   return (
     <AuthContext.Provider
       value={{
@@ -113,6 +170,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         logout,
         register,
+        refreshAuth
       }}
     >
       {children}
