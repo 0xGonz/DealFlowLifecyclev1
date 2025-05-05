@@ -5,26 +5,29 @@ import * as schema from "@shared/schema";
 
 neonConfig.webSocketConstructor = ws;
 
-type DbClient = {
-  pool: Pool;
-  db: ReturnType<typeof drizzle>;
-} | null;
-
-let dbClient: DbClient = null;
-
-try {
-  if (!process.env.DATABASE_URL) {
-    console.log('DATABASE_URL not set, skipping database initialization');
-  } else {
-    console.log('Initializing database connection...');
-    const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-    const db = drizzle(pool, { schema });
-    dbClient = { pool, db };
-    console.log('Database connection initialized successfully');
-  }
-} catch (error) {
-  console.error('Failed to initialize database:', error);
+if (!process.env.DATABASE_URL) {
+  throw new Error('DATABASE_URL not set. Database is required for this application.');
 }
 
-export const pool = dbClient?.pool;
-export const db = dbClient?.db;
+// Create direct pool/db exports, not nullable anymore
+console.log('Initializing database connection...');
+// Configure the pool with more detailed options for better reliability
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  max: 20, // Maximum number of connections in the pool
+  idleTimeoutMillis: 30000, // Close idle connections after 30 seconds
+  connectionTimeoutMillis: 5000, // Timeout after 5 seconds if a connection cannot be established
+  allowExitOnIdle: false // Don't exit if all connections end
+});
+
+// Test the connection by running a simple query
+pool.query('SELECT 1 AS test').then(() => {
+  console.log('Database connection verified successfully');
+}).catch(err => {
+  console.error('Database connection test failed:', err);
+  throw err;
+});
+
+export { pool };
+export const db = drizzle(pool, { schema });
+console.log('Database connection initialized successfully');

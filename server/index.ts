@@ -6,19 +6,28 @@ import { errorHandler } from "./utils/errorHandlers";
 import { pool } from "./db";
 import * as fs from 'fs';
 import * as path from 'path';
+import connectPgSimple from 'connect-pg-simple';
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Configure session middleware with memory store (for now)
+// Configure session middleware with PostgreSQL session store
+const PgSession = connectPgSimple(session);
 app.use(session({
+  store: new PgSession({
+    pool,
+    tableName: 'session', // Use this specific table name for compatibility
+    createTableIfMissing: true, // Create the session table if it doesn't exist
+  }),
   secret: process.env.SESSION_SECRET || 'investment-tracker-secret',
   resave: false,
   saveUninitialized: false,
   cookie: {
     secure: process.env.NODE_ENV === 'production',
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    httpOnly: true,
+    sameSite: 'lax'
   }
 }));
 
@@ -60,7 +69,8 @@ if (!fs.existsSync(uploadDir)) {
 }
 
 (async () => {
-  // We're using in-memory session store for now to simplify setup
+  console.log('Initializing database connection...');
+  // Database is already initialized, and we're using it for session storage
   
   const server = await registerRoutes(app);
 

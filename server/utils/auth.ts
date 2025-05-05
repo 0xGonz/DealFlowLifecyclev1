@@ -40,14 +40,34 @@ export function requireRole(roles: string | string[]) {
 
 // Helper to get the current user from the session
 export async function getCurrentUser(req: Request) {
-  if (!req.session.userId) {
+  if (!req.session || !req.session.userId) {
+    console.log('No userId in session, user is not authenticated');
     return null;
   }
+  
+  console.log(`Getting current user from session with userId: ${req.session.userId}`);
   
   try {
     const storage = StorageFactory.getStorage();
     const user = await storage.getUser(req.session.userId);
-    return user || null;
+    
+    if (!user) {
+      console.error(`User with ID ${req.session.userId} not found in database but was in session`);
+      // Session refers to a user that doesn't exist in the database
+      // This is an inconsistent state - we should destroy the session
+      await new Promise<void>((resolve) => {
+        req.session.destroy((err) => {
+          if (err) {
+            console.error('Error destroying invalid session:', err);
+          }
+          resolve();
+        });
+      });
+      return null;
+    }
+    
+    console.log(`Found current user: ${user.username} (ID: ${user.id}, Role: ${user.role})`);
+    return user;
   } catch (error) {
     console.error('Error getting current user:', error);
     return null;
@@ -119,6 +139,19 @@ export async function login(req: Request, username: string, password: string) {
           return reject(err);
         }
         console.log(`Session saved successfully for ${username}`);
+        
+        // Double check that the session was actually saved
+        if (!req.session.userId) {
+          console.error('Session data not set after save. This could indicate a session store problem.');
+          return reject(new Error('Session data not set after save'));
+        }
+        
+        console.log('Verified session data is present after save:', { 
+          userId: req.session.userId,
+          username: req.session.username,
+          role: req.session.role 
+        });
+        
         resolve();
       });
     });
@@ -199,7 +232,21 @@ export async function registerUser(req: Request, userData: any) {
           console.error('Session save error during registration:', err);
           return reject(err);
         }
+        
         console.log(`Session saved successfully for new user ${userData.username}`);
+        
+        // Double check that the session was actually saved
+        if (!req.session.userId) {
+          console.error('Session data not set after save during registration. This could indicate a session store problem.');
+          return reject(new Error('Session data not set after save during registration'));
+        }
+        
+        console.log('Verified session data is present after registration save:', { 
+          userId: req.session.userId,
+          username: req.session.username,
+          role: req.session.role 
+        });
+        
         resolve();
       });
     });
