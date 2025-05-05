@@ -42,6 +42,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/lib/context/auth-context";
 import { 
   ChevronLeft, 
   Star, 
@@ -111,6 +112,18 @@ export default function DealDetail() {
   // Apply computed properties to deal data
   const deal = rawDeal ? enrichDealWithComputedProps(rawDeal) : undefined;
   
+  // Get the stars for this deal to check if current user has starred it
+  const { data: stars = [] } = useQuery({
+    queryKey: [`/api/deals/${dealId}/stars`],
+    enabled: !!dealId
+  });
+  
+  // Get the current user info
+  const { user: currentUser } = useAuth();
+  
+  // Check if current user has already starred this deal
+  const hasUserStarred = Array.isArray(stars) && stars.some((star: any) => currentUser && star.userId === currentUser.id);
+  
   const addNoteMutation = useMutation({
     mutationFn: async (content: string) => {
       return apiRequest("POST", `/api/deals/${dealId}/timeline`, {
@@ -141,12 +154,16 @@ export default function DealDetail() {
     mutationFn: async () => {
       return apiRequest("POST", `/api/deals/${dealId}/star`, {});
     },
-    onSuccess: async () => {
+    onSuccess: async (response) => {
+      const result = await response.json();
       toast({
-        title: "Deal starred",
-        description: "This deal has been added to your starred deals."
+        title: result.action === 'starred' ? "Deal starred" : "Star removed",
+        description: result.action === 'starred' 
+          ? "This deal has been added to your starred deals."
+          : "This deal has been removed from your starred deals."
       });
       await queryClient.invalidateQueries({ queryKey: [`/api/deals/${dealId}`] });
+      await queryClient.invalidateQueries({ queryKey: [`/api/deals/${dealId}/stars`] });
       await queryClient.invalidateQueries({ queryKey: ['/api/leaderboard'] });
     },
     onError: () => {
@@ -271,8 +288,8 @@ export default function DealDetail() {
                 className="h-9 px-2 sm:px-3"
                 onClick={handleStarDeal}
               >
-                <Star className={`h-4 w-4 sm:mr-1 ${deal?.starCount ? 'fill-accent text-accent' : ''}`} />
-                <span className="hidden sm:inline">{deal?.starCount ? `${deal.starCount}` : 'Star'}</span>
+                <Star className={`h-4 w-4 sm:mr-1 ${hasUserStarred ? 'fill-accent text-accent' : ''}`} />
+                <span className="hidden sm:inline">{hasUserStarred ? 'Starred' : 'Star'} {deal?.starCount ? `(${deal.starCount})` : ''}</span>
               </Button>
               <Button 
                 size="sm"

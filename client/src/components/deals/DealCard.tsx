@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/lib/context/auth-context";
 import { formatDistanceToNow } from "date-fns";
 import { 
   Edit, 
@@ -41,7 +41,7 @@ export default function DealCard({ deal: rawDeal, compact = false, onEdit, onAll
   const assignedUsers = deal.assignedUsers || [];
 
   // Get current user to check if the user has already starred this deal
-  const { data: currentUser } = useAuth();
+  const { user: currentUser } = useAuth();
   
   // Check if the current user has already starred this deal
   const { data: stars = [] } = useQuery<DealStar[]>({
@@ -167,7 +167,7 @@ export default function DealCard({ deal: rawDeal, compact = false, onEdit, onAll
           onClick={handleStarDeal}
         >
           <Star className={`h-3.5 w-3.5 sm:h-4 sm:w-4 mr-0.5 sm:mr-1 flex-shrink-0 ${hasUserStarred ? 'fill-current' : ''}`} />
-          <span className="truncate">{deal.starCount ? `${deal.starCount}` : 'Star'}</span>
+          <span className="truncate">{hasUserStarred ? 'Starred' : 'Star'} {deal.starCount ? `(${deal.starCount})` : ''}</span>
         </Button>
         
         {deal.stage === 'invested' && onAllocate ? (
