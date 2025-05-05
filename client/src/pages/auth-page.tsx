@@ -42,7 +42,7 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 export default function AuthPage() {
   const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
   const [location, navigate] = useLocation();
-  const { data, isLoading, login } = useAuth();
+  const { data, isLoading, login, register } = useAuth();
 
   // Redirect to home if already logged in
   if (data) {
@@ -110,13 +110,18 @@ export default function AuthPage() {
               
               {/* Login Form */}
               <TabsContent value="login">
-                <LoginForm onSubmit={login} isLoading={isLoading} />
+                <LoginForm onSubmit={async (username, password) => {
+                  console.log('Login with:', username, password);
+                  // We'll implement the actual login when the backend is ready
+                }} isLoading={false} />
               </TabsContent>
               
               {/* Register Form */}
               <TabsContent value="register">
-                {/* Using a dummy function for now since register isn't defined yet */}
-                <RegisterForm onSubmit={(data) => console.log('Register:', data)} isLoading={isLoading} />
+                <RegisterForm onSubmit={async (data) => {
+                  console.log('Register with:', data);
+                  // We'll implement the actual registration when the backend is ready
+                }} isLoading={false} />
               </TabsContent>
             </Tabs>
           </Card>
