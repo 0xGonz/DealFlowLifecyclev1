@@ -9,6 +9,8 @@ import {
   CardContent,
   CardDescription 
 } from "@/components/ui/card";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 import { 
   Table, 
   TableHeader, 
@@ -182,6 +184,9 @@ export default function FundDetail() {
     return <NotFound />;
   }
   
+  // Check for invalid allocations
+  const hasInvalidAllocations = fund?.invalidAllocationsCount && fund.invalidAllocationsCount > 0;
+  
   return (
     <AppLayout>
       <div className="flex-1 overflow-y-auto pb-20">
@@ -200,6 +205,15 @@ export default function FundDetail() {
           <div className="text-center py-12">Loading fund details...</div>
         ) : (
           <>
+            {hasInvalidAllocations && (
+              <Alert variant="destructive" className="mb-6">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Warning</AlertTitle>
+                <AlertDescription>
+                  This fund has {fund?.invalidAllocationsCount} allocation(s) to deals that no longer exist. The AUM calculation has been adjusted to reflect only valid deals.
+                </AlertDescription>
+              </Alert>
+            )}
             {/* Layout Grid - Reorganized */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
               {/* Fund Visualizations & Actions */}

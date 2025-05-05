@@ -14,8 +14,32 @@ router.get('/', async (req: Request, res: Response) => {
   try {
     const storage = StorageFactory.getStorage();
     const funds = await storage.getFunds();
-    res.json(funds);
+    
+    // Get all deals to verify which allocations are valid
+    const deals = await storage.getDeals();
+    const validDealIds = deals.map(deal => deal.id);
+    
+    // For each fund, recalculate AUM based only on allocations to valid deals
+    const fundsWithCorrectAum = await Promise.all(funds.map(async (fund) => {
+      const allocations = await storage.getAllocationsByFund(fund.id);
+      
+      // Filter out allocations to non-existent deals
+      const validAllocations = allocations.filter(allocation => validDealIds.includes(allocation.dealId));
+      
+      // Calculate actual AUM based on valid allocations
+      const actualAum = validAllocations.reduce((sum, allocation) => sum + allocation.amount, 0);
+      
+      return {
+        ...fund,
+        aum: actualAum,
+        calculatedAum: actualAum,
+        allocationCount: validAllocations.length
+      };
+    }));
+    
+    res.json(fundsWithCorrectAum);
   } catch (error) {
+    console.error('Error fetching funds:', error);
     res.status(500).json({ message: 'Failed to fetch funds' });
   }
 });
@@ -32,11 +56,18 @@ router.get('/:id', async (req: Request, res: Response) => {
     
     const allocations = await storage.getAllocationsByFund(fund.id);
     
+    // Get all deals in the system
+    const allDeals = await storage.getDeals();
+    const validDealIds = allDeals.map(deal => deal.id);
+    
     // Get deal info for each allocation
     const dealIds = Array.from(new Set(allocations.map(a => a.dealId)));
     const deals = await Promise.all(dealIds.map(id => storage.getDeal(id)));
     
-    const allocationsWithDealInfo = allocations.map(allocation => {
+    // Filter allocations to include only those with valid deals
+    const validAllocations = allocations.filter(allocation => validDealIds.includes(allocation.dealId));
+    
+    const allocationsWithDealInfo = validAllocations.map(allocation => {
       const deal = deals.find(d => d?.id === allocation.dealId);
       return {
         ...allocation,
@@ -47,13 +78,20 @@ router.get('/:id', async (req: Request, res: Response) => {
           stageLabel: DealStageLabels[deal.stage]
         } : null
       };
-    });
+    }).filter(allocation => allocation.deal !== null); // Filter out allocations without deal info
+    
+    // Calculate actual AUM based on valid allocations
+    const actualAum = validAllocations.reduce((sum, allocation) => sum + allocation.amount, 0);
     
     res.json({
       ...fund,
-      allocations: allocationsWithDealInfo
+      aum: actualAum, // Override the static AUM with calculated value
+      calculatedAum: actualAum,
+      allocations: allocationsWithDealInfo,
+      invalidAllocationsCount: allocations.length - validAllocations.length // For debugging purposes
     });
   } catch (error) {
+    console.error('Error fetching fund detail:', error);
     res.status(500).json({ message: 'Failed to fetch fund' });
   }
 });
