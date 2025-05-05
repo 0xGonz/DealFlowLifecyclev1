@@ -18,6 +18,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LAYOUT, AVATAR_COLORS } from "@/lib/constants/ui-constants";
 import { DEFAULT_AVATAR_TEXT } from "@/lib/constants/display-constants";
+import { useAuth } from "@/hooks/use-auth";
 
 interface SidebarProps {
   onCloseMobile?: () => void;
@@ -35,6 +36,7 @@ interface User {
 export default function Sidebar({ onCloseMobile }: SidebarProps) {
   const [location] = useLocation();
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const { logout } = useAuth();
   
   // Fetch current user
   const { data: currentUser, isLoading } = useQuery<User>({
@@ -190,9 +192,13 @@ export default function Sidebar({ onCloseMobile }: SidebarProps) {
         {/* Logout button */}
         <div className="p-3 border-t border-neutral-200">
           <a 
-            href="/logout" 
+            href="#" 
             className="flex items-center py-2 px-3 rounded-md text-sm text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900 transition-colors"
-            onClick={() => onCloseMobile && window.innerWidth < 768 && onCloseMobile()}
+            onClick={(e) => {
+              e.preventDefault();
+              logout.mutate();
+              onCloseMobile && window.innerWidth < 768 && onCloseMobile();
+            }}
           >
             <LogOut className="h-5 w-5 mr-2" />
             Logout

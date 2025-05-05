@@ -12,6 +12,8 @@ import FundDetail from "@/pages/FundDetail";
 import DealDetail from "@/pages/DealDetail";
 import TeamPage from "@/pages/TeamPage";
 import CapitalCalls from "@/pages/CapitalCalls";
+import Settings from "@/pages/Settings";
+import Users from "@/pages/Users";
 import AuthPage from "@/pages/auth-page";
 import StarTest from "@/pages/StarTest";
 import { AuthProvider } from "@/hooks/use-auth";
@@ -29,6 +31,8 @@ function Router() {
       <ProtectedRoute path="/deals/:id" component={DealDetail} />
       <ProtectedRoute path="/team" component={TeamPage} />
       <ProtectedRoute path="/capital-calls" component={CapitalCalls} />
+      <ProtectedRoute path="/settings" component={Settings} />
+      <ProtectedRoute path="/users" component={Users} />
       <Route path="/auth" component={AuthPage} />
       <Route path="/startest" component={StarTest} />
       <Route component={NotFound} />
