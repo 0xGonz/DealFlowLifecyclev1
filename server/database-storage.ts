@@ -287,6 +287,16 @@ export class DatabaseStorage implements IStorage {
     return updatedFund || undefined;
   }
   
+  async deleteFund(id: number): Promise<boolean> {
+    try {
+      await db.delete(funds).where(eq(funds.id, id));
+      return true;
+    } catch (error) {
+      console.error('Error deleting fund:', error);
+      return false;
+    }
+  }
+  
   // Fund allocations
   async createFundAllocation(allocation: InsertFundAllocation): Promise<FundAllocation> {
     const [newAllocation] = await db.insert(fundAllocations).values(allocation).returning();

@@ -64,6 +64,7 @@ export interface IStorage {
   getFund(id: number): Promise<Fund | undefined>;
   getFunds(): Promise<Fund[]>;
   updateFund(id: number, fund: Partial<InsertFund>): Promise<Fund | undefined>;
+  deleteFund(id: number): Promise<boolean>;
   
   // Fund allocations
   createFundAllocation(allocation: InsertFundAllocation): Promise<FundAllocation>;
@@ -663,6 +664,22 @@ export class MemStorage implements IStorage {
     };
     this.funds.set(id, updatedFund);
     return updatedFund;
+  }
+  
+  async deleteFund(id: number): Promise<boolean> {
+    // First check if the fund exists
+    const fund = this.funds.get(id);
+    if (!fund) return false;
+    
+    // Check if there are any allocations for this fund
+    const allocations = await this.getAllocationsByFund(id);
+    if (allocations.length > 0) {
+      // We don't want to delete a fund with allocations
+      return false;
+    }
+    
+    // If no allocations, proceed with deletion
+    return this.funds.delete(id);
   }
   
   // Fund allocations

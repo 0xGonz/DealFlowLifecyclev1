@@ -137,4 +137,34 @@ router.patch('/:id', async (req: Request, res: Response) => {
   }
 });
 
+// Delete a fund
+router.delete('/:id', async (req: Request, res: Response) => {
+  try {
+    const storage = StorageFactory.getStorage();
+    const fundId = Number(req.params.id);
+    
+    // Make sure fund exists
+    const fund = await storage.getFund(fundId);
+    if (!fund) {
+      return res.status(404).json({ message: 'Fund not found' });
+    }
+    
+    // Check if fund has allocations
+    const allocations = await storage.getAllocationsByFund(fundId);
+    if (allocations.length > 0) {
+      return res.status(400).json({
+        message: 'Cannot delete a fund with allocations. Reassign or delete allocations first.',
+        allocationsCount: allocations.length
+      });
+    }
+    
+    // If no allocations, proceed with deletion
+    await storage.deleteFund(fundId);
+    res.status(200).json({ message: 'Fund deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting fund:', error);
+    res.status(500).json({ message: 'Failed to delete fund' });
+  }
+});
+
 export default router;

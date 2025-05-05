@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import AppLayout from "@/components/layout/AppLayout";
 import { 
   Card, 
@@ -28,27 +28,102 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, DollarSign, TrendingUp, TrendingDown, ArrowUpRight } from "lucide-react";
+import { usePermissions } from "@/hooks/use-permissions";
+import { Plus, DollarSign, TrendingUp, TrendingDown, ArrowUpRight, Pencil, Trash2, MoreHorizontal } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils/format";
 import { formatDistanceToNow } from "date-fns";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function Funds() {
   const [isNewFundDialogOpen, setIsNewFundDialogOpen] = useState(false);
+  const [isEditFundDialogOpen, setIsEditFundDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [currentFund, setCurrentFund] = useState<Fund | null>(null);
   const [newFundData, setNewFundData] = useState({
+    name: "",
+    vintage: new Date().getFullYear(),
+    description: ""
+  });
+  const [editFundData, setEditFundData] = useState({
     name: "",
     vintage: new Date().getFullYear(),
     description: ""
   });
   
   const { toast } = useToast();
+  const { canEdit, canDelete } = usePermissions();
   
   const { data: funds = [], isLoading } = useQuery<Fund[]>({
     queryKey: ['/api/funds'],
+  });
+  
+  // Update fund mutation
+  const updateFundMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number, data: Partial<Fund> }) => {
+      const response = await apiRequest("PATCH", `/api/funds/${id}`, data);
+      return await response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Fund updated successfully",
+      });
+      setIsEditFundDialogOpen(false);
+      queryClient.invalidateQueries({ queryKey: ["/api/funds"] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to update fund",
+        variant: "destructive",
+      });
+      console.error("Update error:", error);
+    },
+  });
+  
+  // Delete fund mutation
+  const deleteFundMutation = useMutation({
+    mutationFn: async (id: number) => {
+      await apiRequest("DELETE", `/api/funds/${id}`);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Fund deleted successfully",
+      });
+      setIsDeleteDialogOpen(false);
+      queryClient.invalidateQueries({ queryKey: ["/api/funds"] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to delete fund. There might be allocations linked to this fund.",
+        variant: "destructive",
+      });
+      console.error("Delete error:", error);
+    },
   });
 
   const handleCreateFund = async () => {
@@ -185,8 +260,45 @@ export default function Funds() {
           ) : (
             funds?.map(fund => (
               <Card key={fund.id} className="overflow-hidden hover:shadow-md transition-shadow duration-200">
-                <CardHeader className="bg-primary/10 pb-2 sm:pb-3">
-                  <CardTitle className="text-base sm:text-lg font-semibold truncate">{fund.name}</CardTitle>
+                <CardHeader className="bg-primary/10 pb-2 sm:pb-3 flex justify-between items-start">
+                  <CardTitle className="text-base sm:text-lg font-semibold truncate pr-2">{fund.name}</CardTitle>
+                  {canEdit && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0" aria-label="Fund options">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={() => {
+                            setCurrentFund(fund);
+                            setEditFundData({
+                              name: fund.name,
+                              vintage: fund.vintage || new Date().getFullYear(),
+                              description: fund.description || "",
+                            });
+                            setIsEditFundDialogOpen(true);
+                          }}
+                        >
+                          <Pencil className="mr-2 h-4 w-4" /> Edit Fund
+                        </DropdownMenuItem>
+                        {canDelete && (
+                          <DropdownMenuItem
+                            className="text-destructive focus:text-destructive"
+                            onClick={() => {
+                              setCurrentFund(fund);
+                              setIsDeleteDialogOpen(true);
+                            }}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" /> Delete Fund
+                          </DropdownMenuItem>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
                 </CardHeader>
                 <CardContent className="pt-3 sm:pt-4">
                   <div className="flex flex-col mb-3 sm:mb-4 space-y-3">
@@ -264,6 +376,114 @@ export default function Funds() {
             </div>
           </CardContent>
         </Card>
+        
+        {/* Edit Fund Dialog */}
+        <Dialog open={isEditFundDialogOpen} onOpenChange={setIsEditFundDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Fund</DialogTitle>
+              <DialogDescription>
+                Update the details for this investment fund.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-name">Fund Name *</Label>
+                <Input 
+                  id="edit-name" 
+                  value={editFundData.name}
+                  onChange={(e) => setEditFundData({...editFundData, name: e.target.value})}
+                  placeholder="e.g. Doliver Fund IV"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="edit-description">Description</Label>
+                <Textarea 
+                  id="edit-description" 
+                  value={editFundData.description}
+                  onChange={(e) => setEditFundData({...editFundData, description: e.target.value})}
+                  placeholder="Fund description, strategy, etc."
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="edit-vintage">Vintage Year *</Label>
+                <Input 
+                  id="edit-vintage"
+                  type="number"
+                  value={editFundData.vintage}
+                  onChange={(e) => setEditFundData({...editFundData, vintage: parseInt(e.target.value)})}
+                  placeholder="e.g. 2025"
+                  min={1980}
+                  max={new Date().getFullYear() + 1}
+                />
+              </div>
+            </div>
+            
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsEditFundDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  if (currentFund) {
+                    if (!editFundData.name) {
+                      toast({
+                        title: "Error",
+                        description: "Fund name is required",
+                        variant: "destructive"
+                      });
+                      return;
+                    }
+                    
+                    if (!editFundData.vintage || editFundData.vintage < 1980 || editFundData.vintage > new Date().getFullYear() + 1) {
+                      toast({
+                        title: "Error",
+                        description: "Please enter a valid vintage year",
+                        variant: "destructive"
+                      });
+                      return;
+                    }
+                    
+                    updateFundMutation.mutate({
+                      id: currentFund.id,
+                      data: editFundData
+                    });
+                  }
+                }}
+                disabled={updateFundMutation.isPending}
+              >
+                {updateFundMutation.isPending ? "Updating..." : "Update Fund"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+        
+        {/* Delete Fund Alert Dialog */}
+        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure you want to delete this fund?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will permanently delete the fund {currentFund?.name}. This action cannot be undone.
+                <br />
+                <span className="font-medium text-destructive">Warning:</span> If this fund has allocations, they will need to be reassigned before deletion.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => currentFund && deleteFundMutation.mutate(currentFund.id)}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                disabled={deleteFundMutation.isPending}
+              >
+                {deleteFundMutation.isPending ? "Deleting..." : "Delete Fund"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </AppLayout>
   );
