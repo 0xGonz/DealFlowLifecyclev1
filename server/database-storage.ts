@@ -121,6 +121,36 @@ export class DatabaseStorage implements IStorage {
       .from(timelineEvents)
       .where(eq(timelineEvents.dealId, dealId));
   }
+
+  async updateTimelineEvent(id: number, update: Partial<InsertTimelineEvent>): Promise<TimelineEvent | undefined> {
+    if (!db) {
+      throw new Error('Database not initialized');
+    }
+    try {
+      const [updatedEvent] = await db.update(timelineEvents)
+        .set(update)
+        .where(eq(timelineEvents.id, id))
+        .returning();
+      return updatedEvent;
+    } catch (error) {
+      console.error('Error updating timeline event:', error);
+      return undefined;
+    }
+  }
+
+  async deleteTimelineEvent(id: number): Promise<boolean> {
+    if (!db) {
+      throw new Error('Database not initialized');
+    }
+    try {
+      await db.delete(timelineEvents)
+        .where(eq(timelineEvents.id, id));
+      return true;
+    } catch (error) {
+      console.error('Error deleting timeline event:', error);
+      return false;
+    }
+  }
   
   // Deal stars
   async starDeal(starData: InsertDealStar): Promise<DealStar> {
@@ -275,6 +305,20 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(fundAllocations)
       .where(eq(fundAllocations.dealId, dealId));
+  }
+  
+  async deleteFundAllocation(id: number): Promise<boolean> {
+    if (!db) {
+      throw new Error('Database not initialized');
+    }
+    try {
+      await db.delete(fundAllocations)
+        .where(eq(fundAllocations.id, id));
+      return true;
+    } catch (error) {
+      console.error('Error deleting fund allocation:', error);
+      return false;
+    }
   }
   
   // Deal assignments

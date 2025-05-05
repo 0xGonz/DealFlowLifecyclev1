@@ -688,6 +688,14 @@ export class MemStorage implements IStorage {
     return Array.from(this.fundAllocations.values()).filter(alloc => alloc.dealId === dealId);
   }
   
+  async deleteFundAllocation(id: number): Promise<boolean> {
+    const allocation = this.fundAllocations.get(id);
+    if (!allocation) return false;
+    
+    this.fundAllocations.delete(id);
+    return true;
+  }
+  
   // Deal assignments
   async assignUserToDeal(assignment: InsertDealAssignment): Promise<DealAssignment> {
     // Check if already assigned

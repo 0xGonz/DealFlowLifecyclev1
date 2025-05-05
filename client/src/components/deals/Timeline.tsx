@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, format } from "date-fns";
 import { 
   CheckCircle, 
   FileEdit,
@@ -18,7 +19,12 @@ import {
   Trash2,
   Pencil,
   X,
-  Check
+  Check,
+  Filter,
+  SlidersHorizontal,
+  ChevronDown,
+  ChevronUp,
+  AlertCircle
 } from "lucide-react";
 import { ICON_SIZES } from "@/lib/constants/ui-constants";
 import {
@@ -32,31 +38,154 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/use-auth";
+
+// Types for timeline events and filtering
+type EventType = 'note' | 'stage_change' | 'document_upload' | 'memo_added' | 'star_added' | 'ai_analysis' | 'fund_allocation';
+
+interface TimelineEvent {
+  id: number;
+  dealId: number;
+  eventType: EventType;
+  content: string | null;
+  createdBy: number;
+  createdAt: string;
+  metadata: Record<string, any> | null;
+  user?: {
+    id: number;
+    fullName: string;
+    initials: string;
+    avatarColor: string | null;
+  };
+}
 
 interface TimelineProps {
   dealId?: number;
 }
 
+interface FilterOptions {
+  eventTypes: EventType[];
+  dateRange: 'all' | 'today' | 'week' | 'month';
+  userFilter: number | null;
+}
+
 export default function Timeline({ dealId }: TimelineProps) {
+  // State for note input and editing
   const [newNote, setNewNote] = useState("");
+  const [noteType, setNoteType] = useState<'note' | 'question' | 'decision' | 'concern'>('note');
   const [editingEventId, setEditingEventId] = useState<number | null>(null);
   const [editContent, setEditContent] = useState("");
   const [eventToDelete, setEventToDelete] = useState<number | null>(null);
+  
+  // State for filtering and view options
+  const [activeTab, setActiveTab] = useState<'all' | 'notes' | 'documents' | 'stages'>('all');
+  const [expandedFilters, setExpandedFilters] = useState(false);
+  const [filters, setFilters] = useState<FilterOptions>({
+    eventTypes: ['note', 'stage_change', 'document_upload', 'memo_added', 'star_added', 'ai_analysis', 'fund_allocation'],
+    dateRange: 'all',
+    userFilter: null
+  });
+  
   const { toast } = useToast();
   const { data: user } = useAuth();
 
-  const { data = [], isLoading } = useQuery<any[]>({
+  // Fetch timeline events
+  const { data: timelineData = [], isLoading } = useQuery<TimelineEvent[]>({
     queryKey: [`/api/deals/${dealId}/timeline`],
     enabled: !!dealId,
   });
+  
+  // Fetch users for filtering
+  const { data: usersData = [] } = useQuery<any[]>({
+    queryKey: ["/api/users"],
+  });
+
+  // Filter and process timeline data
+  const filteredTimelineData = timelineData.filter(event => {
+    // Filter by event type
+    if (!filters.eventTypes.includes(event.eventType)) return false;
+    
+    // Filter by user if specified
+    if (filters.userFilter && event.createdBy !== filters.userFilter) return false;
+    
+    // Filter by date range
+    const eventDate = new Date(event.createdAt);
+    const today = new Date();
+    const todayStart = new Date(today.setHours(0, 0, 0, 0));
+    
+    if (filters.dateRange === 'today' && eventDate < todayStart) return false;
+    
+    if (filters.dateRange === 'week') {
+      const weekStart = new Date(today);
+      weekStart.setDate(weekStart.getDate() - 7);
+      if (eventDate < weekStart) return false;
+    }
+    
+    if (filters.dateRange === 'month') {
+      const monthStart = new Date(today);
+      monthStart.setMonth(monthStart.getMonth() - 1);
+      if (eventDate < monthStart) return false;
+    }
+    
+    // Apply tab filtering
+    if (activeTab === 'notes' && event.eventType !== 'note') return false;
+    if (activeTab === 'documents' && event.eventType !== 'document_upload') return false;
+    if (activeTab === 'stages' && event.eventType !== 'stage_change') return false;
+    
+    return true;
+  });
+  
+  // Function to toggle event type filter
+  const toggleEventTypeFilter = (eventType: EventType) => {
+    setFilters(prev => {
+      const currentFilters = [...prev.eventTypes];
+      if (currentFilters.includes(eventType)) {
+        return { ...prev, eventTypes: currentFilters.filter(type => type !== eventType) };
+      } else {
+        return { ...prev, eventTypes: [...currentFilters, eventType] };
+      }
+    });
+  };
+
+  // Function to set date range filter
+  const setDateRangeFilter = (range: FilterOptions['dateRange']) => {
+    setFilters(prev => ({ ...prev, dateRange: range }));
+  };
+
+  // Function to set user filter
+  const setUserFilter = (userId: number | null) => {
+    setFilters(prev => ({ ...prev, userFilter: userId }));
+  };
 
   const addNoteMutation = useMutation({
-    mutationFn: async (content: string) => {
+    mutationFn: async (data: { content: string, noteType: string }) => {
       return apiRequest("POST", `/api/deals/${dealId}/timeline`, {
         eventType: "note",
-        content,
-        metadata: {}
+        content: data.content,
+        metadata: { noteType: data.noteType }
       });
     },
     onSuccess: async () => {
@@ -123,7 +252,10 @@ export default function Timeline({ dealId }: TimelineProps) {
 
   const handleAddNote = () => {
     if (!newNote.trim()) return;
-    addNoteMutation.mutate(newNote);
+    addNoteMutation.mutate({
+      content: newNote,
+      noteType: noteType
+    });
   };
 
   const handleEditNote = (event: any) => {
@@ -219,35 +351,167 @@ export default function Timeline({ dealId }: TimelineProps) {
     <div>
       {/* Add quick note field */}
       <div className="mb-6">
-        <div className="flex space-x-2">
-          <Textarea 
-            placeholder="Add a quick note..." 
-            className="resize-none"
-            value={newNote}
-            onChange={(e) => setNewNote(e.target.value)}
-          />
-          <Button 
-            className="shrink-0"
-            onClick={handleAddNote}
-            disabled={addNoteMutation.isPending || !newNote.trim()}
-          >
-            {addNoteMutation.isPending ? "Adding..." : "Add"}
-          </Button>
-        </div>
+        <Card>
+          <CardContent className="p-4">
+            <div className="mb-3">
+              <h3 className="text-sm font-medium mb-2">Add a new note</h3>
+              <div className="flex flex-wrap gap-2 mb-3">
+                <Badge 
+                  variant={noteType === 'note' ? 'default' : 'outline'}
+                  className={`cursor-pointer ${noteType === 'note' ? '' : 'hover:bg-secondary/50'}`}
+                  onClick={() => setNoteType('note')}
+                >
+                  <MessageSquare className="mr-1 h-3 w-3" /> Note
+                </Badge>
+                <Badge 
+                  variant={noteType === 'question' ? 'default' : 'outline'}
+                  className={`cursor-pointer ${noteType === 'question' ? 'bg-amber-500 hover:bg-amber-600' : 'hover:bg-amber-200'}`}
+                  onClick={() => setNoteType('question')}
+                >
+                  <Info className="mr-1 h-3 w-3" /> Question
+                </Badge>
+                <Badge 
+                  variant={noteType === 'decision' ? 'default' : 'outline'}
+                  className={`cursor-pointer ${noteType === 'decision' ? 'bg-green-500 hover:bg-green-600' : 'hover:bg-green-200'}`}
+                  onClick={() => setNoteType('decision')}
+                >
+                  <CheckCircle className="mr-1 h-3 w-3" /> Decision
+                </Badge>
+                <Badge 
+                  variant={noteType === 'concern' ? 'default' : 'outline'}
+                  className={`cursor-pointer ${noteType === 'concern' ? 'bg-red-500 hover:bg-red-600' : 'hover:bg-red-200'}`}
+                  onClick={() => setNoteType('concern')}
+                >
+                  <AlertCircle className="mr-1 h-3 w-3" /> Concern
+                </Badge>
+              </div>
+            </div>
+            <div className="flex space-x-2">
+              <Textarea 
+                placeholder={`Add a ${noteType === 'question' ? 'question' : noteType === 'decision' ? 'decision' : noteType === 'concern' ? 'concern' : 'note'}...`} 
+                className="resize-none"
+                value={newNote}
+                onChange={(e) => setNewNote(e.target.value)}
+              />
+              <Button 
+                className="shrink-0"
+                onClick={handleAddNote}
+                disabled={addNoteMutation.isPending || !newNote.trim()}
+              >
+                {addNoteMutation.isPending ? "Adding..." : "Add"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
+      {/* Timeline events */}
+      {/* Filter and tab navigation */}
+      <div className="mb-4">
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)} className="w-full">
+          <TabsList className="w-full">
+            <TabsTrigger value="all" className="flex-1">All</TabsTrigger>
+            <TabsTrigger value="notes" className="flex-1">Notes</TabsTrigger>
+            <TabsTrigger value="documents" className="flex-1">Documents</TabsTrigger>
+            <TabsTrigger value="stages" className="flex-1">Stage Changes</TabsTrigger>
+          </TabsList>
+        </Tabs>
+        
+        <div className="mt-3 flex justify-between items-center">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setExpandedFilters(!expandedFilters)}
+            className="text-xs"
+          >
+            <Filter size={14} className="mr-1" />
+            {expandedFilters ? 'Hide filters' : 'Show filters'}
+            {expandedFilters ? <ChevronUp size={14} className="ml-1" /> : <ChevronDown size={14} className="ml-1" />}
+          </Button>
+          
+          <Select value={filters.dateRange} onValueChange={(value) => setDateRangeFilter(value as any)}>
+            <SelectTrigger className="w-32 h-8 text-xs">
+              <SelectValue placeholder="Date range" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All time</SelectItem>
+              <SelectItem value="today">Today</SelectItem>
+              <SelectItem value="week">Last 7 days</SelectItem>
+              <SelectItem value="month">Last 30 days</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        
+        {expandedFilters && (
+          <Card className="mt-3">
+            <CardContent className="p-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <h4 className="text-sm font-medium mb-2">Event Types</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {([
+                      { id: 'note', label: 'Notes', color: 'bg-secondary' },
+                      { id: 'stage_change', label: 'Stage Changes', color: 'bg-primary-light' },
+                      { id: 'document_upload', label: 'Documents', color: 'bg-secondary' },
+                      { id: 'memo_added', label: 'Memos', color: 'bg-accent' },
+                      { id: 'star_added', label: 'Stars', color: 'bg-accent' },
+                      { id: 'fund_allocation', label: 'Fund Allocations', color: 'bg-success' },
+                      { id: 'ai_analysis', label: 'AI Analysis', color: 'bg-info' }
+                    ] as const).map(type => (
+                      <div key={type.id} className="flex items-center">
+                        <Checkbox 
+                          id={`filter-${type.id}`} 
+                          checked={filters.eventTypes.includes(type.id)} 
+                          onCheckedChange={() => toggleEventTypeFilter(type.id)}
+                          className="mr-1"
+                        />
+                        <label 
+                          htmlFor={`filter-${type.id}`}
+                          className="text-xs cursor-pointer flex items-center"
+                        >
+                          <span className={`inline-block w-2 h-2 rounded-full ${type.color} mr-1`}></span>
+                          {type.label}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                <div>
+                  <h4 className="text-sm font-medium mb-2">Users</h4>
+                  <Select 
+                    value={filters.userFilter?.toString() || "all"} 
+                    onValueChange={(value) => setUserFilter(value === "all" ? null : parseInt(value))}
+                  >
+                    <SelectTrigger className="w-full h-8 text-xs">
+                      <SelectValue placeholder="Filter by user" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All users</SelectItem>
+                      {usersData.map((user: any) => (
+                        <SelectItem key={user.id} value={user.id.toString()}>{user.fullName}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+      
       {/* Timeline events */}
       <div className="space-y-0 max-h-[500px] overflow-y-auto scrollbar-thin pr-2">
         {isLoading ? (
           <div className="flex justify-center items-center py-10">
             <p className="text-neutral-500">Loading timeline...</p>
           </div>
-        ) : data.length === 0 ? (
+        ) : filteredTimelineData.length === 0 ? (
           <div className="flex justify-center items-center py-10">
-            <p className="text-neutral-500">No timeline events yet.</p>
+            <p className="text-neutral-500">No timeline events match your filters.</p>
           </div>
         ) : (
-          data.map((event: any) => (
+          filteredTimelineData.map((event: TimelineEvent) => (
             <div key={event.id} className="timeline-dot relative pl-8 pb-6">
               {getEventIcon(event.eventType)}
               <div>
@@ -295,6 +559,42 @@ export default function Timeline({ dealId }: TimelineProps) {
                   )}
                 </div>
                 
+                {/* Display note with appropriate styling based on type */}
+                {event.eventType === 'note' && event.metadata?.noteType && (
+                  <div className="mt-1 mb-2">
+                    <Badge
+                      variant="outline"
+                      className={`
+                        ${event.metadata.noteType === 'question' ? 'text-amber-600 border-amber-300 bg-amber-50' : ''}
+                        ${event.metadata.noteType === 'decision' ? 'text-green-600 border-green-300 bg-green-50' : ''}
+                        ${event.metadata.noteType === 'concern' ? 'text-red-600 border-red-300 bg-red-50' : ''}
+                      `}
+                    >
+                      {event.metadata.noteType === 'question' ? (
+                        <>
+                          <Info className="mr-1 h-3 w-3" /> 
+                          Question
+                        </>
+                      ) : event.metadata.noteType === 'decision' ? (
+                        <>
+                          <CheckCircle className="mr-1 h-3 w-3" /> 
+                          Decision
+                        </>
+                      ) : event.metadata.noteType === 'concern' ? (
+                        <>
+                          <AlertCircle className="mr-1 h-3 w-3" /> 
+                          Concern
+                        </>
+                      ) : (
+                        <>
+                          <MessageSquare className="mr-1 h-3 w-3" /> 
+                          Note
+                        </>
+                      )}
+                    </Badge>
+                  </div>
+                )}
+                
                 {editingEventId === event.id ? (
                   <div className="mt-1">
                     <Textarea
@@ -322,7 +622,14 @@ export default function Timeline({ dealId }: TimelineProps) {
                     </div>
                   </div>
                 ) : (
-                  <p className="text-sm text-neutral-800 mt-1">{event.content}</p>
+                  <div className={`text-sm text-neutral-800 mt-1 p-2 rounded-md ${
+                    event.eventType === 'note' && event.metadata?.noteType === 'question' ? 'bg-amber-50' :
+                    event.eventType === 'note' && event.metadata?.noteType === 'decision' ? 'bg-green-50' :
+                    event.eventType === 'note' && event.metadata?.noteType === 'concern' ? 'bg-red-50' :
+                    'bg-gray-50'
+                  }`}>
+                    {event.content}
+                  </div>
                 )}
                 
                 {event.user && (
@@ -333,8 +640,11 @@ export default function Timeline({ dealId }: TimelineProps) {
                       </AvatarFallback>
                     </Avatar>
                     <span className="text-xs text-neutral-500">{event.user.fullName}</span>
+                    <span className="text-xs text-neutral-400 ml-auto">
+                      {format(new Date(event.createdAt), 'MMM d, yyyy')}
+                    </span>
                   </div>
-                )}
+                )}                
               </div>
             </div>
           ))
