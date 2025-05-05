@@ -6,7 +6,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
-import { useAuth } from "@/lib/context/auth-context";
+import { useAuth } from "@/hooks/use-auth";
 
 import {
   Dialog,
@@ -100,7 +100,7 @@ export function MiniMemoForm({
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
 
   // Get current user
-  const { user } = useAuth();
+  const { data: user } = useAuth();
   const [activeTab, setActiveTab] = useState("thesis");
   
   // Fetch all users for team member selection

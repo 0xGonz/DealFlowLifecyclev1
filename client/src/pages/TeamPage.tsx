@@ -5,7 +5,7 @@ import TeamActivity from '@/components/users/TeamActivity';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
-import { useAuth } from '@/lib/context/auth-context';
+import { useAuth } from '@/hooks/use-auth';
 import ProfileEditModal from '@/components/profile/ProfileEditModal';
 
 interface UserProfile {
@@ -20,7 +20,7 @@ interface UserProfile {
 
 export default function TeamPage() {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-  const { user } = useAuth();
+  const { data: user } = useAuth();
 
   // Get current user info
   const { data: currentUser } = useQuery<UserProfile>({

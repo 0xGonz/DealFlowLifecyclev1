@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { Redirect } from 'wouter';
-import { useAuth } from '@/lib/context/auth-context';
+import { useAuth } from '@/hooks/use-auth';
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -11,7 +11,7 @@ interface ProtectedRouteProps {
  * Component that protects routes requiring authentication
  */
 export default function ProtectedRoute({ children, requiredRoles }: ProtectedRouteProps) {
-  const { user, isLoading } = useAuth();
+  const { data: user, isLoading } = useAuth();
   
   // Show loading state if still checking authentication
   if (isLoading) {

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/lib/context/auth-context';
+import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -47,7 +47,7 @@ interface MemoDetailDialogProps {
 }
 
 export function MemoDetailDialog({ isOpen, onOpenChange, memo, dealId }: MemoDetailDialogProps) {
-  const { user } = useAuth();
+  const { data: user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [comments, setComments] = useState<Comment[]>([]);

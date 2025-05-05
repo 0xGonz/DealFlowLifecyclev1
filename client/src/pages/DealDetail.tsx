@@ -42,7 +42,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/lib/context/auth-context";
+import { useAuth } from "@/hooks/use-auth";
 import { 
   ChevronLeft, 
   Star, 
@@ -119,7 +119,7 @@ export default function DealDetail() {
   });
   
   // Get the current user info
-  const { user: currentUser } = useAuth();
+  const { data: currentUser } = useAuth();
   
   // Check if current user has already starred this deal
   const hasUserStarred = Array.isArray(stars) && stars.some((star: any) => currentUser && star.userId === currentUser.id);
