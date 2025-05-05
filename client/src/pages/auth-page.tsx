@@ -125,7 +125,9 @@ export default function AuthPage() {
               <TabsContent value="login">
                 <LoginForm onSubmit={async (username, password) => {
                   try {
+                    console.log('Starting login process for username:', username);
                     setIsAuthenticating(true);
+                    
                     await login.mutateAsync({ username, password });
                     
                     console.log('Login successful, showing animation');
@@ -137,7 +139,7 @@ export default function AuthPage() {
                     }, 1500);
                   } catch (error) {
                     setIsAuthenticating(false);
-                    console.error('Login error:', error);
+                    console.error('Login error in auth-page.tsx:', error);
                     // Error handling is already in the auth context
                   }
                 }} isLoading={isLoading} />
@@ -199,10 +201,11 @@ function LoginForm({ onSubmit, isLoading }: { onSubmit: (username: string, passw
       }
       
       const { username, password } = data;
+      console.log('Submitting login with credentials:', { username, password: '******' });
       await onSubmit(username, password);
     } catch (error) {
       // Error is handled in the auth context
-      console.error('Login error:', error);
+      console.error('Login error in form:', error);
       setFormIsSubmitting(false);
       
       // Remove loading animation
