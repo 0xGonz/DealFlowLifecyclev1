@@ -13,6 +13,7 @@ import DealDetail from "@/pages/DealDetail";
 import TeamPage from "@/pages/TeamPage";
 import CapitalCalls from "@/pages/CapitalCalls";
 import AuthPage from "@/pages/auth-page";
+import StarTest from "@/pages/StarTest";
 import { AuthProvider } from "@/hooks/use-auth";
 import ErrorBoundary from "@/components/common/ErrorBoundary";
 import { ProtectedRoute } from "@/components/common/ProtectedRoute";
@@ -29,6 +30,7 @@ function Router() {
       <ProtectedRoute path="/team" component={TeamPage} />
       <ProtectedRoute path="/capital-calls" component={CapitalCalls} />
       <Route path="/auth" component={AuthPage} />
+      <Route path="/startest" component={StarTest} />
       <Route component={NotFound} />
     </Switch>
   );

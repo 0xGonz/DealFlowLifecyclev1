@@ -10,13 +10,13 @@ import { formatDistanceToNow } from "date-fns";
 import { 
   Edit, 
   Share2, 
-  Star,
   DollarSign,
   Tag
 } from "lucide-react";
-import { Deal, User, DealStar } from "@/lib/types";
+import { Deal, User, DealStar as DealStarType } from "@/lib/types";
 import { getDealStageBadgeClass } from "@/lib/utils/format";
 import { enrichDealWithComputedProps } from "@/lib/utils";
+import DealStar from "./DealStar";
 
 interface DealCardProps {
   deal: Deal;
@@ -44,7 +44,7 @@ export default function DealCard({ deal: rawDeal, compact = false, onEdit, onAll
   const { data: currentUser } = useAuth();
   
   // Check if the current user has already starred this deal
-  const { data: stars = [] } = useQuery<DealStar[]>({
+  const { data: stars = [] } = useQuery<DealStarType[]>({
     queryKey: [`/api/deals/${deal.id}/stars`],
     enabled: !!deal.id
   });
@@ -166,7 +166,13 @@ export default function DealCard({ deal: rawDeal, compact = false, onEdit, onAll
           className={`text-xs sm:text-sm flex-1 min-w-0 px-1 sm:px-3 h-7 sm:h-8 ${hasUserStarred ? 'text-accent' : 'text-neutral-600 hover:text-primary'}`}
           onClick={handleStarDeal}
         >
-          <Star className={`h-3.5 w-3.5 sm:h-4 sm:w-4 mr-0.5 sm:mr-1 flex-shrink-0 ${hasUserStarred ? 'fill-current' : ''}`} />
+          <DealStar 
+            count={deal.starCount || 0} 
+            filled={hasUserStarred}
+            size="sm"
+            showCount={false}
+            className="mr-1.5"
+          />
           <span className="truncate">{hasUserStarred ? 'Starred' : 'Star'} {deal.starCount ? `(${deal.starCount})` : ''}</span>
         </Button>
         

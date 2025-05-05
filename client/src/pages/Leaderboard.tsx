@@ -10,7 +10,8 @@ import {
 } from "@/components/ui/table";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Star, ArrowUp, ArrowDown } from "lucide-react";
+import { ArrowUp, ArrowDown } from "lucide-react";
+import DealStar from "@/components/deals/DealStar";
 import { Badge } from "@/components/ui/badge";
 import { useLocation } from "wouter";
 import { LeaderboardItem } from "@/lib/types";
@@ -99,9 +100,8 @@ export default function Leaderboard() {
                               </div>
                             </TableCell>
                             <TableCell className="text-center text-xs sm:text-sm py-2 sm:py-3">
-                              <div className="flex items-center justify-center text-accent">
-                                <Star className="h-3.5 w-3.5 sm:h-4 sm:w-4 fill-current" />
-                                <span className="ml-1 text-xs sm:text-sm">{deal.starCount}</span>
+                              <div className="flex justify-center">
+                                <DealStar count={deal.starCount} size="sm" className="justify-center" />
                               </div>
                             </TableCell>
                             <TableCell className="text-xs sm:text-sm py-2 sm:py-3">
@@ -159,9 +159,8 @@ export default function Leaderboard() {
                               <div className="truncate">{deal.name}</div>
                             </TableCell>
                             <TableCell className="text-center text-xs sm:text-sm py-2 sm:py-3">
-                              <div className="flex items-center justify-center text-accent">
-                                <Star className="h-3.5 w-3.5 sm:h-4 sm:w-4 fill-current" />
-                                <span className="ml-1 text-xs sm:text-sm">{deal.starCount}</span>
+                              <div className="flex justify-center">
+                                <DealStar count={deal.starCount} size="sm" className="justify-center" />
                               </div>
                             </TableCell>
                             <TableCell className="text-right text-xs sm:text-sm py-2 sm:py-3">
