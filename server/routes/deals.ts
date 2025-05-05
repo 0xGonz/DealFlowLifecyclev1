@@ -140,7 +140,8 @@ router.post('/', async (req: Request, res: Response) => {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ message: 'Invalid deal data', errors: error.errors });
     }
-    res.status(500).json({ message: 'Failed to create deal' });
+    console.error('Error creating deal:', error);
+    res.status(500).json({ message: 'Failed to create deal', error: String(error) });
   }
 });
 
