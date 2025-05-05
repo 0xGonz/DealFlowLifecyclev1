@@ -46,7 +46,7 @@ export default function NotificationDropdown() {
   const { data: notifications = [] } = useQuery<Notification[], Error, Notification[]>({
     queryKey: ['/api/notifications'],
     staleTime: 60000, // 1 minute,
-    select: (data) => data as Notification[]
+    select: (data) => data.filter(notification => !notification.isRead) as Notification[]
   });
 
   // Fetch unread count
