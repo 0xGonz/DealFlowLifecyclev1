@@ -123,15 +123,38 @@ export default function StageDistribution({ deals, stage }: StageDistributionPro
             ))}
           </div>
           
-          {/* List of deals with their days in stage */}
-          <div className="mt-4 space-y-2">
-            <h4 className="text-xs font-medium text-black">Individual Deals</h4>
-            {dealDays.map((deal) => (
-              <div key={deal.id} className="flex justify-between items-center text-xs py-1 border-b border-neutral-100">
-                <span className="font-medium truncate max-w-[65%] sm:max-w-[75%] md:max-w-[80%] text-black">{deal.name}</span>
-                <span className="text-black text-[10px] xs:text-xs whitespace-nowrap">{deal.days} days</span>
-              </div>
-            ))}
+          {/* List of deals by category */}
+          <div className="mt-4 space-y-4">
+            {categories.map((category, idx) => {
+              // Find deals that fall into this category
+              const { RECENT, SHORT, MEDIUM, LONG } = PIPELINE_METRICS.DAY_CATEGORIES;
+              let categoryDeals: typeof dealDays = [];
+              
+              if (idx === 0) { // < RECENT days
+                categoryDeals = dealDays.filter(d => d.days < RECENT);
+              } else if (idx === 1) { // RECENT-SHORT days
+                categoryDeals = dealDays.filter(d => d.days >= RECENT && d.days < SHORT);
+              } else if (idx === 2) { // SHORT-MEDIUM days
+                categoryDeals = dealDays.filter(d => d.days >= SHORT && d.days < MEDIUM);
+              } else if (idx === 3) { // MEDIUM+ days
+                categoryDeals = dealDays.filter(d => d.days >= MEDIUM && d.days < LONG);
+              }
+              
+              // Only return this section if it has deals
+              if (categoryDeals.length === 0) return null;
+              
+              return (
+                <div key={category.label} className="space-y-2">
+                  <h4 className="text-xs font-medium text-black">{category.label}</h4>
+                  {categoryDeals.map((deal) => (
+                    <div key={deal.id} className="flex justify-between items-center text-xs py-1 border-b border-neutral-100">
+                      <span className="font-medium truncate max-w-[65%] sm:max-w-[75%] md:max-w-[80%] text-black">{deal.name}</span>
+                      <span className="text-black text-[10px] xs:text-xs whitespace-nowrap">{deal.days} days</span>
+                    </div>
+                  ))}
+                </div>
+              );
+            })}
           </div>
         </CardContent>
       </Card>
