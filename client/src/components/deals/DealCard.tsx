@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 import { formatDistanceToNow } from "date-fns";
 import { 
   Edit, 
@@ -13,7 +14,7 @@ import {
   DollarSign,
   Tag
 } from "lucide-react";
-import { Deal, User } from "@/lib/types";
+import { Deal, User, DealStar } from "@/lib/types";
 import { getDealStageBadgeClass } from "@/lib/utils/format";
 import { enrichDealWithComputedProps } from "@/lib/utils";
 
@@ -162,10 +163,10 @@ export default function DealCard({ deal: rawDeal, compact = false, onEdit, onAll
         <Button 
           variant="ghost" 
           size="sm" 
-          className={`text-xs sm:text-sm flex-1 min-w-0 px-1 sm:px-3 h-7 sm:h-8 ${deal.starCount ? 'text-accent' : 'text-neutral-600 hover:text-primary'}`}
+          className={`text-xs sm:text-sm flex-1 min-w-0 px-1 sm:px-3 h-7 sm:h-8 ${hasUserStarred ? 'text-accent' : 'text-neutral-600 hover:text-primary'}`}
           onClick={handleStarDeal}
         >
-          <Star className={`h-3.5 w-3.5 sm:h-4 sm:w-4 mr-0.5 sm:mr-1 flex-shrink-0 ${deal.starCount ? 'fill-current' : ''}`} />
+          <Star className={`h-3.5 w-3.5 sm:h-4 sm:w-4 mr-0.5 sm:mr-1 flex-shrink-0 ${hasUserStarred ? 'fill-current' : ''}`} />
           <span className="truncate">{deal.starCount ? `${deal.starCount}` : 'Star'}</span>
         </Button>
         

@@ -3,7 +3,7 @@ import { useLocation, Redirect } from 'wouter';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useAuth } from '@/lib/context/auth-context';
+import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -42,10 +42,10 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 export default function AuthPage() {
   const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
   const [location, navigate] = useLocation();
-  const { user, isLoading, login, register } = useAuth();
+  const { data, isLoading, login } = useAuth();
 
   // Redirect to home if already logged in
-  if (user) {
+  if (data) {
     return <Redirect to="/" />;
   }
 
@@ -115,7 +115,8 @@ export default function AuthPage() {
               
               {/* Register Form */}
               <TabsContent value="register">
-                <RegisterForm onSubmit={register} isLoading={isLoading} />
+                {/* Using a dummy function for now since register isn't defined yet */}
+                <RegisterForm onSubmit={(data) => console.log('Register:', data)} isLoading={isLoading} />
               </TabsContent>
             </Tabs>
           </Card>

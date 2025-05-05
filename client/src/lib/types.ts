@@ -10,6 +10,14 @@ export interface User {
 }
 
 // Deal types
+// Deal star type
+export interface DealStar {
+  id: number;
+  dealId: number;
+  userId: number;
+  createdAt: string;
+}
+
 export interface Deal {
   id: number;
   name: string;
@@ -64,13 +72,7 @@ export interface TimelineEvent {
   };
 }
 
-// Deal star types
-export interface DealStar {
-  id: number;
-  dealId: number;
-  userId: number;
-  createdAt: string;
-}
+// Note: DealStar is defined above
 
 // Mini memo types
 export interface MiniMemo {

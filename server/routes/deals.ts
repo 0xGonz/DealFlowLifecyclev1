@@ -298,6 +298,25 @@ router.post('/:dealId/timeline', async (req: Request, res: Response) => {
   }
 });
 
+// Get all stars for a deal
+router.get('/:dealId/stars', async (req: Request, res: Response) => {
+  try {
+    const dealId = Number(req.params.dealId);
+    
+    const storage = getStorage();
+    // Make sure deal exists
+    const deal = await storage.getDeal(dealId);
+    if (!deal) {
+      return res.status(404).json({ message: 'Deal not found' });
+    }
+    
+    const stars = await storage.getDealStars(dealId);
+    res.json(stars);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch deal stars' });
+  }
+});
+
 // Toggle star on a deal
 router.post('/:dealId/star', async (req: Request, res: Response) => {
   try {

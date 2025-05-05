@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { Route, Redirect, useParams } from 'wouter';
-import { useAuth } from '@/lib/context/auth-context';
+import { useAuth } from '@/hooks/use-auth';
 import { Loader2 } from 'lucide-react';
 
 interface ProtectedRouteProps {
@@ -9,7 +9,7 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ path, component: Component }: ProtectedRouteProps) {
-  const { user, isLoading } = useAuth();
+  const { data: user, isLoading } = useAuth();
 
   // Show a loading state while checking authentication
   if (isLoading) {
