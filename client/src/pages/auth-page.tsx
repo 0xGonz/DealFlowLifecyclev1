@@ -3,7 +3,7 @@ import { useLocation, Redirect } from 'wouter';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth } from '@/lib/context/auth-context';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -44,16 +44,26 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 export default function AuthPage() {
   const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
   const [location, navigate] = useLocation();
-  const { data, isLoading, login, register } = useAuth();
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const { user, isLoading, login, register } = useAuth();
   const { toast } = useToast();
 
   // Redirect to home if already logged in
-  if (data) {
+  if (user) {
     return <Redirect to="/" />;
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-neutral-50 to-neutral-100 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-neutral-50 to-neutral-100 p-4 relative">
+      {isAuthenticating && (
+        <div className="fixed inset-0 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center z-50">
+          <div className="bg-white p-8 rounded-2xl shadow-lg flex flex-col items-center">
+            <Loader2 className="h-16 w-16 text-primary animate-spin mb-4" />
+            <h3 className="font-semibold text-xl mb-2">Authenticating...</h3>
+            <p className="text-muted-foreground">Preparing your dashboard</p>
+          </div>
+        </div>
+      )}
       <div className="grid lg:grid-cols-2 gap-8 max-w-6xl w-full">
         {/* Hero section */}
         <div className="flex flex-col justify-center p-6 bg-primary-50 rounded-xl border border-primary-100">
@@ -142,8 +152,14 @@ export default function AuthPage() {
                     // Force refresh user data in the auth context
                     queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
                     
-                    // Redirect to home page
-                    window.location.href = '/';
+                    // Show the loading animation
+                    setIsAuthenticating(true);
+                    
+                    // Add a slight delay before redirect to show the animation
+                    setTimeout(() => {
+                      // Redirect to home page
+                      window.location.href = '/';
+                    }, 1500);
                   } catch (error) {
                     console.error('Login error:', error);
                     toast({
@@ -152,7 +168,7 @@ export default function AuthPage() {
                       variant: 'destructive'
                     });
                   }
-                }} isLoading={login?.isPending || false} />
+                }} isLoading={isLoading} />
               </TabsContent>
               
               {/* Register Form */}
@@ -192,8 +208,14 @@ export default function AuthPage() {
                     // Force refresh user data in the auth context
                     queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
                     
-                    // Redirect to home page
-                    window.location.href = '/';
+                    // Show the loading animation
+                    setIsAuthenticating(true);
+                    
+                    // Add a slight delay before redirect to show the animation
+                    setTimeout(() => {
+                      // Redirect to home page
+                      window.location.href = '/';
+                    }, 1500);
                   } catch (error) {
                     console.error('Registration error:', error);
                     toast({
@@ -202,7 +224,7 @@ export default function AuthPage() {
                       variant: 'destructive'
                     });
                   }
-                }} isLoading={register?.isPending || false} />
+                }} isLoading={isLoading} />
               </TabsContent>
             </Tabs>
           </Card>
