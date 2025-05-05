@@ -121,6 +121,12 @@ router.get('/:id', async (req: Request, res: Response) => {
 router.post('/', async (req: Request, res: Response) => {
   try {
     const user = (req as any).user;
+    
+    // Check if user is authenticated
+    if (!user) {
+      return res.status(401).json({ message: 'You must be logged in to create a deal' });
+    }
+    
     const dealData = insertDealSchema.parse({
       ...req.body,
       createdBy: user.id
