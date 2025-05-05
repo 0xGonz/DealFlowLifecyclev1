@@ -50,7 +50,7 @@ import {
   Calendar,
   FileText
 } from "lucide-react";
-import { formatCurrency } from "@/lib/utils/format";
+import { formatCurrency, formatPercentage, formatRatio, formatIRR } from "@/lib/utils/format";
 import { format } from "date-fns";
 import NotFound from "./not-found";
 
@@ -625,7 +625,7 @@ export default function FundDetail() {
                               </Badge>
                             </TableCell>
                             <TableCell className="hidden lg:table-cell">
-                              {weight.toFixed(1)}%
+                              {formatPercentage(weight)}
                             </TableCell>
                             <TableCell className="hidden md:table-cell">
                               {formatCurrency(allocation.amount)}
@@ -637,10 +637,10 @@ export default function FundDetail() {
                               {formatCurrency(marketValue)}
                             </TableCell>
                             <TableCell className="hidden md:table-cell">
-                              {moic.toFixed(2)}x
+                              {formatRatio(moic)}
                             </TableCell>
                             <TableCell className="hidden lg:table-cell">
-                              {irr.toFixed(1)}%
+                              {formatIRR(irr)}
                             </TableCell>
                             <TableCell className="text-right">
                               <Button variant="ghost" size="sm" asChild>
@@ -705,25 +705,25 @@ export default function FundDetail() {
                       <>
                         <div className="p-2 sm:p-3">
                           <h3 className="text-xs sm:text-sm font-medium text-neutral-500 mb-0.5 sm:mb-1">TVPI</h3>
-                          <p className="text-lg sm:text-xl md:text-2xl font-semibold">{tvpi.toFixed(2)}x</p>
+                          <p className="text-lg sm:text-xl md:text-2xl font-semibold">{formatRatio(tvpi)}</p>
                           <p className="text-xs sm:text-sm text-neutral-500 truncate">Total Value to Paid-In Capital</p>
                         </div>
                         
                         <div className="p-2 sm:p-3">
                           <h3 className="text-xs sm:text-sm font-medium text-neutral-500 mb-0.5 sm:mb-1">DPI</h3>
-                          <p className="text-lg sm:text-xl md:text-2xl font-semibold">{dpi.toFixed(2)}x</p>
+                          <p className="text-lg sm:text-xl md:text-2xl font-semibold">{formatRatio(dpi)}</p>
                           <p className="text-xs sm:text-sm text-neutral-500 truncate">Distributions to Paid-In Capital</p>
                         </div>
                         
                         <div className="p-2 sm:p-3">
                           <h3 className="text-xs sm:text-sm font-medium text-neutral-500 mb-0.5 sm:mb-1">RVPI</h3>
-                          <p className="text-lg sm:text-xl md:text-2xl font-semibold">{rvpi.toFixed(2)}x</p>
+                          <p className="text-lg sm:text-xl md:text-2xl font-semibold">{formatRatio(rvpi)}</p>
                           <p className="text-xs sm:text-sm text-neutral-500 truncate">Residual Value to Paid-In Capital</p>
                         </div>
                         
                         <div className="p-2 sm:p-3">
                           <h3 className="text-xs sm:text-sm font-medium text-neutral-500 mb-0.5 sm:mb-1">IRR</h3>
-                          <p className="text-lg sm:text-xl md:text-2xl font-semibold">{irr > 0 ? irr.toFixed(1) : 0}%</p>
+                          <p className="text-lg sm:text-xl md:text-2xl font-semibold">{formatIRR(irr)}</p>
                           <p className="text-xs sm:text-sm text-neutral-500 truncate">Internal Rate of Return</p>
                         </div>
                       </>
