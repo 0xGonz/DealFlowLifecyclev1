@@ -213,16 +213,28 @@ router.post('/upload', requireAuth, upload.single('file'), async (req: Request, 
     console.log('Received document upload request:', req.body);
     console.log('File info:', req.file);
     
+    // Get the authenticated user from the request
+    const user = req.user;
+    if (!user) {
+      return res.status(401).json({ message: 'You must be logged in to upload documents' });
+    }
+    
     // Access the uploaded file via req.file and form fields via req.body
     const storageClient = StorageFactory.getStorage();
     
     // Get form fields from request body
-    const { dealId, documentType, description, uploadedBy } = req.body;
+    const { dealId, documentType, description } = req.body;
     
     // If we don't have a file or required fields, return an error
-    if (!req.file || !dealId || !documentType || !uploadedBy) {
-      console.error('Missing required fields:', { file: !!req.file, dealId, documentType, uploadedBy });
+    if (!req.file || !dealId || !documentType) {
+      console.error('Missing required fields:', { file: !!req.file, dealId, documentType });
       return res.status(400).json({ message: 'Missing required fields' });
+    }
+    
+    // Check if the deal exists
+    const deal = await storageClient.getDeal(parseInt(dealId));
+    if (!deal) {
+      return res.status(404).json({ message: 'Deal not found' });
     }
     
     // Use file information from multer
@@ -240,7 +252,7 @@ router.post('/upload', requireAuth, upload.single('file'), async (req: Request, 
       fileType,
       fileSize,
       filePath,
-      uploadedBy: parseInt(uploadedBy),
+      uploadedBy: user.id, // Use the authenticated user's ID
       documentType,
       description: description || null,
       uploadedAt: new Date()
@@ -255,7 +267,7 @@ router.post('/upload', requireAuth, upload.single('file'), async (req: Request, 
       dealId: parseInt(dealId),
       eventType: 'document_upload',
       content: `Document uploaded: ${fileName}`,
-      createdBy: 1, // Admin user ID (only ID 1 exists in the database)
+      createdBy: user.id, // Use the authenticated user's ID
       metadata: { documentId: [document.id] }
     });
     

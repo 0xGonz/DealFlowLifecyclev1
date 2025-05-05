@@ -93,7 +93,7 @@ export default function DocumentList({ dealId }: DocumentListProps) {
     formData.append('file', uploadingFile);
     formData.append('dealId', dealId.toString());
     formData.append('documentType', documentType);
-    formData.append('uploadedBy', '1'); // Admin user ID
+    // Will use the authenticated user's ID from the session in the backend
     if (description) {
       formData.append('description', description);
     }
