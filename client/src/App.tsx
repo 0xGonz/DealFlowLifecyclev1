@@ -10,7 +10,6 @@ import Leaderboard from "@/pages/Leaderboard";
 import Funds from "@/pages/Funds";
 import FundDetail from "@/pages/FundDetail";
 import DealDetail from "@/pages/DealDetail";
-import TeamPage from "@/pages/TeamPage";
 import CapitalCalls from "@/pages/CapitalCalls";
 import Settings from "@/pages/Settings";
 import Users from "@/pages/Users";
@@ -29,7 +28,6 @@ function Router() {
       <ProtectedRoute path="/funds" component={Funds} />
       <ProtectedRoute path="/funds/:id" component={FundDetail} />
       <ProtectedRoute path="/deals/:id" component={DealDetail} />
-      <ProtectedRoute path="/team" component={TeamPage} />
       <ProtectedRoute path="/capital-calls" component={CapitalCalls} />
       <ProtectedRoute path="/settings" component={Settings} />
       <ProtectedRoute path="/users" component={Users} />
