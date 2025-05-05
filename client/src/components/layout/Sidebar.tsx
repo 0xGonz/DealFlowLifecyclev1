@@ -16,6 +16,8 @@ import { Button } from "@/components/ui/button";
 import ProfileEditModal from "@/components/profile/ProfileEditModal";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
+import { LAYOUT, AVATAR_COLORS } from "@/lib/constants/ui-constants";
+import { DEFAULT_AVATAR_TEXT } from "@/lib/constants/display-constants";
 
 interface SidebarProps {
   onCloseMobile?: () => void;
@@ -89,7 +91,7 @@ export default function Sidebar({ onCloseMobile }: SidebarProps) {
   ];
 
   return (
-    <aside className="h-full w-48 bg-white shadow-md overflow-y-auto flex-shrink-0">
+    <aside className={`h-full bg-white shadow-md overflow-y-auto flex-shrink-0`} style={{ width: LAYOUT.SIDEBAR_WIDTH }}>
       {/* Set fixed width for consistent sidebar rendering */}
       <div className="flex flex-col h-full">
         {/* User Profile at the top with close button for mobile */}
@@ -108,8 +110,8 @@ export default function Sidebar({ onCloseMobile }: SidebarProps) {
               </>
             ) : currentUser ? (
               <>
-                <Avatar className="h-8 w-8" style={currentUser.avatarColor ? {backgroundColor: currentUser.avatarColor} : {}}>
-                  <AvatarFallback className="bg-primary text-white">{currentUser.initials}</AvatarFallback>
+                <Avatar className="h-8 w-8" style={currentUser.avatarColor ? {backgroundColor: currentUser.avatarColor} : {backgroundColor: AVATAR_COLORS.DEFAULT}}>
+                  <AvatarFallback className="bg-primary text-white">{currentUser.initials || DEFAULT_AVATAR_TEXT}</AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col">
                   <span className="text-sm font-medium">{currentUser.fullName}</span>
@@ -118,7 +120,7 @@ export default function Sidebar({ onCloseMobile }: SidebarProps) {
               </>
             ) : (
               <>
-                <Avatar className="h-8 w-8">
+                <Avatar className="h-8 w-8" style={{backgroundColor: AVATAR_COLORS.GRAY}}>
                   <AvatarFallback className="bg-primary text-white">GU</AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col">

@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useQuery } from "@tanstack/react-query";
+import { FORM_CONSTRAINTS, TOAST_DURATION, USER_ROLE_DESCRIPTIONS } from "@/lib/constants/ui-constants";
 
 interface ProfileEditModalProps {
   isOpen: boolean;
@@ -50,11 +51,12 @@ export default function ProfileEditModal({
   }, [currentName, currentRole]);
 
   const handleSubmit = async () => {
-    if (!name?.trim()) {
+    if (!name?.trim() || name.length < FORM_CONSTRAINTS.USERNAME.MIN_LENGTH) {
       toast({
         title: "Error", 
-        description: "Name cannot be empty",
-        variant: "destructive"
+        description: FORM_CONSTRAINTS.USERNAME.ERROR_MESSAGE,
+        variant: "destructive",
+        duration: TOAST_DURATION.MEDIUM
       });
       return;
     }
@@ -83,7 +85,8 @@ export default function ProfileEditModal({
       
       toast({
         title: "Success",
-        description: "Profile updated successfully"
+        description: "Profile updated successfully",
+        duration: TOAST_DURATION.SHORT
       });
       
       // Close the modal
@@ -93,7 +96,8 @@ export default function ProfileEditModal({
       toast({
         title: "Error",
         description: "Failed to update profile",
-        variant: "destructive"
+        variant: "destructive",
+        duration: TOAST_DURATION.LONG
       });
     } finally {
       setIsUpdating(false);
@@ -116,6 +120,8 @@ export default function ProfileEditModal({
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="col-span-3"
+              maxLength={FORM_CONSTRAINTS.USERNAME.MAX_LENGTH}
+              placeholder={FORM_CONSTRAINTS.PLACEHOLDERS.ENTER_NAME}
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
@@ -124,7 +130,7 @@ export default function ProfileEditModal({
             </Label>
             <Select value={role} onValueChange={setRole}>
               <SelectTrigger className="col-span-3">
-                <SelectValue placeholder="Select a role" />
+                <SelectValue placeholder={FORM_CONSTRAINTS.PLACEHOLDERS.SELECT_ROLE} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="partner">Partner</SelectItem>
@@ -139,10 +145,10 @@ export default function ProfileEditModal({
               Permissions
             </Label>
             <div className="col-span-3 text-sm text-neutral-600">
-              {role === 'admin' && 'Full system access, including user management'}
-              {role === 'partner' && 'Create/edit deals, approve investments, view all content'}
-              {role === 'analyst' && 'Create/edit deals, view all content, suggest investments'}
-              {role === 'observer' && 'View-only access to deals and content'}
+              {role === 'admin' && USER_ROLE_DESCRIPTIONS.ADMIN}
+              {role === 'partner' && USER_ROLE_DESCRIPTIONS.PARTNER}
+              {role === 'analyst' && USER_ROLE_DESCRIPTIONS.ANALYST}
+              {role === 'observer' && USER_ROLE_DESCRIPTIONS.OBSERVER}
             </div>
           </div>
         </div>

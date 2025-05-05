@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { AppError } from './errorHandlers';
 import { StorageFactory } from '../storage-factory';
 import * as bcrypt from 'bcrypt';
+import { SALT_ROUNDS, AUTH_ERRORS } from '../constants/auth-constants';
 
 // Types for session data
 declare module 'express-session' {
@@ -15,7 +16,7 @@ declare module 'express-session' {
 // Authentication middleware
 export function requireAuth(req: Request, res: Response, next: NextFunction) {
   if (!req.session.userId) {
-    return next(new AppError('Authentication required', 401));
+    return next(new AppError(AUTH_ERRORS.AUTH_REQUIRED, 401));
   }
   next();
 }
@@ -26,11 +27,11 @@ export function requireRole(roles: string | string[]) {
   
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.session.userId) {
-      return next(new AppError('Authentication required', 401));
+      return next(new AppError(AUTH_ERRORS.AUTH_REQUIRED, 401));
     }
     
     if (!req.session.role || !allowedRoles.includes(req.session.role)) {
-      return next(new AppError('You do not have permission to access this resource', 403));
+      return next(new AppError(AUTH_ERRORS.PERMISSION_DENIED, 403));
     }
     
     next();
@@ -53,9 +54,6 @@ export async function getCurrentUser(req: Request) {
   }
 }
 
-// Constants for bcrypt
-const SALT_ROUNDS = 10;
-
 // Function to hash a password
 export async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, SALT_ROUNDS);
@@ -72,7 +70,7 @@ export async function login(req: Request, username: string, password: string) {
   const user = await storage.getUserByUsername(username);
   
   if (!user) {
-    throw new AppError('Invalid username or password', 401);
+    throw new AppError(AUTH_ERRORS.INVALID_CREDENTIALS, 401);
   }
   
   // Check if the password is hashed by seeing if it starts with $2b$ (bcrypt identifier)
@@ -95,7 +93,7 @@ export async function login(req: Request, username: string, password: string) {
   }
   
   if (!passwordValid) {
-    throw new AppError('Invalid username or password', 401);
+    throw new AppError(AUTH_ERRORS.INVALID_CREDENTIALS, 401);
   }
   
   // Set session data
@@ -125,14 +123,14 @@ export async function registerUser(req: Request, userData: any) {
   // Check if the username already exists
   const existingUser = await storage.getUserByUsername(userData.username);
   if (existingUser) {
-    throw new AppError('Username already exists', 400);
+    throw new AppError(AUTH_ERRORS.USERNAME_EXISTS, 400);
   }
   
   // Check if the email already exists
   const users = await storage.getUsers();
   const existingEmail = users.find(u => u.email === userData.email);
   if (existingEmail) {
-    throw new AppError('Email already exists', 400);
+    throw new AppError(AUTH_ERRORS.EMAIL_EXISTS, 400);
   }
   
   // Hash the password
