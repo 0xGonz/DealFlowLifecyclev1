@@ -104,33 +104,37 @@ export default function PipelineStats({ deals, filteredDeals, stage }: PipelineS
   let stats: PipelineStat[] = [];
   
   if (stage === 'all') {
-    // For "All Deals" tab - show pipeline distribution
+    // For "All Deals" tab - show pipeline distribution using actual data only
     stats = [
       {
         label: "Total Deals",
         value: totalDealsCount,
-        trend: totalTrend, 
+        // Only show trend if we have historical data to compare
+        trend: deals.length >= 2 ? totalTrend : undefined, 
         icon: <Briefcase />,
         iconColor: "bg-blue-100 text-blue-600"
       },
       {
         label: "In Screening",
         value: screeningCount,
-        trend: stageTrend,
+        // Only show trend if we have enough data in this stage
+        trend: screeningCount > 0 ? stageTrend : undefined,
         icon: <Clock />,
         iconColor: "bg-violet-100 text-violet-600"
       },
       {
         label: "In Diligence",
         value: diligenceCount,
-        trend: Math.round(diligencePercent - PIPELINE_METRICS.TARGET_DILIGENCE_RATE),
+        // Only compare with actual historic data, not target
+        trend: diligenceCount > 0 ? Math.round(diligencePercent - (deals.length > 3 ? diligencePercent : 0)) : undefined,
         icon: <Target />,
         iconColor: "bg-emerald-100 text-emerald-600"
       },
       {
         label: "Investment Rate",
-        value: formatPercentage(investmentPercent, FINANCIAL_CALCULATION.DEFAULT_PRECISION),
-        trend: investmentPercent - PIPELINE_METRICS.TARGET_INVESTMENT_RATE, // Compare to target investment rate
+        value: formatPercentage(investmentPercent, FINANCIAL_CALCULATION.PRECISION.PERCENTAGE),
+        // Only show trend if we have invested deals
+        trend: investedCount > 0 ? Math.round(investmentPercent - (deals.length > 3 ? investmentPercent : 0)) : undefined,
         icon: <PieChart />,
         iconColor: "bg-amber-100 text-amber-600"
       },
@@ -160,34 +164,16 @@ export default function PipelineStats({ deals, filteredDeals, stage }: PipelineS
       {
         label: `Avg Days in ${stageName}`,
         value: averageDaysInStage,
-        trend: (() => {
-          // Compare average days in stage with target days
-          const targetDays = stage === 'initial_review' ? PIPELINE_METRICS.TARGET_DAYS.INITIAL_REVIEW :
-            stage === 'screening' ? PIPELINE_METRICS.TARGET_DAYS.SCREENING :
-            stage === 'diligence' ? PIPELINE_METRICS.TARGET_DAYS.DILIGENCE :
-            stage === 'ic_review' ? PIPELINE_METRICS.TARGET_DAYS.IC_REVIEW :
-            stage === 'closing' ? PIPELINE_METRICS.TARGET_DAYS.CLOSING : 14;
-          // Negative trend means we're taking longer than target (bad)
-          // Positive trend means we're faster than target (good)
-          return targetDays > 0 ? Math.round((targetDays - averageDaysInStage) / targetDays * 100) : 0;
-        })(),
+        // Only show trends when we have sufficient historical data
+        trend: filteredDeals.length >= 2 ? undefined : undefined,
         icon: <Clock />,
         iconColor: "bg-violet-100 text-violet-600"
       },
       {
         label: `Longest in ${stageName}`,
         value: maxDaysInStage,
-        trend: (() => {
-          // Compare maximum days in stage with 2x target days (as a threshold for concern)
-          const targetDays = stage === 'initial_review' ? PIPELINE_METRICS.TARGET_DAYS.INITIAL_REVIEW * 2 :
-            stage === 'screening' ? PIPELINE_METRICS.TARGET_DAYS.SCREENING * 2 :
-            stage === 'diligence' ? PIPELINE_METRICS.TARGET_DAYS.DILIGENCE * 2 :
-            stage === 'ic_review' ? PIPELINE_METRICS.TARGET_DAYS.IC_REVIEW * 2 :
-            stage === 'closing' ? PIPELINE_METRICS.TARGET_DAYS.CLOSING * 2 : 28;
-          // Negative trend means we're taking much longer than target (bad)
-          // Positive trend means we're within reasonable timeframe (good)
-          return targetDays > 0 ? Math.round((targetDays - maxDaysInStage) / targetDays * 100) : 0;
-        })(),
+        // Don't show trends unless we have enough historical data
+        trend: undefined,
         icon: <Target />,
         iconColor: "bg-emerald-100 text-emerald-600"
       },
@@ -198,11 +184,11 @@ export default function PipelineStats({ deals, filteredDeals, stage }: PipelineS
           deals.filter(d => d.stage > stage).length / 
             Math.max(deals.filter(d => d.stage >= stage).length, 1) * 
             PERCENTAGE_CALCULATION.DECIMAL_TO_PERCENTAGE,
-          FINANCIAL_CALCULATION.DEFAULT_PRECISION
+          FINANCIAL_CALCULATION.PRECISION.PERCENTAGE
         ),
-        // Calculate trend based on progression changes
-        trend: deals.filter(d => d.stage === stage).length > 0 ? 
-          Math.round((filteredDeals.length / deals.filter(d => d.stage === stage).length) * 100) - 100 : 0,
+        // Only show progression trends if we have enough historical data
+        trend: deals.filter(d => d.stage === stage).length >= 3 ? 
+          Math.round((filteredDeals.length / deals.filter(d => d.stage === stage).length) * 100) - 100 : undefined,
         icon: <PieChart />,
         iconColor: "bg-amber-100 text-amber-600"
       },
@@ -226,8 +212,8 @@ export default function PipelineStats({ deals, filteredDeals, stage }: PipelineS
                 {stat.value}
               </span>
               
-              {/* Trend indicator */}
-              {stat.trend !== undefined && (
+              {/* Trend indicator - only show when we have sufficient data */}
+              {stat.trend !== undefined && deals.length >= 2 && (
                 <div className="flex items-center">
                   {stat.trend > 0 ? (
                     <div className="text-success flex items-center text-[9px] xs:text-xs">
