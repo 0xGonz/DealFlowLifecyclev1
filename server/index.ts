@@ -24,25 +24,41 @@ const sessionStore = new PgSession({
   errorLog: console.error, // Log session storage errors
 });
 
+// Configure CORS to allow cross-origin requests for development/embedding
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
+
 // Configure the session middleware
+app.set('trust proxy', 1); // Trust first proxy for secure cookies behind a proxy
 app.use(session({
   store: sessionStore,
   secret: process.env.SESSION_SECRET || 'investment-tracker-secret',
   name: 'investment_tracker.sid', // Custom cookie name to avoid conflicts
-  resave: false,
+  resave: true, // Changed to true to ensure session is saved on every request
   saveUninitialized: false,
+  rolling: true, // Reset cookie expiration on every response
   cookie: {
     secure: process.env.NODE_ENV === 'production',
     maxAge: 7 * 24 * 60 * 60 * 1000, // Extended to 7 days for better persistence
     httpOnly: true,
-    sameSite: 'lax'
+    sameSite: 'lax',
+    path: '/' // Ensure cookie is available for all paths
   }
 }));
 
-// Session debug middleware
+// Session debug middleware with more detailed output
 app.use((req, res, next) => {
   if (req.path.startsWith('/api/auth')) {
-    console.log(`Session debug [${req.method} ${req.path}]: sessionID=${req.sessionID?.substring(0, 8)}..., hasSession=${!!req.session}, userId=${req.session?.userId || 'none'}`);
+    console.log(`Session debug [${req.method} ${req.path}]: sessionID=${req.sessionID?.substring(0, 8)}..., hasSession=${!!req.session}, userId=${req.session?.userId || 'none'}, headers=${JSON.stringify(req.headers['cookie']?.substring(0, 20) || 'none')}`);
   }
   next();
 });

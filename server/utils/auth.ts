@@ -84,24 +84,12 @@ export async function verifyPassword(password: string, hashedPassword: string): 
   return bcrypt.compare(password, hashedPassword);
 }
 
-// Login helper
+// Login helper - simplified to reduce race conditions
 export async function login(req: Request, username: string, password: string) {
   try {
     console.log(`Auth login helper called for username: ${username}`);
-    
-    // Clear any existing session first to avoid conflicts
-    await new Promise<void>((resolve) => {
-      if (req.session?.userId) {
-        console.log(`Clearing existing session for userId: ${req.session.userId} before login`);
-        req.session.destroy((err) => {
-          if (err) console.error('Error clearing existing session before login:', err);
-          resolve();
-        });
-      } else {
-        resolve();
-      }
-    });
-    
+
+    // First, get the user from the database
     const storage = StorageFactory.getStorage();
     const user = await storage.getUserByUsername(username);
     
@@ -138,49 +126,37 @@ export async function login(req: Request, username: string, password: string) {
       throw new AppError(AUTH_ERRORS.INVALID_CREDENTIALS, 401);
     }
     
-    // Set session data in a new session
+    // Clean out any existing session data
+    for (const key in req.session) {
+      if (key !== 'cookie' && key !== 'id') {
+        delete (req.session as any)[key];
+      }
+    }
+    
+    // Directly set session data
     console.log(`Setting session data for user ${username}:`, { id: user.id, role: user.role });
-    
-    // Generate a new session and wait for it to be ready before setting data
-    await new Promise<void>((resolve, reject) => {
-      req.session.regenerate((err) => {
-        if (err) {
-          console.error('Error regenerating session:', err);
-          return reject(err);
-        }
-        resolve();
-      });
-    });
-    
-    console.log(`New session generated for ${username}, setting user data`);
     req.session.userId = user.id;
     req.session.username = user.username;
     req.session.role = user.role;
     
-    // Make sure data is saved to session store
+    // Save the session synchronously to avoid race conditions
+    console.log(`Saving session for ${username}`);
     await new Promise<void>((resolve, reject) => {
-      req.session.save(err => {
+      req.session.save((err) => {
         if (err) {
-          console.error('Session save error:', err);
+          console.error('Error saving session:', err);
           return reject(err);
         }
-        console.log(`Session saved successfully for ${username}`);
-        
-        // Double check that the session was actually saved
-        if (!req.session.userId) {
-          console.error('Session data not set after save. This could indicate a session store problem.');
-          return reject(new Error('Session data not set after save'));
-        }
-        
-        console.log('Verified session data is present after save:', { 
-          userId: req.session.userId,
-          username: req.session.username,
-          role: req.session.role 
-        });
-        
+        console.log(`Session saved successfully for ${username} with ID ${req.sessionID}`);
         resolve();
       });
     });
+    
+    // Verify the session was properly saved
+    console.log('Session verification - userId in session:', req.session.userId);
+    if (!req.session.userId) {
+      throw new Error('Session data not properly saved');
+    }
     
     return user;
   } catch (error) {
@@ -212,23 +188,10 @@ export function logout(req: Request) {
   });
 }
 
-// Register user helper
+// Register user helper - simplified to match login approach
 export async function registerUser(req: Request, userData: any) {
   try {
     console.log(`Register user helper called for username: ${userData.username}`);
-    
-    // Clear any existing session first to avoid conflicts
-    await new Promise<void>((resolve) => {
-      if (req.session?.userId) {
-        console.log(`Clearing existing session for userId: ${req.session.userId} before registration`);
-        req.session.destroy((err) => {
-          if (err) console.error('Error clearing existing session before registration:', err);
-          resolve();
-        });
-      } else {
-        resolve();
-      }
-    });
     
     const storage = StorageFactory.getStorage();
     
@@ -258,50 +221,37 @@ export async function registerUser(req: Request, userData: any) {
       password: hashedPassword,
     });
     
-    // Set session data in a new session
+    // Clean out any existing session data
+    for (const key in req.session) {
+      if (key !== 'cookie' && key !== 'id') {
+        delete (req.session as any)[key];
+      }
+    }
+    
+    // Directly set session data
     console.log(`Setting session data for new user ${userData.username}:`, { id: newUser.id, role: newUser.role });
-    
-    // Generate a new session and wait for it to be ready before setting data
-    await new Promise<void>((resolve, reject) => {
-      req.session.regenerate((err) => {
-        if (err) {
-          console.error('Error regenerating session during registration:', err);
-          return reject(err);
-        }
-        resolve();
-      });
-    });
-    
-    console.log(`New session generated for new user ${userData.username}, setting user data`);
     req.session.userId = newUser.id;
     req.session.username = newUser.username;
     req.session.role = newUser.role;
     
-    // Make sure data is saved to session store
+    // Save the session synchronously to avoid race conditions
+    console.log(`Saving session for new user ${userData.username}`);
     await new Promise<void>((resolve, reject) => {
-      req.session.save(err => {
+      req.session.save((err) => {
         if (err) {
-          console.error('Session save error during registration:', err);
+          console.error('Error saving session during registration:', err);
           return reject(err);
         }
-        
-        console.log(`Session saved successfully for new user ${userData.username}`);
-        
-        // Double check that the session was actually saved
-        if (!req.session.userId) {
-          console.error('Session data not set after save during registration. This could indicate a session store problem.');
-          return reject(new Error('Session data not set after save during registration'));
-        }
-        
-        console.log('Verified session data is present after registration save:', { 
-          userId: req.session.userId,
-          username: req.session.username,
-          role: req.session.role 
-        });
-        
+        console.log(`Session saved successfully for new user ${userData.username} with ID ${req.sessionID}`);
         resolve();
       });
     });
+    
+    // Verify the session was properly saved
+    console.log('Session verification - userId in session:', req.session.userId);
+    if (!req.session.userId) {
+      throw new Error('Session data not properly saved during registration');
+    }
     
     return newUser;
   } catch (error) {

@@ -38,7 +38,8 @@ async function fetchCurrentUser(): Promise<User | null> {
       credentials: 'include',
       headers: {
         'Accept': 'application/json',
-        'Cache-Control': 'no-cache'
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache'
       }
     });
     
@@ -53,6 +54,11 @@ async function fetchCurrentUser(): Promise<User | null> {
     }
     
     const userData = await response.json();
+    if (!userData || !userData.id) {
+      console.error('Invalid user data received:', userData);
+      throw new Error('Invalid user data received from server');
+    }
+    
     console.log('Current user data fetched successfully:', userData);
     return userData;
   } catch (error) {
@@ -92,7 +98,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.log('Auth login mutation starting with credentials:', { username: credentials.username, password: '******' });
       try {
         const res = await apiRequest("POST", "/api/auth/login", credentials);
+        if (!res.ok) {
+          const errorText = await res.text().catch(() => 'Unknown error');
+          console.error('Login API error response:', res.status, errorText);
+          throw new Error(errorText || `Login failed with status ${res.status}`);
+        }
+        
         const userData = await res.json();
+        if (!userData || !userData.id) {
+          console.error('Invalid user data received from login:', userData);
+          throw new Error('Invalid user data received from server');
+        }
+        
         console.log('Login API response successful:', userData);
         return userData;
       } catch (error) {
@@ -102,16 +119,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: async (user: User) => {
       console.log('Login mutation onSuccess handler, setting user data:', user);
+      // Immediately update the local query cache
       localQueryClient.setQueryData(["/api/auth/me"], user);
       
-      // Force a refresh to ensure we have the correct data
+      // Invalidate all queries to ensure fresh data after login
+      localQueryClient.invalidateQueries();
+      
+      // For extra safety, explicitly refresh auth
       await refreshAuth();
     },
     onError: (error: Error) => {
       console.error('Login mutation onError handler:', error);
       toast({
         title: "Login failed",
-        description: error.message,
+        description: error.message || "Unable to login. Please try again.",
         variant: "destructive",
       });
     },
@@ -137,19 +158,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const register = useMutation({
     mutationFn: async (userData: RegisterData) => {
-      const res = await apiRequest("POST", "/api/auth/register", userData);
-      return await res.json();
+      try {
+        const res = await apiRequest("POST", "/api/auth/register", userData);
+        if (!res.ok) {
+          const errorText = await res.text().catch(() => 'Unknown error');
+          console.error('Registration API error response:', res.status, errorText);
+          throw new Error(errorText || `Registration failed with status ${res.status}`);
+        }
+        
+        const userResponse = await res.json();
+        if (!userResponse || !userResponse.id) {
+          console.error('Invalid user data received from registration:', userResponse);
+          throw new Error('Invalid user data received from server');
+        }
+        
+        console.log('Registration API response successful:', userResponse);
+        return userResponse;
+      } catch (error) {
+        console.error('Registration API request failed:', error);
+        throw error;
+      }
     },
     onSuccess: async (user: User) => {
+      console.log('Registration mutation onSuccess handler, setting user data:', user);
+      // Immediately update the local query cache
       localQueryClient.setQueryData(["/api/auth/me"], user);
       
-      // Force a refresh to ensure we have the correct data
+      // Invalidate all queries to ensure fresh data after login
+      localQueryClient.invalidateQueries();
+      
+      // For extra safety, explicitly refresh auth
       await refreshAuth();
     },
     onError: (error: Error) => {
+      console.error('Registration mutation onError handler:', error);
       toast({
         title: "Registration failed",
-        description: error.message,
+        description: error.message || "Unable to create account. Please try again.",
         variant: "destructive",
       });
     },
