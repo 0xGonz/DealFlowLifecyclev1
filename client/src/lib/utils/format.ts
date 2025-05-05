@@ -57,8 +57,14 @@ export const formatPercentage = (value: number | undefined | null, decimals = FI
     return '0%';
   }
   
-  // Convert to percentage and add % sign
-  return `${value.toFixed(decimals)}%`;
+  // For values that are very close to a whole number, round them for cleaner display
+  // This also handles the case of tiny decimals being rounded for display
+  if (Math.abs(Math.round(value) - value) < 0.001) {
+    return `${Math.round(value)}%`;
+  }
+  
+  // Convert to percentage and add % sign, limiting to 1 decimal place regardless of input
+  return `${value.toFixed(1)}%`;
 };
 
 /**
