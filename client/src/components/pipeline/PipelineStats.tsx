@@ -157,7 +157,12 @@ export default function PipelineStats({ deals, filteredDeals, stage }: PipelineS
         label: `Deals in ${stageName}`,
         value: filteredDeals.length,
         // Compare to baseline rate of deals in this stage vs. total pipeline
-        trend: deals.length > 0 ? Math.round((filteredDeals.length / deals.length) * 100) - (deals.filter(d => d.stage === stage).length / Math.max(deals.length, 1) * 100) : 0,
+        // Round the percentage to avoid tiny decimal values
+        trend: deals.length > 0 ? 
+          Math.round(
+            (filteredDeals.length / deals.length) * 100 - 
+            (deals.filter(d => d.stage === stage).length / Math.max(deals.length, 1) * 100)
+          ) : 0,
         icon: <Briefcase />,
         iconColor: "bg-blue-100 text-blue-600"
       },
@@ -221,12 +226,12 @@ export default function PipelineStats({ deals, filteredDeals, stage }: PipelineS
                   {stat.trend > 0 ? (
                     <div className="text-success flex items-center text-[9px] xs:text-xs">
                       <TrendingUp className="h-2.5 w-2.5 xs:h-3 xs:w-3 mr-0.5 xs:mr-1" />
-                      {stat.trend}%
+                      {Math.round(stat.trend)}%
                     </div>
                   ) : stat.trend < 0 ? (
                     <div className="text-danger flex items-center text-[9px] xs:text-xs">
                       <TrendingDown className="h-2.5 w-2.5 xs:h-3 xs:w-3 mr-0.5 xs:mr-1" />
-                      {Math.abs(stat.trend)}%
+                      {Math.round(Math.abs(stat.trend))}%
                     </div>
                   ) : null}
                 </div>
