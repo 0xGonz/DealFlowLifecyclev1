@@ -17,6 +17,8 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { queryClient } from '@/lib/queryClient';
 
 // Login form schema
 const loginSchema = z.object({
@@ -43,6 +45,7 @@ export default function AuthPage() {
   const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
   const [location, navigate] = useLocation();
   const { data, isLoading, login, register } = useAuth();
+  const { toast } = useToast();
 
   // Redirect to home if already logged in
   if (data) {
@@ -111,17 +114,95 @@ export default function AuthPage() {
               {/* Login Form */}
               <TabsContent value="login">
                 <LoginForm onSubmit={async (username, password) => {
-                  console.log('Login with:', username, password);
-                  // We'll implement the actual login when the backend is ready
-                }} isLoading={false} />
+                  try {
+                    const res = await fetch('/api/auth/login', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json'
+                      },
+                      body: JSON.stringify({ username, password }),
+                      credentials: 'include'
+                    });
+                    
+                    if (!res.ok) {
+                      const errorText = await res.text();
+                      throw new Error(errorText || 'Login failed');
+                    }
+                    
+                    const userData = await res.json();
+                    console.log('Login successful:', userData);
+                    
+                    // Show success toast
+                    toast({
+                      title: 'Login Successful',
+                      description: 'Welcome back!',
+                      variant: 'default'
+                    });
+                    
+                    // Force refresh user data in the auth context
+                    queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+                    
+                    // Redirect to home page
+                    window.location.href = '/';
+                  } catch (error) {
+                    console.error('Login error:', error);
+                    toast({
+                      title: 'Login Failed',
+                      description: error instanceof Error ? error.message : 'Unknown error occurred',
+                      variant: 'destructive'
+                    });
+                  }
+                }} isLoading={login?.isPending || false} />
               </TabsContent>
               
               {/* Register Form */}
               <TabsContent value="register">
                 <RegisterForm onSubmit={async (data) => {
-                  console.log('Register with:', data);
-                  // We'll implement the actual registration when the backend is ready
-                }} isLoading={false} />
+                  try {
+                    const res = await fetch('/api/auth/register', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json'
+                      },
+                      body: JSON.stringify({
+                        username: data.username,
+                        fullName: data.fullName,
+                        email: data.email,
+                        password: data.password,
+                        passwordConfirm: data.passwordConfirm
+                      }),
+                      credentials: 'include'
+                    });
+                    
+                    if (!res.ok) {
+                      const errorText = await res.text();
+                      throw new Error(errorText || 'Registration failed');
+                    }
+                    
+                    const userData = await res.json();
+                    console.log('Registration successful:', userData);
+                    
+                    // Show success toast
+                    toast({
+                      title: 'Registration Successful',
+                      description: 'Your account has been created.',
+                      variant: 'default'
+                    });
+                    
+                    // Force refresh user data in the auth context
+                    queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+                    
+                    // Redirect to home page
+                    window.location.href = '/';
+                  } catch (error) {
+                    console.error('Registration error:', error);
+                    toast({
+                      title: 'Registration Failed',
+                      description: error instanceof Error ? error.message : 'Unknown error occurred',
+                      variant: 'destructive'
+                    });
+                  }
+                }} isLoading={register?.isPending || false} />
               </TabsContent>
             </Tabs>
           </Card>

@@ -9,7 +9,7 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ path, component: Component }: ProtectedRouteProps) {
-  const { data: user, isLoading } = useAuth();
+  const { data, isLoading } = useAuth();
 
   // Show a loading state while checking authentication
   if (isLoading) {
@@ -26,7 +26,7 @@ export function ProtectedRoute({ path, component: Component }: ProtectedRoutePro
   }
 
   // If not authenticated, redirect to login
-  if (!user) {
+  if (!data) {
     return (
       <Route path={path}>
         <Redirect to="/auth" />
