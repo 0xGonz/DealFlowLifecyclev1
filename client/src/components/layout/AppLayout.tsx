@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { LAYOUT } from "@/lib/constants/ui-constants";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -11,8 +12,26 @@ interface AppLayoutProps {
 export default function AppLayout({ children }: AppLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // Set up CSS variable for sidebar width
+  useEffect(() => {
+    document.documentElement.style.setProperty('--sidebar-width', '0px');
+    
+    const mq = window.matchMedia('(min-width: 768px)');
+    const handleMediaChange = (e: MediaQueryListEvent | MediaQueryList) => {
+      document.documentElement.style.setProperty(
+        '--sidebar-width', 
+        e.matches ? LAYOUT.SIDEBAR_WIDTH : '0px'
+      );
+    };
+    
+    handleMediaChange(mq);
+    mq.addEventListener('change', handleMediaChange);
+    
+    return () => mq.removeEventListener('change', handleMediaChange);
+  }, []);
+
   return (
-    <div className="flex h-screen bg-neutral-100 relative md:pl-48">
+    <div className="flex h-screen bg-neutral-100 relative" style={{ paddingLeft: 'var(--sidebar-width, 0)' }}>
       {/* Mobile sidebar toggle */}
       <div className="md:hidden fixed top-3 left-3 z-50">
         <Button 

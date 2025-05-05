@@ -46,7 +46,7 @@ export const FORM_CONSTRAINTS = {
 
 // Layout dimensions
 export const LAYOUT = {
-  SIDEBAR_WIDTH: '280px',
+  SIDEBAR_WIDTH: '220px', // Reduced from 280px to be less wide
   CONTENT_MAX_WIDTH: '1200px',
   MOBILE_BREAKPOINT: '768px',
   TABLET_BREAKPOINT: '1024px'
