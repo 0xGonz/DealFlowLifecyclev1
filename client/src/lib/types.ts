@@ -5,7 +5,7 @@ export interface User {
   fullName: string;
   initials: string;
   email: string;
-  role: "admin" | "partner" | "analyst" | "observer";
+  role: "admin" | "partner" | "analyst" | "observer" | "intern";
   avatarColor: string;
 }
 

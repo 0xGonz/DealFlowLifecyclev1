@@ -10,7 +10,7 @@ export const users = pgTable("users", {
   fullName: text("full_name").notNull(),
   initials: text("initials").notNull(),
   email: text("email").notNull().unique(),
-  role: text("role", { enum: ["admin", "partner", "analyst", "observer"] }).notNull().default("analyst"),
+  role: text("role", { enum: ["admin", "partner", "analyst", "observer", "intern"] }).notNull().default("analyst"),
   avatarColor: text("avatar_color").default("#0E4DA4"),
 });
 
