@@ -138,7 +138,7 @@ export default function ActivityFeed() {
                   
                   {activity.user && (
                     <div className="flex items-center mt-2">
-                      <Avatar className="h-4 w-4 sm:h-5 sm:w-5 mr-1">
+                      <Avatar key={`avatar-${activity.id}`} className="h-4 w-4 sm:h-5 sm:w-5 mr-1">
                         <AvatarFallback style={{ backgroundColor: activity.user.avatarColor, fontSize: '9px' }}>
                           {activity.user.initials}
                         </AvatarFallback>

@@ -75,7 +75,7 @@ export default function UsersList() {
               className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg hover:bg-slate-50 transition-colors"
             >
               <div className="flex items-center">
-                <Avatar className="h-12 w-12">
+                <Avatar key={`user-list-${user.id}`} className="h-12 w-12">
                   <AvatarFallback
                     style={{ backgroundColor: user.avatarColor || "#0E4DA4" }}
                     className="text-white"

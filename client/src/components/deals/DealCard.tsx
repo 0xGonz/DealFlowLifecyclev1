@@ -122,14 +122,14 @@ export default function DealCard({ deal: rawDeal, compact = false, onEdit, onAll
           <div className="flex items-center justify-between mt-auto">
             <div className="flex -space-x-1.5 sm:-space-x-2">
               {assignedUsers.slice(0, 3).map((user: User) => (
-                <Avatar key={user.id} className="w-6 h-6 sm:w-7 sm:h-7 border-2 border-white">
+                <Avatar key={`user-${user.id}-${deal.id}`} className="w-6 h-6 sm:w-7 sm:h-7 border-2 border-white">
                   <AvatarFallback style={{ backgroundColor: user.avatarColor }} className="text-[10px] sm:text-xs">
                     {user.initials}
                   </AvatarFallback>
                 </Avatar>
               ))}
               {assignedUsers.length > 3 && (
-                <Avatar className="w-6 h-6 sm:w-7 sm:h-7 border-2 border-white">
+                <Avatar key="more-users" className="w-6 h-6 sm:w-7 sm:h-7 border-2 border-white">
                   <AvatarFallback className="bg-neutral-300 text-neutral-700 text-[10px] sm:text-xs">
                     +{assignedUsers.length - 3}
                   </AvatarFallback>

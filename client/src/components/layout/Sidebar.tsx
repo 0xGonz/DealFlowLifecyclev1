@@ -107,7 +107,7 @@ export default function Sidebar({ onCloseMobile }: SidebarProps) {
               </>
             ) : currentUser ? (
               <>
-                <Avatar className="h-8 w-8" style={currentUser.avatarColor ? {backgroundColor: currentUser.avatarColor} : {backgroundColor: AVATAR_COLORS.DEFAULT}}>
+                <Avatar key="user-avatar" className="h-8 w-8" style={currentUser.avatarColor ? {backgroundColor: currentUser.avatarColor} : {backgroundColor: AVATAR_COLORS.DEFAULT}}>
                   <AvatarFallback className="bg-primary text-white">{currentUser.initials || DEFAULT_AVATAR_TEXT}</AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col">
@@ -117,7 +117,7 @@ export default function Sidebar({ onCloseMobile }: SidebarProps) {
               </>
             ) : (
               <>
-                <Avatar className="h-8 w-8" style={{backgroundColor: AVATAR_COLORS.GRAY}}>
+                <Avatar key="guest-avatar" className="h-8 w-8" style={{backgroundColor: AVATAR_COLORS.GRAY}}>
                   <AvatarFallback className="bg-primary text-white">GU</AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col">
