@@ -298,7 +298,7 @@ router.post('/:dealId/timeline', async (req: Request, res: Response) => {
   }
 });
 
-// Star a deal
+// Toggle star on a deal
 router.post('/:dealId/star', async (req: Request, res: Response) => {
   try {
     const dealId = Number(req.params.dealId);
@@ -311,26 +311,39 @@ router.post('/:dealId/star', async (req: Request, res: Response) => {
       console.log('User not authenticated, using default user ID 1');
     }
     
+    const userId = user ? user.id : 1; // Use default user ID 1 if not authenticated
     const storage = getStorage();
+    
     // Make sure deal exists
     const deal = await storage.getDeal(dealId);
     if (!deal) {
       return res.status(404).json({ message: 'Deal not found' });
     }
     
-    const starData = insertDealStarSchema.parse({
-      dealId,
-      userId: user ? user.id : 1 // Use default user ID 1 if not authenticated
-    });
+    // Check if user has already starred this deal
+    const stars = await storage.getDealStars(dealId);
+    const existingStar = stars.find(star => star.userId === userId);
     
-    const star = await storage.starDeal(starData);
-    res.status(201).json(star);
+    if (existingStar) {
+      // If user has already starred, remove the star
+      await storage.unstarDeal(dealId, userId);
+      return res.json({ success: true, action: 'unstarred' });
+    } else {
+      // Otherwise, add a new star
+      const starData = insertDealStarSchema.parse({
+        dealId,
+        userId
+      });
+      
+      const star = await storage.starDeal(starData);
+      return res.status(201).json({ ...star, action: 'starred' });
+    }
   } catch (error) {
-    console.error('Error starring deal:', error);
+    console.error('Error toggling deal star:', error);
     if (error instanceof z.ZodError) {
       return res.status(400).json({ message: 'Invalid star data', errors: error.errors });
     }
-    res.status(500).json({ message: 'Failed to star deal' });
+    res.status(500).json({ message: 'Failed to toggle deal star' });
   }
 });
 

@@ -124,6 +124,23 @@ export class DatabaseStorage implements IStorage {
   
   // Deal stars
   async starDeal(starData: InsertDealStar): Promise<DealStar> {
+    // Check if the user has already starred this deal
+    const existingStars = await db
+      .select()
+      .from(dealStars)
+      .where(
+        and(
+          eq(dealStars.dealId, starData.dealId),
+          eq(dealStars.userId, starData.userId)
+        )
+      );
+    
+    // If the user has already starred this deal, return the existing star
+    if (existingStars.length > 0) {
+      return existingStars[0];
+    }
+    
+    // Otherwise, create a new star
     const [star] = await db.insert(dealStars).values(starData).returning();
     return star;
   }

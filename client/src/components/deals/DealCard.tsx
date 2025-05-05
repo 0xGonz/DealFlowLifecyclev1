@@ -39,26 +39,51 @@ export default function DealCard({ deal: rawDeal, compact = false, onEdit, onAll
   // Get assigned user details for display
   const assignedUsers = deal.assignedUsers || [];
 
-  // Function to handle starring a deal
+  // Get current user to check if the user has already starred this deal
+  const { data: currentUser } = useAuth();
+  
+  // Check if the current user has already starred this deal
+  const { data: stars = [] } = useQuery<DealStar[]>({
+    queryKey: [`/api/deals/${deal.id}/stars`],
+    enabled: !!deal.id
+  });
+  
+  // Determine if the current user has starred this deal
+  const hasUserStarred = !!currentUser && stars.some(star => star.userId === currentUser.id);
+  
+  // Function to handle toggling star on a deal
   const handleStarDeal = async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click navigation
     
+    if (!currentUser) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to star deals.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     try {
-      await apiRequest("POST", `/api/deals/${deal.id}/star`, {});
+      const response = await apiRequest("POST", `/api/deals/${deal.id}/star`, {});
+      const result = await response.json();
       
       toast({
-        title: "Deal starred",
-        description: "This deal has been added to your starred deals."
+        title: result.action === 'starred' ? "Deal starred" : "Star removed",
+        description: result.action === 'starred' 
+          ? "This deal has been added to your starred deals."
+          : "This deal has been removed from your starred deals."
       });
       
       // Refresh deals data and leaderboard
       queryClient.invalidateQueries({ queryKey: ['/api/deals'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/deals/${deal.id}/stars`] });
       queryClient.invalidateQueries({ queryKey: ['/api/leaderboard'] });
       
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to star deal. Please try again.",
+        description: "Failed to update deal star. Please try again.",
         variant: "destructive"
       });
     }
