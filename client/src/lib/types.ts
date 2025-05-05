@@ -44,6 +44,7 @@ export interface Deal {
   score?: number; // Frontend computed property from average memo scores
   miniMemos?: MiniMemo[]; // Frontend relationship 
   allocations?: FundAllocation[]; // Frontend relationship
+  timelineEvents?: TimelineEvent[]; // Frontend relationship for timeline events
 }
 
 // Timeline event types

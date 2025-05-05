@@ -135,10 +135,20 @@ export default function Pipeline() {
       return false;
     }
     
-    // Date filter (simplified - in a real app would check actual dates)
-    if (dateFilter === "30days") {
-      // Simplified logic - just returns all for demo
-      return true;
+    // Date filter by createdAt timestamp
+    if (dateFilter !== "all") {
+      const dealDate = new Date(deal.createdAt).getTime();
+      const currentDate = new Date().getTime();
+      const dayInMs = 24 * 60 * 60 * 1000;
+      
+      if (dateFilter === "30days") {
+        return currentDate - dealDate <= 30 * dayInMs;
+      } else if (dateFilter === "quarter") {
+        return currentDate - dealDate <= 90 * dayInMs;
+      } else if (dateFilter === "ytd") {
+        const startOfYear = new Date(new Date().getFullYear(), 0, 1).getTime();
+        return dealDate >= startOfYear;
+      }
     }
     
     return true;
@@ -218,7 +228,7 @@ export default function Pipeline() {
               </SelectContent>
             </Select>
             
-            <Select value="all" onValueChange={() => {}}>
+            <Select value={dateFilter} onValueChange={setDateFilter}>
               <SelectTrigger className="w-full h-8 sm:h-9 sm:w-[130px] md:w-[140px] bg-white border-neutral-300 text-[10px] xs:text-xs sm:text-sm">
                 <SelectValue placeholder="Any Time" />
               </SelectTrigger>

@@ -1,8 +1,9 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Deal } from "@/lib/types";
+import { Deal, TimelineEvent } from "@/lib/types";
 import { DealStageLabels } from "@shared/schema";
 import { getDealStageBadgeClass } from "@/lib/utils/format";
+import { PIPELINE_METRICS } from "@/lib/constants/calculation-constants";
 
 type StageDistributionProps = {
   deals: Deal[] | undefined;
@@ -30,10 +31,23 @@ const getStageColorClass = (stage: string): string => {
 export default function StageDistribution({ deals, stage }: StageDistributionProps) {
   if (!deals || deals.length === 0) return null;
   
-  // Function to calculate days in stage for each deal
+  // Function to calculate days in stage for each deal using timeline events
   const calculateDaysInStage = (deal: Deal): number => {
-    // In a real app, we'd use timeline events to calculate accurate days in stage
-    // For demo, we'll use creation date as a proxy
+    // Use timeline events if available, otherwise fall back to creation date
+    if (deal.timelineEvents && deal.timelineEvents.length > 0) {
+      // Find the earliest timeline event with the current stage
+      const stageEvent = deal.timelineEvents
+        .filter((event: TimelineEvent) => event.eventType === 'stage_change' && event.metadata?.newStage === deal.stage)
+        .sort((a: TimelineEvent, b: TimelineEvent) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())[0];
+      
+      if (stageEvent) {
+        const stageChangeDate = new Date(stageEvent.createdAt);
+        const today = new Date();
+        return Math.max(1, Math.floor((today.getTime() - stageChangeDate.getTime()) / (1000 * 60 * 60 * 24)));
+      }
+    }
+    
+    // Fall back to creation date if timeline events aren't available
     const creationDate = new Date(deal.createdAt);
     const today = new Date();
     return Math.max(1, Math.floor((today.getTime() - creationDate.getTime()) / (1000 * 60 * 60 * 24)));
@@ -62,12 +76,13 @@ export default function StageDistribution({ deals, stage }: StageDistributionPro
       percentage?: number;
     };
     
-    // Calculate distribution categories
+    // Calculate distribution categories using configured constants
+    const { RECENT, SHORT, MEDIUM, LONG } = PIPELINE_METRICS.DAY_CATEGORIES;
     const categories: CategoryStat[] = [
-      { label: '< 7 days', count: dealDays.filter(d => d.days < 7).length },
-      { label: '7-14 days', count: dealDays.filter(d => d.days >= 7 && d.days < 14).length },
-      { label: '15-30 days', count: dealDays.filter(d => d.days >= 14 && d.days < 30).length },
-      { label: '30+ days', count: dealDays.filter(d => d.days >= 30).length },
+      { label: `< ${RECENT} days`, count: dealDays.filter(d => d.days < RECENT).length },
+      { label: `${RECENT}-${SHORT} days`, count: dealDays.filter(d => d.days >= RECENT && d.days < SHORT).length },
+      { label: `${SHORT}-${MEDIUM} days`, count: dealDays.filter(d => d.days >= SHORT && d.days < MEDIUM).length },
+      { label: `${MEDIUM}+ days`, count: dealDays.filter(d => d.days >= MEDIUM && d.days < LONG).length },
     ];
     
     // Calculate percentages

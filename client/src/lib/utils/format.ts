@@ -1,4 +1,5 @@
 import { DEAL_STAGE_BADGE_CLASSES } from '../constants/style-constants';
+import { FINANCIAL_CALCULATION } from '../constants/calculation-constants';
 
 /**
  * Format a number as currency
@@ -12,12 +13,16 @@ export const formatCurrency = (amount: number | undefined | null): string => {
   }
   
   // Format large numbers with appropriate abbreviations
-  if (amount >= 1000000000) {
-    return `$${(amount / 1000000000).toFixed(1)}B`;
-  } else if (amount >= 1000000) {
-    return `$${(amount / 1000000).toFixed(1)}M`;
-  } else if (amount >= 1000) {
-    return `$${(amount / 1000).toFixed(1)}K`;
+  // Using billion constant
+  const BILLION = FINANCIAL_CALCULATION.MILLION * 1000;
+  const THOUSAND = 1000;
+  
+  if (amount >= BILLION) {
+    return `$${(amount / BILLION).toFixed(1)}B`;
+  } else if (amount >= FINANCIAL_CALCULATION.MILLION) {
+    return `$${(amount / FINANCIAL_CALCULATION.MILLION).toFixed(1)}M`;
+  } else if (amount >= THOUSAND) {
+    return `$${(amount / THOUSAND).toFixed(1)}K`;
   }
   
   // Format standard currency
@@ -25,7 +30,7 @@ export const formatCurrency = (amount: number | undefined | null): string => {
     style: 'currency',
     currency: 'USD',
     minimumFractionDigits: 0,
-    maximumFractionDigits: 0
+    maximumFractionDigits: FINANCIAL_CALCULATION.PRECISION.CURRENCY
   }).format(amount);
 };
 
@@ -44,10 +49,10 @@ export const formatDate = (dateString: string | undefined | null): string => {
 /**
  * Format a percentage value
  * @param value The value to format as percentage
- * @param decimals Number of decimal places (default: 1)
+ * @param decimals Number of decimal places (default from constants)
  * @returns Formatted percentage string
  */
-export const formatPercentage = (value: number | undefined | null, decimals = 1): string => {
+export const formatPercentage = (value: number | undefined | null, decimals = FINANCIAL_CALCULATION.PRECISION.PERCENTAGE): string => {
   if (value === undefined || value === null) {
     return '0%';
   }
@@ -59,15 +64,31 @@ export const formatPercentage = (value: number | undefined | null, decimals = 1)
 /**
  * Format a ratio value (used for MOIC, etc.)
  * @param value The ratio value
- * @param decimals Number of decimal places (default: 2)
+ * @param decimals Number of decimal places (default from constants)
  * @returns Formatted ratio string (e.g., "1.45x")
  */
-export const formatRatio = (value: number | undefined | null, decimals = 2): string => {
+export const formatRatio = (value: number | undefined | null, decimals = FINANCIAL_CALCULATION.PRECISION.MULTIPLE): string => {
   if (value === undefined || value === null) {
-    return '0.00x';
+    return `0.${'0'.repeat(decimals)}x`;
   }
   
   return `${value.toFixed(decimals)}x`;
+};
+
+/**
+ * Format an IRR value
+ * @param value The IRR value
+ * @param decimals Number of decimal places (default from constants)
+ * @returns Formatted IRR string (e.g., "18.5%")
+ */
+export const formatIRR = (value: number | undefined | null, decimals = FINANCIAL_CALCULATION.PRECISION.IRR): string => {
+  if (value === undefined || value === null) {
+    return `0.${'0'.repeat(decimals)}%`;
+  }
+  
+  // Ensure IRR is not negative for display
+  const displayValue = Math.max(0, value);
+  return `${displayValue.toFixed(decimals)}%`;
 };
 
 /**

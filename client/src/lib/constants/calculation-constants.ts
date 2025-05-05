@@ -21,8 +21,6 @@ export const FINANCIAL_CALCULATION = {
   AVERAGE_INVESTMENT: 8000000,
   // Convert millions to numeric value
   MILLION: 1000000,
-  // For currency formatting
-  DEFAULT_PRECISION: 0,
   // Default minimum investment size for funds
   MIN_INVESTMENT: 1000000,
   // Average number of LP investors per fund
@@ -31,6 +29,17 @@ export const FINANCIAL_CALCULATION = {
   TARGET_IRR: 18,
   // Target investment period in years
   TARGET_INVESTMENT_PERIOD: 3,
+  // Formatting precision for different financial metrics
+  PRECISION: {
+    // For currency values (e.g. $5,000,000)
+    CURRENCY: 0,
+    // For percentages (e.g. weight: 25.5%)
+    PERCENTAGE: 1,
+    // For IRR values (e.g. 18.5%)
+    IRR: 1,
+    // For multiples (e.g. MOIC: 2.50x)
+    MULTIPLE: 2,
+  },
 };
 
 // Score calculation constants
@@ -58,5 +67,12 @@ export const PIPELINE_METRICS = {
     DILIGENCE: 30,
     IC_REVIEW: 7,
     CLOSING: 21,
+  },
+  // Day categories for distribution charts
+  DAY_CATEGORIES: {
+    RECENT: 7,           // Less than 7 days
+    SHORT: 14,           // 7-14 days
+    MEDIUM: 30,          // 14-30 days
+    LONG: Number.MAX_SAFE_INTEGER  // 30+ days
   },
 };
