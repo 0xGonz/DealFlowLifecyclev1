@@ -39,10 +39,11 @@ export function usePermissions() {
       return permission === 'view';
     }
     
-    // Intern can view everything and only create deals
+    // Intern can view everything and only create/edit deals
     if (role === 'intern') {
       if (permission === 'view') return true;
       if (permission === 'create' && resourceType === 'deal') return true;
+      if (permission === 'edit' && resourceType === 'deal') return true;
       return false;
     }
     
