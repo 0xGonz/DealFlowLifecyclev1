@@ -43,6 +43,7 @@ export default function Pipeline() {
   const [sectorFilter, setSectorFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [dateFilter, setDateFilter] = useState("all");
+  const [returnFilter, setReturnFilter] = useState("all");
   const { toast } = useToast();
   const [, navigate] = useLocation();
 
@@ -146,6 +147,19 @@ export default function Pipeline() {
       return false;
     }
     
+    // Return filter - filter by target return percentage
+    if (returnFilter !== "all") {
+      const targetReturn = deal.targetReturn ? parseFloat(deal.targetReturn.replace('%', '')) : 0;
+      
+      if (returnFilter === "high" && targetReturn < 15) {
+        return false;
+      } else if (returnFilter === "medium" && (targetReturn < 10 || targetReturn >= 15)) {
+        return false;
+      } else if (returnFilter === "low" && (targetReturn < 5 || targetReturn >= 10)) {
+        return false;
+      }
+    }
+    
     // Date filter by createdAt timestamp
     if (dateFilter !== "all") {
       const dealDate = new Date(deal.createdAt).getTime();
@@ -215,7 +229,7 @@ export default function Pipeline() {
               </SelectContent>
             </Select>
             
-            <Select value={dateFilter} onValueChange={setDateFilter}>
+            <Select value={returnFilter} onValueChange={setReturnFilter}>
               <SelectTrigger className="w-full h-8 sm:h-9 sm:w-[130px] md:w-[140px] bg-white border-neutral-300 text-[10px] xs:text-xs sm:text-sm">
                 <SelectValue placeholder="All Returns" />
               </SelectTrigger>
