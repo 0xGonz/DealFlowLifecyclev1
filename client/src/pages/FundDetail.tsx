@@ -98,11 +98,43 @@ export default function FundDetail() {
     enabled: !!fundId,
   });
   
+  // Fetch invalid allocations for this fund
+  const { data: invalidAllocations, isLoading: isInvalidAllocationsLoading, refetch: refetchInvalidAllocations } = useQuery({
+    queryKey: [`/api/allocations/fund/${fundId}/invalid`],
+    enabled: !!fundId,
+  });
+  
   // Fetch all deals for the allocation dropdown
   const { data: deals } = useQuery({
     queryKey: ['/api/deals'],
   });
   
+  // Delete allocation mutation
+  const deleteAllocation = useMutation({
+    mutationFn: async (allocationId: number) => {
+      return apiRequest("DELETE", `/api/allocations/${allocationId}`);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Allocation deleted successfully",
+      });
+      
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({ queryKey: [`/api/allocations/fund/${fundId}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/allocations/fund/${fundId}/invalid`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/funds', fundId] }); // Refresh fund details (AUM might change)
+      refetchInvalidAllocations(); // Explicitly refetch invalid allocations
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete allocation",
+        variant: "destructive"
+      });
+    }
+  });
+
   // Create allocation mutation
   const createAllocation = useMutation({
     mutationFn: async (data) => {

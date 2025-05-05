@@ -33,9 +33,14 @@ router.post('/', async (req: Request, res: Response) => {
       });
     }
     
-    // Update fund AUM based on actual allocations
+    // Get all deals to validate allocations
+    const allDeals = await storage.getDeals();
+    const validDealIds = allDeals.map(deal => deal.id);
+    
+    // Update fund AUM based on valid allocations only
     const fundAllocations = await storage.getAllocationsByFund(fund.id);
-    const totalAllocationAmount = fundAllocations.reduce((sum, allocation) => sum + allocation.amount, 0);
+    const validAllocations = fundAllocations.filter(alloc => validDealIds.includes(alloc.dealId));
+    const totalAllocationAmount = validAllocations.reduce((sum, allocation) => sum + allocation.amount, 0);
     await storage.updateFund(fund.id, { aum: totalAllocationAmount });
     
     res.status(201).json(newAllocation);
@@ -54,9 +59,43 @@ router.get('/fund/:fundId', async (req: Request, res: Response) => {
     const storage = StorageFactory.getStorage();
     const fundId = Number(req.params.fundId);
     const allocations = await storage.getAllocationsByFund(fundId);
-    res.json(allocations);
+    
+    // Get all deals to validate allocations
+    const deals = await storage.getDeals();
+    const validDealIds = deals.map(deal => deal.id);
+    
+    // Filter out allocations to non-existent deals
+    const validAllocations = allocations.filter(allocation => 
+      validDealIds.includes(allocation.dealId)
+    );
+    
+    res.json(validAllocations);
   } catch (error) {
+    console.error('Error fetching fund allocations:', error);
     res.status(500).json({ message: 'Failed to fetch allocations' });
+  }
+});
+
+// Get invalid allocations for a fund (allocations to non-existent deals)
+router.get('/fund/:fundId/invalid', async (req: Request, res: Response) => {
+  try {
+    const storage = StorageFactory.getStorage();
+    const fundId = Number(req.params.fundId);
+    const allocations = await storage.getAllocationsByFund(fundId);
+    
+    // Get all deals to validate allocations
+    const deals = await storage.getDeals();
+    const validDealIds = deals.map(deal => deal.id);
+    
+    // Get only allocations to non-existent deals
+    const invalidAllocations = allocations.filter(allocation => 
+      !validDealIds.includes(allocation.dealId)
+    );
+    
+    res.json(invalidAllocations);
+  } catch (error) {
+    console.error('Error fetching invalid fund allocations:', error);
+    res.status(500).json({ message: 'Failed to fetch invalid allocations' });
   }
 });
 
@@ -65,9 +104,17 @@ router.get('/deal/:dealId', async (req: Request, res: Response) => {
   try {
     const storage = StorageFactory.getStorage();
     const dealId = Number(req.params.dealId);
+    
+    // First check if deal exists
+    const deal = await storage.getDeal(dealId);
+    if (!deal) {
+      return res.status(404).json({ message: 'Deal not found' });
+    }
+    
     const allocations = await storage.getAllocationsByDeal(dealId);
     res.json(allocations);
   } catch (error) {
+    console.error('Error fetching deal allocations:', error);
     res.status(500).json({ message: 'Failed to fetch allocations' });
   }
 });
@@ -90,9 +137,14 @@ router.delete('/:id', async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'Allocation not found or could not be deleted' });
     }
     
-    // Update fund AUM based on remaining allocations
+    // Get all deals to validate allocations
+    const deals = await storage.getDeals();
+    const validDealIds = deals.map(deal => deal.id);
+    
+    // Update fund AUM based on remaining valid allocations
     const fundAllocations = await storage.getAllocationsByFund(allocation.fundId);
-    const totalAllocationAmount = fundAllocations.reduce((sum, alloc) => sum + alloc.amount, 0);
+    const validAllocations = fundAllocations.filter(alloc => validDealIds.includes(alloc.dealId));
+    const totalAllocationAmount = validAllocations.reduce((sum, alloc) => sum + alloc.amount, 0);
     await storage.updateFund(allocation.fundId, { aum: totalAllocationAmount });
     
     res.status(200).json({ message: 'Allocation deleted successfully' });
