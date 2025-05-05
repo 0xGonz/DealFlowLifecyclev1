@@ -39,7 +39,8 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+// Using HTML label directly instead of Label component to avoid FormContext issues
+// import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -327,7 +328,7 @@ export default function FundDetail() {
                         
                         <div className="space-y-4 py-4">
                           <div className="space-y-2">
-                            <Label htmlFor="deal">Deal *</Label>
+                            <label htmlFor="deal" className="text-sm font-medium">Deal *</label>
                             <Select 
                               onValueChange={(value) => setNewAllocationData({
                                 ...newAllocationData, 
@@ -348,7 +349,7 @@ export default function FundDetail() {
                           </div>
                           
                           <div className="space-y-2">
-                            <Label htmlFor="amount">Investment Amount *</Label>
+                            <label htmlFor="amount" className="text-sm font-medium">Investment Amount *</label>
                             <div className="relative">
                               <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-500" />
                               <Input 
@@ -366,7 +367,7 @@ export default function FundDetail() {
                           </div>
                           
                           <div className="space-y-2">
-                            <Label htmlFor="securityType">Sector *</Label>
+                            <label htmlFor="securityType" className="text-sm font-medium">Sector *</label>
                             <Select 
                               onValueChange={(value) => setNewAllocationData({
                                 ...newAllocationData, 
@@ -392,7 +393,7 @@ export default function FundDetail() {
                           </div>
                           
                           <div className="space-y-2">
-                            <Label htmlFor="status">Investment Status *</Label>
+                            <label htmlFor="status" className="text-sm font-medium">Investment Status *</label>
                             <Select 
                               onValueChange={(value) => setNewAllocationData({
                                 ...newAllocationData, 
@@ -412,7 +413,7 @@ export default function FundDetail() {
                           </div>
                           
                           <div className="space-y-2">
-                            <Label htmlFor="allocationDate">Allocation Date</Label>
+                            <label htmlFor="allocationDate" className="text-sm font-medium">Allocation Date</label>
                             <div className="relative">
                               <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-500" />
                               <Input 
@@ -430,7 +431,7 @@ export default function FundDetail() {
                           
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-2">
-                              <Label htmlFor="distributionPaid">Distributions Paid</Label>
+                              <label htmlFor="distributionPaid" className="text-sm font-medium">Distributions Paid</label>
                               <div className="relative">
                                 <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-500" />
                                 <Input 
@@ -448,7 +449,7 @@ export default function FundDetail() {
                             </div>
                             
                             <div className="space-y-2">
-                              <Label htmlFor="marketValue">Current Market Value</Label>
+                              <label htmlFor="marketValue" className="text-sm font-medium">Current Market Value</label>
                               <div className="relative">
                                 <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-500" />
                                 <Input 
@@ -467,7 +468,7 @@ export default function FundDetail() {
                           </div>
                           
                           <div className="space-y-2">
-                            <Label htmlFor="notes">Notes</Label>
+                            <label htmlFor="notes" className="text-sm font-medium">Notes</label>
                             <Textarea 
                               id="notes" 
                               value={newAllocationData.notes}
@@ -514,7 +515,7 @@ export default function FundDetail() {
                         
                         <div className="space-y-4 py-4">
                           <div className="space-y-2">
-                            <Label htmlFor="reportType">Report Type</Label>
+                            <label htmlFor="reportType" className="text-sm font-medium">Report Type</label>
                             <Select defaultValue="performance">
                               <SelectTrigger id="reportType">
                                 <SelectValue placeholder="Select report type" />
@@ -528,7 +529,7 @@ export default function FundDetail() {
                           </div>
                           
                           <div className="space-y-2">
-                            <Label htmlFor="reportFormat">Format</Label>
+                            <label htmlFor="reportFormat" className="text-sm font-medium">Format</label>
                             <Select defaultValue="pdf">
                               <SelectTrigger id="reportFormat">
                                 <SelectValue placeholder="Select format" />
@@ -542,7 +543,7 @@ export default function FundDetail() {
                           </div>
                           
                           <div className="space-y-2">
-                            <Label htmlFor="dateRange">Date Range</Label>
+                            <label htmlFor="dateRange" className="text-sm font-medium">Date Range</label>
                             <div className="grid grid-cols-1 xs:grid-cols-2 gap-2 xs:gap-4">
                               <div className="relative">
                                 <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-500" />
