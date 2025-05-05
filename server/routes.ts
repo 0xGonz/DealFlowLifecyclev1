@@ -29,8 +29,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     next();
   });
   
-  // Uncomment to require authentication for all API routes
-  // app.use('/api/*', requireAuth);
+  // Authentication middleware for all API routes except auth endpoints
+  app.use('/api', (req: Request, res: Response, next: NextFunction) => {
+    // Skip auth check for auth endpoints and OPTIONS requests
+    if (req.path.startsWith('/auth') || req.method === 'OPTIONS') {
+      return next();
+    }
+    
+    // Require authentication for all other API routes
+    requireAuth(req, res, next);
+  });
   
   // Register route modules
   app.use('/api/deals', dealsRoutes);

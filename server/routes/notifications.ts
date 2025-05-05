@@ -8,10 +8,14 @@ const router = Router();
 // Get all notifications for the current user
 router.get('/', async (req: Request, res: Response) => {
   try {
-    // We'd normally use req.session.userId but for demo purposes let's use a fixed user
-    const userId = 1; // Using the first user (admin) for demo
+    const user = req.user;
+    
+    if (!user) {
+      return res.status(401).json({ message: 'Unauthorized: Authentication required' });
+    }
+    
     const storage = StorageFactory.getStorage();
-    const notifications = await storage.getUserNotifications(userId);
+    const notifications = await storage.getUserNotifications(user.id);
     return res.json(notifications);
   } catch (error) {
     console.error('Error fetching notifications:', error);
@@ -22,10 +26,14 @@ router.get('/', async (req: Request, res: Response) => {
 // Get unread notification count
 router.get('/unread-count', async (req: Request, res: Response) => {
   try {
-    // We'd normally use req.session.userId but for demo purposes let's use a fixed user
-    const userId = 1; // Using the first user (admin) for demo
+    const user = req.user;
+    
+    if (!user) {
+      return res.status(401).json({ message: 'Unauthorized: Authentication required' });
+    }
+    
     const storage = StorageFactory.getStorage();
-    const count = await storage.getUnreadNotificationsCount(userId);
+    const count = await storage.getUnreadNotificationsCount(user.id);
     return res.json({ count });
   } catch (error) {
     console.error('Error fetching unread count:', error);
@@ -57,10 +65,14 @@ router.patch('/:id/read', async (req: Request, res: Response) => {
 // Mark all notifications as read
 router.post('/mark-all-read', async (req: Request, res: Response) => {
   try {
-    // We'd normally use req.session.userId but for demo purposes let's use a fixed user
-    const userId = 1; // Using the first user (admin) for demo
+    const user = req.user;
+    
+    if (!user) {
+      return res.status(401).json({ message: 'Unauthorized: Authentication required' });
+    }
+    
     const storage = StorageFactory.getStorage();
-    const success = await storage.markAllNotificationsAsRead(userId);
+    const success = await storage.markAllNotificationsAsRead(user.id);
     return res.json({ success });
   } catch (error) {
     console.error('Error marking all notifications as read:', error);

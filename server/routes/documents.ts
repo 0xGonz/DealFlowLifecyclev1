@@ -18,17 +18,11 @@ import * as fs from 'fs';
 import * as crypto from 'crypto';
 import multer from 'multer';
 
-// Authentication middleware
-const requireAuth = (req: Request, res: Response, next: NextFunction) => {
-  // Skip auth check during development if auth system isn't complete
-  const skipAuth = process.env.NODE_ENV === 'development';
-  
-  if (skipAuth || req.isAuthenticated()) {
-    return next();
-  }
-  
-  return res.status(401).json({ message: 'Unauthorized: Authentication required' });
-};
+// Import the central authentication middleware
+import { requireAuth as centralRequireAuth } from '../utils/auth';
+
+// Use the central authentication middleware to ensure consistency
+const requireAuth = centralRequireAuth;
 
 // Middleware to sanitize file paths and ensure they don't escape the intended directory
 const sanitizeFilePath = (filePath: string): string => {

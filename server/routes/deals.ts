@@ -10,6 +10,7 @@ import {
 } from "@shared/schema";
 import { z } from "zod";
 import { IStorage } from "../storage";
+import { requirePermission } from "../utils/permissions";
 
 const router = Router();
 
@@ -118,7 +119,7 @@ router.get('/:id', async (req: Request, res: Response) => {
 });
 
 // Create a new deal
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', requirePermission('create', 'deal'), async (req: Request, res: Response) => {
   try {
     const user = (req as any).user;
     
@@ -152,7 +153,7 @@ router.post('/', async (req: Request, res: Response) => {
 });
 
 // Update a deal
-router.patch('/:id', async (req: Request, res: Response) => {
+router.patch('/:id', requirePermission('edit', 'deal'), async (req: Request, res: Response) => {
   try {
     const dealId = Number(req.params.id);
     // Get user from request if available, or use a default system user ID if not
@@ -191,12 +192,12 @@ router.patch('/:id', async (req: Request, res: Response) => {
             content: `Deal rejected: ${dealUpdate.rejectionReason}`,
             createdBy: user.id,
             metadata: {
-              previousStage: deal.stage,
-              newStage: 'rejected'
+              previousStage: [deal.stage],
+              newStage: ['rejected']
             }
           });
         }
-      } else if (deal.stage === 'rejected' && dealUpdate.stage !== 'rejected') {
+      } else if (deal.stage === 'rejected' && dealUpdate.stage && (['initial_review', 'screening', 'diligence', 'ic_review', 'closing', 'closed', 'invested'] as const).includes(dealUpdate.stage as any)) {
         // If moving from rejected to another stage, clear rejection fields
         dealUpdate = {
           ...dealUpdate,
@@ -212,8 +213,8 @@ router.patch('/:id', async (req: Request, res: Response) => {
         content: `Deal moved from ${DealStageLabels[deal.stage]} to ${DealStageLabels[dealUpdate.stage as keyof typeof DealStageLabels]}`,
         createdBy: user.id,
         metadata: {
-          previousStage: deal.stage,
-          newStage: dealUpdate.stage
+          previousStage: [deal.stage],
+          newStage: dealUpdate.stage ? [dealUpdate.stage] : ['unknown']
         }
       });
     }
@@ -441,14 +442,12 @@ router.post('/:dealId/star', async (req: Request, res: Response) => {
     const dealId = Number(req.params.dealId);
     const user = (req as any).user;
     
-    // Check if user is authenticated
+    // User must be authenticated
     if (!user) {
-      // For development purposes, we'll allow starring without authentication
-      // and use a default user ID of 1
-      console.log('User not authenticated, using default user ID 1');
+      return res.status(401).json({ message: 'Authentication required to star deals' });
     }
     
-    const userId = user ? user.id : 1; // Use default user ID 1 if not authenticated
+    const userId = user.id;
     const storage = getStorage();
     
     // Make sure deal exists
@@ -490,15 +489,13 @@ router.delete('/:dealId/star', async (req: Request, res: Response) => {
     const dealId = Number(req.params.dealId);
     const user = (req as any).user;
     
-    // Check if user is authenticated
+    // User must be authenticated
     if (!user) {
-      // For development purposes, we'll allow unstarring without authentication
-      // and use a default user ID of 1
-      console.log('User not authenticated, using default user ID 1');
+      return res.status(401).json({ message: 'Authentication required to unstar deals' });
     }
     
     const storage = getStorage();
-    const success = await storage.unstarDeal(dealId, user ? user.id : 1);
+    const success = await storage.unstarDeal(dealId, user.id);
     if (!success) {
       return res.status(404).json({ message: 'Star not found' });
     }
@@ -555,7 +552,7 @@ router.post('/:dealId/assignments', async (req: Request, res: Response) => {
       eventType: 'note',
       content: `${user.fullName} (${user.role}) was assigned to this deal by ${currentUser.fullName}`,
       createdBy: currentUser.id,
-      metadata: { assignedUserId: userId }
+      metadata: { assignedUserId: [userId] }
     });
     
     // Create a notification for the assigned user
@@ -666,7 +663,7 @@ router.delete('/:dealId/assignments/:userId', async (req: Request, res: Response
         ? `${user.fullName} left the deal team` 
         : `${user.fullName} was removed from the deal team by ${currentUser.fullName}`,
       createdBy: currentUser.id,
-      metadata: { unassignedUserId: userId }
+      metadata: { unassignedUserId: [userId] }
     });
     
     res.json({ success: true });
@@ -676,7 +673,7 @@ router.delete('/:dealId/assignments/:userId', async (req: Request, res: Response
 });
 
 // Delete a deal
-router.delete('/:id', async (req: Request, res: Response) => {
+router.delete('/:id', requirePermission('delete', 'deal'), async (req: Request, res: Response) => {
   try {
     // Check if the ID is valid
     if (req.params.id === 'undefined' || req.params.id === 'null') {
@@ -751,14 +748,12 @@ router.post('/:dealId/memos', async (req: Request, res: Response) => {
     const dealId = Number(req.params.dealId);
     const user = (req as any).user;
     
-    // Check if user is authenticated
+    // User must be authenticated
     if (!user) {
-      // For development purposes, we'll allow creating memos without authentication
-      // and use a default user ID of 1
-      console.log('User not authenticated, using default user ID 1');
+      return res.status(401).json({ message: 'Authentication required to create memos' });
     }
     
-    const userId = user ? user.id : 1; // Use default user ID 1 if not authenticated
+    const userId = user.id;
     
     const storage = getStorage();
     // Make sure deal exists
@@ -835,14 +830,12 @@ router.post('/:dealId/memos/:memoId/comments', async (req: Request, res: Respons
     const memoId = Number(req.params.memoId);
     const user = (req as any).user;
     
-    // Check if user is authenticated
+    // User must be authenticated
     if (!user) {
-      // For development purposes, we'll allow commenting without authentication
-      // and use a default user ID of 1
-      console.log('User not authenticated, using default user ID 1');
+      return res.status(401).json({ message: 'Authentication required to add comments' });
     }
     
-    const userId = user ? user.id : 1; // Use default user ID 1 if not authenticated
+    const userId = user.id;
     
     const storage = getStorage();
     // Make sure memo exists
