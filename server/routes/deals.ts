@@ -264,6 +264,10 @@ router.post('/:dealId/timeline', async (req: Request, res: Response) => {
     const dealId = Number(req.params.dealId);
     const user = (req as any).user;
     
+    if (!user) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+    
     const storage = getStorage();
     // Make sure deal exists
     const deal = await storage.getDeal(dealId);
@@ -295,6 +299,113 @@ router.post('/:dealId/timeline', async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'Invalid event data', errors: error.errors });
     }
     res.status(500).json({ message: 'Failed to create timeline event' });
+  }
+});
+
+// Update a timeline event
+router.put('/:dealId/timeline/:eventId', async (req: Request, res: Response) => {
+  try {
+    const dealId = Number(req.params.dealId);
+    const eventId = Number(req.params.eventId);
+    const user = (req as any).user;
+    
+    if (!user) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+    
+    const storage = getStorage();
+    // Make sure deal exists
+    const deal = await storage.getDeal(dealId);
+    if (!deal) {
+      return res.status(404).json({ message: 'Deal not found' });
+    }
+    
+    // Make sure event exists
+    const events = await storage.getTimelineEventsByDeal(dealId);
+    const event = events.find(e => e.id === eventId);
+    
+    if (!event) {
+      return res.status(404).json({ message: 'Timeline event not found' });
+    }
+    
+    // Check if user is allowed to edit this event
+    if (event.createdBy !== user.id && user.role !== 'admin') {
+      return res.status(403).json({ message: 'You do not have permission to edit this event' });
+    }
+    
+    // Only allow editing content for notes
+    if (event.eventType !== 'note') {
+      return res.status(400).json({ message: 'Only note events can be edited' });
+    }
+    
+    const updatedEvent = await storage.updateTimelineEvent(eventId, {
+      content: req.body.content
+    });
+    
+    // Return with user info
+    const userInfo = await storage.getUser(event.createdBy);
+    res.json({
+      ...updatedEvent,
+      user: userInfo ? {
+        id: userInfo.id,
+        fullName: userInfo.fullName,
+        initials: userInfo.initials,
+        avatarColor: userInfo.avatarColor
+      } : null
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: 'Invalid event data', errors: error.errors });
+    }
+    res.status(500).json({ message: 'Failed to update timeline event' });
+  }
+});
+
+// Delete a timeline event
+router.delete('/:dealId/timeline/:eventId', async (req: Request, res: Response) => {
+  try {
+    const dealId = Number(req.params.dealId);
+    const eventId = Number(req.params.eventId);
+    const user = (req as any).user;
+    
+    if (!user) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+    
+    const storage = getStorage();
+    // Make sure deal exists
+    const deal = await storage.getDeal(dealId);
+    if (!deal) {
+      return res.status(404).json({ message: 'Deal not found' });
+    }
+    
+    // Make sure event exists
+    const events = await storage.getTimelineEventsByDeal(dealId);
+    const event = events.find(e => e.id === eventId);
+    
+    if (!event) {
+      return res.status(404).json({ message: 'Timeline event not found' });
+    }
+    
+    // Check if user is allowed to delete this event
+    if (event.createdBy !== user.id && user.role !== 'admin') {
+      return res.status(403).json({ message: 'You do not have permission to delete this event' });
+    }
+    
+    // Only allow deleting notes
+    if (event.eventType !== 'note') {
+      return res.status(400).json({ message: 'Only note events can be deleted' });
+    }
+    
+    const success = await storage.deleteTimelineEvent(eventId);
+    
+    if (success) {
+      res.status(200).json({ success: true });
+    } else {
+      res.status(500).json({ message: 'Failed to delete timeline event' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to delete timeline event' });
   }
 });
 

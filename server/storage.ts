@@ -37,6 +37,8 @@ export interface IStorage {
   // Timeline events
   createTimelineEvent(event: InsertTimelineEvent): Promise<TimelineEvent>;
   getTimelineEventsByDeal(dealId: number): Promise<TimelineEvent[]>;
+  updateTimelineEvent(id: number, update: Partial<InsertTimelineEvent>): Promise<TimelineEvent | undefined>;
+  deleteTimelineEvent(id: number): Promise<boolean>;
   
   // Deal stars (leaderboard)
   starDeal(dealStar: InsertDealStar): Promise<DealStar>;
@@ -493,6 +495,22 @@ export class MemStorage implements IStorage {
     return Array.from(this.timelineEvents.values())
       .filter(event => event.dealId === dealId)
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }
+  
+  async updateTimelineEvent(id: number, update: Partial<InsertTimelineEvent>): Promise<TimelineEvent | undefined> {
+    const event = this.timelineEvents.get(id);
+    if (!event) return undefined;
+    
+    const updatedEvent: TimelineEvent = {
+      ...event,
+      ...update
+    };
+    this.timelineEvents.set(id, updatedEvent);
+    return updatedEvent;
+  }
+  
+  async deleteTimelineEvent(id: number): Promise<boolean> {
+    return this.timelineEvents.delete(id);
   }
   
   // Deal stars

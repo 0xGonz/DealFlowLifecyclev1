@@ -14,9 +14,25 @@ import {
   DollarSign,
   FileText,
   RocketIcon,
-  Info
+  Info,
+  Trash2,
+  Pencil,
+  X,
+  Check
 } from "lucide-react";
 import { ICON_SIZES } from "@/lib/constants/ui-constants";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { useAuth } from "@/hooks/use-auth";
 
 interface TimelineProps {
   dealId?: number;
@@ -24,7 +40,11 @@ interface TimelineProps {
 
 export default function Timeline({ dealId }: TimelineProps) {
   const [newNote, setNewNote] = useState("");
+  const [editingEventId, setEditingEventId] = useState<number | null>(null);
+  const [editContent, setEditContent] = useState("");
+  const [eventToDelete, setEventToDelete] = useState<number | null>(null);
   const { toast } = useToast();
+  const { data: user } = useAuth();
 
   const { data = [], isLoading } = useQuery<any[]>({
     queryKey: [`/api/deals/${dealId}/timeline`],
@@ -56,9 +76,86 @@ export default function Timeline({ dealId }: TimelineProps) {
     }
   });
 
+  const updateNoteMutation = useMutation({
+    mutationFn: async ({ eventId, content }: { eventId: number, content: string }) => {
+      return apiRequest("PUT", `/api/deals/${dealId}/timeline/${eventId}`, {
+        content
+      });
+    },
+    onSuccess: async () => {
+      setEditingEventId(null);
+      setEditContent("");
+      toast({
+        title: "Note updated",
+        description: "Your note has been updated successfully."
+      });
+      await queryClient.invalidateQueries({ queryKey: [`/api/deals/${dealId}/timeline`] });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update note. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const deleteNoteMutation = useMutation({
+    mutationFn: async (eventId: number) => {
+      return apiRequest("DELETE", `/api/deals/${dealId}/timeline/${eventId}`);
+    },
+    onSuccess: async () => {
+      setEventToDelete(null);
+      toast({
+        title: "Note deleted",
+        description: "Your note has been removed from the timeline."
+      });
+      await queryClient.invalidateQueries({ queryKey: [`/api/deals/${dealId}/timeline`] });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete note. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
   const handleAddNote = () => {
     if (!newNote.trim()) return;
     addNoteMutation.mutate(newNote);
+  };
+
+  const handleEditNote = (event: any) => {
+    setEditingEventId(event.id);
+    setEditContent(event.content);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingEventId(null);
+    setEditContent("");
+  };
+
+  const handleSaveEdit = () => {
+    if (!editContent.trim() || !editingEventId) return;
+    updateNoteMutation.mutate({ eventId: editingEventId, content: editContent });
+  };
+
+  const handleDeleteNote = (eventId: number) => {
+    setEventToDelete(eventId);
+  };
+
+  const confirmDeleteNote = () => {
+    if (eventToDelete) {
+      deleteNoteMutation.mutate(eventToDelete);
+    }
+  };
+  
+  // Check if the current user can edit/delete a note
+  const canModifyNote = (event: any) => {
+    if (!user) return false;
+    if (user.role === 'admin') return true;
+    return event.createdBy === user.id;
   };
 
   // Helper to get the appropriate icon for each event type
@@ -158,8 +255,75 @@ export default function Timeline({ dealId }: TimelineProps) {
                   <span className="text-xs text-neutral-500">
                     {formatDistanceToNow(new Date(event.createdAt), { addSuffix: true })}
                   </span>
+                  {event.eventType === 'note' && canModifyNote(event) && (
+                    <div className="flex space-x-1">
+                      {/* Edit button */}
+                      <button 
+                        onClick={() => handleEditNote(event)}
+                        className="text-neutral-400 hover:text-primary-dark transition-colors">
+                        <Pencil size={14} />
+                      </button>
+                      
+                      {/* Delete button */}
+                      <AlertDialog open={eventToDelete === event.id} onOpenChange={(open) => !open && setEventToDelete(null)}>
+                        <AlertDialogTrigger asChild>
+                          <button 
+                            onClick={() => handleDeleteNote(event.id)}
+                            className="text-neutral-400 hover:text-red-500 transition-colors">
+                            <Trash2 size={14} />
+                          </button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete note</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to delete this note? This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction 
+                              onClick={confirmDeleteNote}
+                              className="bg-red-500 hover:bg-red-600 text-white"
+                            >
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  )}
                 </div>
-                <p className="text-sm text-neutral-800 mt-1">{event.content}</p>
+                
+                {editingEventId === event.id ? (
+                  <div className="mt-1">
+                    <Textarea
+                      value={editContent}
+                      onChange={(e) => setEditContent(e.target.value)}
+                      className="resize-none text-sm min-h-[60px] mb-2"
+                    />
+                    <div className="flex justify-end space-x-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={handleCancelEdit}
+                        className="h-7 px-2 text-xs"
+                      >
+                        <X size={12} className="mr-1" /> Cancel
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        onClick={handleSaveEdit}
+                        disabled={updateNoteMutation.isPending || !editContent.trim()}
+                        className="h-7 px-2 text-xs"
+                      >
+                        <Check size={12} className="mr-1" /> Save
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-sm text-neutral-800 mt-1">{event.content}</p>
+                )}
                 
                 {event.user && (
                   <div className="flex items-center mt-2">
