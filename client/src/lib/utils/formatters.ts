@@ -1,5 +1,14 @@
 import { format, parseISO } from 'date-fns';
 import { DATE_FORMATS, TIME_MS } from '../constants/time-constants';
+import { 
+  CURRENCY_FORMAT, 
+  NUMBER_FORMAT, 
+  PERCENTAGE_FORMAT, 
+  NA_PLACEHOLDERS,
+  type CurrencyFormatOption,
+  type NumberFormatOption,
+  type PercentageFormatOption
+} from '../constants/formatting-constants';
 
 /**
  * Utility functions for consistent data formatting throughout the application
@@ -13,7 +22,7 @@ import { DATE_FORMATS, TIME_MS } from '../constants/time-constants';
  * @returns Formatted date string
  */
 export function formatDate(dateString: string, formatStr: string = DATE_FORMATS.DEFAULT): string {
-  if (!dateString) return 'N/A';
+  if (!dateString) return NA_PLACEHOLDERS.DEFAULT;
   try {
     const date = typeof dateString === 'string' ? parseISO(dateString) : dateString;
     return format(date, formatStr);
@@ -30,7 +39,7 @@ export function formatDate(dateString: string, formatStr: string = DATE_FORMATS.
  * @returns Relative time string
  */
 export function formatRelativeTime(dateString: string): string {
-  if (!dateString) return 'N/A';
+  if (!dateString) return NA_PLACEHOLDERS.DEFAULT;
   
   try {
     const date = typeof dateString === 'string' ? parseISO(dateString) : dateString;
@@ -55,18 +64,22 @@ export function formatRelativeTime(dateString: string): string {
  * Format a currency value
  * 
  * @param value Number to format as currency
- * @param currency Currency code (defaults to 'USD')
+ * @param formatOption Currency format options (defaults to CURRENCY_FORMAT.DEFAULT)
  * @returns Formatted currency string
  */
-export function formatCurrency(value: number, currency: string = 'USD'): string {
-  if (value === undefined || value === null) return 'N/A';
+export function formatCurrency(
+  value: number, 
+  formatOption: CurrencyFormatOption = CURRENCY_FORMAT.DEFAULT
+): string {
+  if (value === undefined || value === null) return NA_PLACEHOLDERS.DEFAULT;
   
   try {
-    return new Intl.NumberFormat('en-US', {
+    const { LOCALE, CURRENCY, MIN_FRACTION_DIGITS, MAX_FRACTION_DIGITS } = formatOption;
+    return new Intl.NumberFormat(LOCALE, {
       style: 'currency',
-      currency,
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
+      currency: CURRENCY,
+      minimumFractionDigits: MIN_FRACTION_DIGITS,
+      maximumFractionDigits: MAX_FRACTION_DIGITS,
     }).format(value);
   } catch (error) {
     console.error('Error formatting currency:', error);
@@ -78,13 +91,21 @@ export function formatCurrency(value: number, currency: string = 'USD'): string 
  * Format a number with thousands separators
  * 
  * @param value Number to format
+ * @param formatOption Number format options (defaults to NUMBER_FORMAT.DEFAULT)
  * @returns Formatted number string
  */
-export function formatNumber(value: number): string {
-  if (value === undefined || value === null) return 'N/A';
+export function formatNumber(
+  value: number,
+  formatOption: NumberFormatOption = NUMBER_FORMAT.DEFAULT
+): string {
+  if (value === undefined || value === null) return NA_PLACEHOLDERS.DEFAULT;
   
   try {
-    return new Intl.NumberFormat('en-US').format(value);
+    const { LOCALE, MIN_FRACTION_DIGITS, MAX_FRACTION_DIGITS } = formatOption;
+    return new Intl.NumberFormat(LOCALE, {
+      minimumFractionDigits: MIN_FRACTION_DIGITS,
+      maximumFractionDigits: MAX_FRACTION_DIGITS,
+    }).format(value);
   } catch (error) {
     console.error('Error formatting number:', error);
     return `${value}`;
@@ -95,14 +116,19 @@ export function formatNumber(value: number): string {
  * Format a percentage value
  * 
  * @param value Number to format as percentage
- * @param decimalPlaces Number of decimal places (defaults to 1)
+ * @param formatOption Percentage format options (defaults to PERCENTAGE_FORMAT.DEFAULT)
  * @returns Formatted percentage string
  */
-export function formatPercentage(value: number, decimalPlaces: number = 1): string {
-  if (value === undefined || value === null) return 'N/A';
+export function formatPercentage(
+  value: number, 
+  formatOption: PercentageFormatOption = PERCENTAGE_FORMAT.DEFAULT
+): string {
+  if (value === undefined || value === null) return NA_PLACEHOLDERS.DEFAULT;
   
   try {
-    return `${value.toFixed(decimalPlaces)}%`;
+    const { DECIMAL_PLACES, INCLUDE_SYMBOL } = formatOption;
+    const formattedValue = value.toFixed(DECIMAL_PLACES);
+    return INCLUDE_SYMBOL ? `${formattedValue}%` : formattedValue;
   } catch (error) {
     console.error('Error formatting percentage:', error);
     return `${value}%`;

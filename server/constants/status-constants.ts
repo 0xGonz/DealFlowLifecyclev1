@@ -15,6 +15,15 @@ export const CAPITAL_CALL_STATUS = {
 
 export type CapitalCallStatus = typeof CAPITAL_CALL_STATUS[keyof typeof CAPITAL_CALL_STATUS];
 
+// Capital call status display labels
+export const CAPITAL_CALL_STATUS_LABELS = {
+  [CAPITAL_CALL_STATUS.SCHEDULED]: 'Scheduled' as const,
+  [CAPITAL_CALL_STATUS.CALLED]: 'Called' as const,
+  [CAPITAL_CALL_STATUS.PARTIAL]: 'Partially Paid' as const,
+  [CAPITAL_CALL_STATUS.PAID]: 'Paid' as const,
+  [CAPITAL_CALL_STATUS.DEFAULTED]: 'Defaulted' as const
+};
+
 // Deal stage values
 // Note: Values must match the enum in shared/schema.ts deals table
 export const DEAL_STAGES = {
@@ -30,6 +39,18 @@ export const DEAL_STAGES = {
 
 export type DealStage = typeof DEAL_STAGES[keyof typeof DEAL_STAGES];
 
+// Deal stage display labels
+export const DEAL_STAGE_LABELS = {
+  [DEAL_STAGES.INITIAL_REVIEW]: 'Initial Review' as const,
+  [DEAL_STAGES.SCREENING]: 'Screening' as const,
+  [DEAL_STAGES.DILIGENCE]: 'Diligence' as const,
+  [DEAL_STAGES.IC_REVIEW]: 'IC Review' as const,
+  [DEAL_STAGES.CLOSING]: 'Closing' as const,
+  [DEAL_STAGES.CLOSED]: 'Closed' as const,
+  [DEAL_STAGES.INVESTED]: 'Invested' as const,
+  [DEAL_STAGES.REJECTED]: 'Rejected' as const
+};
+
 // Payment schedule types
 export const SCHEDULE_TYPES = {
   SINGLE: 'single' as const,
@@ -41,3 +62,13 @@ export const SCHEDULE_TYPES = {
 };
 
 export type ScheduleType = typeof SCHEDULE_TYPES[keyof typeof SCHEDULE_TYPES];
+
+// Schedule type display labels
+export const SCHEDULE_TYPE_LABELS = {
+  [SCHEDULE_TYPES.SINGLE]: 'Single Payment' as const,
+  [SCHEDULE_TYPES.MONTHLY]: 'Monthly' as const,
+  [SCHEDULE_TYPES.QUARTERLY]: 'Quarterly' as const,
+  [SCHEDULE_TYPES.BIANNUAL]: 'Biannual' as const,
+  [SCHEDULE_TYPES.ANNUAL]: 'Annual' as const,
+  [SCHEDULE_TYPES.CUSTOM]: 'Custom Schedule' as const
+};

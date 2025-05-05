@@ -1,8 +1,11 @@
 import { Router, Request, Response } from 'express';
 import { StorageFactory } from '../storage-factory';
 import { insertCapitalCallSchema } from '@shared/schema';
-import { TIME_MS, DEFAULT_DURATIONS } from '../constants/time-constants';
+import * as TimeConstants from '../constants/time-constants';
 import { CAPITAL_CALL_STATUS, SCHEDULE_TYPES } from '../constants/status-constants';
+
+// Extract time constants for easier use
+const { TIME_MS, DEFAULT_DURATIONS } = TimeConstants;
 
 const router = Router();
 const storage = StorageFactory.getStorage();

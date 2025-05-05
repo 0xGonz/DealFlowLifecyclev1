@@ -1,9 +1,20 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { format, isPast, addDays, isToday } from 'date-fns';
-import { CAPITAL_CALL_STATUS_COLORS } from '@/lib/constants/style-constants';
-import { DATE_FORMATS } from '@/lib/constants/format-constants';
-import { CAPITAL_CALL_STATUS, CAPITAL_CALL_STATUS_LABELS } from '@/lib/constants/allocation-constants';
+import { DATE_FORMATS } from '@/lib/constants/time-constants';
+import { formatCurrency, formatDate } from '@/lib/utils/formatters';
+import { 
+  CAPITAL_CALL_STATUS, 
+  CAPITAL_CALL_STATUS_COLORS, 
+  CAPITAL_CALL_STATUS_LABELS 
+} from '@/lib/constants/capital-call-constants';
+import {
+  CALENDAR_HIGHLIGHT_COLORS,
+  CALENDAR_INDICATOR_COLORS,
+  CALENDAR_VIEWS,
+  CALENDAR_LAYOUT,
+  type CalendarView
+} from '@/lib/constants/calendar-constants';
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -12,8 +23,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import AppLayout from '@/components/layout/AppLayout';
-
-// Status colors are now imported from style-constants.ts
 
 interface CapitalCall {
   id: number;
@@ -31,7 +40,7 @@ interface CapitalCall {
 
 const CapitalCalls = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [selectedView, setSelectedView] = useState<'calendar' | 'list'>('calendar');
+  const [selectedView, setSelectedView] = useState<CalendarView>(CALENDAR_VIEWS.CALENDAR);
   const [filter, setFilter] = useState<string>('all');
   
   const { data: capitalCalls = [], isLoading } = useQuery<CapitalCall[]>({
@@ -106,13 +115,13 @@ const CapitalCalls = () => {
     let bgClass = '';
     if (highlight) {
       if (highlight.types.has('due')) {
-        bgClass = 'bg-amber-50';
+        bgClass = CALENDAR_HIGHLIGHT_COLORS.DUE;
       }
       if (highlight.types.has('call')) {
-        bgClass = 'bg-blue-50';
+        bgClass = CALENDAR_HIGHLIGHT_COLORS.CALL;
       }
       if (highlight.types.has('paid')) {
-        bgClass = 'bg-green-50';
+        bgClass = CALENDAR_HIGHLIGHT_COLORS.PAID;
       }
       if (isSelected) {
         bgClass = '';
@@ -121,13 +130,13 @@ const CapitalCalls = () => {
     
     return (
       <div className={`w-full h-full flex items-center justify-center rounded-md relative ${bgClass}`}>
-        <span className={`${isPastDate ? 'text-neutral-400' : ''}`}>
+        <span className={`${isPastDate ? CALENDAR_HIGHLIGHT_COLORS.PAST : ''}`}>
           {format(date, 'd')}
         </span>
         {highlight && (
           <div className="absolute bottom-1 flex gap-0.5 justify-center">
             {highlight.count > 0 && (
-              <div className="h-1 w-1 rounded-full bg-blue-500"></div>
+              <div className={`h-${CALENDAR_LAYOUT.INDICATOR.SIZE} w-${CALENDAR_LAYOUT.INDICATOR.SIZE} rounded-full ${CALENDAR_INDICATOR_COLORS.CALL}`}></div>
             )}
           </div>
         )}
@@ -183,7 +192,7 @@ const CapitalCalls = () => {
         
         <div className="grid grid-cols-1 md:grid-cols-[300px_1fr] gap-6">
           {/* Calendar */}
-          <Card className={selectedView === 'list' ? 'hidden md:block' : ''}>
+          <Card className={selectedView === CALENDAR_VIEWS.LIST ? 'hidden md:block' : ''}>
             <CardContent className="p-4">
               <Calendar
                 mode="single"
@@ -200,15 +209,15 @@ const CapitalCalls = () => {
               />
               <div className="mt-3 text-xs text-neutral-500">
                 <div className="flex items-center gap-2 mb-1">
-                  <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                  <div className={`w-2 h-2 rounded-full ${CALENDAR_INDICATOR_COLORS.CALL}`}></div>
                   <span>Call Date</span>
                 </div>
                 <div className="flex items-center gap-2 mb-1">
-                  <div className="w-2 h-2 rounded-full bg-amber-500"></div>
+                  <div className={`w-2 h-2 rounded-full ${CALENDAR_INDICATOR_COLORS.DUE}`}></div>
                   <span>Due Date</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                  <div className={`w-2 h-2 rounded-full ${CALENDAR_INDICATOR_COLORS.PAID}`}></div>
                   <span>Paid Date</span>
                 </div>
               </div>
@@ -217,7 +226,7 @@ const CapitalCalls = () => {
           
           {/* Capital calls for selected date */}
           <div>
-            {selectedView === 'calendar' && selectedDate && (
+            {selectedView === CALENDAR_VIEWS.CALENDAR && selectedDate && (
               <div className="flex items-center justify-between mb-4">
                 <Button variant="outline" size="icon" onClick={prevDate}>
                   <ChevronLeft className="h-4 w-4" />
@@ -264,20 +273,20 @@ const CapitalCalls = () => {
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div>
                           <div className="text-sm font-medium">Amount</div>
-                          <div className="text-lg">${call.callAmount.toLocaleString()}</div>
+                          <div className="text-lg">{formatCurrency(call.callAmount)}</div>
                           {call.paidAmount > 0 && (
                             <div className="text-xs text-neutral-500">
-                              Paid: ${call.paidAmount.toLocaleString()}
+                              Paid: {formatCurrency(call.paidAmount)}
                             </div>
                           )}
                         </div>
                         <div>
                           <div className="text-sm font-medium">Call Date</div>
-                          <div className="text-base">{format(new Date(call.callDate), DATE_FORMATS.DEFAULT)}</div>
+                          <div className="text-base">{formatDate(call.callDate)}</div>
                         </div>
                         <div>
                           <div className="text-sm font-medium">Due Date</div>
-                          <div className="text-base">{format(new Date(call.dueDate), DATE_FORMATS.DEFAULT)}</div>
+                          <div className="text-base">{formatDate(call.dueDate)}</div>
                         </div>
                       </div>
                       {call.notes && (
