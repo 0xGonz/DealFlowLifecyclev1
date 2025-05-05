@@ -73,7 +73,7 @@ export const timelineEvents = pgTable("timeline_events", {
   id: serial("id").primaryKey(),
   dealId: integer("deal_id").notNull(),
   eventType: text("event_type", { 
-    enum: ["note", "stage_change", "document_upload", "memo_added", "star_added", "ai_analysis"]
+    enum: ["note", "stage_change", "document_upload", "memo_added", "star_added", "ai_analysis", "deal_creation"]
   }).notNull(),
   content: text("content"),
   createdBy: integer("created_by").notNull(),

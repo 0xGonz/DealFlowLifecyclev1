@@ -142,6 +142,15 @@ router.post('/', requirePermission('create', 'deal'), async (req: Request, res: 
       userId: user.id
     });
     
+    // Add a timeline entry for the deal creation
+    await storage.createTimelineEvent({
+      dealId: newDeal.id,
+      eventType: 'deal_creation',
+      content: `${user.fullName} created this deal`,
+      createdBy: user.id,
+      metadata: {}
+    });
+    
     res.status(201).json(newDeal);
   } catch (error) {
     if (error instanceof z.ZodError) {

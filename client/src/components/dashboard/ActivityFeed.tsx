@@ -15,7 +15,7 @@ import { ICON_SIZES } from "@/lib/constants/ui-constants";
 interface ActivityItem {
   id: number;
   dealId: number;
-  eventType: 'stage_change' | 'memo_added' | 'note' | 'star_added' | 'document_upload' | 'fund_allocation' | 'ai_analysis';
+  eventType: 'stage_change' | 'memo_added' | 'note' | 'star_added' | 'document_upload' | 'fund_allocation' | 'ai_analysis' | 'deal_creation';
   content: string;
   createdAt: string;
   deal?: {
@@ -160,6 +160,8 @@ function getActivityTitle(activity: ActivityItem) {
       return 'had a document uploaded';
     case 'ai_analysis':
       return 'was analyzed by AI';
+    case 'deal_creation':
+      return 'was created';
     default:
       return 'was updated';
   }
