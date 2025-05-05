@@ -3,7 +3,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { TrendingUp, TrendingDown, Target, Briefcase, Clock, DollarSign, PieChart } from "lucide-react";
 import { Deal } from "@/lib/types";
 import { formatCurrency, formatPercentage } from "@/lib/utils/format";
-import { PERCENTAGE_CALCULATION, FINANCIAL_CALCULATION } from "@/lib/constants/calculation-constants";
+import { PERCENTAGE_CALCULATION, FINANCIAL_CALCULATION, SCORE_CALCULATION } from "@/lib/constants/calculation-constants";
+import { PADDING, MARGIN, GAP } from "@/lib/constants/spacing-constants";
 
 type PipelineStat = {
   label: string;
@@ -168,7 +169,7 @@ export default function PipelineStats({ deals, filteredDeals, stage }: PipelineS
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 xs:gap-3 sm:gap-4 mb-6">
+    <div className={`grid grid-cols-2 sm:grid-cols-4 ${GAP.MD} ${MARGIN.LAYOUT.COMPONENT}`}>
       {stats.map((stat, index) => (
         <Card key={index} className="bg-white overflow-hidden h-full">
           <CardContent className="pt-3 xs:pt-4 sm:pt-6 p-2 xs:p-3 sm:p-6 h-full flex flex-col">
