@@ -216,26 +216,10 @@ export default function PipelineStats({ deals, filteredDeals, stage }: PipelineS
             </div>
             
             <div className="flex items-end flex-wrap mt-auto">
-              <span className="text-sm xs:text-base sm:text-xl md:text-2xl font-bold mr-1 sm:mr-2 truncate max-w-full">
+              <span className="text-sm xs:text-base sm:text-xl md:text-2xl font-bold truncate max-w-full">
                 {stat.value}
               </span>
-              
-              {/* Trend indicator - only show when we have sufficient data */}
-              {stat.trend !== undefined && deals.length >= 2 && (
-                <div className="flex items-center">
-                  {stat.trend > 0 ? (
-                    <div className="text-success flex items-center text-[9px] xs:text-xs">
-                      <TrendingUp className="h-2.5 w-2.5 xs:h-3 xs:w-3 mr-0.5 xs:mr-1" />
-                      {Math.round(stat.trend)}%
-                    </div>
-                  ) : stat.trend < 0 ? (
-                    <div className="text-danger flex items-center text-[9px] xs:text-xs">
-                      <TrendingDown className="h-2.5 w-2.5 xs:h-3 xs:w-3 mr-0.5 xs:mr-1" />
-                      {Math.round(Math.abs(stat.trend))}%
-                    </div>
-                  ) : null}
-                </div>
-              )}
+              {/* Removed trend indicators as requested */}
             </div>
           </CardContent>
         </Card>
