@@ -14,22 +14,38 @@ app.use(express.urlencoded({ extended: false }));
 
 // Configure session middleware with PostgreSQL session store
 const PgSession = connectPgSimple(session);
+
+// Improved session store configuration with additional options for reliability
+const sessionStore = new PgSession({
+  pool,
+  tableName: 'session', // Use this specific table name for compatibility
+  createTableIfMissing: true, // Create the session table if it doesn't exist
+  pruneSessionInterval: 60, // Prune expired sessions every minute
+  errorLog: console.error, // Log session storage errors
+});
+
+// Configure the session middleware
 app.use(session({
-  store: new PgSession({
-    pool,
-    tableName: 'session', // Use this specific table name for compatibility
-    createTableIfMissing: true, // Create the session table if it doesn't exist
-  }),
+  store: sessionStore,
   secret: process.env.SESSION_SECRET || 'investment-tracker-secret',
+  name: 'investment_tracker.sid', // Custom cookie name to avoid conflicts
   resave: false,
   saveUninitialized: false,
   cookie: {
     secure: process.env.NODE_ENV === 'production',
-    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    maxAge: 7 * 24 * 60 * 60 * 1000, // Extended to 7 days for better persistence
     httpOnly: true,
     sameSite: 'lax'
   }
 }));
+
+// Session debug middleware
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api/auth')) {
+    console.log(`Session debug [${req.method} ${req.path}]: sessionID=${req.sessionID?.substring(0, 8)}..., hasSession=${!!req.session}, userId=${req.session?.userId || 'none'}`);
+  }
+  next();
+});
 
 app.use((req, res, next) => {
   const start = Date.now();

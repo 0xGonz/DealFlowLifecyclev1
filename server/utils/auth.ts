@@ -89,6 +89,19 @@ export async function login(req: Request, username: string, password: string) {
   try {
     console.log(`Auth login helper called for username: ${username}`);
     
+    // Clear any existing session first to avoid conflicts
+    await new Promise<void>((resolve) => {
+      if (req.session?.userId) {
+        console.log(`Clearing existing session for userId: ${req.session.userId} before login`);
+        req.session.destroy((err) => {
+          if (err) console.error('Error clearing existing session before login:', err);
+          resolve();
+        });
+      } else {
+        resolve();
+      }
+    });
+    
     const storage = StorageFactory.getStorage();
     const user = await storage.getUserByUsername(username);
     
@@ -125,8 +138,21 @@ export async function login(req: Request, username: string, password: string) {
       throw new AppError(AUTH_ERRORS.INVALID_CREDENTIALS, 401);
     }
     
-    // Set session data
+    // Set session data in a new session
     console.log(`Setting session data for user ${username}:`, { id: user.id, role: user.role });
+    
+    // Generate a new session and wait for it to be ready before setting data
+    await new Promise<void>((resolve, reject) => {
+      req.session.regenerate((err) => {
+        if (err) {
+          console.error('Error regenerating session:', err);
+          return reject(err);
+        }
+        resolve();
+      });
+    });
+    
+    console.log(`New session generated for ${username}, setting user data`);
     req.session.userId = user.id;
     req.session.username = user.username;
     req.session.role = user.role;
@@ -191,6 +217,19 @@ export async function registerUser(req: Request, userData: any) {
   try {
     console.log(`Register user helper called for username: ${userData.username}`);
     
+    // Clear any existing session first to avoid conflicts
+    await new Promise<void>((resolve) => {
+      if (req.session?.userId) {
+        console.log(`Clearing existing session for userId: ${req.session.userId} before registration`);
+        req.session.destroy((err) => {
+          if (err) console.error('Error clearing existing session before registration:', err);
+          resolve();
+        });
+      } else {
+        resolve();
+      }
+    });
+    
     const storage = StorageFactory.getStorage();
     
     // Check if the username already exists
@@ -219,8 +258,21 @@ export async function registerUser(req: Request, userData: any) {
       password: hashedPassword,
     });
     
-    // Set session data (auto-login)
+    // Set session data in a new session
     console.log(`Setting session data for new user ${userData.username}:`, { id: newUser.id, role: newUser.role });
+    
+    // Generate a new session and wait for it to be ready before setting data
+    await new Promise<void>((resolve, reject) => {
+      req.session.regenerate((err) => {
+        if (err) {
+          console.error('Error regenerating session during registration:', err);
+          return reject(err);
+        }
+        resolve();
+      });
+    });
+    
+    console.log(`New session generated for new user ${userData.username}, setting user data`);
     req.session.userId = newUser.id;
     req.session.username = newUser.username;
     req.session.role = newUser.role;
