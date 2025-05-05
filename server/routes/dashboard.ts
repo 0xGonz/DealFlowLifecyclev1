@@ -1,6 +1,6 @@
 import { Router, Request, Response } from "express";
 import { StorageFactory } from "../storage-factory";
-import { DASHBOARD_METRICS } from "../config/dashboard-metrics";
+import { DASHBOARD_METRICS, calculateDynamicBaselines } from "../config/dashboard-metrics";
 
 const router = Router();
 
@@ -51,7 +51,10 @@ router.get('/stats', async (req: Request, res: Response) => {
       ['diligence', 'ic_review', 'closing', 'closed', 'invested'].includes(deal.stage)).length : 0;
     const earlyStageDeals = totalDeals - lateStageDeals;
     
-    // Get baseline constants from configuration
+    // Calculate dynamic baselines based on historical deal data
+    const baselines = calculateDynamicBaselines(deals || []);
+    
+    // Get baseline constants from calculated values
     const {
       BASELINE_TOTAL_DEALS,
       BASELINE_ACTIVE_PIPELINE_PERCENT,
@@ -59,7 +62,7 @@ router.get('/stats', async (req: Request, res: Response) => {
       BASELINE_IC_REVIEW_PERCENT,
       BASELINE_INVESTMENT_RATE,
       BASELINE_AUM_PER_DEAL_MILLIONS
-    } = DASHBOARD_METRICS;
+    } = baselines;
     
     // Calculate trends as relative change metrics (not just percentages but change indicators)
     const totalDealsTrend = totalDeals > BASELINE_TOTAL_DEALS ? 

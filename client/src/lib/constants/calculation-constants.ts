@@ -17,10 +17,20 @@ export const PERCENTAGE_CALCULATION = {
 export const FINANCIAL_CALCULATION = {
   // Default sample deal value in $ (for demo purposes)
   DEFAULT_DEAL_VALUE: 5000000, 
+  // Average investment size in $
+  AVERAGE_INVESTMENT: 8000000,
   // Convert millions to numeric value
   MILLION: 1000000,
   // For currency formatting
   DEFAULT_PRECISION: 0,
+  // Default minimum investment size for funds
+  MIN_INVESTMENT: 1000000,
+  // Average number of LP investors per fund
+  AVG_LP_COUNT: 15,
+  // Target IRR percentage
+  TARGET_IRR: 18,
+  // Target investment period in years
+  TARGET_INVESTMENT_PERIOD: 3,
 };
 
 // Score calculation constants
@@ -31,4 +41,22 @@ export const SCORE_CALCULATION = {
   MIN_DILIGENCE_SCORE: 65,
   // Minimum score required to advance to IC review
   MIN_IC_REVIEW_SCORE: 75,
+};
+
+// Pipeline metrics constants for trend calculations
+export const PIPELINE_METRICS = {
+  // Target investment rate as a percentage of all deals
+  TARGET_INVESTMENT_RATE: 25,
+  // Target percentage of deals that should reach diligence
+  TARGET_DILIGENCE_RATE: 40,
+  // Target percentage of deals that should reach IC review
+  TARGET_IC_REVIEW_RATE: 30,
+  // Target average days in each stage
+  TARGET_DAYS: {
+    INITIAL_REVIEW: 7,
+    SCREENING: 14,
+    DILIGENCE: 30,
+    IC_REVIEW: 7,
+    CLOSING: 21,
+  },
 };

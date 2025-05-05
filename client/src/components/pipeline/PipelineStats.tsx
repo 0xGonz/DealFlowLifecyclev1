@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { TrendingUp, TrendingDown, Target, Briefcase, Clock, DollarSign, PieChart } from "lucide-react";
 import { Deal } from "@/lib/types";
 import { formatCurrency, formatPercentage } from "@/lib/utils/format";
-import { PERCENTAGE_CALCULATION, FINANCIAL_CALCULATION, SCORE_CALCULATION } from "@/lib/constants/calculation-constants";
+import { PERCENTAGE_CALCULATION, FINANCIAL_CALCULATION, SCORE_CALCULATION, PIPELINE_METRICS } from "@/lib/constants/calculation-constants";
 import { PADDING, MARGIN, GAP } from "@/lib/constants/spacing-constants";
 
 type PipelineStat = {
@@ -26,8 +26,16 @@ export default function PipelineStats({ deals, filteredDeals, stage }: PipelineS
   // Calculate statistics for the current view
   const totalDealsCount = filteredDeals.length;
   
-  // Calculate deal value (in a real app, this would be calculated differently)
-  const totalDealValue = filteredDeals.length * FINANCIAL_CALCULATION.DEFAULT_DEAL_VALUE;
+  // Calculate deal value based on actual deal data
+  const totalDealValue = filteredDeals.reduce((sum, deal) => {
+    // Use actual valuation if available, otherwise use target raise amount
+    const dealValue = deal.valuation 
+      ? parseFloat(deal.valuation.replace(/[^0-9.-]+/g, '')) 
+      : deal.targetRaise 
+        ? parseFloat(deal.targetRaise.replace(/[^0-9.-]+/g, '')) 
+        : 0;
+    return sum + dealValue;
+  }, 0);
   
   // Calculate average deal score
   const avgScore = filteredDeals.reduce((sum, deal) => sum + (deal.score || 0), 0) / 
@@ -74,18 +82,22 @@ export default function PipelineStats({ deals, filteredDeals, stage }: PipelineS
   const calculateAverageDaysInStage = (deals: Deal[], stageName: string): number => {
     if (deals.length === 0) return 0;
     
-    // We don't have actual stage change timestamps in this demo, so we'll use a realistic calculation
-    // In a real app, we'd use the actual stage change date from the timeline events
     const today = new Date();
-    const totalDays = deals.reduce((sum, deal) => {
-      // For demo, calculate days since record creation - in a real app use actual stage change date
-      const creationDate = new Date(deal.createdAt);
-      const dayDiff = Math.floor((today.getTime() - creationDate.getTime()) / (1000 * 60 * 60 * 24));
-      // Add some randomization to make it look realistic
-      return sum + (dayDiff > 0 ? dayDiff : 1);
-    }, 0);
+    let totalDays = 0;
+    let dealsWithTimeline = 0;
     
-    return Math.round(totalDays / deals.length);
+    deals.forEach(deal => {
+      // Use the last update date or creation date to calculate days in stage
+      const referenceDate = deal.updatedAt ? new Date(deal.updatedAt) : new Date(deal.createdAt);
+      const dayDiff = Math.floor((today.getTime() - referenceDate.getTime()) / (1000 * 60 * 60 * 24));
+      
+      if (dayDiff > 0) {
+        totalDays += dayDiff;
+        dealsWithTimeline++;
+      }
+    });
+    
+    return dealsWithTimeline > 0 ? Math.round(totalDays / dealsWithTimeline) : 0;
   };
   
   // Create different stats for all deals vs. specific stage
@@ -111,14 +123,14 @@ export default function PipelineStats({ deals, filteredDeals, stage }: PipelineS
       {
         label: "In Diligence",
         value: diligenceCount,
-        trend: diligencePercent - PERCENTAGE_CALCULATION.BASE_VALUE / 3, // Baseline comparison scaled by 1/3
+        trend: Math.round(diligencePercent - PIPELINE_METRICS.TARGET_DILIGENCE_RATE),
         icon: <Target />,
         iconColor: "bg-emerald-100 text-emerald-600"
       },
       {
         label: "Investment Rate",
         value: formatPercentage(investmentPercent, FINANCIAL_CALCULATION.DEFAULT_PRECISION),
-        trend: investmentPercent - PERCENTAGE_CALCULATION.BASE_VALUE / 5, // Baseline comparison scaled by 1/5
+        trend: investmentPercent - PIPELINE_METRICS.TARGET_INVESTMENT_RATE, // Compare to target investment rate
         icon: <PieChart />,
         iconColor: "bg-amber-100 text-amber-600"
       },
@@ -140,28 +152,57 @@ export default function PipelineStats({ deals, filteredDeals, stage }: PipelineS
       {
         label: `Deals in ${stageName}`,
         value: filteredDeals.length,
-        trend: filteredDeals.length - 2, // Demo trend
+        // Compare to baseline rate of deals in this stage vs. total pipeline
+        trend: deals.length > 0 ? Math.round((filteredDeals.length / deals.length) * 100) - (deals.filter(d => d.stage === stage).length / Math.max(deals.length, 1) * 100) : 0,
         icon: <Briefcase />,
         iconColor: "bg-blue-100 text-blue-600"
       },
       {
         label: `Avg Days in ${stageName}`,
         value: averageDaysInStage,
-        trend: 0,
+        trend: (() => {
+          // Compare average days in stage with target days
+          const targetDays = stage === 'initial_review' ? PIPELINE_METRICS.TARGET_DAYS.INITIAL_REVIEW :
+            stage === 'screening' ? PIPELINE_METRICS.TARGET_DAYS.SCREENING :
+            stage === 'diligence' ? PIPELINE_METRICS.TARGET_DAYS.DILIGENCE :
+            stage === 'ic_review' ? PIPELINE_METRICS.TARGET_DAYS.IC_REVIEW :
+            stage === 'closing' ? PIPELINE_METRICS.TARGET_DAYS.CLOSING : 14;
+          // Negative trend means we're taking longer than target (bad)
+          // Positive trend means we're faster than target (good)
+          return targetDays > 0 ? Math.round((targetDays - averageDaysInStage) / targetDays * 100) : 0;
+        })(),
         icon: <Clock />,
         iconColor: "bg-violet-100 text-violet-600"
       },
       {
         label: `Longest in ${stageName}`,
         value: maxDaysInStage,
-        trend: 0,
+        trend: (() => {
+          // Compare maximum days in stage with 2x target days (as a threshold for concern)
+          const targetDays = stage === 'initial_review' ? PIPELINE_METRICS.TARGET_DAYS.INITIAL_REVIEW * 2 :
+            stage === 'screening' ? PIPELINE_METRICS.TARGET_DAYS.SCREENING * 2 :
+            stage === 'diligence' ? PIPELINE_METRICS.TARGET_DAYS.DILIGENCE * 2 :
+            stage === 'ic_review' ? PIPELINE_METRICS.TARGET_DAYS.IC_REVIEW * 2 :
+            stage === 'closing' ? PIPELINE_METRICS.TARGET_DAYS.CLOSING * 2 : 28;
+          // Negative trend means we're taking much longer than target (bad)
+          // Positive trend means we're within reasonable timeframe (good)
+          return targetDays > 0 ? Math.round((targetDays - maxDaysInStage) / targetDays * 100) : 0;
+        })(),
         icon: <Target />,
         iconColor: "bg-emerald-100 text-emerald-600"
       },
       {
         label: "Next Stage Rate",
-        value: formatPercentage(SCORE_CALCULATION.MIN_DILIGENCE_SCORE + 5, FINANCIAL_CALCULATION.DEFAULT_PRECISION), // Using standard score threshold
-        trend: PERCENTAGE_CALCULATION.BASE_VALUE / 20, // 5% trend (BASE_VALUE/20)
+        value: formatPercentage(
+          // Calculate actual progression rate based on data
+          deals.filter(d => d.stage > stage).length / 
+            Math.max(deals.filter(d => d.stage >= stage).length, 1) * 
+            PERCENTAGE_CALCULATION.DECIMAL_TO_PERCENTAGE,
+          FINANCIAL_CALCULATION.DEFAULT_PRECISION
+        ),
+        // Calculate trend based on progression changes
+        trend: deals.filter(d => d.stage === stage).length > 0 ? 
+          Math.round((filteredDeals.length / deals.filter(d => d.stage === stage).length) * 100) - 100 : 0,
         icon: <PieChart />,
         iconColor: "bg-amber-100 text-amber-600"
       },
