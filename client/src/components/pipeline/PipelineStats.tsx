@@ -181,10 +181,13 @@ export default function PipelineStats({ deals, filteredDeals, stage }: PipelineS
         label: "Next Stage Rate",
         value: formatPercentage(
           // Calculate actual progression rate based on data
-          deals.filter(d => d.stage > stage).length / 
-            Math.max(deals.filter(d => d.stage >= stage).length, 1) * 
-            PERCENTAGE_CALCULATION.DECIMAL_TO_PERCENTAGE,
-          FINANCIAL_CALCULATION.PRECISION.PERCENTAGE
+          // Apply Math.round to get cleaner percentage values (33.3% instead of 0.33333...%)
+          Math.round(
+            (deals.filter(d => d.stage > stage).length / 
+              Math.max(deals.filter(d => d.stage >= stage).length, 1)) * 
+              PERCENTAGE_CALCULATION.DECIMAL_TO_PERCENTAGE
+          ),
+          0 // Use 0 decimal places for cleaner whole numbers
         ),
         // Only show progression trends if we have enough historical data
         trend: deals.filter(d => d.stage === stage).length >= 3 ? 
