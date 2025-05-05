@@ -12,7 +12,6 @@ export const DEAL_STAGES = [
   "closing", 
   "closed",
   "invested",
-  "passed",
   "rejected"
 ] as const;
 
@@ -28,7 +27,7 @@ export type DealStage = typeof DEAL_STAGES[number];
 export const DEAL_STAGE_GROUPS = {
   active: ["initial_review", "screening", "diligence", "ic_review", "closing", "closed"],
   invested: ["invested"],
-  rejected: ["passed", "rejected"]
+  rejected: ["rejected"]
 } as const;
 
 /**

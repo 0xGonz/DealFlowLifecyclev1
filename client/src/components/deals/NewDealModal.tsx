@@ -42,10 +42,10 @@ import { DEAL_STAGES, DealStage, DealStageLabels } from "@/lib/constants/deal-st
 // Form schema with validation rules
 const dealFormSchema = z.object({
   name: z.string().min(1, "Company name is required"),
-  description: z.string().min(1, "Description is required"),
-  sector: z.string().min(1, "Sector is required"),
+  description: z.string().optional().or(z.literal("")),
+  sector: z.string().optional().or(z.literal("")),
   contactEmail: z.string().email("Invalid email address").optional().or(z.literal("")),
-  notes: z.string().optional(),
+  notes: z.string().optional().or(z.literal("")),
   targetReturn: z.string().optional().or(z.literal("")),
   stage: z.enum(DEAL_STAGES),
   tags: z.array(z.string()).optional()
@@ -216,7 +216,7 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
                 name="sector"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Sector *</FormLabel>
+                    <FormLabel>Sector</FormLabel>
                     <Select 
                       onValueChange={field.onChange} 
                       defaultValue={field.value}
@@ -243,7 +243,7 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description *</FormLabel>
+                  <FormLabel>Description</FormLabel>
                   <FormControl>
                     <Textarea 
                       placeholder="Brief description of company" 

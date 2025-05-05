@@ -22,8 +22,8 @@ export const insertUserSchema = createInsertSchema(users).omit({
 export const deals = pgTable("deals", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
-  description: text("description").notNull(),
-  sector: text("industry").notNull(), // DB column is 'industry' but we use 'sector' in our code
+  description: text("description").default(""), // Allow empty description
+  sector: text("industry").default(""), // Allow empty sector
   stage: text("stage", { 
     enum: ["initial_review", "screening", "diligence", "ic_review", "closing", "closed", "invested", "rejected"]
   }).notNull().default("initial_review"),
