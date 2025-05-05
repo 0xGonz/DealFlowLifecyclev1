@@ -88,3 +88,29 @@ export const USER_ROLE_DESCRIPTIONS = {
   ANALYST: 'Create/edit deals, view all content, suggest investments',
   OBSERVER: 'View-only access to deals and content'
 };
+
+// Icon size constants for consistent sizing across components
+export const ICON_SIZES = {
+  TIMELINE: {
+    CONTAINER: {
+      DEFAULT: 'w-6 h-6',
+      SMALL: 'w-5 h-5',
+      RESPONSIVE: 'w-5 h-5 sm:w-6 sm:h-6'
+    },
+    ICON: {
+      DEFAULT: 'h-3 w-3',
+      SMALL: 'h-2.5 w-2.5',
+      RESPONSIVE: 'h-2.5 w-2.5 sm:h-3 sm:w-3'
+    }
+  },
+  NAVIGATION: {
+    DEFAULT: 'h-5 w-5',
+    LARGE: 'h-6 w-6',
+    SMALL: 'h-4 w-4'
+  },
+  BUTTON: {
+    DEFAULT: 'h-4 w-4',
+    LARGE: 'h-5 w-5',
+    SMALL: 'h-3 w-3'
+  }
+};

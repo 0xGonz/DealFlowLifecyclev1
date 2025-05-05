@@ -16,6 +16,7 @@ import {
   RocketIcon,
   Info
 } from "lucide-react";
+import { ICON_SIZES } from "@/lib/constants/ui-constants";
 
 interface TimelineProps {
   dealId?: number;
@@ -25,7 +26,7 @@ export default function Timeline({ dealId }: TimelineProps) {
   const [newNote, setNewNote] = useState("");
   const { toast } = useToast();
 
-  const { data: timelineEvents, isLoading } = useQuery({
+  const { data = [], isLoading } = useQuery<any[]>({
     queryKey: [`/api/deals/${dealId}/timeline`],
     enabled: !!dealId,
   });
@@ -62,53 +63,56 @@ export default function Timeline({ dealId }: TimelineProps) {
 
   // Helper to get the appropriate icon for each event type
   const getEventIcon = (eventType: string) => {
+    const containerClass = `absolute left-0 top-0 ${ICON_SIZES.TIMELINE.CONTAINER.DEFAULT} rounded-full flex items-center justify-center z-10`;
+    const iconClass = `${ICON_SIZES.TIMELINE.ICON.DEFAULT} text-white`;
+    
     switch (eventType) {
       case 'stage_change':
         return (
-          <div className="absolute left-0 top-0 w-6 h-6 rounded-full bg-primary-light flex items-center justify-center z-10">
-            <CheckCircle className="h-3 w-3 text-white" />
+          <div className={`${containerClass} bg-primary-light`}>
+            <CheckCircle className={iconClass} />
           </div>
         );
       case 'memo_added':
         return (
-          <div className="absolute left-0 top-0 w-6 h-6 rounded-full bg-accent flex items-center justify-center z-10">
-            <FileEdit className="h-3 w-3 text-white" />
+          <div className={`${containerClass} bg-accent`}>
+            <FileEdit className={iconClass} />
           </div>
         );
       case 'note':
         return (
-          <div className="absolute left-0 top-0 w-6 h-6 rounded-full bg-secondary flex items-center justify-center z-10">
-            <MessageSquare className="h-3 w-3 text-white" />
+          <div className={`${containerClass} bg-secondary`}>
+            <MessageSquare className={iconClass} />
           </div>
         );
       case 'star_added':
         return (
-          <div className="absolute left-0 top-0 w-6 h-6 rounded-full bg-accent flex items-center justify-center z-10">
-            <Star className="h-3 w-3 text-white" />
+          <div className={`${containerClass} bg-accent`}>
+            <Star className={iconClass} />
           </div>
         );
       case 'document_upload':
         return (
-          <div className="absolute left-0 top-0 w-6 h-6 rounded-full bg-secondary flex items-center justify-center z-10">
-            <FileText className="h-3 w-3 text-white" />
+          <div className={`${containerClass} bg-secondary`}>
+            <FileText className={iconClass} />
           </div>
         );
       case 'fund_allocation':
         return (
-          <div className="absolute left-0 top-0 w-6 h-6 rounded-full bg-success flex items-center justify-center z-10">
-            <DollarSign className="h-3 w-3 text-white" />
+          <div className={`${containerClass} bg-success`}>
+            <DollarSign className={iconClass} />
           </div>
         );
       case 'ai_analysis':
         return (
-          <div className="absolute left-0 top-0 w-6 h-6 rounded-full bg-info flex items-center justify-center z-10">
-            <RocketIcon className="h-3 w-3 text-white" />
+          <div className={`${containerClass} bg-info`}>
+            <RocketIcon className={iconClass} />
           </div>
         );
       default:
         return (
-          <div className="absolute left-0 top-0 w-6 h-6 rounded-full bg-info flex items-center justify-center z-10">
-            <Info className="h-3 w-3 text-white" />
+          <div className={`${containerClass} bg-info`}>
+            <Info className={iconClass} />
           </div>
         );
     }
@@ -141,12 +145,12 @@ export default function Timeline({ dealId }: TimelineProps) {
           <div className="flex justify-center items-center py-10">
             <p className="text-neutral-500">Loading timeline...</p>
           </div>
-        ) : timelineEvents?.length === 0 ? (
+        ) : data.length === 0 ? (
           <div className="flex justify-center items-center py-10">
             <p className="text-neutral-500">No timeline events yet.</p>
           </div>
         ) : (
-          timelineEvents?.map((event: any) => (
+          data.map((event: any) => (
             <div key={event.id} className="timeline-dot relative pl-8 pb-6">
               {getEventIcon(event.eventType)}
               <div>

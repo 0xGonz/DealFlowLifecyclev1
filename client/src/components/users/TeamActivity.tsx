@@ -12,6 +12,7 @@ import {
   UserPlus,
   Settings
 } from "lucide-react";
+import { ICON_SIZES } from "@/lib/constants/ui-constants";
 
 interface ActivityItem {
   id: number;
@@ -39,65 +40,68 @@ export default function TeamActivity() {
 
   // Helper to get the appropriate icon for each event type
   const getEventIcon = (eventType: string) => {
+    const containerClass = `absolute -left-2.5 sm:-left-3 top-0 ${ICON_SIZES.TIMELINE.CONTAINER.RESPONSIVE} rounded-full flex items-center justify-center z-10`;
+    const iconClass = `${ICON_SIZES.TIMELINE.ICON.RESPONSIVE} text-white`;
+    
     switch (eventType) {
       case 'stage_change':
         return (
-          <div className="absolute -left-2.5 sm:-left-3 top-0 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-primary-light flex items-center justify-center z-10">
-            <CheckCircle className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-white" />
+          <div className={`${containerClass} bg-primary-light`}>
+            <CheckCircle className={iconClass} />
           </div>
         );
       case 'memo_added':
         return (
-          <div className="absolute -left-2.5 sm:-left-3 top-0 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-accent flex items-center justify-center z-10">
-            <FileEdit className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-white" />
+          <div className={`${containerClass} bg-accent`}>
+            <FileEdit className={iconClass} />
           </div>
         );
       case 'note':
         return (
-          <div className="absolute -left-2.5 sm:-left-3 top-0 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-secondary flex items-center justify-center z-10">
-            <FileEdit className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-white" />
+          <div className={`${containerClass} bg-secondary`}>
+            <FileEdit className={iconClass} />
           </div>
         );
       case 'star_added':
         return (
-          <div className="absolute -left-2.5 sm:-left-3 top-0 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-accent flex items-center justify-center z-10">
-            <Star className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-white" />
+          <div className={`${containerClass} bg-accent`}>
+            <Star className={iconClass} />
           </div>
         );
       case 'document_upload':
         return (
-          <div className="absolute -left-2.5 sm:-left-3 top-0 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-info flex items-center justify-center z-10">
-            <FileText className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-white" />
+          <div className={`${containerClass} bg-info`}>
+            <FileText className={iconClass} />
           </div>
         );
       case 'fund_allocation':
         return (
-          <div className="absolute -left-2.5 sm:-left-3 top-0 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-success flex items-center justify-center z-10">
-            <DollarSign className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-white" />
+          <div className={`${containerClass} bg-success`}>
+            <DollarSign className={iconClass} />
           </div>
         );
       case 'user_assignment':
         return (
-          <div className="absolute -left-2.5 sm:-left-3 top-0 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-purple-500 flex items-center justify-center z-10">
-            <UserPlus className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-white" />
+          <div className={`${containerClass} bg-purple-500`}>
+            <UserPlus className={iconClass} />
           </div>
         );
       case 'profile_update':
         return (
-          <div className="absolute -left-2.5 sm:-left-3 top-0 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-blue-500 flex items-center justify-center z-10">
-            <Settings className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-white" />
+          <div className={`${containerClass} bg-blue-500`}>
+            <Settings className={iconClass} />
           </div>
         );
       case 'ai_analysis':
         return (
-          <div className="absolute -left-2.5 sm:-left-3 top-0 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-primary flex items-center justify-center z-10">
-            <Info className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-white" />
+          <div className={`${containerClass} bg-primary`}>
+            <Info className={iconClass} />
           </div>
         );
       default:
         return (
-          <div className="absolute -left-2.5 sm:-left-3 top-0 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-info flex items-center justify-center z-10">
-            <Info className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-white" />
+          <div className={`${containerClass} bg-info`}>
+            <Info className={iconClass} />
           </div>
         );
     }
