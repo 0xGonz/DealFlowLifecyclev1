@@ -2,6 +2,27 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Custom loading animation styles */
+.loading-animation {
+  position: relative;
+  overflow: hidden;
+}
+
+.loading-progress {
+  animation: loading-animation 1.5s forwards cubic-bezier(0.45, 0.05, 0.55, 0.95);
+  transform-origin: left;
+  transform: scaleX(0);
+}
+
+@keyframes loading-animation {
+  0% {
+    transform: scaleX(0);
+  }
+  100% {
+    transform: scaleX(1);
+  }
+}
+
 :root {
   --background: 0 0% 100%;
   --foreground: 20 14.3% 4.1%;

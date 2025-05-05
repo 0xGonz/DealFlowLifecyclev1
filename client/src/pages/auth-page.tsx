@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useLocation, Redirect } from 'wouter';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -242,16 +242,35 @@ function LoginForm({ onSubmit, isLoading }: { onSubmit: (username: string, passw
       password: '',
     },
   });
+  const [formIsSubmitting, setFormIsSubmitting] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   async function handleSubmit(data: LoginFormValues) {
     try {
+      // Immediately show button loading state
+      setFormIsSubmitting(true);
+      
+      // Apply loading animation to the button using CSS
+      if (buttonRef.current) {
+        buttonRef.current.classList.add('loading-animation');
+      }
+      
       const { username, password } = data;
       await onSubmit(username, password);
     } catch (error) {
       // Error is handled in the auth context
       console.error('Login error:', error);
+      setFormIsSubmitting(false);
+      
+      // Remove loading animation
+      if (buttonRef.current) {
+        buttonRef.current.classList.remove('loading-animation');
+      }
     }
   }
+
+  // Combine both loading states
+  const buttonIsLoading = isLoading || formIsSubmitting;
 
   return (
     <CardContent>
@@ -264,7 +283,7 @@ function LoginForm({ onSubmit, isLoading }: { onSubmit: (username: string, passw
               <FormItem>
                 <FormLabel>Username</FormLabel>
                 <FormControl>
-                  <Input placeholder="username" {...field} />
+                  <Input placeholder="username" {...field} disabled={buttonIsLoading} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -277,20 +296,30 @@ function LoginForm({ onSubmit, isLoading }: { onSubmit: (username: string, passw
               <FormItem>
                 <FormLabel>Password</FormLabel>
                 <FormControl>
-                  <Input type="password" placeholder="********" {...field} />
+                  <Input type="password" placeholder="********" {...field} disabled={buttonIsLoading} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Logging in...
-              </>
-            ) : (
-              "Login"
+          <Button 
+            ref={buttonRef}
+            type="submit" 
+            className="w-full relative overflow-hidden group" 
+            disabled={buttonIsLoading}
+          >
+            <span className="relative z-10">
+              {buttonIsLoading ? (
+                <>
+                  <Loader2 className="inline-block mr-2 h-4 w-4 animate-spin" />
+                  Logging in...
+                </>
+              ) : (
+                "Login"
+              )}
+            </span>
+            {buttonIsLoading && (
+              <span className="absolute inset-0 bg-primary-600 loading-progress"></span>
             )}
           </Button>
         </form>
@@ -310,15 +339,34 @@ function RegisterForm({ onSubmit, isLoading }: { onSubmit: (data: RegisterFormVa
       passwordConfirm: '',
     },
   });
+  const [formIsSubmitting, setFormIsSubmitting] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   async function handleSubmit(data: RegisterFormValues) {
     try {
+      // Immediately show button loading state
+      setFormIsSubmitting(true);
+      
+      // Apply loading animation to the button using CSS
+      if (buttonRef.current) {
+        buttonRef.current.classList.add('loading-animation');
+      }
+      
       await onSubmit(data);
     } catch (error) {
       // Error is handled in the auth context
       console.error('Registration error:', error);
+      setFormIsSubmitting(false);
+      
+      // Remove loading animation
+      if (buttonRef.current) {
+        buttonRef.current.classList.remove('loading-animation');
+      }
     }
   }
+
+  // Combine both loading states
+  const buttonIsLoading = isLoading || formIsSubmitting;
 
   return (
     <CardContent>
@@ -331,7 +379,7 @@ function RegisterForm({ onSubmit, isLoading }: { onSubmit: (data: RegisterFormVa
               <FormItem>
                 <FormLabel>Username</FormLabel>
                 <FormControl>
-                  <Input placeholder="username" {...field} />
+                  <Input placeholder="username" {...field} disabled={buttonIsLoading} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -344,7 +392,7 @@ function RegisterForm({ onSubmit, isLoading }: { onSubmit: (data: RegisterFormVa
               <FormItem>
                 <FormLabel>Full Name</FormLabel>
                 <FormControl>
-                  <Input placeholder="John Doe" {...field} />
+                  <Input placeholder="John Doe" {...field} disabled={buttonIsLoading} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -357,7 +405,7 @@ function RegisterForm({ onSubmit, isLoading }: { onSubmit: (data: RegisterFormVa
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input type="email" placeholder="john@example.com" {...field} />
+                  <Input type="email" placeholder="john@example.com" {...field} disabled={buttonIsLoading} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -370,7 +418,7 @@ function RegisterForm({ onSubmit, isLoading }: { onSubmit: (data: RegisterFormVa
               <FormItem>
                 <FormLabel>Password</FormLabel>
                 <FormControl>
-                  <Input type="password" placeholder="********" {...field} />
+                  <Input type="password" placeholder="********" {...field} disabled={buttonIsLoading} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -383,20 +431,30 @@ function RegisterForm({ onSubmit, isLoading }: { onSubmit: (data: RegisterFormVa
               <FormItem>
                 <FormLabel>Confirm Password</FormLabel>
                 <FormControl>
-                  <Input type="password" placeholder="********" {...field} />
+                  <Input type="password" placeholder="********" {...field} disabled={buttonIsLoading} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Creating account...
-              </>
-            ) : (
-              "Register"
+          <Button 
+            ref={buttonRef}
+            type="submit" 
+            className="w-full relative overflow-hidden group" 
+            disabled={buttonIsLoading}
+          >
+            <span className="relative z-10">
+              {buttonIsLoading ? (
+                <>
+                  <Loader2 className="inline-block mr-2 h-4 w-4 animate-spin" />
+                  Creating account...
+                </>
+              ) : (
+                "Register"
+              )}
+            </span>
+            {buttonIsLoading && (
+              <span className="absolute inset-0 bg-primary-600 loading-progress"></span>
             )}
           </Button>
         </form>
