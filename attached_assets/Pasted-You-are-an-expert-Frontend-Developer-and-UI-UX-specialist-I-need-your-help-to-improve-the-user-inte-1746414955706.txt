@@ -1,0 +1,25 @@
+You are an expert Frontend Developer and UI/UX specialist. I need your help to improve the user interface and experience of my application, starting with a specific layout issue I've observed.
+
+The primary problem is that the sidebar is overlapping with the main content area, particularly noticeable on the dashboard where it cuts off some of the cards. This issue seems to be consistent throughout the application on certain screen sizes.
+
+Your task is to:
+
+1.  **Analyze Relevant Code:** Examine the HTML, CSS, and any relevant JavaScript/framework code responsible for the main application layout, specifically focusing on the sidebar component and the container/layout of the main content area (like the dashboard where the cards are). Pay close attention to CSS properties related to positioning (`position`, `left`, `margin-left`, `padding-left`), layout models (Flexbox, CSS Grid), and responsive design (media queries, flexible units) in these areas.
+
+2.  **Identify the Root Cause:** Based on your code analysis, explain *why* the sidebar is overlapping the main content. Pinpoint the specific CSS rules or layout structure that are causing this issue on different screen sizes.
+
+3.  **Propose a Solution:** Describe a specific code change to fix the sidebar overlap. Your proposed solution should ensure:
+    * The main content area is correctly positioned and sized to accommodate the sidebar at all relevant screen sizes.
+    * The fix enhances or maintains the application's overall responsiveness, allowing the layout to adjust automatically.
+    * The change is implemented in a way that aligns with principles of modularity (e.g., the sidebar and content areas remain distinct modules) and scalability (the solution should work as content grows).
+    * Include the exact code snippet(s) you would modify or add to implement this fix.
+
+4.  **Explain the Solution:** Clearly articulate how your proposed code change resolves the overlap issue and how it supports responsiveness, modularity, and scalability in this part of the layout.
+
+**Do NOT implement the proposed solution yet.** Present your analysis of the cause, the proposed fix, and the explanation to me first.
+
+Once I review and approve your proposed solution, I will instruct you to implement the change in the codebase.
+
+After implementing this specific fix, we can then discuss other areas for improving the overall UI/UX, focusing on ensuring the design is "extremely good," modular, scalable, and auto-adjustable for responsiveness across all pages and features, addressing the broader goals you have.
+
+**Begin by analyzing the code for the sidebar and main content layout to identify the cause of the overlap.**
