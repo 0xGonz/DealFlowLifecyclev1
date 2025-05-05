@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Pencil, UserPlus, Search, Mail } from "lucide-react";
+import { Plus, Pencil, UserPlus, Search, Mail, Eye, EyeOff } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -17,6 +17,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { AVATAR_COLORS } from "@/lib/constants/ui-constants";
 import { apiRequest } from "@/lib/queryClient";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 // Dummy data for users
 const MOCK_USERS = [
@@ -106,7 +107,10 @@ function getRoleBadgeColor(role: string) {
 export default function UsersPage() {
   const { toast } = useToast();
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
+  const [isEditUserOpen, setIsEditUserOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<(typeof MOCK_USERS)[0] | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   
   // Fetch users
   const { data: users = [], isLoading } = useQuery<typeof MOCK_USERS>({
@@ -144,6 +148,37 @@ export default function UsersPage() {
       });
     }
   });
+  
+  // Update user mutation
+  const updateUserMutation = useMutation({
+    mutationFn: async (userData: Partial<UserFormValues> & { id: number }) => {
+      const { id, ...data } = userData;
+      const res = await apiRequest("PATCH", `/api/users/${id}`, data);
+      return await res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "User updated successfully",
+        description: "User information has been updated",
+      });
+      setIsEditUserOpen(false);
+      setSelectedUser(null);
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to update user",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+  
+  // Handle edit user button click
+  const handleEditUser = (user: (typeof MOCK_USERS)[0]) => {
+    setSelectedUser(user);
+    setIsEditUserOpen(true);
+  };
   
   // Form
   const form = useForm<UserFormValues>({
@@ -230,9 +265,22 @@ export default function UsersPage() {
                       {new Date(user.lastActive).toLocaleDateString()} at {new Date(user.lastActive).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </div>
                     <div className="col-span-1">
-                      <Button variant="ghost" size="icon">
-                        <Pencil className="h-4 w-4" />
-                      </Button>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              onClick={() => handleEditUser(user)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Edit User</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </div>
                   </div>
                 ))}
@@ -362,6 +410,115 @@ export default function UsersPage() {
                 </DialogFooter>
               </form>
             </Form>
+          </DialogContent>
+        </Dialog>
+        
+        {/* Edit User Dialog */}
+        <Dialog open={isEditUserOpen} onOpenChange={setIsEditUserOpen}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Edit User</DialogTitle>
+              <DialogDescription>
+                Update user details and permissions.
+              </DialogDescription>
+            </DialogHeader>
+            
+            {selectedUser && (
+              <div className="space-y-4 py-2">
+                <div className="space-y-2">
+                  <FormLabel>Full Name</FormLabel>
+                  <Input 
+                    defaultValue={selectedUser.fullName} 
+                    onChange={(e) => setSelectedUser({...selectedUser, fullName: e.target.value})}
+                  />
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <FormLabel>Username</FormLabel>
+                    <Input 
+                      defaultValue={selectedUser.username} 
+                      onChange={(e) => setSelectedUser({...selectedUser, username: e.target.value})}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <FormLabel>Role</FormLabel>
+                    <Select 
+                      defaultValue={selectedUser.role}
+                      onValueChange={(value) => setSelectedUser({...selectedUser, role: value})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a role" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="admin">Admin</SelectItem>
+                        <SelectItem value="partner">Partner</SelectItem>
+                        <SelectItem value="analyst">Analyst</SelectItem>
+                        <SelectItem value="observer">Observer</SelectItem>
+                        <SelectItem value="intern">Intern</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <FormLabel>Email</FormLabel>
+                  <Input 
+                    type="email" 
+                    defaultValue={selectedUser.email} 
+                    onChange={(e) => setSelectedUser({...selectedUser, email: e.target.value})}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <FormLabel>New Password</FormLabel>
+                    <Button 
+                      type="button" 
+                      variant="ghost" 
+                      size="icon" 
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </Button>
+                  </div>
+                  <Input 
+                    type={showPassword ? "text" : "password"} 
+                    placeholder="Leave blank to keep current password"
+                    onChange={(e) => setSelectedUser({...selectedUser, newPassword: e.target.value})}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Only fill this if you want to change the password.
+                  </p>
+                </div>
+                
+                <DialogFooter>
+                  <Button 
+                    type="button" 
+                    onClick={() => {
+                      // Filter out undefined values and create update object
+                      const userToUpdate: any = {
+                        id: selectedUser.id,
+                        fullName: selectedUser.fullName,
+                        username: selectedUser.username,
+                        email: selectedUser.email,
+                        role: selectedUser.role,
+                      };
+                      
+                      if (selectedUser.newPassword) {
+                        userToUpdate.password = selectedUser.newPassword;
+                      }
+                      
+                      updateUserMutation.mutate(userToUpdate);
+                    }} 
+                    disabled={updateUserMutation.isPending}
+                  >
+                    {updateUserMutation.isPending ? "Updating..." : "Update User"}
+                  </Button>
+                </DialogFooter>
+              </div>
+            )}
           </DialogContent>
         </Dialog>
       </div>
