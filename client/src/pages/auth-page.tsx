@@ -45,11 +45,11 @@ export default function AuthPage() {
   const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
   const [location, navigate] = useLocation();
   const [isAuthenticating, setIsAuthenticating] = useState(false);
-  const { user, isLoading, login, register } = useAuth();
+  const { data, isLoading } = useAuth();
   const { toast } = useToast();
 
   // Redirect to home if already logged in
-  if (user) {
+  if (data) {
     return <Redirect to="/" />;
   }
 
