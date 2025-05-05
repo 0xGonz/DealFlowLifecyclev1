@@ -706,6 +706,77 @@ export default function FundDetail() {
               </CardContent>
             </Card>
             
+            {/* Invalid Allocations Section */}
+            {hasInvalidAllocations && (
+              <Card className="mt-6 border-red-200 bg-red-50">
+                <CardHeader>
+                  <CardTitle className="text-red-700">Invalid Allocations</CardTitle>
+                  <CardDescription>
+                    These allocations point to deals that no longer exist in the system
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-x-auto -mx-6 px-6">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="whitespace-nowrap">Deal ID</TableHead>
+                          <TableHead className="whitespace-nowrap">Amount</TableHead>
+                          <TableHead className="whitespace-nowrap">Security Type</TableHead>
+                          <TableHead className="whitespace-nowrap">Allocation Date</TableHead>
+                          <TableHead className="whitespace-nowrap text-right">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {isInvalidAllocationsLoading ? (
+                          <TableRow>
+                            <TableCell colSpan={5} className="text-center py-10">
+                              Loading invalid allocations...
+                            </TableCell>
+                          </TableRow>
+                        ) : invalidAllocations?.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={5} className="text-center py-10 text-red-500">
+                              No invalid allocations found.
+                            </TableCell>
+                          </TableRow>
+                        ) : (
+                          invalidAllocations?.map(allocation => (
+                            <TableRow key={allocation.id} className="bg-red-50">
+                              <TableCell className="font-medium">
+                                {allocation.dealId}
+                              </TableCell>
+                              <TableCell>
+                                {formatCurrency(allocation.amount)}
+                              </TableCell>
+                              <TableCell>
+                                {allocation.securityType}
+                              </TableCell>
+                              <TableCell>
+                                {allocation.allocationDate 
+                                  ? format(new Date(allocation.allocationDate), "MMM d, yyyy") 
+                                  : "Unknown date"}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <Button 
+                                  variant="destructive" 
+                                  size="sm"
+                                  onClick={() => deleteAllocation.mutate(allocation.id)}
+                                  disabled={deleteAllocation.isPending}
+                                >
+                                  {deleteAllocation.isPending ? "Deleting..." : "Delete"}
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            
             {/* Performance Metrics */}
             <Card className="mt-6">
               <CardHeader>
