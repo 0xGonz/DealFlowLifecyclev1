@@ -77,7 +77,12 @@ export default function Pipeline() {
   // Mutation for updating deal status
   const updateDealStatusMutation = useMutation({
     mutationFn: async ({ dealId, stage }: { dealId: number; stage: string }) => {
-      return apiRequest("PATCH", `/api/deals/${dealId}`, { stage });
+      const response = await apiRequest("PATCH", `/api/deals/${dealId}`, { stage });
+      // If response is empty, get the full deal data
+      if (!response || Object.keys(response).length === 0) {
+        return apiRequest("GET", `/api/deals/${dealId}`);
+      }
+      return response;
     },
     onSuccess: async (data: any) => {
       // Log the data response

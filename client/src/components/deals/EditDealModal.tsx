@@ -41,7 +41,7 @@ import { DEAL_STAGES, DealStage, DealStageLabels } from "@/lib/constants/deal-st
 const dealFormSchema = z.object({
   name: z.string().min(1, "Company name is required"),
   description: z.string().min(1, "Description is required"),
-  sector: z.string().min(1, "Sector is required"),
+  sector: z.string().optional().default(""),  // Make sector optional for edits
   contactEmail: z.string().email("Invalid email address").optional().or(z.literal("")),
   notes: z.string().optional(),
   targetReturn: z.string().optional().or(z.literal("")),
