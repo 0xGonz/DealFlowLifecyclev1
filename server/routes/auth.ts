@@ -15,16 +15,33 @@ const loginSchema = z.object({
 
 // Login route
 router.post('/login', asyncHandler(async (req: Request, res: Response) => {
-  // Validate request body
-  const { username, password } = loginSchema.parse(req.body);
-  
-  // Attempt login
-  const user = await login(req, username, password);
-  
-  // Return user info (without password)
-  const { password: _, ...userWithoutPassword } = user;
-  // Return user directly, not wrapped in an object
-  return res.json(userWithoutPassword);
+  try {
+    console.log('Login request received for username:', req.body?.username);
+    
+    // Validate request body
+    const validatedData = loginSchema.safeParse(req.body);
+    if (!validatedData.success) {
+      console.error('Login validation failed:', validatedData.error.errors);
+      return res.status(400).json({ message: 'Invalid login data', errors: validatedData.error.format() });
+    }
+    
+    const { username, password } = validatedData.data;
+    
+    // Attempt login
+    console.log('Attempting login for user:', username);
+    const user = await login(req, username, password);
+    console.log('Login successful for user:', username);
+    
+    // Return user info (without password)
+    const { password: _, ...userWithoutPassword } = user;
+    console.log('Returning user data without password');
+    
+    // Return user directly, not wrapped in an object
+    return res.json(userWithoutPassword);
+  } catch (error) {
+    console.error('Login route error:', error);
+    throw error; // Let the error handler middleware handle it
+  }
 }));
 
 // Logout route

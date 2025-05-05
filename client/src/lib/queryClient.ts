@@ -13,6 +13,8 @@ export async function apiRequest(
   data?: unknown | undefined,
   isFormData: boolean = false,
 ): Promise<Response> {
+  console.log(`API Request: ${method} ${url}`, data ? { data: isFormData ? 'FormData' : data } : 'No data');
+  
   const options: RequestInit = {
     method,
     credentials: "include",
@@ -28,9 +30,26 @@ export async function apiRequest(
     }
   }
 
-  const res = await fetch(url, options);
-  await throwIfResNotOk(res);
-  return res;
+  try {
+    console.log(`Sending fetch request to ${url} with options:`, { ...options, body: options.body ? 'BODY_DATA' : undefined });
+    const res = await fetch(url, options);
+    console.log(`API Response from ${url}:`, { status: res.status, statusText: res.statusText, ok: res.ok });
+    
+    if (!res.ok) {
+      try {
+        const errorText = await res.text();
+        console.error(`Error response from ${url}:`, { status: res.status, text: errorText });
+      } catch (readError) {
+        console.error(`Failed to read error response from ${url}:`, readError);
+      }
+    }
+    
+    await throwIfResNotOk(res);
+    return res;
+  } catch (error) {
+    console.error(`Exception during fetch to ${url}:`, error);
+    throw error;
+  }
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
@@ -39,16 +58,38 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const res = await fetch(queryKey[0] as string, {
-      credentials: "include",
-    });
-
-    if (unauthorizedBehavior === "returnNull" && res.status === 401) {
-      return null;
+    const url = queryKey[0] as string;
+    console.log(`Query fetch request: ${url}`, { queryKey, unauthorizedBehavior });
+    
+    try {
+      const res = await fetch(url, {
+        credentials: "include",
+      });
+      
+      console.log(`Query Response from ${url}:`, { status: res.status, statusText: res.statusText, ok: res.ok });
+      
+      if (unauthorizedBehavior === "returnNull" && res.status === 401) {
+        console.log(`Returning null for 401 response from ${url} as configured`);
+        return null;
+      }
+      
+      if (!res.ok) {
+        try {
+          const errorText = await res.text();
+          console.error(`Error response from ${url}:`, { status: res.status, text: errorText });
+        } catch (readError) {
+          console.error(`Failed to read error response from ${url}:`, readError);
+        }
+      }
+      
+      await throwIfResNotOk(res);
+      const data = await res.json();
+      console.log(`Query data received from ${url}:`, data);
+      return data;
+    } catch (error) {
+      console.error(`Exception during query fetch to ${url}:`, error);
+      throw error;
     }
-
-    await throwIfResNotOk(res);
-    return await res.json();
   };
 
 export const queryClient = new QueryClient({

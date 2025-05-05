@@ -45,7 +45,9 @@ export default function AuthPage() {
   const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
   const [location, navigate] = useLocation();
   const [isAuthenticating, setIsAuthenticating] = useState(false);
-  const { data, isLoading, login, register } = useAuth();
+  const auth = useAuth();
+  const { data, isLoading } = auth;
+  const { login, register } = auth;
   const { toast } = useToast();
 
   // Redirect to home if already logged in
@@ -128,9 +130,11 @@ export default function AuthPage() {
                     console.log('Starting login process for username:', username);
                     setIsAuthenticating(true);
                     
-                    await login.mutateAsync({ username, password });
+                    // Print out login hook info to diagnose issues
+                    console.log('Login mutation state:', login);
                     
-                    console.log('Login successful, showing animation');
+                    const result = await login.mutateAsync({ username, password });
+                    console.log('Login successful result:', result);
                     
                     // Add a slight delay before redirect to show the animation
                     setTimeout(() => {
@@ -140,7 +144,11 @@ export default function AuthPage() {
                   } catch (error) {
                     setIsAuthenticating(false);
                     console.error('Login error in auth-page.tsx:', error);
-                    // Error handling is already in the auth context
+                    toast({
+                      title: "Login Error",
+                      description: error instanceof Error ? error.message : "Unknown login error",
+                      variant: "destructive"
+                    });
                   }
                 }} isLoading={isLoading} />
               </TabsContent>
