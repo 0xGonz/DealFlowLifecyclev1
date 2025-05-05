@@ -1,5 +1,5 @@
 import { format, parseISO } from 'date-fns';
-import { DATE_FORMATS } from '../constants/format-constants';
+import { DATE_FORMATS, TIME_MS } from '../constants/time-constants';
 
 /**
  * Utility functions for consistent data formatting throughout the application
@@ -35,13 +35,14 @@ export function formatRelativeTime(dateString: string): string {
   try {
     const date = typeof dateString === 'string' ? parseISO(dateString) : dateString;
     const now = new Date();
-    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+    const diffInMs = now.getTime() - date.getTime();
     
-    if (diffInSeconds < 60) return 'just now';
-    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
-    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
-    if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)} days ago`;
-    if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 604800)} weeks ago`;
+    // Define time thresholds in milliseconds
+    if (diffInMs < TIME_MS.MINUTE) return 'just now';
+    if (diffInMs < TIME_MS.HOUR) return `${Math.floor(diffInMs / TIME_MS.MINUTE)} minutes ago`;
+    if (diffInMs < TIME_MS.DAY) return `${Math.floor(diffInMs / TIME_MS.HOUR)} hours ago`;
+    if (diffInMs < TIME_MS.WEEK) return `${Math.floor(diffInMs / TIME_MS.DAY)} days ago`;
+    if (diffInMs < TIME_MS.MONTH) return `${Math.floor(diffInMs / TIME_MS.WEEK)} weeks ago`;
     
     return format(date, DATE_FORMATS.DEFAULT);
   } catch (error) {

@@ -1,6 +1,8 @@
 import { Router, Request, Response } from 'express';
 import { StorageFactory } from '../storage-factory';
 import { insertCapitalCallSchema } from '@shared/schema';
+import { TIME_MS, DEFAULT_DURATIONS } from '../constants/time-constants';
+import { CAPITAL_CALL_STATUS, SCHEDULE_TYPES } from '../constants/status-constants';
 
 const router = Router();
 const storage = StorageFactory.getStorage();
@@ -68,7 +70,7 @@ router.post('/', async (req: Request, res: Response) => {
     const data = {
       ...req.body,
       callDate: req.body.callDate ? new Date(req.body.callDate) : new Date(),
-      dueDate: req.body.dueDate ? new Date(req.body.dueDate) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // Default to 30 days from now
+      dueDate: req.body.dueDate ? new Date(req.body.dueDate) : new Date(Date.now() + TIME_MS.DAY * DEFAULT_DURATIONS.CAPITAL_CALL_DUE_DAYS) // Default to configured days from now
     };
     
     const validatedData = insertCapitalCallSchema.parse(data);
@@ -86,7 +88,7 @@ router.patch('/:id/status', async (req: Request, res: Response) => {
     const id = parseInt(req.params.id);
     const { status, paidAmount } = req.body;
     
-    if (!['scheduled', 'called', 'partial', 'paid', 'defaulted'].includes(status)) {
+    if (!Object.values(CAPITAL_CALL_STATUS).includes(status)) {
       return res.status(400).json({ error: 'Invalid status value' });
     }
     
@@ -130,18 +132,18 @@ async function generateCapitalCalls(allocationId: number, scheduleType: string, 
   };
   
   // For single payment
-  if (scheduleType === 'single') {
+  if (scheduleType === SCHEDULE_TYPES.SINGLE) {
     const callAmount = calculateAmount(callPercentage || 100);
     const callDate = new Date(firstCallDate);
     const dueDate = new Date(firstCallDate);
-    dueDate.setDate(dueDate.getDate() + 30); // Due in 30 days
+    dueDate.setDate(dueDate.getDate() + DEFAULT_DURATIONS.CAPITAL_CALL_DUE_DAYS); // Due in configured days
     
     await storage.createCapitalCall({
       allocationId,
       callAmount,
       callDate,
       dueDate,
-      status: 'scheduled',
+      status: CAPITAL_CALL_STATUS.SCHEDULED,
       notes: `${callPercentage || 100}% capital call`
     });
     
@@ -149,21 +151,21 @@ async function generateCapitalCalls(allocationId: number, scheduleType: string, 
   }
   
   // For custom schedule
-  if (scheduleType === 'custom' && customSchedule) {
+  if (scheduleType === SCHEDULE_TYPES.CUSTOM && customSchedule) {
     const schedule = JSON.parse(customSchedule);
     
     for (const call of schedule) {
       const callAmount = calculateAmount(call.percentage);
       const callDate = new Date(call.date);
       const dueDate = new Date(call.date);
-      dueDate.setDate(dueDate.getDate() + 30); // Due in 30 days
+      dueDate.setDate(dueDate.getDate() + DEFAULT_DURATIONS.CAPITAL_CALL_DUE_DAYS); // Due in configured days
       
       await storage.createCapitalCall({
         allocationId,
         callAmount,
         callDate,
         dueDate,
-        status: 'scheduled',
+        status: CAPITAL_CALL_STATUS.SCHEDULED,
         notes: `${call.percentage}% capital call`
       });
     }
@@ -178,23 +180,23 @@ async function generateCapitalCalls(allocationId: number, scheduleType: string, 
   const perCallAmount = calculateAmount(perCallPercentage);
   
   let intervalMonths = 1; // monthly
-  if (scheduleType === 'quarterly') intervalMonths = 3;
-  if (scheduleType === 'biannual') intervalMonths = 6;
-  if (scheduleType === 'annual') intervalMonths = 12;
+  if (scheduleType === SCHEDULE_TYPES.QUARTERLY) intervalMonths = 3;
+  if (scheduleType === SCHEDULE_TYPES.BIANNUAL) intervalMonths = 6;
+  if (scheduleType === SCHEDULE_TYPES.ANNUAL) intervalMonths = 12;
   
   for (let i = 0; i < count; i++) {
     const callDate = new Date(firstCallDate);
     callDate.setMonth(callDate.getMonth() + (i * intervalMonths));
     
     const dueDate = new Date(callDate);
-    dueDate.setDate(dueDate.getDate() + 30); // Due in 30 days
+    dueDate.setDate(dueDate.getDate() + DEFAULT_DURATIONS.CAPITAL_CALL_DUE_DAYS); // Due in configured days
     
     await storage.createCapitalCall({
       allocationId,
       callAmount: perCallAmount,
       callDate,
       dueDate,
-      status: 'scheduled',
+      status: CAPITAL_CALL_STATUS.SCHEDULED,
       notes: `${scheduleType} capital call ${i + 1} of ${count} (${perCallPercentage.toFixed(2)}%)`
     });
   }
