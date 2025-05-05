@@ -16,9 +16,18 @@ import capitalCallsRoutes from './routes/capital-calls';
 
 // Utils
 import { errorHandler, notFoundHandler, AppError } from './utils/errorHandlers';
-import { requireAuth } from './utils/auth';
+import { requireAuth, getCurrentUser } from './utils/auth';
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  
+  // Middleware to attach user object to request
+  app.use('/api', async (req: Request, res: Response, next: NextFunction) => {
+    if (req.session.userId) {
+      const user = await getCurrentUser(req);
+      (req as any).user = user;
+    }
+    next();
+  });
   
   // Uncomment to require authentication for all API routes
   // app.use('/api/*', requireAuth);
