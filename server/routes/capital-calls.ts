@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { StorageFactory } from '../storage-factory';
-import { insertCapitalCallSchema } from '@shared/schema';
+import { insertCapitalCallSchema, type FundAllocation } from '@shared/schema';
 import * as TimeConstants from '../constants/time-constants';
 import { CAPITAL_CALL_STATUS, SCHEDULE_TYPES } from '../constants/status-constants';
 import { formatPercentage } from '../utils/format';
@@ -16,27 +16,56 @@ router.get('/', async (req: Request, res: Response) => {
   try {
     // Get raw capital calls
     const capitalCalls = await storage.getAllCapitalCalls();
+    // Get all deals to validate which deals exist
+    const deals = await storage.getDeals();
+    const validDealIds = deals.map(deal => deal.id);
+
+    // Get all allocations for validation
+    interface AllocationMap {
+      callId: number;
+      allocation: FundAllocation | undefined;
+    }
     
-    // Enhance with deal and fund names
-    const enhancedCalls = await Promise.all(capitalCalls.map(async (call) => {
-      // Get the allocation
+    const allocations: AllocationMap[] = [];
+    for (const call of capitalCalls) {
       const allocation = await storage.getFundAllocation(call.allocationId);
-      if (!allocation) {
-        return { ...call, dealName: 'Unknown Deal', fundName: 'Unknown Fund' };
-      }
-      
-      // Get deal and fund names
-      const deal = await storage.getDeal(allocation.dealId);
-      const fund = await storage.getFund(allocation.fundId);
-      
-      return {
-        ...call,
-        dealName: deal?.name || 'Unknown Deal',
-        fundName: fund?.name || 'Unknown Fund'
-      };
-    }));
+      allocations.push({ callId: call.id, allocation });
+    }
     
-    res.json(enhancedCalls);
+    // Filter and enhance capital calls
+    const enhancedCalls = await Promise.all(
+      capitalCalls
+        .filter(call => {
+          // Find the allocation for this call
+          const allocationData = allocations.find(a => a.callId === call.id);
+          const allocation = allocationData?.allocation;
+          
+          // Keep only calls with valid allocations that link to valid deals
+          return allocation && validDealIds.includes(allocation.dealId);
+        })
+        .map(async (call) => {
+          // Get the allocation
+          const allocation = await storage.getFundAllocation(call.allocationId);
+          if (!allocation) {
+            return null; // Should never happen due to the filter, but just in case
+          }
+          
+          // Get deal and fund names
+          const deal = await storage.getDeal(allocation.dealId);
+          const fund = await storage.getFund(allocation.fundId);
+          
+          return {
+            ...call,
+            dealName: deal?.name || 'Unknown Deal',
+            fundName: fund?.name || 'Unknown Fund'
+          };
+        })
+    );
+    
+    // Remove any null values that might have slipped through
+    const validCalls = enhancedCalls.filter(call => call !== null);
+    
+    res.json(validCalls);
   } catch (error) {
     console.error('Error fetching capital calls:', error);
     res.status(500).json({ error: 'Failed to fetch capital calls' });
@@ -47,6 +76,13 @@ router.get('/', async (req: Request, res: Response) => {
 router.get('/deal/:dealId', async (req: Request, res: Response) => {
   try {
     const dealId = parseInt(req.params.dealId);
+    
+    // First verify the deal exists
+    const deal = await storage.getDeal(dealId);
+    if (!deal) {
+      return res.status(404).json({ error: 'Deal not found' });
+    }
+    
     const capitalCalls = await storage.getCapitalCallsByDeal(dealId);
     res.json(capitalCalls);
   } catch (error) {
@@ -59,6 +95,19 @@ router.get('/deal/:dealId', async (req: Request, res: Response) => {
 router.get('/allocation/:allocationId', async (req: Request, res: Response) => {
   try {
     const allocationId = parseInt(req.params.allocationId);
+    
+    // First verify the allocation exists
+    const allocation = await storage.getFundAllocation(allocationId);
+    if (!allocation) {
+      return res.status(404).json({ error: 'Allocation not found' });
+    }
+    
+    // Then verify the deal exists
+    const deal = await storage.getDeal(allocation.dealId);
+    if (!deal) {
+      return res.status(404).json({ error: 'Allocation is linked to a nonexistent deal' });
+    }
+    
     const capitalCalls = await storage.getCapitalCallsByAllocation(allocationId);
     res.json(capitalCalls);
   } catch (error) {
