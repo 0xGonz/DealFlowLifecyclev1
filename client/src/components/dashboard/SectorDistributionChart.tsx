@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import { formatPercentage } from '@/lib/utils/format';
+import { FINANCIAL_CALCULATION } from '@/lib/constants/calculation-constants';
 
 // Define interfaces for our component
 // We'll use Recharts' own type system
@@ -61,7 +63,7 @@ const renderCustomizedLabel = ({
       fontSize={12}
       fontWeight="bold"
     >
-      {`${(percent * 100).toFixed(0)}%`}
+      {formatPercentage(percent * 100, 0)}
     </text>
   );
 };
@@ -76,13 +78,13 @@ const CustomTooltip = ({ active, payload, sectorData }: TooltipProps) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     const totalCount = sectorData.reduce((sum: number, item: SectorStatItem) => sum + item.count, 0);
-    const percentage = (data.count / totalCount * 100).toFixed(0);
+    const percentage = data.count / totalCount * 100;
     
     return (
       <div className="bg-white p-2 border border-neutral-200 rounded-md shadow-sm">
         <p className="font-medium text-black">{data.sector}</p>
         <p className="text-black"><span className="font-medium text-black">Count:</span> {data.count}</p>
-        <p className="text-black"><span className="font-medium text-black">Percentage:</span> <span className="font-bold">{percentage}%</span></p>
+        <p className="text-black"><span className="font-medium text-black">Percentage:</span> <span className="font-bold">{formatPercentage(percentage, 0)}</span></p>
       </div>
     );
   }
@@ -176,7 +178,7 @@ export default function SectorDistributionChart() {
                   payload={
                     processedData.map((item, index) => {
                       const totalCount = processedData.reduce((sum, i) => sum + i.count, 0);
-                      const percentage = (item.count / totalCount * 100).toFixed(0);
+                      const percentage = item.count / totalCount * 100;
                       // Truncate long sector names on small screens
                       const displayName = windowWidth < 640 && item.sector.length > 12 ? 
                         item.sector.substring(0, 10) + '...' : item.sector;
@@ -196,12 +198,12 @@ export default function SectorDistributionChart() {
                     const totalCount = processedData.reduce((sum, i) => sum + i.count, 0);
                     const item = processedData.find(item => item.sector === entry.id);
                     if (!item) return <span className="text-[10px] xs:text-xs sm:text-sm font-medium text-black">{value}</span>;
-                    const percentage = (item.count / totalCount * 100).toFixed(0);
+                    const percentage = item.count / totalCount * 100;
                     return (
                       <span className="text-[10px] xs:text-xs sm:text-sm font-medium text-black">
                         {value}
                         {windowWidth >= 640 && (
-                          <span className="font-bold">({percentage}%)</span>
+                          <span className="font-bold">({formatPercentage(percentage, 0)})</span>
                         )}
                       </span>
                     );

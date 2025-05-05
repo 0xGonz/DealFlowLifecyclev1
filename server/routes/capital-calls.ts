@@ -3,6 +3,7 @@ import { StorageFactory } from '../storage-factory';
 import { insertCapitalCallSchema } from '@shared/schema';
 import * as TimeConstants from '../constants/time-constants';
 import { CAPITAL_CALL_STATUS, SCHEDULE_TYPES } from '../constants/status-constants';
+import { formatPercentage } from '../utils/format';
 
 // Extract time constants for easier use
 const { TIME_MS, DEFAULT_DURATIONS } = TimeConstants;
@@ -147,7 +148,7 @@ async function generateCapitalCalls(allocationId: number, scheduleType: string, 
       callDate,
       dueDate,
       status: CAPITAL_CALL_STATUS.SCHEDULED,
-      notes: `${callPercentage || 100}% capital call`
+      notes: `${formatPercentage(callPercentage || 100)} capital call`
     });
     
     return;
@@ -169,7 +170,7 @@ async function generateCapitalCalls(allocationId: number, scheduleType: string, 
         callDate,
         dueDate,
         status: CAPITAL_CALL_STATUS.SCHEDULED,
-        notes: `${call.percentage}% capital call`
+        notes: `${formatPercentage(call.percentage)} capital call`
       });
     }
     
@@ -200,7 +201,7 @@ async function generateCapitalCalls(allocationId: number, scheduleType: string, 
       callDate,
       dueDate,
       status: CAPITAL_CALL_STATUS.SCHEDULED,
-      notes: `${scheduleType} capital call ${i + 1} of ${count} (${perCallPercentage.toFixed(2)}%)`
+      notes: `${scheduleType} capital call ${i + 1} of ${count} (${formatPercentage(perCallPercentage)})`
     });
   }
 }

@@ -2,6 +2,8 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { Deal } from "@/lib/types";
+import { formatPercentage } from '@/lib/utils/format';
+import { FINANCIAL_CALCULATION } from '@/lib/constants/calculation-constants';
 
 type SectorDistributionProps = {
   deals: Deal[] | undefined;
@@ -44,7 +46,7 @@ const renderCustomizedLabel = ({
       fontSize={12}
       fontWeight="bold"
     >
-      {`${(percent * 100).toFixed(0)}%`}
+      {formatPercentage(percent * 100, 0)}
     </text>
   );
 };
@@ -56,7 +58,7 @@ const CustomTooltip = ({ active, payload }: any) => {
       <div className="bg-white p-2 border border-neutral-200 rounded-md shadow-sm">
         <p className="font-medium text-black">{data.name}</p>
         <p className="text-black"><span className="font-medium text-black">Count:</span> {data.value} deals</p>
-        <p className="text-black"><span className="font-medium text-black">Percentage:</span> <span className="font-bold">{(data.percent * 100).toFixed(0)}%</span></p>
+        <p className="text-black"><span className="font-medium text-black">Percentage:</span> <span className="font-bold">{formatPercentage(data.percent * 100, 0)}</span></p>
       </div>
     );
   }
@@ -160,7 +162,7 @@ export default function SectorDistribution({ deals, stage }: SectorDistributionP
                 payload={
                   processedData.map((item, index) => {
                     const totalCount = processedData.reduce((sum, i) => sum + i.value, 0);
-                    const percentage = (item.value / totalCount * 100).toFixed(0);
+                    const percentageValue = item.value / totalCount * 100;
                     // Truncate long names on small screens
                     const displayName = isMobile && item.name.length > 12 ? 
                       item.name.substring(0, 10) + '...' : item.name;
@@ -181,11 +183,11 @@ export default function SectorDistribution({ deals, stage }: SectorDistributionP
                   if (!processedEntry || isMobile) return <span className="text-[10px] xs:text-xs sm:text-sm font-medium truncate text-black">{value}</span>;
                   
                   const totalCount = processedData.reduce((sum, i) => sum + i.value, 0);
-                  const percentage = (processedEntry.value / totalCount * 100).toFixed(0);
+                  const percentageValue = processedEntry.value / totalCount * 100;
                   
                   return (
                     <span className="text-[10px] xs:text-xs sm:text-sm font-medium truncate text-black">
-                      {value} <span className="font-bold">({percentage}%)</span>
+                      {value} <span className="font-bold">({formatPercentage(percentageValue, 0)})</span>
                     </span>
                   );
                 }}

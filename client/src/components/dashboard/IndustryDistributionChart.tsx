@@ -2,6 +2,8 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import { formatPercentage } from '@/lib/utils/format';
+import { FINANCIAL_CALCULATION } from '@/lib/constants/calculation-constants';
 
 interface SectorStatItem {
   sector: string;
@@ -49,7 +51,7 @@ const renderCustomizedLabel = ({
       fontSize={12}
       fontWeight="bold"
     >
-      {`${payload.sector} (${(percent * 100).toFixed(0)}%)`}
+      {`${payload.sector} (${formatPercentage(percent * 100, 0)})`}
     </text>
   );
 };
@@ -61,7 +63,7 @@ const CustomTooltip = ({ active, payload }: any) => {
       <div className="bg-white p-2 border border-neutral-200 rounded-md shadow-sm">
         <p className="font-medium">{data.sector}</p>
         <p><span className="font-medium">Count:</span> {data.count}</p>
-        <p><span className="font-medium">Percentage:</span> {data.percentage}%</p>
+        <p><span className="font-medium">Percentage:</span> {formatPercentage(data.percentage, FINANCIAL_CALCULATION.PRECISION.PERCENTAGE)}</p>
       </div>
     );
   }

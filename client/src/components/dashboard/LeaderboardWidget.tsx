@@ -16,7 +16,8 @@ import {
 } from "@/components/ui/table";
 import { Star, ArrowUp, ArrowDown } from "lucide-react";
 import { LeaderboardItem } from "@/lib/types";
-import { getDealStageBadgeClass } from "@/lib/utils/format";
+import { getDealStageBadgeClass, formatPercentage } from "@/lib/utils/format";
+import { FINANCIAL_CALCULATION } from "@/lib/constants/calculation-constants";
 
 export default function LeaderboardWidget() {
   const [, navigate] = useLocation();
@@ -70,7 +71,7 @@ export default function LeaderboardWidget() {
                     </TableCell>
                     <TableCell className="py-3">
                       <div className="flex items-center">
-                        <span className="text-lg font-semibold text-neutral-800">{typeof deal.score === 'number' ? deal.score.toFixed(1) : deal.score}</span>
+                        <span className="text-lg font-semibold text-neutral-800">{typeof deal.score === 'number' ? formatPercentage(deal.score, FINANCIAL_CALCULATION.PRECISION.PERCENTAGE) : deal.score}</span>
                         {deal.change > 0 ? (
                           <span className="ml-1 text-success text-xs flex items-center">
                             <ArrowUp className="h-3 w-3" />

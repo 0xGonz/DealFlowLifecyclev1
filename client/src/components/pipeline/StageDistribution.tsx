@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Deal, TimelineEvent } from "@/lib/types";
 import { DealStageLabels } from "@shared/schema";
-import { getDealStageBadgeClass } from "@/lib/utils/format";
+import { getDealStageBadgeClass, formatPercentage } from "@/lib/utils/format";
 import { PIPELINE_METRICS } from "@/lib/constants/calculation-constants";
 
 type StageDistributionProps = {
@@ -109,7 +109,7 @@ export default function StageDistribution({ deals, stage }: StageDistributionPro
                   <div className="flex items-center ml-auto sm:ml-0">
                     <span className="text-xs sm:text-sm text-black mr-1.5 sm:mr-2 whitespace-nowrap">{cat.count} deals</span>
                     <span className="text-[10px] sm:text-xs text-black bg-neutral-100 px-1.5 py-0.5 rounded-full whitespace-nowrap">
-                      <span className="font-bold">{cat.percentage}%</span>
+                      <span className="font-bold">{formatPercentage(cat.percentage || 0, 0)}</span>
                     </span>
                   </div>
                 </div>
@@ -180,7 +180,7 @@ export default function StageDistribution({ deals, stage }: StageDistributionPro
                 <div className="flex items-center ml-auto sm:ml-0">
                   <span className="text-xs sm:text-sm text-black mr-1.5 sm:mr-2 whitespace-nowrap">{stat.count} deals</span>
                   <span className="text-[10px] sm:text-xs text-black bg-neutral-100 px-1.5 py-0.5 rounded-full whitespace-nowrap">
-                    <span className="font-bold">{stat.percentage}%</span>
+                    <span className="font-bold">{formatPercentage(stat.percentage, 0)}</span>
                   </span>
                 </div>
               </div>
