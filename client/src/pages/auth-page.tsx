@@ -45,7 +45,7 @@ export default function AuthPage() {
   const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
   const [location, navigate] = useLocation();
   const [isAuthenticating, setIsAuthenticating] = useState(false);
-  const { data, isLoading } = useAuth();
+  const { data, isLoading, login, register } = useAuth();
   const { toast } = useToast();
 
   // Redirect to home if already logged in
@@ -125,8 +125,6 @@ export default function AuthPage() {
               <TabsContent value="login">
                 <LoginForm onSubmit={async (username, password) => {
                   try {
-                    // Use the login mutation from auth context
-                    const { login } = useAuth();
                     setIsAuthenticating(true);
                     await login.mutateAsync({ username, password });
                     
@@ -149,8 +147,6 @@ export default function AuthPage() {
               <TabsContent value="register">
                 <RegisterForm onSubmit={async (data) => {
                   try {
-                    // Use the register mutation from auth context
-                    const { register } = useAuth();
                     setIsAuthenticating(true);
                     await register.mutateAsync({
                       username: data.username,
