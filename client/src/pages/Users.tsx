@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+// Using standard HTML label instead of FormLabel to avoid form context errors
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Pencil, UserPlus, Search, Mail, Eye, EyeOff } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -306,7 +307,7 @@ export default function UsersPage() {
                   name="fullName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Full Name</FormLabel>
+                      <label className="text-sm font-medium">Full Name</label>
                       <FormControl>
                         <Input placeholder="Jane Doe" {...field} />
                       </FormControl>
@@ -321,7 +322,7 @@ export default function UsersPage() {
                     name="username"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Username</FormLabel>
+                        <label className="text-sm font-medium">Username</label>
                         <FormControl>
                           <Input placeholder="janedoe" {...field} />
                         </FormControl>
@@ -335,7 +336,7 @@ export default function UsersPage() {
                     name="role"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Role</FormLabel>
+                        <label className="text-sm font-medium">Role</label>
                         <Select 
                           onValueChange={field.onChange} 
                           defaultValue={field.value}
@@ -364,7 +365,7 @@ export default function UsersPage() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email</FormLabel>
+                      <label className="text-sm font-medium">Email</label>
                       <FormControl>
                         <Input placeholder="jane.doe@example.com" type="email" {...field} />
                       </FormControl>
@@ -379,7 +380,7 @@ export default function UsersPage() {
                     name="password"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Password</FormLabel>
+                        <label className="text-sm font-medium">Password</label>
                         <FormControl>
                           <Input type="password" {...field} />
                         </FormControl>
@@ -393,7 +394,7 @@ export default function UsersPage() {
                     name="passwordConfirm"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Confirm Password</FormLabel>
+                        <label className="text-sm font-medium">Confirm Password</label>
                         <FormControl>
                           <Input type="password" {...field} />
                         </FormControl>
@@ -426,7 +427,7 @@ export default function UsersPage() {
             {selectedUser && (
               <div className="space-y-4 py-2">
                 <div className="space-y-2">
-                  <FormLabel>Full Name</FormLabel>
+                  <label className="text-sm font-medium">Full Name</label>
                   <Input 
                     defaultValue={selectedUser.fullName} 
                     onChange={(e) => setSelectedUser({...selectedUser, fullName: e.target.value})}
@@ -435,7 +436,7 @@ export default function UsersPage() {
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <FormLabel>Username</FormLabel>
+                    <label className="text-sm font-medium">Username</label>
                     <Input 
                       defaultValue={selectedUser.username} 
                       onChange={(e) => setSelectedUser({...selectedUser, username: e.target.value})}
@@ -443,7 +444,7 @@ export default function UsersPage() {
                   </div>
                   
                   <div className="space-y-2">
-                    <FormLabel>Role</FormLabel>
+                    <label className="text-sm font-medium">Role</label>
                     <Select 
                       defaultValue={selectedUser.role}
                       onValueChange={(value) => setSelectedUser({...selectedUser, role: value})}
@@ -463,7 +464,7 @@ export default function UsersPage() {
                 </div>
                 
                 <div className="space-y-2">
-                  <FormLabel>Email</FormLabel>
+                  <label className="text-sm font-medium">Email</label>
                   <Input 
                     type="email" 
                     defaultValue={selectedUser.email} 
@@ -473,7 +474,7 @@ export default function UsersPage() {
                 
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
-                    <FormLabel>New Password</FormLabel>
+                    <label className="text-sm font-medium">New Password</label>
                     <Button 
                       type="button" 
                       variant="ghost" 
