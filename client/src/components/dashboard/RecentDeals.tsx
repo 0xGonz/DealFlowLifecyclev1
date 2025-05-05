@@ -29,15 +29,24 @@ export default function RecentDeals() {
         return false;
       }
       
-      // Date filter (simplified for demo)
+      // Date filter by createdAt timestamp
+      const dealDate = new Date(deal.createdAt).getTime();
+      const currentDate = new Date().getTime();
+      const dayInMs = 24 * 60 * 60 * 1000;
+      
       if (dateFilter === "30days") {
-        // In a real app, we would filter by createdAt date
-        return true;
+        return currentDate - dealDate <= 30 * dayInMs;
+      } else if (dateFilter === "quarter") {
+        return currentDate - dealDate <= 90 * dayInMs;
+      } else if (dateFilter === "ytd") {
+        const startOfYear = new Date(new Date().getFullYear(), 0, 1).getTime();
+        return dealDate >= startOfYear;
       }
       
       return true;
     })
-    .slice(0, 3); // Only show the first 3 deals
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 3); // Only show the most recent 3 deals
 
   return (
     <Card className="h-full flex flex-col">

@@ -1,0 +1,37 @@
+Pasted-You-are-an-expert-code-analysis-and-refactoring-assistant-within-this-Replit-environment-Your-task--1746415267486.txt
+You are an expert code analysis and refactoring assistant within this Replit environment. Your task is to help me eliminate hardcoded data and ensure all calculations rely on external APIs or uploaded/stored data through a two-phase process.
+
+**Phase 1: Comprehensive Identification and Reporting (NO CODE CHANGES)**
+
+Your first objective is to conduct a thorough, line-by-line review of the *entire* codebase in this project. During this phase, you will *only* identify and report issues; you will make absolutely *no* changes to the code.
+
+Scan every file for the following:
+
+1.  **Hardcoded Data:** Identify any data values directly embedded in the code that should be dynamic, configurable, or externalized. This includes literal strings, numbers used for configuration, file paths, credentials, and any other fixed values that should not be static in the code.
+2.  **Calculations Ignoring External Data:** Find any calculations performed using static, hardcoded values when they logically should be using data fetched from external APIs or data that has been uploaded and stored within the application.
+
+As you find these issues, compile a single, comprehensive list. For each entry in the list, provide:
+
+* The **File Name** and **Line Number(s)** where the issue is located.
+* A brief **Description of the Issue** (e.g., "Hardcoded database password," "Calculation of discount using static percentage").
+
+**Do NOT propose solutions or make any code modifications during Phase 1.** Your sole task in this phase is to find and list *all* relevant issues throughout the entire project.
+
+Once you have completed the scan of the entire codebase and compiled the complete list of all identified hardcoding and inappropriate calculation issues, present this list to me. Clearly indicate that Phase 1 is complete.
+
+**Phase 2: Iterative Resolution (ONE FIX AT A TIME)**
+
+After you have presented the complete list from Phase 1 and I acknowledge it, we will begin Phase 2. In this phase, you will go through the list you generated, addressing each issue one by one in the order they appear (or in an order I specify).
+
+For each issue from the list in Phase 1:
+
+1.  **Announce Issue:** State which issue you are currently addressing from the list (e.g., "Addressing issue 1: Hardcoded database password in db.py").
+2.  **Propose Solution:** Clearly describe the specific code change you will make *to fix only this single issue*. Explain the reasoning behind the solution (e.g., "Will replace password string with lookup from `os.environ['DB_PASSWORD']`"). Include the exact code snippet(s) you will modify or add.
+3.  **Implement Change:** **Apply the proposed code change directly to the file.**
+4.  **Confirm:** Confirm that the change for this specific issue has been successfully implemented in the codebase.
+
+You will then proceed to the next issue on the list, repeating steps 1-4, until all issues identified in Phase 1 have been addressed.
+
+If any issue on the list seems complex or its resolution impacts other identified issues, highlight this before implementing and suggest how we should proceed (e.g., combining fixes, re-evaluating).
+
+**Begin Phase 1 now: Start scanning the codebase for hardcoded data and inappropriate calculations and compile the list. Remember: NO code changes in Phase 1.**
