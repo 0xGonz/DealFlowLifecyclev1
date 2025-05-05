@@ -91,13 +91,13 @@ export default function StageDistribution({ deals, stage }: StageDistributionPro
     });
     
     return (
-      <Card className="mb-6">
+      <Card className="mb-6 h-full w-full flex flex-col">
         <CardHeader className="pb-2">
           <CardTitle className="text-base sm:text-lg">
             Days in {stageName} Stage
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex-1">
           <div className="space-y-3 sm:space-y-4">
             {categories.map((cat, index) => (
               <div key={index} className="space-y-1">
@@ -153,13 +153,13 @@ export default function StageDistribution({ deals, stage }: StageDistributionPro
   stageStats.sort((a, b) => b.count - a.count);
   
   return (
-    <Card className="mb-6">
+    <Card className="mb-6 h-full w-full flex flex-col">
       <CardHeader className="pb-2">
         <CardTitle className="text-base sm:text-lg">
           Deal Stage Distribution
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-1">
         <div className="space-y-3 sm:space-y-4">
           {stageStats.map((stat) => (
             <div key={stat.stage} className="space-y-1">

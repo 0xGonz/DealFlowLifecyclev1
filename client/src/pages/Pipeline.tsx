@@ -341,8 +341,12 @@ export default function Pipeline() {
                   <PipelineStats deals={deals} filteredDeals={dealsByStage[stage]} stage={stage} />
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <StageDistribution deals={dealsByStage[stage]} stage={stage} />
-                    <SectorDistribution deals={dealsByStage[stage]} stage={stage} />
+                    <div className="h-full">
+                      <StageDistribution deals={dealsByStage[stage]} stage={stage} />
+                    </div>
+                    <div className="h-full">
+                      <SectorDistribution deals={dealsByStage[stage]} stage={stage} />
+                    </div>
                   </div>
                   
                   <DealsTable 
