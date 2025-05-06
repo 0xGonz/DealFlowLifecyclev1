@@ -51,26 +51,25 @@ const renderCustomizedLabel = ({
   );
 };
 
-const CustomTooltip = ({ active, payload }: any) => {
-  if (active && payload && payload.length) {
+interface SectorDataItem {
+  name: string;
+  value: number;
+}
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: Array<{payload: any}>;
+  processedData?: SectorDataItem[];
+}
+
+const CustomTooltip = ({ active, payload, processedData }: CustomTooltipProps) => {
+  if (active && payload && payload.length && processedData) {
     const data = payload[0].payload;
     
-    // Calculate total count for all processed data to get accurate percentage
-    let totalCount = 0;
+    // Calculate the total count from all data in the processedData array
+    const totalCount = processedData.reduce((sum: number, item: SectorDataItem) => sum + item.value, 0);
     
-    // Access the parent component's processedData
-    // Since we can't directly access it, we'll recalculate the percentage
-    // based on the current slice of data we have
-    for (let i = 0; i < payload.length; i++) {
-      if (payload[i] && payload[i].value) {
-        totalCount += payload[i].value;
-      }
-    }
-    
-    // If we still don't have a total, use the current item's value as fallback
-    if (totalCount === 0) totalCount = data.value;
-    
-    // Calculate percentage correctly
+    // Calculate percentage correctly using the actual item's value and the total
     const percentage = (data.value / totalCount) * 100;
     
     return (
@@ -130,7 +129,7 @@ export default function SectorDistribution({ deals, stage }: SectorDistributionP
     const topSectors = sectorData.slice(0, 6);
     const otherSectors = sectorData.slice(6);
     
-    const otherCount = otherSectors.reduce((sum, item) => sum + item.value, 0);
+    const otherCount = otherSectors.reduce((sum: number, item: SectorDataItem) => sum + item.value, 0);
     
     return [
       ...topSectors,
@@ -173,14 +172,14 @@ export default function SectorDistribution({ deals, stage }: SectorDistributionP
                   />
                 ))}
               </Pie>
-              <Tooltip content={<CustomTooltip />} />
+              <Tooltip content={<CustomTooltip processedData={processedData} />} />
               <Legend 
                 verticalAlign={isMobile ? "bottom" : "middle"}
                 align={isMobile ? "center" : "right"}
                 layout={isMobile ? "horizontal" : "vertical"}
                 payload={
                   processedData.map((item, index) => {
-                    const totalCount = processedData.reduce((sum, i) => sum + i.value, 0);
+                    const totalCount = processedData.reduce((sum: number, i: SectorDataItem) => sum + i.value, 0);
                     const percentageValue = item.value / totalCount * 100;
                     // Truncate long names on small screens
                     const displayName = isMobile && item.name.length > 12 ? 
@@ -201,7 +200,7 @@ export default function SectorDistribution({ deals, stage }: SectorDistributionP
                   const processedEntry = processedData.find(item => item.name === entry.id);
                   if (!processedEntry) return <span className="text-[10px] xs:text-xs sm:text-sm font-medium truncate text-black">{value}</span>;
                   
-                  const totalCount = processedData.reduce((sum, i) => sum + i.value, 0);
+                  const totalCount = processedData.reduce((sum: number, i: SectorDataItem) => sum + i.value, 0);
                   const percentageValue = processedEntry.value / totalCount * 100;
                   
                   return (

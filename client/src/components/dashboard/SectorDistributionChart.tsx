@@ -75,12 +75,14 @@ interface TooltipProps {
 }
 
 const CustomTooltip = ({ active, payload, sectorData }: TooltipProps) => {
-  if (active && payload && payload.length) {
+  if (active && payload && payload.length && sectorData) {
     const data = payload[0].payload;
-    // Use the percentage directly from the data if available
-    // Otherwise calculate it
+    
+    // Calculate the total count from the actual sectored data array
     const totalCount = sectorData.reduce((sum: number, item: SectorStatItem) => sum + item.count, 0);
-    const percentage = data.percentage || (data.count / totalCount * 100);
+    
+    // Calculate percentage correctly
+    const percentage = data.count / totalCount * 100;
     
     return (
       <div className="bg-white p-2 border border-neutral-200 rounded-md shadow-sm">
