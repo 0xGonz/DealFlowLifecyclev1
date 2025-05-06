@@ -219,6 +219,53 @@ router.patch('/:id/status', async (req: Request, res: Response) => {
   }
 });
 
+// Update capital call dates
+router.patch('/:id/dates', async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id);
+    const { callDate, dueDate } = req.body;
+    
+    // Validate the dates
+    if (!callDate || !dueDate) {
+      return res.status(400).json({ error: 'Both callDate and dueDate are required' });
+    }
+    
+    // Parse dates - accept both ISO strings and date objects
+    const parsedCallDate = new Date(callDate);
+    const parsedDueDate = new Date(dueDate);
+    
+    // Validate that the dates are valid
+    if (isNaN(parsedCallDate.getTime()) || isNaN(parsedDueDate.getTime())) {
+      return res.status(400).json({ error: 'Invalid date format' });
+    }
+    
+    // Get the capital call to confirm it exists
+    const capitalCall = await StorageFactory.storage.getCapitalCall(id);
+    if (!capitalCall) {
+      return res.status(404).json({ error: 'Capital call not found' });
+    }
+    
+    // Check if the call is already paid - if so, don't allow date changes
+    if (capitalCall.status === 'paid') {
+      return res.status(400).json({ 
+        error: 'Cannot change dates for a capital call that has already been paid' 
+      });
+    }
+    
+    // Update the capital call dates
+    const updatedCall = await StorageFactory.storage.updateCapitalCallDates(id, parsedCallDate, parsedDueDate);
+    
+    if (!updatedCall) {
+      return res.status(404).json({ error: 'Capital call not found or could not be updated' });
+    }
+    
+    res.json(updatedCall);
+  } catch (error) {
+    console.error(`Error updating capital call dates for call ${req.params.id}:`, error);
+    res.status(500).json({ error: 'Failed to update capital call dates' });
+  }
+});
+
 // Helper function to recalculate portfolio weights for a fund
 async function recalculatePortfolioWeights(fundId: number): Promise<void> {
   try {

@@ -82,6 +82,7 @@ export interface IStorage {
   getCapitalCallsByAllocation(allocationId: number): Promise<CapitalCall[]>;
   getCapitalCallsByDeal(dealId: number): Promise<CapitalCall[]>;
   updateCapitalCallStatus(id: number, status: CapitalCall['status'], paidAmount?: number): Promise<CapitalCall | undefined>;
+  updateCapitalCallDates(id: number, callDate: Date, dueDate: Date): Promise<CapitalCall | undefined>;
   
   // Deal assignments
   assignUserToDeal(assignment: InsertDealAssignment): Promise<DealAssignment>;
@@ -107,6 +108,7 @@ export interface IStorage {
   getAllClosingScheduleEvents(): Promise<ClosingScheduleEvent[]>;
   getClosingScheduleEventsByDeal(dealId: number): Promise<ClosingScheduleEvent[]>;
   updateClosingScheduleEventStatus(id: number, status: ClosingScheduleEvent['status'], actualDate?: Date, actualAmount?: number): Promise<ClosingScheduleEvent | undefined>;
+  updateClosingScheduleEventDate(id: number, scheduledDate: Date): Promise<ClosingScheduleEvent | undefined>;
   deleteClosingScheduleEvent(id: number): Promise<boolean>;
 }
 
@@ -780,6 +782,21 @@ export class MemStorage implements IStorage {
     return updatedCapitalCall;
   }
   
+  async updateCapitalCallDates(id: number, callDate: Date, dueDate: Date): Promise<CapitalCall | undefined> {
+    const capitalCall = this.capitalCalls.get(id);
+    if (!capitalCall) return undefined;
+    
+    const updatedCapitalCall: CapitalCall = {
+      ...capitalCall,
+      callDate,
+      dueDate,
+      updatedAt: new Date()
+    };
+    
+    this.capitalCalls.set(id, updatedCapitalCall);
+    return updatedCapitalCall;
+  }
+  
   // Closing Schedule Events
   async createClosingScheduleEvent(event: InsertClosingScheduleEvent): Promise<ClosingScheduleEvent> {
     const id = this.closingEventIdCounter++;
@@ -826,6 +843,20 @@ export class MemStorage implements IStorage {
       updatedAt: new Date(),
       actualDate: actualDate || event.actualDate,
       actualAmount: actualAmount !== undefined ? actualAmount : event.actualAmount
+    };
+    
+    this.closingScheduleEvents.set(id, updatedEvent);
+    return updatedEvent;
+  }
+  
+  async updateClosingScheduleEventDate(id: number, scheduledDate: Date): Promise<ClosingScheduleEvent | undefined> {
+    const event = this.closingScheduleEvents.get(id);
+    if (!event) return undefined;
+    
+    const updatedEvent: ClosingScheduleEvent = {
+      ...event,
+      scheduledDate,
+      updatedAt: new Date()
     };
     
     this.closingScheduleEvents.set(id, updatedEvent);

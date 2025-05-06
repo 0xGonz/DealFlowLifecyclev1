@@ -624,6 +624,26 @@ export class DatabaseStorage implements IStorage {
     return updatedCapitalCall || undefined;
   }
   
+  async updateCapitalCallDates(id: number, callDate: Date, dueDate: Date): Promise<CapitalCall | undefined> {
+    if (!db) {
+      throw new Error('Database not initialized');
+    }
+    
+    const updateData = {
+      callDate,
+      dueDate,
+      updatedAt: new Date()
+    };
+    
+    const [updatedCapitalCall] = await db
+      .update(capitalCalls)
+      .set(updateData)
+      .where(eq(capitalCalls.id, id))
+      .returning();
+      
+    return updatedCapitalCall || undefined;
+  }
+  
   // Closing Schedule Events
   async createClosingScheduleEvent(event: InsertClosingScheduleEvent): Promise<ClosingScheduleEvent> {
     if (!db) {
@@ -680,6 +700,25 @@ export class DatabaseStorage implements IStorage {
     if (actualAmount !== undefined) {
       updateData.actualAmount = actualAmount;
     }
+    
+    const [updatedEvent] = await db
+      .update(closingScheduleEvents)
+      .set(updateData)
+      .where(eq(closingScheduleEvents.id, id))
+      .returning();
+      
+    return updatedEvent || undefined;
+  }
+  
+  async updateClosingScheduleEventDate(id: number, scheduledDate: Date): Promise<ClosingScheduleEvent | undefined> {
+    if (!db) {
+      throw new Error('Database not initialized');
+    }
+    
+    const updateData = {
+      scheduledDate,
+      updatedAt: new Date()
+    };
     
     const [updatedEvent] = await db
       .update(closingScheduleEvents)

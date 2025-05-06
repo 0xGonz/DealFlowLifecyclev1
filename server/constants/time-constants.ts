@@ -46,9 +46,23 @@ export const SESSION_EXPIRATION = {
 
 // Default durations for various business operations
 export const DEFAULT_DURATIONS = {
+  // Capital call related durations
   CAPITAL_CALL_DUE_DAYS: 14, // Default days between call date and due date
   REMINDER_DAYS: 7, // Default days before due date to send reminder
   GRACE_PERIOD_DAYS: 5, // Default days after due date before marking as late
+  
+  // Deal review and investment periods
   DEFAULT_DEAL_REVIEW_DAYS: 30, // Default days for deal review period
   DEFAULT_INVESTMENT_PERIOD_YEARS: 5, // Default investment period in years
+  
+  // Buffer days for date integration between components
+  ALLOCATION_BUFFER_DAYS: 7, // Days to add when calculating the next allocation date
+  CAPITAL_CALL_BUFFER_DAYS: 14, // Days to add when calculating the next capital call date
+  CLOSING_BUFFER_DAYS: 30, // Days to add when calculating the next closing schedule date
+  
+  // Default spacing between events in schedules
+  DEFAULT_MONTHLY_SPACING: 30, // Approximate days in a month for scheduling
+  DEFAULT_QUARTERLY_SPACING: 90, // Approximate days in a quarter for scheduling
+  DEFAULT_BIANNUAL_SPACING: 180, // Approximate days in half a year for scheduling
+  DEFAULT_ANNUAL_SPACING: 365, // Approximate days in a year for scheduling
 } as const;
