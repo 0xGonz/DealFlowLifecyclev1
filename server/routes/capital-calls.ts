@@ -208,6 +208,41 @@ router.patch('/:id/status', async (req: Request, res: Response) => {
   }
 });
 
+// Helper function to recalculate portfolio weights for a fund
+async function recalculatePortfolioWeights(fundId: number): Promise<void> {
+  try {
+    // Get all allocations for the fund
+    const allocations = await StorageFactory.storage.getAllocationsByFund(fundId);
+    if (!allocations || allocations.length === 0) return;
+    
+    // Calculate the total called (funded) capital in the fund
+    const calledCapital = allocations
+      .filter(allocation => allocation.status === 'funded')
+      .reduce((sum, allocation) => sum + allocation.amount, 0);
+    
+    // If there's no called capital yet, we don't need to update weights
+    if (calledCapital <= 0) return;
+    
+    // Update the weight for each allocation
+    for (const allocation of allocations) {
+      // Only funded allocations contribute to portfolio weight
+      const weight = allocation.status === 'funded'
+        ? (allocation.amount / calledCapital) * 100
+        : 0;
+      
+      // Update the allocation with the new weight
+      await StorageFactory.storage.updateFundAllocation(
+        allocation.id,
+        { portfolioWeight: parseFloat(weight.toFixed(2)) }
+      );
+    }
+    
+    console.log(`Successfully recalculated portfolio weights for fund ID ${fundId}`);
+  } catch (error) {
+    console.error(`Error recalculating portfolio weights for fund ID ${fundId}:`, error);
+  }
+}
+
 // Helper function to update allocation status based on capital calls
 // Export for testing purposes
 export async function updateAllocationStatusBasedOnCapitalCalls(allocationId: number): Promise<void> {
@@ -254,6 +289,10 @@ export async function updateAllocationStatusBasedOnCapitalCalls(allocationId: nu
     // Only update if status changed
     if (newStatus !== allocation.status) {
       await StorageFactory.storage.updateFundAllocation(allocation.id, { status: newStatus });
+      
+      // After updating the allocation status, recalculate portfolio weights
+      // for all allocations in this fund to ensure they add up to 100%
+      await recalculatePortfolioWeights(allocation.fundId);
     }
   } catch (error) {
     console.error(`Error updating allocation status for allocation ${allocationId}:`, error);
@@ -348,6 +387,12 @@ async function generateCapitalCalls(allocationId: number, scheduleType: string, 
     
     // Also update the allocation status to 'funded'
     await StorageFactory.storage.updateFundAllocation(allocationId, { status: 'funded' });
+    
+    // Get the fundId to recalculate portfolio weights for all allocations in this fund
+    const allocation = await StorageFactory.storage.getFundAllocation(allocationId);
+    if (allocation) {
+      await recalculatePortfolioWeights(allocation.fundId);
+    }
     
     return allocationId;
   }
