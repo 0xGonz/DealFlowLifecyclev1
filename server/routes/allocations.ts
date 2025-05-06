@@ -67,17 +67,30 @@ async function recalculatePortfolioWeights(fundId: number): Promise<void> {
   try {
     const storage = StorageFactory.storage;
     
+    console.log(`[DEBUG] Starting portfolio weight recalculation for fund ID ${fundId}`);
+    
     // Get all allocations for the fund
     const allocations = await storage.getAllocationsByFund(fundId);
-    if (!allocations || allocations.length === 0) return;
+    if (!allocations || allocations.length === 0) {
+      console.log(`[DEBUG] No allocations found for fund ID ${fundId}, skipping weight calculation`);
+      return;
+    }
+    
+    console.log(`[DEBUG] Found ${allocations.length} total allocations for fund ID ${fundId}`);
+    
+    // Get funded allocations
+    const fundedAllocations = allocations.filter(allocation => allocation.status === 'funded');
+    console.log(`[DEBUG] Found ${fundedAllocations.length} funded allocations for fund ID ${fundId}`);
     
     // Calculate the total called (funded) capital in the fund
-    const calledCapital = allocations
-      .filter(allocation => allocation.status === 'funded')
-      .reduce((sum, allocation) => sum + allocation.amount, 0);
+    const calledCapital = fundedAllocations.reduce((sum, allocation) => sum + allocation.amount, 0);
+    console.log(`[DEBUG] Total called capital for fund ID ${fundId}: ${calledCapital}`);
     
     // If there's no called capital yet, we don't need to update weights
-    if (calledCapital <= 0) return;
+    if (calledCapital <= 0) {
+      console.log(`[DEBUG] No called capital for fund ID ${fundId}, skipping weight calculation`);
+      return;
+    }
     
     // Update the weight for each allocation
     for (const allocation of allocations) {
@@ -86,16 +99,27 @@ async function recalculatePortfolioWeights(fundId: number): Promise<void> {
         ? (allocation.amount / calledCapital) * 100
         : 0;
       
+      console.log(`[DEBUG] Allocation ID ${allocation.id}: Status ${allocation.status}, Amount ${allocation.amount}, Calculated Weight ${weight}%`);
+      
       // Update the allocation with the new weight
-      await storage.updateFundAllocation(
+      const updatedAllocation = await storage.updateFundAllocation(
         allocation.id,
         { portfolioWeight: parseFloat(weight.toFixed(2)) }
       );
+      
+      console.log(`[DEBUG] Updated allocation ID ${allocation.id} with weight ${updatedAllocation?.portfolioWeight}%`);
     }
     
-    console.log(`Successfully recalculated portfolio weights for fund ID ${fundId}`);
+    // For validation, fetch the allocations again and check their weights
+    const updatedAllocations = await storage.getAllocationsByFund(fundId);
+    console.log(`[DEBUG] Validation: Portfolio weights after recalculation:`);
+    updatedAllocations.forEach(a => {
+      console.log(`[DEBUG] ID ${a.id}: Status ${a.status}, Weight ${a.portfolioWeight}%`);
+    });
+    
+    console.log(`[SUCCESS] Recalculated portfolio weights for fund ID ${fundId}`);
   } catch (error) {
-    console.error(`Error recalculating portfolio weights for fund ID ${fundId}:`, error);
+    console.error(`[ERROR] Error recalculating portfolio weights for fund ID ${fundId}:`, error);
   }
 }
 
@@ -109,6 +133,10 @@ router.get('/', async (req: Request, res: Response) => {
     let allAllocations: Array<any> = [];
     
     for (const fund of funds) {
+      // First make sure portfolio weights are up to date for each fund
+      await recalculatePortfolioWeights(fund.id);
+      
+      // Then fetch the allocations with updated weights
       const fundAllocations = await storage.getAllocationsByFund(fund.id);
       // Add fund name to each allocation
       const enhancedAllocations = fundAllocations.map(allocation => ({
@@ -242,6 +270,11 @@ router.get('/fund/:fundId', async (req: Request, res: Response) => {
   try {
     const storage = StorageFactory.storage;
     const fundId = Number(req.params.fundId);
+    
+    // First make sure portfolio weights are up to date
+    await recalculatePortfolioWeights(fundId);
+    
+    // Then fetch the allocations with updated weights
     const allocations = await storage.getAllocationsByFund(fundId);
     
     // Get all deals to validate allocations
@@ -265,6 +298,11 @@ router.get('/fund/:fundId/invalid', async (req: Request, res: Response) => {
   try {
     const storage = StorageFactory.storage;
     const fundId = Number(req.params.fundId);
+    
+    // Make sure portfolio weights are up to date first
+    await recalculatePortfolioWeights(fundId);
+    
+    // Then get the allocations with updated weights
     const allocations = await storage.getAllocationsByFund(fundId);
     
     // Get all deals to validate allocations
@@ -295,8 +333,18 @@ router.get('/deal/:dealId', async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'Deal not found' });
     }
     
+    // Get all allocations for this deal
     const allocations = await storage.getAllocationsByDeal(dealId);
-    res.json(allocations);
+    
+    // Update portfolio weights for all funds that have this deal
+    for (const allocation of allocations) {
+      // Recalculate portfolio weights for each fund that has this deal
+      await recalculatePortfolioWeights(allocation.fundId);
+    }
+    
+    // Now get the updated allocations after weight recalculation
+    const updatedAllocations = await storage.getAllocationsByDeal(dealId);
+    res.json(updatedAllocations);
   } catch (error) {
     console.error('Error fetching deal allocations:', error);
     res.status(500).json({ message: 'Failed to fetch allocations' });
