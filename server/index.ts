@@ -22,20 +22,48 @@ const memorySessionStore = new MemoryStore({
 // Configure session middleware with PostgreSQL session store
 const PgSession = connectPgSimple(session);
 
-// Initialize session store - try PostgreSQL first with a memory store fallback
+// Initialize session store with a robust fallback mechanism
 let sessionStore;
-try {
-  // Improved session store configuration with additional options for reliability
-  sessionStore = new PgSession({
-    pool,
-    tableName: 'session', // Use this specific table name for compatibility
-    createTableIfMissing: true, // Create the session table if it doesn't exist
-    pruneSessionInterval: 60, // Prune expired sessions every minute
-    errorLog: console.error, // Log session storage errors
-  });
+let usingPgStore = false;
+
+// Function to create PostgreSQL session store
+const createPgSessionStore = () => {
+  try {
+    // Using a more resilient configuration
+    const pgStore = new PgSession({
+      pool,
+      tableName: 'session', // Use this specific table name for compatibility
+      createTableIfMissing: true, // Create the session table if it doesn't exist
+      pruneSessionInterval: 60 * 15, // Prune less frequently - every 15 minutes
+      errorLog: (error) => {
+        console.error('PostgreSQL session store error:', error);
+        // If we get an error related to connection, switch to memory store
+        if (error.message && (
+          error.message.includes('Connection terminated') || 
+          error.message.includes('connection timeout') || 
+          error.message.includes('ECONNREFUSED') ||
+          error.message.includes('Connection refused')
+        )) {
+          console.log('Connection issue detected, switching to memory store');
+          sessionStore = memorySessionStore;
+          usingPgStore = false;
+        }
+      },
+    });
+    return pgStore;
+  } catch (error) {
+    console.error('Failed to initialize PostgreSQL session store:', error);
+    return null;
+  }
+};
+
+// Try to use PostgreSQL first
+const pgStore = createPgSessionStore();
+if (pgStore) {
+  sessionStore = pgStore;
+  usingPgStore = true;
   console.log('Using PostgreSQL session store');
-} catch (error) {
-  console.error('Failed to initialize PostgreSQL session store:', error);
+} else {
   console.log('Falling back to memory session store');
   sessionStore = memorySessionStore;
 }
@@ -71,10 +99,47 @@ app.use(session({
   }
 }));
 
+// Add ability to switch back to PG store when database becomes available
+const tryRestorePgSessionStore = () => {
+  if (!usingPgStore && pool) {
+    try {
+      const pgStore = createPgSessionStore();
+      if (pgStore) {
+        console.log('Database connection restored - switching back to PostgreSQL session store');
+        sessionStore = pgStore;
+        usingPgStore = true;
+        
+        // Setup a periodic check to attempt to restore PG store if needed
+        setInterval(() => {
+          if (!usingPgStore) {
+            tryRestorePgSessionStore();
+          }
+        }, 5 * 60 * 1000); // Check every 5 minutes
+        
+        return true;
+      }
+    } catch (error) {
+      console.error('Failed to restore PostgreSQL session store:', error);
+    }
+  }
+  return false;
+};
+
+// Register periodic health checks for session store
+setInterval(() => {
+  tryRestorePgSessionStore();
+}, 30 * 1000); // Check every 30 seconds initially
+
 // Session debug middleware with more detailed output
 app.use((req, res, next) => {
+  // Try to restore PG session store on auth endpoints first
+  if (req.path.startsWith('/api/auth') && !usingPgStore) {
+    tryRestorePgSessionStore();
+  }
+  
+  // Enhanced logging only for auth endpoints
   if (req.path.startsWith('/api/auth')) {
-    console.log(`Session debug [${req.method} ${req.path}]: sessionID=${req.sessionID?.substring(0, 8)}..., hasSession=${!!req.session}, userId=${req.session?.userId || 'none'}, headers=${JSON.stringify(req.headers['cookie']?.substring(0, 20) || 'none')}`);
+    console.log(`Session debug [${req.method} ${req.path}]: sessionID=${req.sessionID?.substring(0, 8)}..., hasSession=${!!req.session}, userId=${req.session?.userId || 'none'}, using_pg_store=${usingPgStore}, headers=${JSON.stringify(req.headers['cookie']?.substring(0, 20) || 'none')}`);
   }
   next();
 });

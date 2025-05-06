@@ -48,7 +48,8 @@ export async function getCurrentUser(req: Request) {
   console.log(`Getting current user from session with userId: ${req.session.userId}`);
   
   try {
-    const storage = StorageFactory.getStorage();
+    // Ensure we properly await the async method
+    const storage = await StorageFactory.getStorage();
     const user = await storage.getUser(req.session.userId);
     
     if (!user) {
@@ -89,8 +90,8 @@ export async function login(req: Request, username: string, password: string) {
   try {
     console.log(`Auth login helper called for username: ${username}`);
 
-    // First, get the user from the database
-    const storage = StorageFactory.getStorage();
+    // First, get the user from the database - using sync version for simpler code
+    const storage = await StorageFactory.getStorage();
     const user = await storage.getUserByUsername(username);
     
     if (!user) {
@@ -193,7 +194,7 @@ export async function registerUser(req: Request, userData: any) {
   try {
     console.log(`Register user helper called for username: ${userData.username}`);
     
-    const storage = StorageFactory.getStorage();
+    const storage = await StorageFactory.getStorage();
     
     // Check if the username already exists
     const existingUser = await storage.getUserByUsername(userData.username);
