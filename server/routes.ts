@@ -18,67 +18,22 @@ import closingSchedulesRoutes from './routes/closing-schedules';
 // Utils
 import { errorHandler, notFoundHandler, AppError } from './utils/errorHandlers';
 import { requireAuth, getCurrentUser } from './utils/auth';
-import { isDatabaseHealthy } from './db';
-import { StorageFactory } from './storage-factory';
 
-/**
- * Register and configure all application routes with proper middleware
- * This function sets up the complete API structure in a modular, maintainable way
- */
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Database health check middleware for API monitoring
-  app.use('/api/system/health', (req: Request, res: Response) => {
-    const dbHealthy = isDatabaseHealthy();
-    const storageType = StorageFactory.getActiveStorageType();
-    
-    const healthStatus = {
-      database: {
-        connected: dbHealthy,
-        using_db_directly: dbHealthy && storageType === 'database',
-        current_storage: storageType
-      },
-      server: {
-        status: 'healthy',
-        time: new Date().toISOString()
-      }
-    };
-    
-    // Always return 200 if server is running, even if using memory fallback
-    // This allows monitoring systems to detect when the server itself is down
-    // while still reporting accurate database status
-    res.status(200).json(healthStatus);
-  });
   
   // Middleware to attach user object to request
   app.use('/api', async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      if (req.session.userId) {
-        console.log(`Session userId found: ${req.session.userId}, attempting to get user`);
-        const user = await getCurrentUser(req);
-        if (user) {
-          console.log(`User found: ${user.username}, role: ${user.role}`);
-        } else {
-          console.log(`No user found for session userId: ${req.session.userId}`);
-        }
-        (req as any).user = user;
-      } else {
-        console.log('No session userId found in middleware');
-      }
-      next();
-    } catch (error) {
-      console.error('Error attaching user to request:', error);
-      next(error);
+    if (req.session.userId) {
+      const user = await getCurrentUser(req);
+      (req as any).user = user;
     }
+    next();
   });
   
   // Authentication middleware for all API routes except auth endpoints
   app.use('/api', (req: Request, res: Response, next: NextFunction) => {
-    // Skip auth check for auth endpoints, health checks, and OPTIONS requests
-    if (
-      req.path.startsWith('/auth') || 
-      req.path.startsWith('/system/health') || 
-      req.method === 'OPTIONS'
-    ) {
+    // Skip auth check for auth endpoints and OPTIONS requests
+    if (req.path.startsWith('/auth') || req.method === 'OPTIONS') {
       return next();
     }
     

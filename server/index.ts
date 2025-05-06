@@ -19,136 +19,26 @@ const memorySessionStore = new MemoryStore({
   checkPeriod: 86400000 // prune expired entries every 24h
 });
 
-// Configure resilient session store with fallback capability
+// Configure session middleware with PostgreSQL session store
 const PgSession = connectPgSimple(session);
 
-// Create a unified ResilientSessionStore class that handles failover
-class ResilientSessionStore {
-  private memoryStore: any; // MemoryStore instance
-  private pgStore: any; // PgSession instance
-  private usingPgStore: boolean = false;
-  private failureCount: number = 0;
-  private readonly MAX_FAILURES = 3;
-  private checkInterval: NodeJS.Timeout | null = null;
-  private readonly CHECK_INTERVAL_MS = 30000; // 30 seconds
-
-  constructor() {
-    // Create memory store first (always available)
-    this.memoryStore = new MemoryStore({
-      checkPeriod: 86400000 // prune expired entries every 24h
-    });
-
-    // Try to create PG store
-    try {
-      this.pgStore = new PgSession({
-        pool,
-        tableName: 'session',
-        // Don't create tables at startup - helps avoid connection errors
-        createTableIfMissing: false,
-        pruneSessionInterval: 60 * 15,
-        // Disable the automatic ping to prevent connection errors
-        disableTouch: true, 
-        errorLog: this.handlePgError.bind(this),
-      });
-      
-      // Start with memory store for safety
-      this.usingPgStore = false;
-      console.log('Created PostgreSQL session store but starting with memory store for safety');
-      
-      // Start health check to switch to PG if available
-      this.startHealthCheck();
-    } catch (error) {
-      console.error('Failed to initialize PostgreSQL session store:', error);
-      this.pgStore = null as any;
-      this.usingPgStore = false;
-      console.log('Using memory session store only');
-    }
-  }
-
-  private handlePgError(error: Error): void {
-    console.error('PostgreSQL session store error:', error);
-    
-    // If we're using PG store and get a connection error, increment failure count
-    if (this.usingPgStore) {
-      if (error.message && (
-        error.message.includes('Connection terminated') || 
-        error.message.includes('connection timeout') || 
-        error.message.includes('ECONNREFUSED') ||
-        error.message.includes('Connection refused')
-      )) {
-        this.failureCount++;
-        console.log(`PG session store failure count: ${this.failureCount}/${this.MAX_FAILURES}`);
-        
-        // If too many failures, switch to memory store
-        if (this.failureCount >= this.MAX_FAILURES) {
-          console.log('Too many PG session store failures, switching to memory store');
-          this.usingPgStore = false;
-          this.failureCount = 0;
-        }
-      }
-    }
-  }
-
-  private startHealthCheck(): void {
-    if (this.checkInterval) {
-      clearInterval(this.checkInterval);
-    }
-    
-    this.checkInterval = setInterval(() => {
-      this.checkPgConnection();
-    }, this.CHECK_INTERVAL_MS);
-  }
-
-  private async checkPgConnection(): Promise<void> {
-    // Only check if we're not using PG store and we have a PG store
-    if (!this.usingPgStore && this.pgStore) {
-      try {
-        // Simple query to check if connection works
-        await pool.query('SELECT 1 AS test');
-        
-        // If we get here, connection works, switch to PG store
-        console.log('PostgreSQL connection is healthy, switching to PG session store');
-        this.usingPgStore = true;
-        this.failureCount = 0;
-      } catch (error) {
-        console.log('PostgreSQL connection check failed, staying with memory store');
-      }
-    }
-  }
-
-  public get store(): any {
-    // Return the appropriate store based on current state
-    return this.usingPgStore ? this.pgStore : this.memoryStore;
-  }
-
-  public get isUsingPgStore(): boolean {
-    return this.usingPgStore;
-  }
+// Initialize session store - try PostgreSQL first with a memory store fallback
+let sessionStore;
+try {
+  // Improved session store configuration with additional options for reliability
+  sessionStore = new PgSession({
+    pool,
+    tableName: 'session', // Use this specific table name for compatibility
+    createTableIfMissing: true, // Create the session table if it doesn't exist
+    pruneSessionInterval: 60, // Prune expired sessions every minute
+    errorLog: console.error, // Log session storage errors
+  });
+  console.log('Using PostgreSQL session store');
+} catch (error) {
+  console.error('Failed to initialize PostgreSQL session store:', error);
+  console.log('Falling back to memory session store');
+  sessionStore = memorySessionStore;
 }
-
-// Create instance of our resilient store
-const resilientStore = new ResilientSessionStore();
-
-// For debugging/logging
-let sessionStore = resilientStore.store;
-let usingPgStore = resilientStore.isUsingPgStore;
-console.log(`Initial session store: ${usingPgStore ? 'PostgreSQL' : 'Memory'}`);
-
-// Add session diagnostics middleware
-app.use((req: any, res, next) => {
-  const sessionId = req.sessionID ? req.sessionID.substring(0, 10) + '...' : 'none';
-  const hasSession = !!req.session;
-  const userId = req.session?.userId || 'none';
-  
-  // Update variables for each request for accurate logging
-  usingPgStore = resilientStore.isUsingPgStore;
-  sessionStore = resilientStore.store;
-  
-  if (req.path.startsWith('/api')) {
-    console.log(`Session debug [${req.method} ${req.path}]: sessionID=${sessionId}, hasSession=${hasSession}, userId=${userId}, using_pg_store=${usingPgStore}, headers="${req.get('cookie') ? 'present' : 'none'}"`);
-  }
-  next();
-});
 
 // Configure CORS to allow cross-origin requests for development/embedding
 app.use((req, res, next) => {
@@ -181,7 +71,13 @@ app.use(session({
   }
 }));
 
-// No need for the extra tryRestorePgSessionStore function - the resilient store handles it
+// Session debug middleware with more detailed output
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api/auth')) {
+    console.log(`Session debug [${req.method} ${req.path}]: sessionID=${req.sessionID?.substring(0, 8)}..., hasSession=${!!req.session}, userId=${req.session?.userId || 'none'}, headers=${JSON.stringify(req.headers['cookie']?.substring(0, 20) || 'none')}`);
+  }
+  next();
+});
 
 app.use((req, res, next) => {
   const start = Date.now();
