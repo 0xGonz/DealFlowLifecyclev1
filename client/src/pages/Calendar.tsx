@@ -458,11 +458,11 @@ const CalendarPage = () => {
                             <CardContent className="pt-0">
                               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                 <div>
-                                  <div className="text-sm font-medium">Amount</div>
-                                  <div className="text-lg">{formatCurrency(call.callAmount)}</div>
+                                  <div className="text-sm font-medium">Percentage</div>
+                                  <div className="text-lg">{call.callAmount}%</div>
                                   {call.paidAmount > 0 && (
                                     <div className="text-xs text-neutral-500">
-                                      Paid: {formatCurrency(call.paidAmount)}
+                                      Paid: {call.paidAmount}%
                                     </div>
                                   )}
                                 </div>

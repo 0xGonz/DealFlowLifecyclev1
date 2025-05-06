@@ -233,10 +233,10 @@ export const insertNotificationSchema = createInsertSchema(notifications).omit({
 export const capitalCalls = pgTable("capital_calls", {
   id: serial("id").primaryKey(),
   allocationId: integer("allocation_id").notNull().references(() => fundAllocations.id, { onDelete: "cascade" }),
-  callAmount: real("call_amount").notNull(),
+  callAmount: real("call_amount").notNull(), // Still named callAmount but now represents percentage (1-100)
   callDate: timestamp("call_date").notNull().defaultNow(),
   dueDate: timestamp("due_date").notNull(),
-  paidAmount: real("paid_amount").default(0),
+  paidAmount: real("paid_amount").default(0), // Still named paidAmount but now represents percentage (1-100)
   paidDate: timestamp("paid_date"),
   status: text("status", { enum: ["scheduled", "called", "partial", "paid", "defaulted"] }).notNull().default("scheduled"),
   notes: text("notes"),

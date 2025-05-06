@@ -119,11 +119,19 @@ router.get('/allocation/:allocationId', async (req: Request, res: Response) => {
 // Create a new capital call
 router.post('/', async (req: Request, res: Response) => {
   try {
+    // If percentage is provided but not callAmount, map percentage to callAmount
+    // This change maintains backwards compatibility while supporting the new percentage field
+    let modifiedBody = { ...req.body };
+    if (modifiedBody.percentage !== undefined && modifiedBody.callAmount === undefined) {
+      modifiedBody.callAmount = modifiedBody.percentage;
+      delete modifiedBody.percentage; // Remove percentage as it's not in the schema
+    }
+
     // Convert date strings to Date objects
     const data = {
-      ...req.body,
-      callDate: req.body.callDate ? new Date(req.body.callDate) : new Date(),
-      dueDate: req.body.dueDate ? new Date(req.body.dueDate) : new Date(Date.now() + TIME_MS.DAY * DEFAULT_DURATIONS.CAPITAL_CALL_DUE_DAYS) // Default to configured days from now
+      ...modifiedBody,
+      callDate: modifiedBody.callDate ? new Date(modifiedBody.callDate) : new Date(),
+      dueDate: modifiedBody.dueDate ? new Date(modifiedBody.dueDate) : new Date(Date.now() + TIME_MS.DAY * DEFAULT_DURATIONS.CAPITAL_CALL_DUE_DAYS) // Default to configured days from now
     };
     
     const validatedData = insertCapitalCallSchema.parse(data);

@@ -40,7 +40,7 @@ const closingEventFormSchema = insertClosingScheduleEventSchema
       CLOSING_EVENT_TYPES.CUSTOM
     ]),
     targetAmount: z.union([
-      z.number().positive('Target amount must be positive'),
+      z.number().min(0, 'Target percentage must be 0 or greater').max(100, 'Target percentage cannot exceed 100'),
       z.string().transform((val) => val === '' ? undefined : Number(val)),
       z.undefined()
     ]).optional(),
@@ -245,18 +245,24 @@ const ClosingEventForm: React.FC<ClosingEventFormProps> = ({ isOpen, onClose, se
               name="targetAmount"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Target Amount (optional)</FormLabel>
+                  <FormLabel>Target Percentage (optional)</FormLabel>
                   <FormControl>
-                    <Input 
-                      type="number" 
-                      placeholder="$ Amount" 
-                      {...field} 
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        field.onChange(value === '' ? undefined : parseFloat(value));
-                      }}
-                      value={field.value === undefined ? '' : field.value}
-                    />
+                    <div className="relative">
+                      <Input 
+                        type="number" 
+                        placeholder="Percentage" 
+                        {...field} 
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          field.onChange(value === '' ? undefined : parseFloat(value));
+                        }}
+                        value={field.value === undefined ? '' : field.value}
+                        className="pr-8"
+                      />
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-neutral-500">
+                        %
+                      </div>
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>

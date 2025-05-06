@@ -41,7 +41,7 @@ import { Deal, FundAllocation } from '@/lib/types';
 // Define form schema
 const capitalCallFormSchema = z.object({
   allocationId: z.coerce.number(),
-  amount: z.coerce.number().positive('Amount must be a positive number'),
+  percentage: z.coerce.number().min(0, 'Percentage must be 0 or greater').max(100, 'Percentage cannot exceed 100'),
   dueDate: z.string().min(1, 'Due date is required'),
   notes: z.string().optional(),
   createdBy: z.number().optional(),
@@ -74,7 +74,7 @@ const CapitalCallForm: React.FC<CapitalCallFormProps> = ({ isOpen, onClose, sele
     resolver: zodResolver(capitalCallFormSchema),
     defaultValues: {
       dueDate: selectedDate ? format(selectedDate, DATE_FORMATS.ISO) : undefined,
-      amount: undefined,
+      percentage: undefined,
       allocationId: undefined,
       notes: '',
       createdBy: user?.id
@@ -164,7 +164,7 @@ const CapitalCallForm: React.FC<CapitalCallFormProps> = ({ isOpen, onClose, sele
                       ) : (
                         allocations.map((allocation) => (
                           <SelectItem key={allocation.id} value={allocation.id.toString()}>
-                            {getDealNameById(allocation.dealId)} - {getFundNameById(allocation.fundId)} (${allocation.amount.toLocaleString()})
+                            {getDealNameById(allocation.dealId)} - {getFundNameById(allocation.fundId)}
                           </SelectItem>
                         ))
                       )}
@@ -175,24 +175,30 @@ const CapitalCallForm: React.FC<CapitalCallFormProps> = ({ isOpen, onClose, sele
               )}
             />
             
-            {/* Amount input */}
+            {/* Percentage input */}
             <FormField
               control={form.control}
-              name="amount"
+              name="percentage"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Amount</FormLabel>
+                  <FormLabel>Percentage</FormLabel>
                   <FormControl>
-                    <Input 
-                      type="number" 
-                      placeholder="$ Amount" 
-                      {...field} 
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        field.onChange(value === '' ? undefined : parseFloat(value));
-                      }}
-                      value={field.value === undefined ? '' : field.value}
-                    />
+                    <div className="relative">
+                      <Input 
+                        type="number" 
+                        placeholder="Percentage" 
+                        {...field} 
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          field.onChange(value === '' ? undefined : parseFloat(value));
+                        }}
+                        value={field.value === undefined ? '' : field.value}
+                        className="pr-8"
+                      />
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-neutral-500">
+                        %
+                      </div>
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
