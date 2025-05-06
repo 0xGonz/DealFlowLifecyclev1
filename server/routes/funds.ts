@@ -8,11 +8,12 @@ import {
 import { z } from "zod";
 
 const router = Router();
+// Use the recommended getStorage method to obtain storage instance
+const storage = StorageFactory.getStorage();
 
 // Get all funds
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const storage = StorageFactory.storage;
     const funds = await storage.getFunds();
     
     // Get all deals to verify which allocations are valid
@@ -59,7 +60,6 @@ router.get('/', async (req: Request, res: Response) => {
 // Get a specific fund by ID
 router.get('/:id', async (req: Request, res: Response) => {
   try {
-    const storage = StorageFactory.storage;
     const fund = await storage.getFund(Number(req.params.id));
     
     if (!fund) {
@@ -141,7 +141,6 @@ router.get('/:id', async (req: Request, res: Response) => {
 // Create a new fund
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const storage = StorageFactory.storage;
     const fundData = insertFundSchema.parse(req.body);
     const newFund = await storage.createFund(fundData);
     res.status(201).json(newFund);
@@ -156,7 +155,6 @@ router.post('/', async (req: Request, res: Response) => {
 // Update a fund
 router.patch('/:id', async (req: Request, res: Response) => {
   try {
-    const storage = StorageFactory.storage;
     const fundId = Number(req.params.id);
     
     // Make sure fund exists
@@ -182,7 +180,6 @@ router.patch('/:id', async (req: Request, res: Response) => {
 // Delete a fund
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
-    const storage = StorageFactory.storage;
     const fundId = Number(req.params.id);
     
     // Make sure fund exists

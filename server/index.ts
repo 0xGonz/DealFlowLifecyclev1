@@ -20,6 +20,10 @@ const memoryStore = new MemoryStore({
   checkPeriod: 86400000 // prune expired entries every 24h
 });
 
+// Increase max listeners to prevent warnings
+// This is needed because we're adding listeners in multiple places
+memoryStore.setMaxListeners(30);
+
 // Configure PostgreSQL session store
 const PgSession = connectPgSimple(session);
 
@@ -39,6 +43,10 @@ try {
     disableTouch: false, // Enable touch to update the last access time
     ttl: 86400, // Session lifetime in seconds (1 day)
   });
+  
+  // Increase max listeners to prevent warnings
+  activeSessionStore.setMaxListeners(30);
+  
   console.log('Using PostgreSQL session store');
 } catch (error) {
   console.error('Failed to initialize PostgreSQL session store:', error);

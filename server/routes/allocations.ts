@@ -5,12 +5,11 @@ import { synchronizeAllocationDates } from '../utils/date-integration';
 import { z } from 'zod';
 
 const router = Router();
+const storage = StorageFactory.getStorage();
 
 // Helper function to update allocation status based on capital calls
 async function updateAllocationStatusBasedOnCapitalCalls(allocationId: number): Promise<void> {
   try {
-    const storage = StorageFactory.storage;
-    
     // Get the allocation
     const allocation = await storage.getFundAllocation(allocationId);
     if (!allocation) return;
@@ -66,7 +65,6 @@ async function updateAllocationStatusBasedOnCapitalCalls(allocationId: number): 
 // Helper function to recalculate portfolio weights for a fund
 async function recalculatePortfolioWeights(fundId: number): Promise<void> {
   try {
-    const storage = StorageFactory.storage;
     
     console.log(`[DEBUG] Starting portfolio weight recalculation for fund ID ${fundId}`);
     
@@ -127,7 +125,6 @@ async function recalculatePortfolioWeights(fundId: number): Promise<void> {
 // Get all allocations
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const storage = StorageFactory.storage;
     
     // Get all fund allocations from each fund
     const funds = await storage.getFunds();
@@ -171,7 +168,6 @@ router.get('/', async (req: Request, res: Response) => {
 // Fund allocations
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const storage = StorageFactory.storage;
     
     // Log the incoming data for debugging
     console.log('Allocation request body:', req.body);
@@ -269,7 +265,6 @@ router.post('/', async (req: Request, res: Response) => {
 // Get allocations for a fund
 router.get('/fund/:fundId', async (req: Request, res: Response) => {
   try {
-    const storage = StorageFactory.storage;
     const fundId = Number(req.params.fundId);
     
     // First make sure portfolio weights are up to date
@@ -297,7 +292,6 @@ router.get('/fund/:fundId', async (req: Request, res: Response) => {
 // Get invalid allocations for a fund (allocations to non-existent deals)
 router.get('/fund/:fundId/invalid', async (req: Request, res: Response) => {
   try {
-    const storage = StorageFactory.storage;
     const fundId = Number(req.params.fundId);
     
     // Make sure portfolio weights are up to date first
@@ -325,7 +319,6 @@ router.get('/fund/:fundId/invalid', async (req: Request, res: Response) => {
 // Get allocations for a deal
 router.get('/deal/:dealId', async (req: Request, res: Response) => {
   try {
-    const storage = StorageFactory.storage;
     const dealId = Number(req.params.dealId);
     
     // First check if deal exists
@@ -355,7 +348,6 @@ router.get('/deal/:dealId', async (req: Request, res: Response) => {
 // Delete an allocation
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
-    const storage = StorageFactory.storage;
     const allocationId = Number(req.params.id);
     
     // Find the allocation first to get fundId
@@ -408,7 +400,6 @@ router.delete('/:id', async (req: Request, res: Response) => {
 // Update an allocation
 router.patch('/:id', async (req: Request, res: Response) => {
   try {
-    const storage = StorageFactory.storage;
     const allocationId = Number(req.params.id);
     
     // Validate the allocation still exists
@@ -465,7 +456,6 @@ router.patch('/:id', async (req: Request, res: Response) => {
 // Update allocation date with synchronization
 router.patch('/:id/date', async (req: Request, res: Response) => {
   try {
-    const storage = StorageFactory.storage;
     const allocationId = Number(req.params.id);
     
     // Validate the new date
