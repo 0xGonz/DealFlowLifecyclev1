@@ -367,7 +367,20 @@ router.delete('/:id', async (req: Request, res: Response) => {
     // Get deal details before deletion
     const deal = await storage.getDeal(allocation.dealId);
     
-    // Delete the allocation
+    // Get any capital calls associated with this allocation for tracking/logging
+    const capitalCalls = await storage.getCapitalCallsByAllocation(allocationId);
+    const capitalCallCount = capitalCalls.length;
+    
+    // Delete associated capital calls first
+    if (capitalCallCount > 0) {
+      console.log(`Deleting ${capitalCallCount} capital calls for allocation ID ${allocationId}`);
+      const deleteResult = await storage.deleteCapitalCallsByAllocation(allocationId);
+      if (!deleteResult) {
+        console.warn(`Failed to delete some capital calls for allocation ID ${allocationId}`);
+      }
+    }
+    
+    // Now delete the allocation
     const result = await storage.deleteFundAllocation(allocationId);
     if (!result) {
       return res.status(404).json({ message: 'Allocation not found or could not be deleted' });
@@ -392,13 +405,16 @@ router.delete('/:id', async (req: Request, res: Response) => {
       await storage.createTimelineEvent({
         dealId: deal.id,
         eventType: 'closing_scheduled',
-        content: `Deal allocation to fund ${fund?.name || 'Unknown'} was removed`,
+        content: `Deal allocation to fund ${fund?.name || 'Unknown'} was removed${capitalCallCount > 0 ? ` (along with ${capitalCallCount} capital calls)` : ''}`,
         createdBy: (req as any).user.id,
         metadata: {} as any
       });
     }
     
-    res.status(200).json({ message: 'Allocation deleted successfully' });
+    res.status(200).json({ 
+      message: 'Allocation deleted successfully', 
+      deletedCapitalCalls: capitalCallCount
+    });
   } catch (error) {
     console.error('Error deleting fund allocation:', error);
     res.status(500).json({ message: 'Failed to delete fund allocation' });

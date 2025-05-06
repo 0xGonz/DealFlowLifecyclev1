@@ -83,6 +83,8 @@ export interface IStorage {
   getCapitalCallsByDeal(dealId: number): Promise<CapitalCall[]>;
   updateCapitalCallStatus(id: number, status: CapitalCall['status'], paidAmount?: number): Promise<CapitalCall | undefined>;
   updateCapitalCallDates(id: number, callDate: Date, dueDate: Date): Promise<CapitalCall | undefined>;
+  deleteCapitalCall(id: number): Promise<boolean>;
+  deleteCapitalCallsByAllocation(allocationId: number): Promise<boolean>;
   
   // Deal assignments
   assignUserToDeal(assignment: InsertDealAssignment): Promise<DealAssignment>;
@@ -795,6 +797,26 @@ export class MemStorage implements IStorage {
     
     this.capitalCalls.set(id, updatedCapitalCall);
     return updatedCapitalCall;
+  }
+  
+  async deleteCapitalCall(id: number): Promise<boolean> {
+    return this.capitalCalls.delete(id);
+  }
+  
+  async deleteCapitalCallsByAllocation(allocationId: number): Promise<boolean> {
+    // Find all capital calls associated with this allocation
+    const calls = Array.from(this.capitalCalls.values())
+      .filter(call => call.allocationId === allocationId);
+    
+    // Delete each capital call
+    let success = true;
+    for (const call of calls) {
+      if (!this.capitalCalls.delete(call.id)) {
+        success = false;
+      }
+    }
+    
+    return success;
   }
   
   // Closing Schedule Events

@@ -644,6 +644,39 @@ export class DatabaseStorage implements IStorage {
     return updatedCapitalCall || undefined;
   }
   
+  async deleteCapitalCall(id: number): Promise<boolean> {
+    if (!db) {
+      throw new Error('Database not initialized');
+    }
+    try {
+      const result = await db
+        .delete(capitalCalls)
+        .where(eq(capitalCalls.id, id));
+      return !!result;
+    } catch (error) {
+      console.error('Error deleting capital call:', error);
+      return false;
+    }
+  }
+  
+  async deleteCapitalCallsByAllocation(allocationId: number): Promise<boolean> {
+    if (!db) {
+      throw new Error('Database not initialized');
+    }
+    try {
+      // Delete all capital calls for this allocation
+      const result = await db
+        .delete(capitalCalls)
+        .where(eq(capitalCalls.allocationId, allocationId));
+      
+      console.log(`Deleted capital calls for allocation ID ${allocationId}`);
+      return true;
+    } catch (error) {
+      console.error(`Error deleting capital calls for allocation ${allocationId}:`, error);
+      return false;
+    }
+  }
+  
   // Closing Schedule Events
   async createClosingScheduleEvent(event: InsertClosingScheduleEvent): Promise<ClosingScheduleEvent> {
     if (!db) {
