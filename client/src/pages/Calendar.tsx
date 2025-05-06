@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { format, isPast, addDays, isToday } from 'date-fns';
 import { DATE_FORMATS } from '@/lib/constants/time-constants';
 import { formatCurrency, formatDate } from '@/lib/utils/formatters';
+import { formatAmountByType } from '@/lib/utils/format';
 import { 
   CAPITAL_CALL_STATUS, 
   CAPITAL_CALL_STATUS_COLORS, 
@@ -38,6 +39,7 @@ interface CapitalCall {
   id: number;
   allocationId: number;
   callAmount: number;
+  amountType: 'percentage' | 'dollar';
   callDate: string;
   dueDate: string;
   paidAmount: number;
@@ -56,6 +58,7 @@ interface ClosingScheduleEvent {
   eventName: string;
   scheduledDate: string;
   targetAmount: number | null;
+  amountType: 'percentage' | 'dollar';
   status: typeof CLOSING_EVENT_STATUS[keyof typeof CLOSING_EVENT_STATUS];
   notes: string | null;
   actualDate: string | null;
@@ -462,11 +465,11 @@ const CalendarPage = () => {
                             <CardContent className="pt-0">
                               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                 <div>
-                                  <div className="text-sm font-medium">Percentage</div>
-                                  <div className="text-lg">{call.callAmount}%</div>
+                                  <div className="text-sm font-medium">Amount</div>
+                                  <div className="text-lg">{formatAmountByType(call.callAmount, call.amountType)}</div>
                                   {call.paidAmount > 0 && (
                                     <div className="text-xs text-neutral-500">
-                                      Paid: {call.paidAmount}%
+                                      Paid: {formatAmountByType(call.paidAmount, call.amountType)}
                                     </div>
                                   )}
                                 </div>
@@ -533,10 +536,10 @@ const CalendarPage = () => {
                                 {event.targetAmount && (
                                   <div>
                                     <div className="text-sm font-medium">Target Amount</div>
-                                    <div className="text-lg">{formatCurrency(event.targetAmount)}</div>
+                                    <div className="text-lg">{formatAmountByType(event.targetAmount, event.amountType)}</div>
                                     {event.actualAmount && (
                                       <div className="text-xs text-neutral-500">
-                                        Actual: {formatCurrency(event.actualAmount)}
+                                        Actual: {formatAmountByType(event.actualAmount, event.amountType)}
                                       </div>
                                     )}
                                   </div>

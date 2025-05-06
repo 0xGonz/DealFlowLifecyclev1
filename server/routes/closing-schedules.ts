@@ -57,11 +57,24 @@ router.get('/deal/:dealId', async (req: Request, res: Response) => {
 // Create a new closing schedule event
 router.post('/', async (req: Request, res: Response) => {
   try {
+    // Process input data
+    let modifiedBody = { ...req.body };
+    
+    // Handle amountType field
+    if (modifiedBody.amountType !== undefined) {
+      // Make sure it's a valid value
+      if (!['percentage', 'dollar'].includes(modifiedBody.amountType)) {
+        modifiedBody.amountType = 'percentage'; // Default to percentage if invalid
+      }
+    } else {
+      modifiedBody.amountType = 'percentage'; // Default value if not provided
+    }
+    
     // Convert date strings to Date objects
     const data = {
-      ...req.body,
-      scheduledDate: req.body.scheduledDate ? new Date(req.body.scheduledDate) : new Date(),
-      actualDate: req.body.actualDate ? new Date(req.body.actualDate) : undefined
+      ...modifiedBody,
+      scheduledDate: modifiedBody.scheduledDate ? new Date(modifiedBody.scheduledDate) : new Date(),
+      actualDate: modifiedBody.actualDate ? new Date(modifiedBody.actualDate) : undefined
     };
     
     const validatedData = insertClosingScheduleEventSchema.parse(data);
@@ -71,11 +84,11 @@ router.post('/', async (req: Request, res: Response) => {
     await storage.createTimelineEvent({
       dealId: closingEvent.dealId,
       eventType: 'closing_scheduled',
-      content: `${closingEvent.eventName} scheduled for ${new Date(closingEvent.scheduledDate).toLocaleDateString()}`,
+      content: `${closingEvent.eventName} scheduled for ${new Date(closingEvent.scheduledDate).toLocaleDateString()}${closingEvent.targetAmount ? ` with ${closingEvent.amountType === 'dollar' ? '$' + closingEvent.targetAmount.toLocaleString() : closingEvent.targetAmount + '%'}` : ''}`,
       createdBy: closingEvent.createdBy,
       metadata: {
-        closingEventId: closingEvent.id,
-        closingEventType: closingEvent.eventType
+        closingEventId: [closingEvent.id],
+        closingEventType: [closingEvent.eventType]
       }
     });
     
@@ -111,12 +124,12 @@ router.patch('/:id/status', async (req: Request, res: Response) => {
       await storage.createTimelineEvent({
         dealId: updatedEvent.dealId,
         eventType: 'note',
-        content: `${updatedEvent.eventName} completed with ${actualAmount ? `$${actualAmount.toLocaleString()}` : 'an undisclosed amount'}`,
+        content: `${updatedEvent.eventName} completed with ${actualAmount ? (updatedEvent.amountType === 'dollar' ? `$${actualAmount.toLocaleString()}` : `${actualAmount}%`) : 'an undisclosed amount'}`,
         createdBy: req.user?.id || updatedEvent.createdBy,
         metadata: {
-          closingEventId: updatedEvent.id,
-          closingEventType: updatedEvent.eventType,
-          closingEventStatus: status
+          closingEventId: [updatedEvent.id],
+          closingEventType: [updatedEvent.eventType],
+          closingEventStatus: [status]
         }
       });
     }

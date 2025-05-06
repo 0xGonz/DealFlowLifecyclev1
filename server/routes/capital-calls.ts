@@ -210,6 +210,40 @@ router.post('/generate', async (req: Request, res: Response) => {
   }
 });
 
+// Test endpoint to verify amountType field
+router.get('/test-amounttype', async (req: Request, res: Response) => {
+  try {
+    // Create a test capital call with dollar amount type
+    const testAllocation = await storage.getFundAllocation(1); // Get first allocation for test
+    
+    if (!testAllocation) {
+      return res.status(404).json({ error: 'No allocations found for testing' });
+    }
+    
+    const testCall = await storage.createCapitalCall({
+      allocationId: testAllocation.id,
+      callAmount: 50, // 50%
+      amountType: 'dollar', // Explicitly set to dollar
+      callDate: new Date(),
+      dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+      status: 'scheduled',
+      notes: 'Test capital call with dollar amount type'
+    });
+    
+    // Retrieve the test call to verify the amountType was saved
+    const retrievedCall = await storage.getCapitalCall(testCall.id);
+    
+    res.json({
+      created: testCall,
+      retrieved: retrievedCall,
+      amountTypeMatch: retrievedCall?.amountType === 'dollar'
+    });
+  } catch (error) {
+    console.error('Error testing amountType:', error);
+    res.status(500).json({ error: 'Failed to test amountType field', details: error instanceof Error ? error.message : 'Unknown error' });
+  }
+});
+
 // Helper function to generate capital calls from allocation details
 async function generateCapitalCalls(allocationId: number, scheduleType: string, options: any) {
   const { firstCallDate, callCount, callPercentage, customSchedule } = options;
@@ -235,6 +269,7 @@ async function generateCapitalCalls(allocationId: number, scheduleType: string, 
     await storage.createCapitalCall({
       allocationId,
       callAmount: percentage, // Now callAmount represents percentage
+      amountType: 'percentage', // Explicitly set the amount type
       callDate,
       dueDate,
       status: CAPITAL_CALL_STATUS.SCHEDULED,
@@ -257,10 +292,11 @@ async function generateCapitalCalls(allocationId: number, scheduleType: string, 
       await storage.createCapitalCall({
         allocationId,
         callAmount: percentage, // Now callAmount represents percentage
+        amountType: call.amountType || 'percentage', // Use the amountType from the call or default to percentage
         callDate,
         dueDate,
         status: CAPITAL_CALL_STATUS.SCHEDULED,
-        notes: `${formatPercentage(percentage)} capital call`
+        notes: `${call.amountType === 'dollar' ? `$${percentage.toLocaleString()}` : formatPercentage(percentage)} capital call`
       });
     }
     
@@ -287,6 +323,7 @@ async function generateCapitalCalls(allocationId: number, scheduleType: string, 
     await storage.createCapitalCall({
       allocationId,
       callAmount: perCallPercentage, // Now callAmount represents percentage
+      amountType: 'percentage', // For regular schedules, always use percentage
       callDate,
       dueDate,
       status: CAPITAL_CALL_STATUS.SCHEDULED,
