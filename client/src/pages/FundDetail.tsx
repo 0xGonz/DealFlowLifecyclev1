@@ -205,10 +205,17 @@ export default function FundDetail() {
   });
 
   // Handler for opening edit dialog
-  const handleEditAllocation = (allocation) => {
-    // Clone the allocation to avoid directly mutating the query data
-    setEditingAllocation({...allocation});
-    setIsEditAllocationDialogOpen(true);
+  const handleEditAllocation = (allocation: any) => {
+    // Get the deal name for the editing dialog
+    if (deals) {
+      const deal = deals.find((d: any) => d.id === allocation.dealId);
+      // Clone the allocation to avoid directly mutating the query data
+      setEditingAllocation({
+        ...allocation,
+        dealName: deal?.name || 'Unknown Deal'
+      });
+      setIsEditAllocationDialogOpen(true);
+    }
   };
 
   // Handler for saving edited allocation
@@ -824,13 +831,14 @@ export default function FundDetail() {
                                     variant="ghost" 
                                     size="icon" 
                                     onClick={() => handleEditAllocation(allocation)}
+                                    className="text-blue-600 hover:text-blue-800"
                                   >
                                     <FilePenLine className="h-4 w-4" />
                                     <span className="sr-only">Edit Allocation</span>
                                   </Button>
                                   <Button variant="ghost" size="icon">
                                     <a href={`/deals/${allocation.dealId}`}>
-                                      <FilePenLine className="h-4 w-4" />
+                                      <FileText className="h-4 w-4" />
                                       <span className="sr-only">View Deal</span>
                                     </a>
                                   </Button>
