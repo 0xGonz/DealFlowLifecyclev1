@@ -74,7 +74,7 @@ export default function FundDetail() {
     fundId: fundId,
     dealId: null,
     amount: 0,
-    securityType: "",
+    securityType: "", // Will be populated from the deal's sector
     allocationDate: format(new Date(), "yyyy-MM-dd"),
     notes: "",
     status: "committed",
@@ -205,10 +205,17 @@ export default function FundDetail() {
                   <div className="space-y-2">
                     <label htmlFor="deal" className="text-sm font-medium">Investment (Deal) *</label>
                     <Select 
-                      onValueChange={(value) => setNewAllocationData({
-                        ...newAllocationData, 
-                        dealId: parseInt(value)
-                      })}
+                      onValueChange={(value) => {
+                        // Find the selected deal
+                        const selectedDeal = deals?.find(d => d.id === parseInt(value));
+                        
+                        // Update form with deal ID and populate sector from deal
+                        setNewAllocationData({
+                          ...newAllocationData, 
+                          dealId: parseInt(value),
+                          securityType: selectedDeal?.sector || ""
+                        });
+                      }}
                     >
                       <SelectTrigger id="deal">
                         <SelectValue placeholder="Select a deal" />
@@ -224,30 +231,14 @@ export default function FundDetail() {
                   </div>
                   
                   <div className="space-y-2">
-                    <label htmlFor="securityType" className="text-sm font-medium">Sector *</label>
-                    <Select 
-                      onValueChange={(value) => setNewAllocationData({
-                        ...newAllocationData, 
-                        securityType: value
-                      })}
-                    >
-                      <SelectTrigger id="securityType">
-                        <SelectValue placeholder="Select sector" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Private Credit">Private Credit</SelectItem>
-                        <SelectItem value="Buyout">Buyout</SelectItem>
-                        <SelectItem value="Crypto">Crypto</SelectItem>
-                        <SelectItem value="GP Stakes">GP Stakes</SelectItem>
-                        <SelectItem value="Energy">Energy</SelectItem>
-                        <SelectItem value="Venture">Venture</SelectItem>
-                        <SelectItem value="Technology">Technology</SelectItem>
-                        <SelectItem value="SaaS">SaaS</SelectItem>
-                        <SelectItem value="Fintech">Fintech</SelectItem>
-                        <SelectItem value="Healthcare">Healthcare</SelectItem>
-                        <SelectItem value="Real Estate">Real Estate</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <label htmlFor="securityType" className="text-sm font-medium">Sector (from Deal)</label>
+                    <Input 
+                      id="securityType"
+                      value={newAllocationData.securityType}
+                      readOnly
+                      className="bg-neutral-50 cursor-not-allowed"
+                    />
+                    <p className="text-xs text-neutral-500">Sector is automatically populated from the selected deal</p>
                   </div>
                   
                   <div className="space-y-2">
