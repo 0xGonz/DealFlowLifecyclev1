@@ -167,8 +167,8 @@ export default function FundDetail() {
     createAllocation.mutate();
   };
 
-  // Check if this fund has invalid allocations
-  const hasInvalidAllocations = fund?.invalidAllocationsCount && fund.invalidAllocationsCount > 0;
+  // We don't need to warn about invalid allocations anymore
+  // All data is dynamically loaded from API without hardcoded values
   
   return (
     <AppLayout>
@@ -188,15 +188,7 @@ export default function FundDetail() {
           <div className="text-center py-12">Loading fund details...</div>
         ) : (
           <>
-            {hasInvalidAllocations && (
-              <Alert variant="destructive" className="mb-6">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Warning</AlertTitle>
-                <AlertDescription>
-                  This fund has {fund?.invalidAllocationsCount} allocation(s) to deals that no longer exist. The AUM calculation has been adjusted to reflect only valid deals.
-                </AlertDescription>
-              </Alert>
-            )}
+            {/* Warning removed as per request */}
             
             {/* Fund Overview & Key Metrics - Top Section */}
             <div className="mb-8">
@@ -632,59 +624,7 @@ export default function FundDetail() {
               </Card>
             </div>
             
-            {/* Invalid Allocations Section */}
-            {hasInvalidAllocations && (
-              <div className="mb-8">
-                <Card className="border-red-200">
-                  <CardHeader className="border-b border-red-200 bg-red-50">
-                    <CardTitle className="text-red-700">Invalid Allocations</CardTitle>
-                    <CardDescription>
-                      These allocations reference deals that no longer exist in the system
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-0">
-                    <div className="overflow-x-auto">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Deal ID</TableHead>
-                            <TableHead>Allocation Date</TableHead>
-                            <TableHead>Amount</TableHead>
-                            <TableHead>Sector</TableHead>
-                            <TableHead>Notes</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {isInvalidAllocationsLoading ? (
-                            <TableRow>
-                              <TableCell colSpan={5} className="text-center py-6">Loading invalid allocations...</TableCell>
-                            </TableRow>
-                          ) : invalidAllocations?.length === 0 ? (
-                            <TableRow>
-                              <TableCell colSpan={5} className="text-center py-6 text-neutral-500">
-                                No invalid allocations found.
-                              </TableCell>
-                            </TableRow>
-                          ) : (
-                            invalidAllocations?.map(allocation => (
-                              <TableRow key={allocation.id}>
-                                <TableCell className="font-medium text-red-600">#{allocation.dealId}</TableCell>
-                                <TableCell>
-                                  {allocation.allocationDate ? format(new Date(allocation.allocationDate), "MMM d, yyyy") : "-"}
-                                </TableCell>
-                                <TableCell>{formatCurrency(allocation.amount)}</TableCell>
-                                <TableCell>{allocation.securityType}</TableCell>
-                                <TableCell>{allocation.notes || "-"}</TableCell>
-                              </TableRow>
-                            ))
-                          )}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
+            {/* Invalid Allocations Section removed as per request */}
             
             {/* Performance Metrics */}
             <div className="mb-8">
