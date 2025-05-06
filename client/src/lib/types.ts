@@ -101,6 +101,12 @@ export interface Fund {
   description: string;
   aum: number;
   createdAt: string;
+  vintage?: number;
+  distributionRate?: number;
+  appreciationRate?: number;
+  // These fields are computed on the server
+  calculatedAum?: number;
+  allocationCount?: number;
 }
 
 // Fund allocation types
