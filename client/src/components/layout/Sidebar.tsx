@@ -20,6 +20,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { LAYOUT, AVATAR_COLORS } from "@/lib/constants/ui-constants";
 import { DEFAULT_AVATAR_TEXT } from "@/lib/constants/display-constants";
 import { useAuth } from "@/hooks/use-auth";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 interface SidebarProps {
   onCloseMobile?: () => void;
@@ -89,13 +90,13 @@ export default function Sidebar({ onCloseMobile }: SidebarProps) {
   ];
 
   return (
-    <aside className={`h-full bg-white shadow-md overflow-y-auto flex-shrink-0`} style={{ width: LAYOUT.SIDEBAR_WIDTH }}>
+    <aside className={`h-full bg-card shadow-md overflow-y-auto flex-shrink-0`} style={{ width: LAYOUT.SIDEBAR_WIDTH }}>
       {/* Set fixed width for consistent sidebar rendering */}
       <div className="flex flex-col h-full">
         {/* User Profile at the top with close button for mobile */}
-        <div className="p-3 border-b border-neutral-200 flex justify-between items-center">
+        <div className="p-3 border-b border-border flex justify-between items-center">
           <div 
-            className="flex items-center space-x-2 cursor-pointer hover:bg-neutral-50 p-1 rounded-md transition-colors" 
+            className="flex items-center space-x-2 cursor-pointer hover:bg-muted p-1 rounded-md transition-colors" 
             onClick={() => setIsProfileModalOpen(true)}
           >
             {isLoading ? (
@@ -147,10 +148,10 @@ export default function Sidebar({ onCloseMobile }: SidebarProps) {
               <li key={item.href} className="mb-1 px-2">
                 <a
                   href={item.href}
-                  className={`sidebar-nav-link flex items-center py-2 px-3 hover:bg-neutral-100 transition-colors rounded-md text-sm ${
+                  className={`sidebar-nav-link flex items-center py-2 px-3 hover:bg-muted transition-colors rounded-md text-sm ${
                     location === item.href
-                      ? "active bg-neutral-100 text-primary-dark font-medium"
-                      : "text-neutral-700"
+                      ? "active bg-muted text-primary-dark font-medium"
+                      : "text-foreground"
                   }`}
                   onClick={() => onCloseMobile && window.innerWidth < 768 && onCloseMobile()}
                 >
@@ -170,10 +171,10 @@ export default function Sidebar({ onCloseMobile }: SidebarProps) {
               <li key={item.href} className="mb-1 px-2">
                 <a
                   href={item.href}
-                  className={`sidebar-nav-link flex items-center py-2 px-3 hover:bg-neutral-100 transition-colors rounded-md text-sm ${
+                  className={`sidebar-nav-link flex items-center py-2 px-3 hover:bg-muted transition-colors rounded-md text-sm ${
                     location === item.href
-                      ? "active bg-neutral-100 text-primary-dark font-medium"
-                      : "text-neutral-700"
+                      ? "active bg-muted text-primary-dark font-medium"
+                      : "text-foreground"
                   }`}
                   onClick={() => onCloseMobile && window.innerWidth < 768 && onCloseMobile()}
                 >
@@ -185,11 +186,18 @@ export default function Sidebar({ onCloseMobile }: SidebarProps) {
           </ul>
         </nav>
         
-        {/* Logout button */}
+        {/* Theme and logout section */}
         <div className="p-3 border-t border-neutral-200">
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-xs font-semibold text-neutral-500 uppercase tracking-wider pl-3">
+              Theme
+            </div>
+            <ThemeToggle />
+          </div>
+          
           <a 
             href="#" 
-            className="flex items-center py-2 px-3 rounded-md text-sm text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900 transition-colors"
+            className="flex items-center py-2 px-3 rounded-md text-sm text-foreground hover:bg-muted hover:text-foreground transition-colors"
             onClick={(e) => {
               e.preventDefault();
               logout.mutate();

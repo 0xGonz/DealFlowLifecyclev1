@@ -83,7 +83,7 @@ export default function Header() {
   };
 
   return (
-    <header className="bg-white shadow-sm z-20 sticky top-0 left-0 right-0">
+    <header className="bg-card shadow-sm z-20 sticky top-0 left-0 right-0">
       <div className="px-4 md:px-6 py-3">
         <div className="flex items-center space-x-2 md:space-x-4 justify-end">
           {/* Search box - hidden on small screens */}

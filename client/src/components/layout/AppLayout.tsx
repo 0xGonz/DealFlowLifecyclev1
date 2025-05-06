@@ -31,7 +31,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
   }, []);
 
   return (
-    <div className="flex h-screen bg-neutral-100 relative" style={{ paddingLeft: 'var(--sidebar-width, 0)' }}>
+    <div className="flex h-screen bg-background relative" style={{ paddingLeft: 'var(--sidebar-width, 0)' }}>
       {/* Mobile sidebar toggle */}
       <div className="md:hidden fixed top-3 left-3 z-50">
         <Button 

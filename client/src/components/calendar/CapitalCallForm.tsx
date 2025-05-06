@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -13,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import {
   Form,
@@ -31,11 +32,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { useAuth } from '@/hooks/use-auth';
 import { DATE_FORMATS } from '@/lib/constants/time-constants';
-import { Deal } from '@/lib/types';
+import { Deal, FundAllocation } from '@/lib/types';
 
 // Define form schema
 const capitalCallFormSchema = z.object({
@@ -59,13 +61,23 @@ const CapitalCallForm: React.FC<CapitalCallFormProps> = ({ isOpen, onClose, sele
   const { toast } = useToast();
   const { data: user } = useAuth();
   const queryClient = useQueryClient();
+  const [selectedDealId, setSelectedDealId] = useState<number | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   
   // Fetch deals
   const { data: deals = [], isLoading: isLoadingDeals } = useQuery<Deal[]>({
     queryKey: ['/api/deals'],
   });
   
-  // We don't need to fetch fund allocations anymore since we're using deals directly
+  // Fetch allocations for the selected deal
+  const { data: allocations = [], isLoading: isLoadingAllocations } = useQuery<FundAllocation[]>({
+    queryKey: ['/api/allocations/deal', selectedDealId],
+    enabled: !!selectedDealId,
+  });
+  
+  // Check if the selected deal has allocations
+  const dealHasAllocations = allocations.length > 0;
+  
   const form = useForm<CapitalCallFormValues>({
     resolver: zodResolver(capitalCallFormSchema),
     defaultValues: {
@@ -81,6 +93,10 @@ const CapitalCallForm: React.FC<CapitalCallFormProps> = ({ isOpen, onClose, sele
   const createCapitalCall = useMutation({
     mutationFn: async (data: CapitalCallFormValues) => {
       const response = await apiRequest('POST', '/api/capital-calls', data);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.details || errorData.error || 'Failed to create capital call');
+      }
       return response.json();
     },
     onSuccess: () => {
@@ -96,17 +112,29 @@ const CapitalCallForm: React.FC<CapitalCallFormProps> = ({ isOpen, onClose, sele
       // Close the dialog
       onClose();
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error('Error creating capital call:', error);
+      setErrorMessage(error.message);
       toast({
         title: 'Error',
-        description: 'Failed to create capital call',
+        description: error.message || 'Failed to create capital call',
         variant: 'destructive',
       });
     }
   });
   
   const onSubmit = (data: CapitalCallFormValues) => {
+    // Check if the selected deal has allocations
+    if (selectedDealId && !dealHasAllocations) {
+      setErrorMessage('This deal must be allocated to at least one fund before capital calls can be created');
+      toast({
+        title: 'Allocation Required',
+        description: 'This deal must be allocated to at least one fund before capital calls can be created.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
     // Make sure the user ID is included
     const formData = {
       ...data,
@@ -140,7 +168,12 @@ const CapitalCallForm: React.FC<CapitalCallFormProps> = ({ isOpen, onClose, sele
                 <FormItem>
                   <FormLabel>Deal</FormLabel>
                   <Select
-                    onValueChange={(value) => field.onChange(parseInt(value))}
+                    onValueChange={(value) => {
+                      const dealId = parseInt(value);
+                      field.onChange(dealId);
+                      setSelectedDealId(dealId);
+                      setErrorMessage(null); // Clear any previous errors
+                    }}
                     defaultValue={field.value?.toString()}
                   >
                     <FormControl>
@@ -163,6 +196,24 @@ const CapitalCallForm: React.FC<CapitalCallFormProps> = ({ isOpen, onClose, sele
                     </SelectContent>
                   </Select>
                   <FormMessage />
+                  
+                  {selectedDealId && isLoadingAllocations && (
+                    <div className="mt-1 text-xs text-neutral-500 flex items-center">
+                      <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                      Checking deal allocations...
+                    </div>
+                  )}
+                  
+                  {selectedDealId && !isLoadingAllocations && !dealHasAllocations && (
+                    <Alert variant="destructive" className="mt-2">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertTitle>Allocation Required</AlertTitle>
+                      <AlertDescription>
+                        This deal must be allocated to at least one fund before capital calls can be created.
+                        Please allocate this deal to a fund first.
+                      </AlertDescription>
+                    </Alert>
+                  )}
                 </FormItem>
               )}
             />
@@ -276,7 +327,7 @@ const CapitalCallForm: React.FC<CapitalCallFormProps> = ({ isOpen, onClose, sele
               </Button>
               <Button 
                 type="submit" 
-                disabled={createCapitalCall.isPending}
+                disabled={createCapitalCall.isPending || Boolean(selectedDealId && !isLoadingAllocations && !dealHasAllocations)}
               >
                 {createCapitalCall.isPending && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

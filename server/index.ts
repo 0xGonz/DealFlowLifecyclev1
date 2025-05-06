@@ -22,7 +22,7 @@ const memoryStore = new MemoryStore({
 
 // Increase max listeners to prevent warnings
 // This is needed because we're adding listeners in multiple places
-memoryStore.setMaxListeners(30);
+memoryStore.setMaxListeners(100);
 
 // Configure PostgreSQL session store
 const PgSession = connectPgSimple(session);
@@ -45,7 +45,7 @@ try {
   });
   
   // Increase max listeners to prevent warnings
-  activeSessionStore.setMaxListeners(30);
+  activeSessionStore.setMaxListeners(100);
   
   console.log('Using PostgreSQL session store');
 } catch (error) {
@@ -55,8 +55,16 @@ try {
 }
 
 // Create a function to get the appropriate session store with automatic fallback
+let lastDbCheck = 0;
+const DB_CHECK_INTERVAL = 60000; // 1 minute between DB checks
+
 const getSessionStore = () => {
-  if (activeSessionStore instanceof PgSession) {
+  const now = Date.now();
+  
+  // Only perform DB check once per minute to reduce strain and prevent excessive event listeners
+  if (activeSessionStore instanceof PgSession && (now - lastDbCheck > DB_CHECK_INTERVAL)) {
+    lastDbCheck = now;
+    
     // Check if PostgreSQL is still available
     pool.query('SELECT 1')
       .catch(err => {
