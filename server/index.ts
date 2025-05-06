@@ -13,32 +13,51 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Create a memory store as a fallback option
+// Create session stores
+// First create a memory store for fallback
 const MemoryStore = memorystore(session);
-const memorySessionStore = new MemoryStore({
+const memoryStore = new MemoryStore({
   checkPeriod: 86400000 // prune expired entries every 24h
 });
 
-// Configure session middleware with PostgreSQL session store
+// Configure PostgreSQL session store
 const PgSession = connectPgSimple(session);
 
-// Initialize session store - try PostgreSQL first with a memory store fallback
-let sessionStore;
+// Session store instance that will be used by the app
+let activeSessionStore: any;
+
+// Try to initialize the PostgreSQL session store
 try {
-  // Improved session store configuration with additional options for reliability
-  sessionStore = new PgSession({
+  // More resilient PostgreSQL session store configuration
+  activeSessionStore = new PgSession({
     pool,
     tableName: 'session', // Use this specific table name for compatibility
     createTableIfMissing: true, // Create the session table if it doesn't exist
-    pruneSessionInterval: 60, // Prune expired sessions every minute
+    pruneSessionInterval: 600, // Reduced prune frequency to every 10 minutes to decrease DB load
     errorLog: console.error, // Log session storage errors
+    schemaName: 'public', // Explicitly set schema name
+    disableTouch: false, // Enable touch to update the last access time
+    ttl: 86400, // Session lifetime in seconds (1 day)
   });
   console.log('Using PostgreSQL session store');
 } catch (error) {
   console.error('Failed to initialize PostgreSQL session store:', error);
   console.log('Falling back to memory session store');
-  sessionStore = memorySessionStore;
+  activeSessionStore = memoryStore;
 }
+
+// Create a function to get the appropriate session store with automatic fallback
+const getSessionStore = () => {
+  if (activeSessionStore instanceof PgSession) {
+    // Check if PostgreSQL is still available
+    pool.query('SELECT 1')
+      .catch(err => {
+        console.error('PostgreSQL connection failed, switching to memory session store:', err);
+        activeSessionStore = memoryStore;
+      });
+  }
+  return activeSessionStore;
+};
 
 // Configure CORS to allow cross-origin requests for development/embedding
 app.use((req, res, next) => {
@@ -55,21 +74,58 @@ app.use((req, res, next) => {
 
 // Configure the session middleware
 app.set('trust proxy', 1); // Trust first proxy for secure cookies behind a proxy
-app.use(session({
-  store: sessionStore,
-  secret: process.env.SESSION_SECRET || 'investment-tracker-secret',
-  name: 'investment_tracker.sid', // Custom cookie name to avoid conflicts
-  resave: true, // Changed to true to ensure session is saved on every request
-  saveUninitialized: false,
-  rolling: true, // Reset cookie expiration on every response
-  cookie: {
-    secure: process.env.NODE_ENV === 'production',
-    maxAge: 7 * 24 * 60 * 60 * 1000, // Extended to 7 days for better persistence
-    httpOnly: true,
-    sameSite: 'lax',
-    path: '/' // Ensure cookie is available for all paths
-  }
-}));
+
+// Add error handling for session store
+app.use((req, res, next) => {
+  // Apply session middleware with error handling
+  session({
+    store: getSessionStore(), // Get the appropriate session store with fallback capability
+    secret: process.env.SESSION_SECRET || 'investment-tracker-secret',
+    name: 'investment_tracker.sid', // Custom cookie name to avoid conflicts
+    resave: true, // Changed to true to ensure session is saved on every request
+    saveUninitialized: false,
+    rolling: true, // Reset cookie expiration on every response
+    cookie: {
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // Extended to 7 days for better persistence
+      httpOnly: true,
+      sameSite: 'lax',
+      path: '/' // Ensure cookie is available for all paths
+    }
+  })(req, res, (err) => {
+    if (err) {
+      console.error('Session middleware error:', err);
+      
+      // If there's a database error, switch to memory store for this request
+      if (err.message && (err.message.includes('termina') || err.message.includes('conn'))) {
+        console.log('Switching to memory store due to database connection error');
+        activeSessionStore = memoryStore;
+        
+        // Try again with memory store
+        session({
+          store: memoryStore,
+          secret: process.env.SESSION_SECRET || 'investment-tracker-secret',
+          name: 'investment_tracker.sid',
+          resave: true,
+          saveUninitialized: false,
+          rolling: true,
+          cookie: {
+            secure: process.env.NODE_ENV === 'production',
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+            httpOnly: true,
+            sameSite: 'lax',
+            path: '/'
+          }
+        })(req, res, next);
+      } else {
+        // For other errors, continue with the error
+        next(err);
+      }
+    } else {
+      next();
+    }
+  });
+});
 
 // Session debug middleware with more detailed output
 app.use((req, res, next) => {

@@ -1,0 +1,58 @@
+Query fetch request: /api/funds 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Query fetch request: /api/capital-calls 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Query fetch request: /api/closing-schedules 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Query Response from /api/notifications/unread-count: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/notifications/unread-count: 
+Object {count: 0}
+Query Response from /api/notifications: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/notifications: 
+Array []
+Query Response from /api/closing-schedules: 
+Object {status: 500, statusText: "Internal Server Error", ok: false}
+Error response from /api/closing-schedules: 
+Object {status: 500, text: "{"error":"Failed to fetch closing schedule events"}"}
+
+Exception during query fetch to /api/closing-schedules: 
+TypeError {message: "Failed to execute 'text' on 'Response': body stream already read"}
+
+Query Response from /api/capital-calls: 
+Object {status: 500, statusText: "Internal Server Error", ok: false}
+Error response from /api/capital-calls: 
+Object {status: 500, text: "{"error":"Failed to fetch capital calls"}"}
+
+Exception during query fetch to /api/capital-calls: 
+TypeError {message: "Failed to execute 'text' on 'Response': body stream already read"}
+
+Query Response from /api/funds: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/funds: 
+(2) [{…}, {…}]
+Query Response from /api/deals: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/deals: 
+(75) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+Query fetch request: /api/closing-schedules 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Query fetch request: /api/capital-calls 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Query Response from /api/closing-schedules: 
+Object {status: 500, statusText: "Internal Server Error", ok: false}
+Error response from /api/closing-schedules: 
+Object {status: 500, text: "{"error":"Failed to fetch closing schedule events"}"}
+
+Exception during query fetch to /api/closing-schedules: 
+TypeError {message: "Failed to execute 'text' on 'Response': body stream already read"}
+
+Query Response from /api/capital-calls: 
+Object {status: 500, statusText: "Internal Server Error", ok: false}
+Error response from /api/capital-calls: 
+Object {status: 500, text: "{"error":"Failed to fetch capital calls"}"}
+
+Exception during query fetch to /api/capital-calls: 
+TypeError {message: "Failed to execute 'text' on 'Response': body stream already read"}
+
