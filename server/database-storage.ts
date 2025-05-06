@@ -1,6 +1,6 @@
 import { db } from './db';
 import { IStorage } from './storage';
-import { eq, and, sql, inArray } from 'drizzle-orm';
+import { eq, and, sql, inArray, asc } from 'drizzle-orm';
 import {
   User, InsertUser,
   Deal, InsertDeal,
@@ -14,8 +14,9 @@ import {
   Notification, InsertNotification,
   CapitalCall, InsertCapitalCall,
   MemoComment, InsertMemoComment,
+  ClosingScheduleEvent, InsertClosingScheduleEvent,
   users, deals, timelineEvents, dealStars, miniMemos, documents,
-  funds, fundAllocations, dealAssignments, notifications, capitalCalls, memoComments
+  funds, fundAllocations, dealAssignments, notifications, capitalCalls, memoComments, closingScheduleEvents
 } from '@shared/schema';
 
 /**
@@ -506,5 +507,83 @@ export class DatabaseStorage implements IStorage {
       .returning();
       
     return updatedCapitalCall || undefined;
+  }
+  
+  // Closing Schedule Events
+  async createClosingScheduleEvent(event: InsertClosingScheduleEvent): Promise<ClosingScheduleEvent> {
+    if (!db) {
+      throw new Error('Database not initialized');
+    }
+    const [newEvent] = await db
+      .insert(closingScheduleEvents)
+      .values(event)
+      .returning();
+    return newEvent;
+  }
+  
+  async getClosingScheduleEvent(id: number): Promise<ClosingScheduleEvent | undefined> {
+    if (!db) {
+      throw new Error('Database not initialized');
+    }
+    const [event] = await db
+      .select()
+      .from(closingScheduleEvents)
+      .where(eq(closingScheduleEvents.id, id));
+    return event || undefined;
+  }
+  
+  async getAllClosingScheduleEvents(): Promise<ClosingScheduleEvent[]> {
+    if (!db) {
+      throw new Error('Database not initialized');
+    }
+    return await db
+      .select()
+      .from(closingScheduleEvents);
+  }
+  
+  async getClosingScheduleEventsByDeal(dealId: number): Promise<ClosingScheduleEvent[]> {
+    if (!db) {
+      throw new Error('Database not initialized');
+    }
+    return await db
+      .select()
+      .from(closingScheduleEvents)
+      .where(eq(closingScheduleEvents.dealId, dealId))
+      .orderBy(asc(closingScheduleEvents.scheduledDate));
+  }
+  
+  async updateClosingScheduleEventStatus(id: number, status: ClosingScheduleEvent['status'], actualDate?: Date, actualAmount?: number): Promise<ClosingScheduleEvent | undefined> {
+    if (!db) {
+      throw new Error('Database not initialized');
+    }
+    const updateData: any = { status };
+    
+    if (actualDate) {
+      updateData.actualDate = actualDate;
+    }
+    
+    if (actualAmount !== undefined) {
+      updateData.actualAmount = actualAmount;
+    }
+    
+    const [updatedEvent] = await db
+      .update(closingScheduleEvents)
+      .set(updateData)
+      .where(eq(closingScheduleEvents.id, id))
+      .returning();
+      
+    return updatedEvent || undefined;
+  }
+  
+  async deleteClosingScheduleEvent(id: number): Promise<boolean> {
+    if (!db) {
+      throw new Error('Database not initialized');
+    }
+    
+    const result = await db
+      .delete(closingScheduleEvents)
+      .where(eq(closingScheduleEvents.id, id));
+      
+    return result.rowCount > 0;
   }
 }

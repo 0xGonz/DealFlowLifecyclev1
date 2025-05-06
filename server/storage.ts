@@ -10,7 +10,8 @@ import {
   Notification, InsertNotification,
   Document, InsertDocument,
   MemoComment, InsertMemoComment,
-  CapitalCall, InsertCapitalCall
+  CapitalCall, InsertCapitalCall,
+  ClosingScheduleEvent, InsertClosingScheduleEvent
 } from "@shared/schema";
 
 // This file defines the storage interface and in-memory implementation
@@ -98,6 +99,14 @@ export interface IStorage {
   createMemoComment(comment: InsertMemoComment): Promise<MemoComment>;
   getMemoComments(memoId: number): Promise<MemoComment[]>;
   getMemoCommentsByDeal(dealId: number): Promise<MemoComment[]>;
+  
+  // Closing Schedule Events
+  createClosingScheduleEvent(event: InsertClosingScheduleEvent): Promise<ClosingScheduleEvent>;
+  getClosingScheduleEvent(id: number): Promise<ClosingScheduleEvent | undefined>;
+  getAllClosingScheduleEvents(): Promise<ClosingScheduleEvent[]>;
+  getClosingScheduleEventsByDeal(dealId: number): Promise<ClosingScheduleEvent[]>;
+  updateClosingScheduleEventStatus(id: number, status: ClosingScheduleEvent['status'], actualDate?: Date, actualAmount?: number): Promise<ClosingScheduleEvent | undefined>;
+  deleteClosingScheduleEvent(id: number): Promise<boolean>;
 }
 
 // In-memory storage implementation
@@ -114,6 +123,7 @@ export class MemStorage implements IStorage {
   private notifications: Map<number, Notification>;
   private memoComments: Map<number, MemoComment>;
   private capitalCalls: Map<number, CapitalCall>;
+  private closingScheduleEvents: Map<number, ClosingScheduleEvent>;
   
   private userIdCounter: number;
   private dealIdCounter: number;
@@ -127,6 +137,7 @@ export class MemStorage implements IStorage {
   private notificationIdCounter: number;
   private commentIdCounter: number;
   private capitalCallIdCounter: number;
+  private closingEventIdCounter: number;
 
   constructor() {
     this.users = new Map();
@@ -141,6 +152,7 @@ export class MemStorage implements IStorage {
     this.notifications = new Map();
     this.memoComments = new Map();
     this.capitalCalls = new Map();
+    this.closingScheduleEvents = new Map();
     
     this.userIdCounter = 1;
     this.dealIdCounter = 1;
@@ -154,6 +166,7 @@ export class MemStorage implements IStorage {
     this.notificationIdCounter = 1;
     this.commentIdCounter = 1;
     this.capitalCallIdCounter = 1;
+    this.closingEventIdCounter = 1;
     
     // Initialize with some sample data
     this.initSampleData();
@@ -863,6 +876,54 @@ export class MemStorage implements IStorage {
     
     this.capitalCalls.set(id, updatedCapitalCall);
     return updatedCapitalCall;
+  }
+  
+  // Closing Schedule Events
+  async createClosingScheduleEvent(event: InsertClosingScheduleEvent): Promise<ClosingScheduleEvent> {
+    const id = this.closingEventIdCounter++;
+    const createdAt = new Date();
+    const updatedAt = new Date();
+    const newEvent: ClosingScheduleEvent = { ...event, id, createdAt, updatedAt };
+    this.closingScheduleEvents.set(id, newEvent);
+    return newEvent;
+  }
+  
+  async getClosingScheduleEvent(id: number): Promise<ClosingScheduleEvent | undefined> {
+    return this.closingScheduleEvents.get(id);
+  }
+  
+  async getAllClosingScheduleEvents(): Promise<ClosingScheduleEvent[]> {
+    return Array.from(this.closingScheduleEvents.values());
+  }
+  
+  async getClosingScheduleEventsByDeal(dealId: number): Promise<ClosingScheduleEvent[]> {
+    return Array.from(this.closingScheduleEvents.values())
+      .filter(event => event.dealId === dealId)
+      .sort((a, b) => new Date(a.scheduledDate).getTime() - new Date(b.scheduledDate).getTime());
+  }
+  
+  async updateClosingScheduleEventStatus(id: number, status: ClosingScheduleEvent['status'], actualDate?: Date, actualAmount?: number): Promise<ClosingScheduleEvent | undefined> {
+    const event = this.closingScheduleEvents.get(id);
+    if (!event) return undefined;
+    
+    const updatedEvent: ClosingScheduleEvent = {
+      ...event,
+      status,
+      updatedAt: new Date(),
+      actualDate: actualDate || event.actualDate,
+      actualAmount: actualAmount !== undefined ? actualAmount : event.actualAmount
+    };
+    
+    this.closingScheduleEvents.set(id, updatedEvent);
+    return updatedEvent;
+  }
+  
+  async deleteClosingScheduleEvent(id: number): Promise<boolean> {
+    const exists = this.closingScheduleEvents.has(id);
+    if (exists) {
+      this.closingScheduleEvents.delete(id);
+    }
+    return exists;
   }
 }
 

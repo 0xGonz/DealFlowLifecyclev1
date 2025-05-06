@@ -73,12 +73,12 @@ export const timelineEvents = pgTable("timeline_events", {
   id: serial("id").primaryKey(),
   dealId: integer("deal_id").notNull(),
   eventType: text("event_type", { 
-    enum: ["note", "stage_change", "document_upload", "memo_added", "star_added", "ai_analysis", "deal_creation"]
+    enum: ["note", "stage_change", "document_upload", "memo_added", "star_added", "ai_analysis", "deal_creation", "closing_scheduled"]
   }).notNull(),
   content: text("content"),
   createdBy: integer("created_by").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
-  metadata: jsonb("metadata").$type<{ previousStage?: string[]; newStage?: string[]; assignedUserId?: number[]; unassignedUserId?: number[]; [key: string]: any; }>().default({}),
+  metadata: jsonb("metadata").$type<{ previousStage?: string[]; newStage?: string[]; assignedUserId?: number[]; unassignedUserId?: number[]; closingEventId?: number[]; closingEventType?: string[]; closingEventStatus?: string[]; [key: string]: any; }>().default({}),
 });
 
 export const insertTimelineEventSchema = createInsertSchema(timelineEvents).omit({
@@ -250,6 +250,29 @@ export const insertCapitalCallSchema = createInsertSchema(capitalCalls).omit({
   updatedAt: true,
 });
 
+// Closing Schedule Events for deals
+export const closingScheduleEvents = pgTable("closing_schedule_events", {
+  id: serial("id").primaryKey(),
+  dealId: integer("deal_id").notNull().references(() => deals.id, { onDelete: "cascade" }),
+  eventType: text("event_type", { enum: ["first_close", "second_close", "final_close", "extension", "custom"] }).notNull(),
+  eventName: text("event_name").notNull(),
+  scheduledDate: timestamp("scheduled_date").notNull(),
+  actualDate: timestamp("actual_date"),
+  targetAmount: real("target_amount"),
+  actualAmount: real("actual_amount"),
+  status: text("status", { enum: ["scheduled", "completed", "delayed", "cancelled"] }).notNull().default("scheduled"),
+  notes: text("notes"),
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const insertClosingScheduleEventSchema = createInsertSchema(closingScheduleEvents).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Type definitions
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -274,6 +297,9 @@ export type InsertFundAllocation = z.infer<typeof insertFundAllocationSchema>;
 
 export type CapitalCall = typeof capitalCalls.$inferSelect;
 export type InsertCapitalCall = z.infer<typeof insertCapitalCallSchema>;
+
+export type ClosingScheduleEvent = typeof closingScheduleEvents.$inferSelect;
+export type InsertClosingScheduleEvent = z.infer<typeof insertClosingScheduleEventSchema>;
 
 export type DealAssignment = typeof dealAssignments.$inferSelect;
 export type InsertDealAssignment = z.infer<typeof insertDealAssignmentSchema>;

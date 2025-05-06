@@ -13,6 +13,7 @@ import notificationsRoutes from './routes/notifications';
 import documentsRoutes from './routes/documents';
 import allocationsRoutes from './routes/allocations';
 import capitalCallsRoutes from './routes/capital-calls';
+import closingSchedulesRoutes from './routes/closing-schedules';
 
 // Utils
 import { errorHandler, notFoundHandler, AppError } from './utils/errorHandlers';
@@ -47,6 +48,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/auth', authRoutes);
   app.use('/api/allocations', allocationsRoutes);
   app.use('/api/capital-calls', capitalCallsRoutes);
+  app.use('/api/closing-schedules', closingSchedulesRoutes);
   app.use('/api/dashboard', dashboardRoutes);
   app.use('/api/leaderboard', leaderboardRoutes);
   app.use('/api/activity', activityRoutes);

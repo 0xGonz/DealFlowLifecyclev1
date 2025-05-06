@@ -9,6 +9,13 @@ import {
   CAPITAL_CALL_STATUS_LABELS 
 } from '@/lib/constants/capital-call-constants';
 import {
+  CLOSING_EVENT_STATUS,
+  CLOSING_EVENT_STATUS_COLORS,
+  CLOSING_EVENT_STATUS_LABELS,
+  CLOSING_EVENT_TYPES,
+  CLOSING_EVENT_TYPE_LABELS
+} from '@/lib/constants/closing-event-constants';
+import {
   CALENDAR_HIGHLIGHT_COLORS,
   CALENDAR_INDICATOR_COLORS,
   CALENDAR_VIEWS,
@@ -38,14 +45,38 @@ interface CapitalCall {
   fundName: string; // Added through API join
 }
 
+interface ClosingScheduleEvent {
+  id: number;
+  dealId: number;
+  createdBy: number;
+  eventType: typeof CLOSING_EVENT_TYPES[keyof typeof CLOSING_EVENT_TYPES];
+  eventName: string;
+  scheduledDate: string;
+  scheduledAmount: number;
+  status: typeof CLOSING_EVENT_STATUS[keyof typeof CLOSING_EVENT_STATUS];
+  notes: string | null;
+  actualDate: string | null;
+  actualAmount: number | null;
+  dealName: string; // Added through API join
+}
+
 const CapitalCalls = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [selectedView, setSelectedView] = useState<CalendarView>(CALENDAR_VIEWS.CALENDAR);
   const [filter, setFilter] = useState<string>('all');
+  const [eventType, setEventType] = useState<string>('all');
   
-  const { data: capitalCalls = [], isLoading } = useQuery<CapitalCall[]>({
+  // Fetch capital calls
+  const { data: capitalCalls = [], isLoading: isLoadingCalls } = useQuery<CapitalCall[]>({
     queryKey: ['/api/capital-calls'],
   });
+  
+  // Fetch closing schedule events
+  const { data: closingEvents = [], isLoading: isLoadingEvents } = useQuery<ClosingScheduleEvent[]>({
+    queryKey: ['/api/closing-schedules'],
+  });
+  
+  const isLoading = isLoadingCalls || isLoadingEvents;
 
   // Filter capital calls based on selected date and filter option
   const filteredCalls = React.useMemo(() => {
@@ -67,10 +98,30 @@ const CapitalCalls = () => {
     return filtered;
   }, [capitalCalls, selectedDate, filter]);
 
-  // Generate calendar highlights based on capital calls
+  // Filter closing schedule events based on selected date and filter option
+  const filteredClosingEvents = React.useMemo(() => {
+    if (!selectedDate) return [];
+    
+    const dateStr = format(selectedDate, DATE_FORMATS.ISO);
+    let filtered = closingEvents.filter(event => {
+      const scheduledDateMatch = event.scheduledDate.startsWith(dateStr);
+      const actualDateMatch = event.actualDate?.startsWith(dateStr);
+      
+      return scheduledDateMatch || actualDateMatch;
+    });
+    
+    if (eventType !== 'all') {
+      filtered = filtered.filter(event => event.eventType === eventType);
+    }
+    
+    return filtered;
+  }, [closingEvents, selectedDate, eventType]);
+
+  // Generate calendar highlights based on capital calls and closing events
   const calendarHighlights = React.useMemo(() => {
     const highlights: { [key: string]: { count: number, types: Set<string> } } = {};
     
+    // Add capital call highlights
     capitalCalls.forEach(call => {
       // Format dates to YYYY-MM-DD strings for comparison
       const callDateStr = call.callDate.split('T')[0];
@@ -101,8 +152,31 @@ const CapitalCalls = () => {
       }
     });
     
+    // Add closing event highlights
+    closingEvents.forEach(event => {
+      // Format dates to YYYY-MM-DD strings for comparison
+      const scheduledDateStr = event.scheduledDate.split('T')[0];
+      
+      // Add scheduled date highlight
+      if (!highlights[scheduledDateStr]) {
+        highlights[scheduledDateStr] = { count: 0, types: new Set() };
+      }
+      highlights[scheduledDateStr].count++;
+      highlights[scheduledDateStr].types.add('closing');
+      
+      // Add actual date highlight if it exists
+      if (event.actualDate) {
+        const actualDateStr = event.actualDate.split('T')[0];
+        if (!highlights[actualDateStr]) {
+          highlights[actualDateStr] = { count: 0, types: new Set() };
+        }
+        highlights[actualDateStr].count++;
+        highlights[actualDateStr].types.add('completed');
+      }
+    });
+    
     return highlights;
-  }, [capitalCalls]);
+  }, [capitalCalls, closingEvents]);
 
   // Custom day render function for the calendar
   const renderDay = (date: Date) => {
@@ -123,6 +197,12 @@ const CapitalCalls = () => {
       if (highlight.types.has('paid')) {
         bgClass = CALENDAR_HIGHLIGHT_COLORS.PAID;
       }
+      if (highlight.types.has('closing')) {
+        bgClass = CALENDAR_HIGHLIGHT_COLORS.CLOSING;
+      }
+      if (highlight.types.has('completed')) {
+        bgClass = CALENDAR_HIGHLIGHT_COLORS.ACTUAL_CLOSING;
+      }
       if (isSelected) {
         bgClass = '';
       }
@@ -135,8 +215,11 @@ const CapitalCalls = () => {
         </span>
         {highlight && (
           <div className="absolute bottom-1 flex gap-0.5 justify-center">
-            {highlight.count > 0 && (
+            {highlight.types.has('call') && (
               <div className={`h-${CALENDAR_LAYOUT.INDICATOR.SIZE} w-${CALENDAR_LAYOUT.INDICATOR.SIZE} rounded-full ${CALENDAR_INDICATOR_COLORS.CALL}`}></div>
+            )}
+            {highlight.types.has('closing') && (
+              <div className={`h-${CALENDAR_LAYOUT.INDICATOR.SIZE} w-${CALENDAR_LAYOUT.INDICATOR.SIZE} rounded-full ${CALENDAR_INDICATOR_COLORS.CLOSING}`}></div>
             )}
           </div>
         )}

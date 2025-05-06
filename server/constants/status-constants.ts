@@ -24,6 +24,46 @@ export const CAPITAL_CALL_STATUS_LABELS = {
   [CAPITAL_CALL_STATUS.DEFAULTED]: 'Defaulted' as const
 };
 
+// Closing event types
+// Note: Values must match the enum in shared/schema.ts closingScheduleEvents table
+export const CLOSING_EVENT_TYPES = {
+  FIRST_CLOSE: 'first_close' as const,
+  SECOND_CLOSE: 'second_close' as const,
+  FINAL_CLOSE: 'final_close' as const,
+  EXTENSION: 'extension' as const,
+  CUSTOM: 'custom' as const
+};
+
+export type ClosingEventType = typeof CLOSING_EVENT_TYPES[keyof typeof CLOSING_EVENT_TYPES];
+
+// Closing event type display labels
+export const CLOSING_EVENT_TYPE_LABELS = {
+  [CLOSING_EVENT_TYPES.FIRST_CLOSE]: 'First Close' as const,
+  [CLOSING_EVENT_TYPES.SECOND_CLOSE]: 'Second Close' as const,
+  [CLOSING_EVENT_TYPES.FINAL_CLOSE]: 'Final Close' as const,
+  [CLOSING_EVENT_TYPES.EXTENSION]: 'Extension' as const,
+  [CLOSING_EVENT_TYPES.CUSTOM]: 'Custom' as const
+};
+
+// Closing event status values
+// Note: Values must match the enum in shared/schema.ts closingScheduleEvents table
+export const CLOSING_EVENT_STATUS = {
+  SCHEDULED: 'scheduled' as const,
+  COMPLETED: 'completed' as const,
+  DELAYED: 'delayed' as const,
+  CANCELLED: 'cancelled' as const
+};
+
+export type ClosingEventStatus = typeof CLOSING_EVENT_STATUS[keyof typeof CLOSING_EVENT_STATUS];
+
+// Closing event status display labels
+export const CLOSING_EVENT_STATUS_LABELS = {
+  [CLOSING_EVENT_STATUS.SCHEDULED]: 'Scheduled' as const,
+  [CLOSING_EVENT_STATUS.COMPLETED]: 'Completed' as const,
+  [CLOSING_EVENT_STATUS.DELAYED]: 'Delayed' as const,
+  [CLOSING_EVENT_STATUS.CANCELLED]: 'Cancelled' as const
+};
+
 // Deal stage values
 // Note: Values must match the enum in shared/schema.ts deals table
 export const DEAL_STAGES = {
