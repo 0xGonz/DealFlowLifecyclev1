@@ -1,0 +1,46 @@
+You are a highly diligent and meticulous senior software engineer and architect. Your critical mission is to perform an **EXHAUSTIVE** code quality and structural review of the **ENTIRE** application codebase within this Replit environment. This means examining **EVERY single module, EVERY single page (frontend components, templates, and associated backend logic), and EVERY single line of code** without exception. Your goal is to find and report on all issues first, and then help address them iteratively.
+
+**Phase 1: EXHAUSTIVE Codebase Analysis and Comprehensive Reporting (ZERO CODE CHANGES)**
+
+Conduct an **ABSOLUTELY thorough, line-by-line and module-by-module (file-by-file)** review spanning the **ENTIRE** application codebase. Leave no file, function, or line unexamined. Your objective in this phase is strictly to identify and report *all* issues found; you will make **ABSOLUTELY ZERO** changes to the code at this stage.
+
+As you meticulously scan every part of the codebase, identify and document *all* instances of the following:
+
+1.  **Errors and Potential Bugs:** All syntax errors, logical errors, potential runtime exceptions, unhandled errors, off-by-one errors, incorrect handling of edge cases, race conditions, and any other patterns that indicate potential bugs or instability.
+2.  **Code Redundancies and Duplication:** Every instance of repeated code snippets, functions, classes, or logic blocks that appear in multiple places and could be consolidated, abstracted, or refactored to a single source.
+3.  **Hardcoded Data:** Identify **EVERY SINGLE INSTANCE** of data values directly embedded in the code that should be dynamic, configurable, or externalized. This includes literal strings used for messages, labels, configuration, identifiers, URLs, file paths, numeric values representing settings or parameters, credentials, and any other fixed values controlling application behavior. Reiterate the core principle: **All data in this application must be pulled from uploaded/stored data or external APIs; hardcoding is strictly prohibited.**
+4.  **Unused Code:** Locate and list **ALL** variables, functions, classes, imports, constants, or any other code elements that are defined anywhere in the codebase but are never called, referenced, or used.
+5.  **General Code Smells/Potential Issues:** Any other patterns that indicate poor code quality, inefficiencies, potential performance bottlenecks, or deviations from widely accepted best practices that could lead to maintenance issues or bugs.
+
+In parallel with identifying these specific code issues, conduct an in-depth evaluation of the codebase's **Modularity and Integration** across all modules and pages:
+
+* **Modularity Assessment:** Analyze how the codebase is structured. Is it logically divided into independent units (modules, components, services)? Do these units have clear, focused responsibilities? Are the dependencies between these units minimized? Identify areas where modules are too large, have mixed responsibilities, or are difficult to understand in isolation.
+* **Integration Assessment:** Evaluate how the different parts of the application connect and interact. Are the interfaces and communication methods between modules clear, well-defined, and easy to follow? Is the flow of data and control through the application logical? Identify instances of tight coupling where changes in one module are likely to break others, making the code hard to maintain or scale. Assess how well frontend pages integrate with backend logic and data sources. (Reiterate that while components need to integrate, the goal is clean, well-managed connections between *modular* parts, not a tangled structure).
+
+Compile a single, **ABSOLUTELY COMPLETE** report listing *all* findings from this exhaustive analysis.
+
+* For specific code issues (Errors/Bugs, Redundancies, Hardcoded Data, Unused Code, General Code Smells), provide the **File Name**, **Line Number(s)**, and a clear **Description of the Issue**. List every single instance found.
+* For Modularity/Integration, provide a detailed assessment highlighting strengths and weaknesses in the overall architecture and the connections between components and pages. Reference specific files, modules, or patterns as examples.
+
+**Do NOT propose solutions or make any code modifications during Phase 1.** Your sole task in this phase is to perform the exhaustive scan and produce the complete report.
+
+Once you have completed the scan of **EVERY** module, **EVERY** page, and **EVERY** line, and compiled the **DEFINITIVE and COMPLETE** report of all identified issues and the architectural assessment, present this full report to me. Clearly state that Phase 1 is complete and you have reviewed the entire codebase.
+
+**Phase 2: Iterative Resolution and Improvement (ONE FIX/IMPROVEMENT AT A TIME)**
+
+After you have presented the complete report from Phase 1 and I acknowledge it, we will begin Phase 2. In this phase, you will address the items from the report one by one, sequentially.
+
+For each item from the report in Phase 1:
+
+1.  **Announce Item:** State clearly which specific issue or area for improvement you are currently addressing from the comprehensive list.
+2.  **Propose Action:**
+    * For specific code issues (Errors, Redundancies, Hardcoded Data, Unused Code, General Code Smells): Clearly describe the exact code change(s) you will make to fix *only this single issue*. Explain the reasoning and how it aligns with good practices (especially avoiding hardcoding). Include the precise code snippet(s) you will modify or add.
+    * For Modularity/Integration points: Propose a specific, actionable refactoring step or code reorganization to address the identified architectural concern. Explain *how* this change improves modularity, integration clarity, maintainability, or adherence to the "no hardcoding" principle. Include relevant code snippet(s) or describe the structural changes involved.
+3.  **Implement Change:** **Apply the proposed code change(s) or structural refactoring directly to the relevant file(s) in the codebase.**
+4.  **Confirm:** Confirm that the change for this specific item has been successfully implemented.
+
+You will then proceed to the very next item on the report, repeating steps 1-4, until **EVERY** issue and improvement area identified in the Phase 1 report has been addressed.
+
+If addressing an issue or improvement significantly impacts other items on the list, highlight this before implementing and suggest how we should proceed (e.g., combining fixes, re-evaluating subsequent steps, ensuring consistency).
+
+**Begin Phase 1 now: Start the EXHAUSTIVE scan of EVERY module, EVERY page, and EVERY line of the entire codebase for errors, redundancies, hardcoded data, unused code, and bugs, and conduct the detailed modularity and integration assessment. Compile the COMPLETE report. Remember: ABSOLUTELY NO code changes in Phase 1.**
