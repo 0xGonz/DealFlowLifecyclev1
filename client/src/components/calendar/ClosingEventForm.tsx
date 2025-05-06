@@ -73,8 +73,8 @@ const ClosingEventForm: React.FC<ClosingEventFormProps> = ({ isOpen, onClose, se
   
   // Filter deals that are relevant for closing events (e.g., in closing stage)
   const eligibleDeals = deals.filter(deal => {
-    // Show all deals or filter by stage if needed
-    return true;
+    // Only deals that are in the closing or invested stage should be eligible for closing events
+    return deal.stage === 'closing' || deal.stage === 'invested' || deal.stage === 'closed';
   });
   
   const form = useForm<ClosingEventFormValues>({

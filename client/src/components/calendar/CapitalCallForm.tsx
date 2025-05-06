@@ -116,11 +116,10 @@ const CapitalCallForm: React.FC<CapitalCallFormProps> = ({ isOpen, onClose, sele
     createCapitalCall.mutate(formData);
   };
   
-  // Filter deals that are relevant for capital calls (e.g., in closing or closed stage)
+  // Filter deals that are relevant for capital calls (e.g., in closing or invested stage)
   const eligibleDeals = deals.filter(deal => {
-    // Show all deals or filter by stage if needed
-    // For example, only deals in closing or closed stage might be eligible
-    return true; // For now, show all deals
+    // Only deals that are in the closing or invested stage should be eligible for capital calls
+    return deal.stage === 'closing' || deal.stage === 'invested' || deal.stage === 'closed';
   });
   
   return (

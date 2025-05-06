@@ -3,6 +3,14 @@
  * Centralizes calendar styles, indicators, and display configurations
  */
 
+// Importing closing event constants from their dedicated file
+export { 
+  CLOSING_EVENT_TYPES,
+  CLOSING_EVENT_STATUS,
+  CLOSING_EVENT_STATUS_COLORS,
+  CLOSING_EVENT_TYPE_LABELS
+} from './closing-event-constants';
+
 // Calendar date highlight background colors
 export const CALENDAR_HIGHLIGHT_COLORS = {
   CALL: 'bg-blue-50' as const,
@@ -33,40 +41,6 @@ export const CALENDAR_EVENT_TYPES = {
   ALL: 'all' as const,
   CAPITAL_CALLS: 'capital_calls' as const,
   CLOSING_EVENTS: 'closing_events' as const,
-};
-
-// Closing event types
-export const CLOSING_EVENT_TYPES = {
-  FIRST_CLOSE: 'first_close' as const,
-  SECOND_CLOSE: 'second_close' as const,
-  FINAL_CLOSE: 'final_close' as const,
-  EXTENSION: 'extension' as const,
-  CUSTOM: 'custom' as const,
-};
-
-// Closing event status
-export const CLOSING_EVENT_STATUS = {
-  SCHEDULED: 'scheduled' as const,
-  COMPLETED: 'completed' as const,
-  DELAYED: 'delayed' as const,
-  CANCELLED: 'cancelled' as const,
-};
-
-// Closing event status colors
-export const CLOSING_EVENT_STATUS_COLORS = {
-  scheduled: 'bg-neutral-100 text-neutral-800' as const,
-  completed: 'bg-green-100 text-green-800' as const,
-  delayed: 'bg-amber-100 text-amber-800' as const,
-  cancelled: 'bg-red-100 text-red-800' as const,
-};
-
-// Closing event type labels
-export const CLOSING_EVENT_TYPE_LABELS = {
-  first_close: 'First Close' as const,
-  second_close: 'Second Close' as const,
-  final_close: 'Final Close' as const,
-  extension: 'Extension' as const,
-  custom: 'Custom' as const,
 };
 
 // Type definitions for calendar views and highlight types
