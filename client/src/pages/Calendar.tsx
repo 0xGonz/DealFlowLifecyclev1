@@ -306,15 +306,15 @@ const CalendarPage = () => {
           </div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-[minmax(350px,40%)_1fr] gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-[minmax(350px,40%)_1fr] gap-6 min-h-[calc(100vh-180px)]">
           {/* Calendar */}
-          <Card className={`h-full flex-1 ${selectedView === CALENDAR_VIEWS.LIST ? 'hidden md:block' : ''}`}>
-            <CardContent className="p-4 flex flex-col h-full">
+          <Card className={`h-full flex flex-col ${selectedView === CALENDAR_VIEWS.LIST ? 'hidden md:block' : ''}`}>
+            <CardContent className="p-4 grid grid-rows-[1fr_auto] h-full">
               <Calendar
                 mode="single"
                 selected={selectedDate}
                 onSelect={setSelectedDate}
-                className="rounded-md border text-base w-full flex-1 h-[500px] max-h-[calc(100vh-300px)]"
+                className="rounded-md border text-base w-full h-full" style={{ minHeight: '450px', display: 'grid', gridTemplateRows: 'auto 1fr' }}
                 components={{
                   Day: (props) => {
                     // Using a custom Day component to show events
@@ -324,7 +324,7 @@ const CalendarPage = () => {
                           // Handle the click event manually
                           setSelectedDate(props.date);
                         }} 
-                        className="w-full h-full p-0 font-normal text-base aspect-square flex items-center justify-center"
+                        className="w-full h-full p-0 my-1 font-normal text-base rounded-md flex items-center justify-center transition-colors hover:bg-neutral-100"
                       >
                         {renderDay(props.date)}
                       </button>
