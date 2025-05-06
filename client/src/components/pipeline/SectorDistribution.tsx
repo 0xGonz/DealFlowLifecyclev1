@@ -76,7 +76,7 @@ const CustomTooltip = ({ active, payload, processedData }: CustomTooltipProps) =
       <div className="bg-white p-2 border border-neutral-200 rounded-md shadow-sm">
         <p className="font-medium text-black">{data.name}</p>
         <p className="text-black"><span className="font-medium text-black">Count:</span> {data.value} deals</p>
-        <p className="text-black"><span className="font-medium text-black">Percentage:</span> <span className="font-bold">{formatPercentage(percentage, 2)}</span></p>
+        <p className="text-black"><span className="font-medium text-black">Percentage:</span> <span className="font-bold">{formatPercentage(percentage, 0)}</span></p>
       </div>
     );
   }
@@ -150,7 +150,7 @@ export default function SectorDistribution({ deals, stage }: SectorDistributionP
         <CardTitle>{title}</CardTitle>
       </CardHeader>
       <CardContent className="px-2 sm:px-6">
-        <div className="h-[260px] xs:h-[280px] sm:h-[320px] md:h-[350px] w-full relative overflow-hidden">
+        <div className="h-[300px] xs:h-[320px] sm:h-[380px] md:h-[420px] w-full relative overflow-hidden">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
@@ -159,8 +159,8 @@ export default function SectorDistribution({ deals, stage }: SectorDistributionP
                 cy="50%"
                 labelLine={false}
                 label={renderCustomizedLabel}
-                innerRadius={isSmallScreen ? 35 : isMobile ? 45 : 60}
-                outerRadius={isSmallScreen ? 70 : isMobile ? 85 : 100}
+                innerRadius={isSmallScreen ? 45 : isMobile ? 60 : 80}
+                outerRadius={isSmallScreen ? 90 : isMobile ? 110 : 140}
                 fill="#8884d8"
                 dataKey="value"
                 nameKey="name"
@@ -205,7 +205,7 @@ export default function SectorDistribution({ deals, stage }: SectorDistributionP
                   
                   return (
                     <span className="text-[10px] xs:text-xs sm:text-sm font-medium truncate text-black">
-                      {value} <span className="font-bold">({formatPercentage(percentageValue, 2)})</span>
+                      {value} <span className="font-bold">({formatPercentage(percentageValue, 0)})</span>
                     </span>
                   );
                 }}

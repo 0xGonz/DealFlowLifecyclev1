@@ -88,7 +88,7 @@ const CustomTooltip = ({ active, payload, sectorData }: TooltipProps) => {
       <div className="bg-white p-2 border border-neutral-200 rounded-md shadow-sm">
         <p className="font-medium text-black">{data.sector}</p>
         <p className="text-black"><span className="font-medium text-black">Count:</span> {data.count}</p>
-        <p className="text-black"><span className="font-medium text-black">Percentage:</span> <span className="font-bold">{formatPercentage(percentage, 2)}</span></p>
+        <p className="text-black"><span className="font-medium text-black">Percentage:</span> <span className="font-bold">{formatPercentage(percentage, 0)}</span></p>
       </div>
     );
   }
@@ -145,15 +145,15 @@ export default function SectorDistributionChart() {
       </CardHeader>
       <CardContent className="px-2 sm:px-6">
         {isLoading ? (
-          <div className="flex justify-center items-center h-[300px]">
+          <div className="flex justify-center items-center h-[380px]">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
         ) : processedData.length === 0 ? (
-          <div className="flex justify-center items-center h-[300px]">
+          <div className="flex justify-center items-center h-[380px]">
             <p className="text-neutral-500">No sector data available</p>
           </div>
         ) : (
-          <div className="h-[260px] xs:h-[280px] sm:h-[320px] md:h-[350px] w-full relative overflow-hidden">
+          <div className="h-[300px] xs:h-[320px] sm:h-[380px] md:h-[420px] w-full relative overflow-hidden">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -162,8 +162,8 @@ export default function SectorDistributionChart() {
                   cy="50%"
                   labelLine={false}
                   label={renderCustomizedLabel}
-                  innerRadius={windowWidth < 375 ? 30 : windowWidth < 480 ? 35 : windowWidth < 640 ? 45 : 60}
-                  outerRadius={windowWidth < 375 ? 60 : windowWidth < 480 ? 70 : windowWidth < 640 ? 85 : 100}
+                  innerRadius={windowWidth < 375 ? 45 : windowWidth < 480 ? 50 : windowWidth < 640 ? 60 : 80}
+                  outerRadius={windowWidth < 375 ? 90 : windowWidth < 480 ? 100 : windowWidth < 640 ? 120 : 140}
                   fill="#8884d8"
                   dataKey="count"
                 >
@@ -206,7 +206,7 @@ export default function SectorDistributionChart() {
                     
                     return (
                       <span className="text-[10px] xs:text-xs sm:text-sm font-medium text-black">
-                        {value} <span className="font-bold">({formatPercentage(percentage, 2)})</span>
+                        {value} <span className="font-bold">({formatPercentage(percentage, 0)})</span>
                       </span>
                     );
                   }}
