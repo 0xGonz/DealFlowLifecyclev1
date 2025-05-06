@@ -1,0 +1,41 @@
+Warning: Encountered two children with the same key, &#x60;user-undefined-81&#x60;. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.
+    at div
+    at div
+    at div
+    at div
+    at _c9 (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/src/components/ui/card.tsx:114:12)
+    at div
+    at _c (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/src/components/ui/card.tsx:20:11)
+    at DealCard (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/src/components/deals/DealCard.tsx:37:42)
+    at div
+    at div
+    at _c9 (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/src/components/ui/card.tsx:114:12)
+    at div
+    at _c (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/src/components/ui/card.tsx:20:11)
+    at div
+    at RecentDeals (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/src/components/dashboard/RecentDeals.tsx:34:24)
+    at div
+    at div
+    at div
+    at div
+    at main
+    at div
+    at div
+    at div
+    at AppLayout (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/src/components/layout/AppLayout.tsx:24:37)
+    at Dashboard (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/src/pages/Dashboard.tsx:35:57)
+    at Route (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=bd75c376:338:16)
+    at ProtectedRoute (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/src/components/common/ProtectedRoute.tsx:21:34)
+    at Switch (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=bd75c376:394:17)
+    at Router
+    at Provider (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=bd75c376:38:15)
+    at TooltipProvider (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=bd75c376:62:5)
+    at AuthProvider (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/src/hooks/use-auth.tsx:58:32)
+    at QueryClientProvider (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=bd75c376:2869:3)
+    at ErrorBoundary (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/src/components/common/ErrorBoundary.tsx:10:5)
+    at App
+    at ThemeProvider (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/src/components/theme-provider.tsx:25:3)
+Query Response from /api/activity: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/activity: 
+(20) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]

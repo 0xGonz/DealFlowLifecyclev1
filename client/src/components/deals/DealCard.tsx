@@ -121,8 +121,11 @@ export default function DealCard({ deal: rawDeal, compact = false, onEdit, onAll
           
           <div className="flex items-center justify-between mt-auto">
             <div className="flex -space-x-1.5 sm:-space-x-2">
-              {assignedUsers.slice(0, 3).map((user: User) => (
-                <Avatar key={`user-${user.id}-${deal.id}`} className="w-6 h-6 sm:w-7 sm:h-7 border-2 border-white">
+              {assignedUsers.slice(0, 3).map((user: User, index: number) => (
+                <Avatar 
+                  key={`user-${user.id || `index-${index}`}-${deal.id}`} 
+                  className="w-6 h-6 sm:w-7 sm:h-7 border-2 border-white"
+                >
                   <AvatarFallback style={{ backgroundColor: user.avatarColor }} className="text-[10px] sm:text-xs">
                     {user.initials}
                   </AvatarFallback>
