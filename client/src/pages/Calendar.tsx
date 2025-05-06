@@ -306,7 +306,7 @@ const CalendarPage = () => {
           </div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr] gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr] gap-6 h-full">
           {/* Calendar */}
           <Card className={`h-full flex flex-col ${selectedView === CALENDAR_VIEWS.LIST ? 'hidden md:block' : ''}`}>
             <CardContent className="p-4 flex flex-col flex-grow h-full">
@@ -324,7 +324,7 @@ const CalendarPage = () => {
                           // Handle the click event manually
                           setSelectedDate(props.date);
                         }} 
-                        className="w-full h-full p-0 my-1 font-normal text-base rounded-md flex items-center justify-center transition-colors hover:bg-neutral-100"
+                        className="w-full h-full min-w-[40px] min-h-[40px] p-0 my-1 font-normal text-base rounded-md flex items-center justify-center transition-colors hover:bg-neutral-100"
                       >
                         {renderDay(props.date)}
                       </button>
