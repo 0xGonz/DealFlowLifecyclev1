@@ -29,6 +29,9 @@ type RegisterData = {
   fullName: string;
   email: string;
   password: string;
+  role?: string;
+  initials?: string;
+  avatarColor?: string;
 };
 
 async function fetchCurrentUser(): Promise<User | null> {

@@ -91,7 +91,8 @@ export default function UsersPage() {
   // Create user mutation
   const createUserMutation = useMutation({
     mutationFn: async (userData: UserFormValues) => {
-      const res = await apiRequest("POST", "/api/auth/register", userData);
+      // Use the admin-only users endpoint when creating a user as an admin
+      const res = await apiRequest("POST", "/api/users", userData);
       return await res.json();
     },
     onSuccess: () => {

@@ -162,7 +162,9 @@ export default function AuthPage() {
                       username: data.username,
                       fullName: data.fullName,
                       email: data.email,
-                      password: data.password
+                      password: data.password,
+                      // Default role for self-registration is analyst
+                      role: 'analyst'
                     });
                     
                     console.log('Registration successful, showing animation');

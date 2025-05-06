@@ -12,12 +12,23 @@ const userInsertSchema = createInsertSchema(schema.users, {
   username: z.string().min(3, 'Username must be at least 3 characters long'),
   password: z.string().min(6, 'Password must be at least 6 characters long'),
   email: z.string().email('Invalid email address'),
-  role: z.enum(['admin', 'partner', 'analyst', 'observer']),
+  role: z.enum(['admin', 'partner', 'analyst', 'observer', 'intern']),
 }).omit({ id: true });
 
-// Create a new user with password hashing
+// Create a new user with password hashing - ADMIN ONLY
 router.post('/', async (req: Request, res: Response) => {
   try {
+    // Check if the current user is an admin
+    if (!req.session.userId) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    if (!req.session.role || req.session.role !== 'admin') {
+      return res.status(403).json({ message: 'Only administrators can create new users' });
+    }
+    
+    console.log(`Admin user (ID: ${req.session.userId}) attempting to create a new user`);
+    
     // Validate request body
     const userData = userInsertSchema.parse(req.body);
     
@@ -55,6 +66,7 @@ router.post('/', async (req: Request, res: Response) => {
     // Don't return the password
     const { password, ...userWithoutPassword } = newUser;
     
+    console.log(`New user created by admin: ${userData.username}, role: ${userData.role}`);
     res.status(201).json(userWithoutPassword);
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -107,11 +119,27 @@ router.get('/:id', async (req: Request, res: Response) => {
 // Update a user's profile
 router.patch('/:id', async (req: Request, res: Response) => {
   try {
-    const userId = Number(req.params.id);
+    // Check if the current user is authenticated
+    if (!req.session.userId) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    const targetUserId = Number(req.params.id);
+    const currentUserId = req.session.userId;
+    const isAdmin = req.session.role === 'admin';
+    const isOwnProfile = currentUserId === targetUserId;
+    
+    // Users can only update their own profile unless they're an admin
+    if (!isAdmin && !isOwnProfile) {
+      return res.status(403).json({ 
+        message: 'You can only update your own profile' 
+      });
+    }
+    
     const storage = StorageFactory.getStorage();
     
-    // Make sure user exists
-    const existingUser = await storage.getUser(userId);
+    // Make sure target user exists
+    const existingUser = await storage.getUser(targetUserId);
     if (!existingUser) {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -132,12 +160,18 @@ router.patch('/:id', async (req: Request, res: Response) => {
       }
     }
     
-    if (role) {
+    // Only admins can update roles
+    if (role && isAdmin) {
       updateData.role = role;
+      console.log(`Admin (ID: ${currentUserId}) updating role for user ${targetUserId} to: ${role}`);
+    } else if (role && !isAdmin) {
+      return res.status(403).json({ 
+        message: 'Only administrators can update user roles' 
+      });
     }
     
     // Update the user
-    const updatedUser = await storage.updateUser(userId, updateData);
+    const updatedUser = await storage.updateUser(targetUserId, updateData);
     if (!updatedUser) {
       return res.status(500).json({ message: 'Failed to update user' });
     }
@@ -154,7 +188,23 @@ router.patch('/:id', async (req: Request, res: Response) => {
 // Change password endpoint
 router.post('/:id/change-password', async (req: Request, res: Response) => {
   try {
-    const userId = Number(req.params.id);
+    // Check if the current user is authenticated
+    if (!req.session.userId) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    const targetUserId = Number(req.params.id);
+    const currentUserId = req.session.userId;
+    const isAdmin = req.session.role === 'admin';
+    const isOwnPassword = currentUserId === targetUserId;
+    
+    // Users can only change their own password unless they're an admin
+    if (!isAdmin && !isOwnPassword) {
+      return res.status(403).json({ 
+        message: 'You can only change your own password' 
+      });
+    }
+    
     const { currentPassword, newPassword } = req.body;
     
     if (!currentPassword || !newPassword) {
@@ -171,24 +221,26 @@ router.post('/:id/change-password', async (req: Request, res: Response) => {
     
     // Get user to verify current password
     const storage = StorageFactory.getStorage();
-    const user = await storage.getUser(userId);
+    const user = await storage.getUser(targetUserId);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
     
-    // Verify the current password
-    let passwordValid = false;
-    if (user.password.startsWith('$2b$')) {
-      // If the password is hashed, use bcrypt to verify
-      const { verifyPassword } = await import('../utils/auth');
-      passwordValid = await verifyPassword(currentPassword, user.password);
-    } else {
-      // Fallback for plain text passwords
-      passwordValid = user.password === currentPassword;
-    }
-    
-    if (!passwordValid) {
-      return res.status(401).json({ message: 'Current password is incorrect' });
+    // Verify the current password (only if it's not an admin or if it's the own user)
+    let passwordValid = true;
+    if (!isAdmin || isOwnPassword) {
+      if (user.password.startsWith('$2b$')) {
+        // If the password is hashed, use bcrypt to verify
+        const { verifyPassword } = await import('../utils/auth');
+        passwordValid = await verifyPassword(currentPassword, user.password);
+      } else {
+        // Fallback for plain text passwords
+        passwordValid = user.password === currentPassword;
+      }
+      
+      if (!passwordValid) {
+        return res.status(401).json({ message: 'Current password is incorrect' });
+      }
     }
     
     // Hash the new password
@@ -196,11 +248,12 @@ router.post('/:id/change-password', async (req: Request, res: Response) => {
     const hashedPassword = await hashPassword(newPassword);
     
     // Update the user with the new password
-    const updatedUser = await storage.updateUser(userId, { password: hashedPassword });
+    const updatedUser = await storage.updateUser(targetUserId, { password: hashedPassword });
     if (!updatedUser) {
       return res.status(500).json({ message: 'Failed to update password' });
     }
     
+    console.log(`Password changed for user ID ${targetUserId}${isAdmin && !isOwnPassword ? ' by admin' : ''}`);
     res.json({ message: 'Password changed successfully' });
   } catch (error) {
     console.error('Error changing password:', error);

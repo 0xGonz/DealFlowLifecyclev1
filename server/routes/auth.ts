@@ -75,30 +75,51 @@ const registrationSchema = insertUserSchema.extend({
   path: ['passwordConfirm'],
 });
 
-// Register route
+// Register route - public registration always creates analyst users
 router.post('/register', asyncHandler(async (req: Request, res: Response) => {
-  // Validate request body
-  const validatedData = registrationSchema.parse(req.body);
-  
-  // Remove passwordConfirm (it's just for validation)
-  const { passwordConfirm, ...userData } = validatedData;
-  
-  // If initials are not provided, generate them from full name
-  if (!userData.initials) {
-    userData.initials = userData.fullName
-      .split(' ')
-      .map(name => name[0])
-      .join('')
-      .slice(0, 3)
-      .toUpperCase();
+  try {
+    console.log('Handling public registration request');
+    
+    // Validate request body
+    const validatedData = registrationSchema.parse(req.body);
+    
+    // Remove passwordConfirm (it's just for validation)
+    const { passwordConfirm, ...userData } = validatedData;
+    
+    // Self registration should always create users with analyst role or lower
+    if (!userData.role || userData.role === 'admin' || userData.role === 'partner') {
+      console.log(`Overriding requested role ${userData.role} to 'analyst' for public registration`);
+      userData.role = 'analyst';
+    }
+    
+    // If initials are not provided, generate them from full name
+    if (!userData.initials) {
+      userData.initials = userData.fullName
+        .split(' ')
+        .map(name => name[0])
+        .join('')
+        .slice(0, 3)
+        .toUpperCase();
+    }
+    
+    // Generate a random avatar color if not provided
+    if (!userData.avatarColor) {
+      const colors = ['#4f46e5', '#0891b2', '#ea580c', '#be123c', '#7c3aed', '#059669', '#dc2626'];
+      userData.avatarColor = colors[Math.floor(Math.random() * colors.length)];
+    }
+    
+    console.log(`Creating new user via public registration (role: ${userData.role})`);
+    
+    // Register the new user
+    const user = await registerUser(req, userData);
+    
+    // Return user info (without password)
+    const { password: _, ...userWithoutPassword } = user;
+    return res.status(201).json(userWithoutPassword);
+  } catch (error) {
+    console.error('Error in /register endpoint:', error);
+    throw error;
   }
-  
-  // Register the new user
-  const user = await registerUser(req, userData);
-  
-  // Return user info (without password)
-  const { password: _, ...userWithoutPassword } = user;
-  return res.status(201).json(userWithoutPassword);
 }));
 
 export default router;
