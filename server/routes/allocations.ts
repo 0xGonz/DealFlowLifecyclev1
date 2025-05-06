@@ -79,15 +79,19 @@ router.get('/', async (req: Request, res: Response) => {
     
     // Get all deals to get deal names
     const deals = await storage.getDeals();
-    const dealsMap = new Map(deals.map(deal => [deal.id, deal.name]));
+    const dealsMap = new Map(deals.map(deal => [deal.id, { name: deal.name, sector: deal.sector }]));
     
-    // Add deal names
-    const allocationsWithDealNames = allAllocations.map(allocation => ({
-      ...allocation,
-      dealName: dealsMap.get(allocation.dealId) || 'Unknown Deal'
-    }));
+    // Add deal names and sectors
+    const allocationsWithDealInfo = allAllocations.map(allocation => {
+      const dealInfo = dealsMap.get(allocation.dealId) || { name: 'Unknown Deal', sector: '' };
+      return {
+        ...allocation,
+        dealName: dealInfo.name,
+        dealSector: dealInfo.sector // Add deal sector
+      };
+    });
     
-    res.json(allocationsWithDealNames);
+    res.json(allocationsWithDealInfo);
   } catch (error) {
     console.error('Error fetching all allocations:', error);
     res.status(500).json({ message: 'Failed to fetch allocations' });

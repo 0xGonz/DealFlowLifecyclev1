@@ -375,7 +375,7 @@ export default function Funds() {
                     <TableHead className="text-xs sm:text-sm">Deal</TableHead>
                     <TableHead className="text-xs sm:text-sm">Fund</TableHead>
                     <TableHead className="text-xs sm:text-sm">Amount</TableHead>
-                    <TableHead className="text-xs sm:text-sm hidden sm:table-cell">Security Type</TableHead>
+                    <TableHead className="text-xs sm:text-sm hidden sm:table-cell">Sector</TableHead>
                     <TableHead className="text-xs sm:text-sm">Date</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -413,7 +413,7 @@ export default function Funds() {
                           {formatCurrency(allocation.amount)}
                         </TableCell>
                         <TableCell className="hidden sm:table-cell text-neutral-600">
-                          {allocation.securityType || "N/A"}
+                          {allocation.dealSector || "N/A"}
                         </TableCell>
                         <TableCell className="text-neutral-600">
                           {format(new Date(allocation.allocationDate), "MMM d, yyyy")}
