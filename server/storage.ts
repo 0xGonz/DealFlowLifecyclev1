@@ -72,6 +72,7 @@ export interface IStorage {
   getAllocationsByFund(fundId: number): Promise<FundAllocation[]>;
   getAllocationsByDeal(dealId: number): Promise<FundAllocation[]>;
   getFundAllocation(id: number): Promise<FundAllocation | undefined>;
+  updateFundAllocation(id: number, allocation: Partial<InsertFundAllocation>): Promise<FundAllocation | undefined>;
   deleteFundAllocation(id: number): Promise<boolean>;
   
   // Capital Calls
@@ -730,6 +731,19 @@ export class MemStorage implements IStorage {
 
   async getFundAllocation(id: number): Promise<FundAllocation | undefined> {
     return this.fundAllocations.get(id);
+  }
+  
+  async updateFundAllocation(id: number, allocationUpdate: Partial<InsertFundAllocation>): Promise<FundAllocation | undefined> {
+    const allocation = this.fundAllocations.get(id);
+    if (!allocation) return undefined;
+    
+    const updatedAllocation: FundAllocation = {
+      ...allocation,
+      ...allocationUpdate
+    };
+    
+    this.fundAllocations.set(id, updatedAllocation);
+    return updatedAllocation;
   }
 
   async getCapitalCallsByAllocation(allocationId: number): Promise<CapitalCall[]> {

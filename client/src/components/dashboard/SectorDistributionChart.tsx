@@ -14,21 +14,8 @@ interface SectorStatItem {
   percentage: number;
 }
 
-// Predefined colors for sectors matching the reference design
-const SECTOR_COLORS = [
-  '#4e87f6', // Blue (Real Estate)
-  '#f9bf4c', // Orange (Venture)
-  '#f4736d', // Red (Private Credit)
-  '#4cb8a8', // Teal (Buyout)
-  '#9f7cf5', // Purple (Energy)
-  '#f47fa7', // Pink (GP Stakes)
-  '#6dcff6', // Light Blue (Crypto)
-  '#f7d877', // Yellow (Other)
-  '#a4de6c', // Light Green
-  '#83a6ed', // Light Blue
-  '#8dd1e1', // Sky Blue
-  '#d6c1dd', // Lavender
-];
+// Use centralized chart colors for consistency
+import { getSectorColor, FALLBACK_COLORS } from '@/lib/constants/chart-constants';
 
 interface LabelProps {
   cx: number;
@@ -170,7 +157,7 @@ export default function SectorDistributionChart() {
                   {processedData.map((entry, index) => (
                     <Cell 
                       key={`cell-${index}`} 
-                      fill={SECTOR_COLORS[index % SECTOR_COLORS.length]} 
+                      fill={getSectorColor(entry.sector)} 
                     />
                   ))}
                 </Pie>
@@ -192,7 +179,7 @@ export default function SectorDistributionChart() {
                           `${item.sector} `,
                         type: 'circle',
                         id: item.sector,
-                        color: SECTOR_COLORS[index % SECTOR_COLORS.length],
+                        color: getSectorColor(item.sector),
                       };
                     })
                   }

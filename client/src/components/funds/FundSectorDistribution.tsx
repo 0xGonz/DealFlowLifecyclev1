@@ -2,30 +2,12 @@ import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { ResponsiveContainer, PieChart, Pie, Cell, Legend, Tooltip } from 'recharts';
 import { FundAllocation, Deal } from "@shared/schema";
+import { getSectorColor } from "@/lib/constants/chart-constants";
 
 type SectorData = {
   name: string;
   value: number;
   color: string;
-};
-
-const SECTOR_COLORS = {
-  "Private Credit": "#8884d8",
-  "Buyout": "#83a6ed",
-  "Crypto": "#8dd1e1",
-  "GP Stakes": "#82ca9d",
-  "Energy": "#a4de6c",
-  "Venture": "#d0ed57",
-  "Technology": "#ffc658",
-  "SaaS": "#ff8042",
-  "Fintech": "#ff6361",
-  "Healthcare": "#bc5090",
-  "Other": "#b3b3b3"
-};
-
-// Get a color from our map or return a default
-const getSectorColor = (sector: string): string => {
-  return SECTOR_COLORS[sector as keyof typeof SECTOR_COLORS] || "#b3b3b3";
 };
 
 interface FundSectorDistributionProps {

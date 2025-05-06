@@ -556,6 +556,23 @@ export class DatabaseStorage implements IStorage {
     return allocation || undefined;
   }
   
+  async updateFundAllocation(id: number, allocationUpdate: Partial<InsertFundAllocation>): Promise<FundAllocation | undefined> {
+    if (!db) {
+      throw new Error('Database not initialized');
+    }
+    try {
+      const [updatedAllocation] = await db
+        .update(fundAllocations)
+        .set(allocationUpdate)
+        .where(eq(fundAllocations.id, id))
+        .returning();
+      return updatedAllocation || undefined;
+    } catch (error) {
+      console.error('Error updating fund allocation:', error);
+      return undefined;
+    }
+  }
+  
   async getCapitalCallsByAllocation(allocationId: number): Promise<CapitalCall[]> {
     if (!db) {
       throw new Error('Database not initialized');

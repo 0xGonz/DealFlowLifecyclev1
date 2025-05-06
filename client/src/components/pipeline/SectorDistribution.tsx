@@ -10,21 +10,8 @@ type SectorDistributionProps = {
   stage: string;
 };
 
-// Predefined colors for sectors matching the dashboard
-const SECTOR_COLORS = [
-  '#4e87f6', // Blue
-  '#f9bf4c', // Orange
-  '#f4736d', // Red
-  '#4cb8a8', // Teal
-  '#9f7cf5', // Purple
-  '#f47fa7', // Pink
-  '#6dcff6', // Light Blue
-  '#f7d877', // Yellow
-  '#a4de6c', // Light Green
-  '#83a6ed', // Periwinkle
-  '#8dd1e1', // Sky Blue
-  '#d6c1dd', // Lavender
-];
+// Use centralized chart colors for consistent look across app
+import { getSectorColor } from '@/lib/constants/chart-constants';
 
 const renderCustomizedLabel = ({
   cx, cy, midAngle, innerRadius, outerRadius, percent, index, name
@@ -168,7 +155,7 @@ export default function SectorDistribution({ deals, stage }: SectorDistributionP
                 {processedData.map((entry, index) => (
                   <Cell 
                     key={`cell-${index}`} 
-                    fill={SECTOR_COLORS[index % SECTOR_COLORS.length]} 
+                    fill={getSectorColor(entry.name)} 
                   />
                 ))}
               </Pie>
@@ -190,7 +177,7 @@ export default function SectorDistribution({ deals, stage }: SectorDistributionP
                         `${item.name} `,
                       type: 'circle',
                       id: item.name,
-                      color: SECTOR_COLORS[index % SECTOR_COLORS.length],
+                      color: getSectorColor(item.name),
                     };
                   })
                 }

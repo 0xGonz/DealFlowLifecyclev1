@@ -266,15 +266,22 @@ async function generateCapitalCalls(allocationId: number, scheduleType: string, 
     const dueDate = new Date(firstCallDate);
     dueDate.setDate(dueDate.getDate() + DEFAULT_DURATIONS.CAPITAL_CALL_DUE_DAYS); // Due in configured days
     
+    // For single payments, we create a capital call that's already paid
+    // This matches the 'funded' status that we set on the allocation
     await storage.createCapitalCall({
       allocationId,
       callAmount: percentage, // Now callAmount represents percentage
       amountType: 'percentage', // Explicitly set the amount type
       callDate,
       dueDate,
-      status: CAPITAL_CALL_STATUS.SCHEDULED,
-      notes: `${formatPercentage(percentage)} capital call`
+      status: CAPITAL_CALL_STATUS.PAID, // Mark as PAID for single payments
+      paidAmount: percentage, // Set paid amount to match call amount
+      paidDate: new Date(), // Set paid date to today
+      notes: `${formatPercentage(percentage)} single payment - fully funded`
     });
+    
+    // Also update the allocation status to 'funded'
+    await storage.updateFundAllocation(allocationId, { status: 'funded' });
     
     return;
   }
