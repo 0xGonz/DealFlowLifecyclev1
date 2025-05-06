@@ -8,6 +8,7 @@ import { db } from './db';
  */
 export class StorageFactory {
   private static instance: IStorage;
+  static storage: IStorage;
 
   /**
    * Get the appropriate storage implementation based on environment
@@ -29,6 +30,8 @@ export class StorageFactory {
         this.instance = new MemStorage();
       }
     }
+    // Set the static storage property to the instance for easier access
+    this.storage = this.instance;
     return this.instance;
   }
 
@@ -37,6 +40,7 @@ export class StorageFactory {
    */
   public static setStorage(storage: IStorage): void {
     this.instance = storage;
+    this.storage = storage;
   }
 
   /**
@@ -44,5 +48,6 @@ export class StorageFactory {
    */
   public static resetStorage(): void {
     this.instance = undefined as unknown as IStorage;
+    this.storage = undefined as unknown as IStorage;
   }
 }

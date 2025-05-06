@@ -5,6 +5,59 @@ import { z } from 'zod';
 
 const router = Router();
 
+// Helper function to update allocation status based on capital calls
+async function updateAllocationStatusBasedOnCapitalCalls(allocationId: number): Promise<void> {
+  try {
+    const storage = StorageFactory.getStorage();
+    
+    // Get the allocation
+    const allocation = await storage.getFundAllocation(allocationId);
+    if (!allocation) return;
+    
+    // Get capital calls for this allocation
+    const capitalCalls = await storage.getCapitalCallsByAllocation(allocationId);
+    if (!capitalCalls || capitalCalls.length === 0) return;
+    
+    // Calculate total called amount and total paid amount
+    let totalCalledAmount = 0;
+    let totalPaidAmount = 0;
+    
+    for (const call of capitalCalls) {
+      if (call.status !== 'scheduled') {
+        // Only count calls that have been actually called or paid
+        totalCalledAmount += call.callAmount;
+      }
+      
+      if (call.status === 'paid' && call.paidAmount) {
+        totalPaidAmount += call.paidAmount;
+      }
+    }
+    
+    // Determine allocation status based on capital calls
+    let newStatus = allocation.status;
+    
+    // If no capital has been called, status remains 'committed'
+    if (totalCalledAmount === 0) {
+      newStatus = 'committed';
+    }
+    // If some capital has been called and fully paid, status is 'funded'
+    else if (totalPaidAmount >= totalCalledAmount) {
+      newStatus = 'funded';
+    }
+    // If some capital has been called but not fully paid, status is 'committed'
+    else if (totalPaidAmount < totalCalledAmount) {
+      newStatus = 'committed';
+    }
+    
+    // Only update if status changed
+    if (newStatus !== allocation.status) {
+      await storage.updateFundAllocation(allocation.id, { status: newStatus });
+    }
+  } catch (error) {
+    console.error(`Error updating allocation status for allocation ${allocationId}:`, error);
+  }
+}
+
 // Get all allocations
 router.get('/', async (req: Request, res: Response) => {
   try {
@@ -115,11 +168,27 @@ router.post('/', async (req: Request, res: Response) => {
     const allDeals = await storage.getDeals();
     const validDealIds = allDeals.map(deal => deal.id);
     
-    // Update fund AUM based on valid allocations only
+    // Update fund AUM and recalculate portfolio weights for all allocations
     const fundAllocations = await storage.getAllocationsByFund(fund.id);
     const validAllocations = fundAllocations.filter(alloc => validDealIds.includes(alloc.dealId));
     const totalAllocationAmount = validAllocations.reduce((sum, allocation) => sum + allocation.amount, 0);
+    
+    // Update fund's total AUM
     await storage.updateFund(fund.id, { aum: totalAllocationAmount });
+    
+    // Update portfolio weights for all allocations in this fund
+    if (totalAllocationAmount > 0) {
+      for (const allocation of validAllocations) {
+        // Calculate portfolio weight as percentage of total fund AUM
+        const portfolioWeight = (allocation.amount / totalAllocationAmount) * 100;
+        
+        // Update portfolio weight
+        await storage.updateFundAllocation(allocation.id, { portfolioWeight });
+        
+        // Check capital calls to update allocation status
+        await updateAllocationStatusBasedOnCapitalCalls(allocation.id);
+      }
+    }
     
     res.status(201).json(newAllocation);
   } catch (error) {
@@ -229,11 +298,27 @@ router.delete('/:id', async (req: Request, res: Response) => {
     const deals = await storage.getDeals();
     const validDealIds = deals.map(deal => deal.id);
     
-    // Update fund AUM based on remaining valid allocations
+    // Update fund AUM and recalculate portfolio weights for all remaining allocations
     const fundAllocations = await storage.getAllocationsByFund(allocation.fundId);
     const validAllocations = fundAllocations.filter(alloc => validDealIds.includes(alloc.dealId));
     const totalAllocationAmount = validAllocations.reduce((sum, alloc) => sum + alloc.amount, 0);
+    
+    // Update fund's total AUM
     await storage.updateFund(allocation.fundId, { aum: totalAllocationAmount });
+    
+    // Update portfolio weights for all allocations in this fund
+    if (totalAllocationAmount > 0) {
+      for (const alloc of validAllocations) {
+        // Calculate portfolio weight as percentage of total fund AUM
+        const portfolioWeight = (alloc.amount / totalAllocationAmount) * 100;
+        
+        // Update portfolio weight
+        await storage.updateFundAllocation(alloc.id, { portfolioWeight });
+        
+        // Check capital calls to update allocation status
+        await updateAllocationStatusBasedOnCapitalCalls(alloc.id);
+      }
+    }
     
     // Create a timeline event for this deletion if deal exists
     if (deal) {

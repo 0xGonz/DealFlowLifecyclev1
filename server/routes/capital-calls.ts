@@ -10,15 +10,15 @@ import { inArray } from 'drizzle-orm';
 const { TIME_MS, DEFAULT_DURATIONS } = TimeConstants;
 
 const router = Router();
-const storage = StorageFactory.getStorage();
+// Using static storage property directly for consistency
 
 // Get all capital calls with detail joins
 router.get('/', async (req: Request, res: Response) => {
   try {
     // Get raw capital calls
-    const capitalCalls = await storage.getAllCapitalCalls();
+    const capitalCalls = await StorageFactory.storage.getAllCapitalCalls();
     // Get all deals to validate which deals exist
-    const deals = await storage.getDeals();
+    const deals = await StorageFactory.storage.getDeals();
     const validDealIds = deals.map(deal => deal.id);
 
     // Get all allocations for validation
@@ -29,7 +29,7 @@ router.get('/', async (req: Request, res: Response) => {
     
     const allocations: AllocationMap[] = [];
     for (const call of capitalCalls) {
-      const allocation = await storage.getFundAllocation(call.allocationId);
+      const allocation = await StorageFactory.storage.getFundAllocation(call.allocationId);
       allocations.push({ callId: call.id, allocation });
     }
     
@@ -46,14 +46,14 @@ router.get('/', async (req: Request, res: Response) => {
         })
         .map(async (call) => {
           // Get the allocation
-          const allocation = await storage.getFundAllocation(call.allocationId);
+          const allocation = await StorageFactory.storage.getFundAllocation(call.allocationId);
           if (!allocation) {
             return null; // Should never happen due to the filter, but just in case
           }
           
           // Get deal and fund names
-          const deal = await storage.getDeal(allocation.dealId);
-          const fund = await storage.getFund(allocation.fundId);
+          const deal = await StorageFactory.storage.getDeal(allocation.dealId);
+          const fund = await StorageFactory.storage.getFund(allocation.fundId);
           
           return {
             ...call,
@@ -79,12 +79,12 @@ router.get('/deal/:dealId', async (req: Request, res: Response) => {
     const dealId = parseInt(req.params.dealId);
     
     // First verify the deal exists
-    const deal = await storage.getDeal(dealId);
+    const deal = await StorageFactory.storage.getDeal(dealId);
     if (!deal) {
       return res.status(404).json({ error: 'Deal not found' });
     }
     
-    const capitalCalls = await storage.getCapitalCallsByDeal(dealId);
+    const capitalCalls = await StorageFactory.storage.getCapitalCallsByDeal(dealId);
     res.json(capitalCalls);
   } catch (error) {
     console.error(`Error fetching capital calls for deal ${req.params.dealId}:`, error);
@@ -98,18 +98,18 @@ router.get('/allocation/:allocationId', async (req: Request, res: Response) => {
     const allocationId = parseInt(req.params.allocationId);
     
     // First verify the allocation exists
-    const allocation = await storage.getFundAllocation(allocationId);
+    const allocation = await StorageFactory.storage.getFundAllocation(allocationId);
     if (!allocation) {
       return res.status(404).json({ error: 'Allocation not found' });
     }
     
     // Then verify the deal exists
-    const deal = await storage.getDeal(allocation.dealId);
+    const deal = await StorageFactory.storage.getDeal(allocation.dealId);
     if (!deal) {
       return res.status(404).json({ error: 'Allocation is linked to a nonexistent deal' });
     }
     
-    const capitalCalls = await storage.getCapitalCallsByAllocation(allocationId);
+    const capitalCalls = await StorageFactory.storage.getCapitalCallsByAllocation(allocationId);
     res.json(capitalCalls);
   } catch (error) {
     console.error(`Error fetching capital calls for allocation ${req.params.allocationId}:`, error);
@@ -144,7 +144,7 @@ router.post('/', async (req: Request, res: Response) => {
       const dealId = modifiedBody.dealId;
       
       // Find a suitable allocation for this deal
-      const allocations = await storage.getAllocationsByDeal(dealId);
+      const allocations = await StorageFactory.storage.getAllocationsByDeal(dealId);
       if (allocations && allocations.length > 0) {
         // Simply use the first allocation for this deal
         modifiedBody.allocationId = allocations[0].id;
@@ -167,7 +167,7 @@ router.post('/', async (req: Request, res: Response) => {
     };
     
     const validatedData = insertCapitalCallSchema.parse(data);
-    const capitalCall = await storage.createCapitalCall(validatedData);
+    const capitalCall = await StorageFactory.storage.createCapitalCall(validatedData);
     res.status(201).json(capitalCall);
   } catch (error) {
     console.error('Error creating capital call:', error);
@@ -185,11 +185,21 @@ router.patch('/:id/status', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Invalid status value' });
     }
     
-    const updatedCall = await storage.updateCapitalCallStatus(id, status, paidAmount);
-    
-    if (!updatedCall) {
+    // First get the capital call to get the allocation ID
+    const capitalCall = await StorageFactory.storage.getCapitalCall(id);
+    if (!capitalCall) {
       return res.status(404).json({ error: 'Capital call not found' });
     }
+    
+    // Update the capital call status
+    const updatedCall = await StorageFactory.storage.updateCapitalCallStatus(id, status, paidAmount);
+    
+    if (!updatedCall) {
+      return res.status(404).json({ error: 'Capital call not found or could not be updated' });
+    }
+    
+    // Update the allocation status based on capital calls
+    await updateAllocationStatusBasedOnCapitalCalls(capitalCall.allocationId);
     
     res.json(updatedCall);
   } catch (error) {
@@ -198,11 +208,67 @@ router.patch('/:id/status', async (req: Request, res: Response) => {
   }
 });
 
+// Helper function to update allocation status based on capital calls
+// Export for testing purposes
+export async function updateAllocationStatusBasedOnCapitalCalls(allocationId: number): Promise<void> {
+  try {
+    // Get the allocation
+    const allocation = await StorageFactory.storage.getFundAllocation(allocationId);
+    if (!allocation) return;
+    
+    // Get capital calls for this allocation
+    const capitalCalls = await StorageFactory.storage.getCapitalCallsByAllocation(allocationId);
+    if (!capitalCalls || capitalCalls.length === 0) return;
+    
+    // Calculate total called amount and total paid amount
+    let totalCalledAmount = 0;
+    let totalPaidAmount = 0;
+    
+    for (const call of capitalCalls) {
+      if (call.status !== 'scheduled') {
+        // Only count calls that have been actually called or paid
+        totalCalledAmount += call.callAmount;
+      }
+      
+      if (call.status === 'paid' && call.paidAmount) {
+        totalPaidAmount += call.paidAmount;
+      }
+    }
+    
+    // Determine allocation status based on capital calls
+    let newStatus = allocation.status;
+    
+    // If no capital has been called, status remains 'committed'
+    if (totalCalledAmount === 0) {
+      newStatus = 'committed';
+    }
+    // If some capital has been called and fully paid, status is 'funded'
+    else if (totalPaidAmount >= totalCalledAmount) {
+      newStatus = 'funded';
+    }
+    // If some capital has been called but not fully paid, status is 'committed'
+    else if (totalPaidAmount < totalCalledAmount) {
+      newStatus = 'committed';
+    }
+    
+    // Only update if status changed
+    if (newStatus !== allocation.status) {
+      await StorageFactory.storage.updateFundAllocation(allocation.id, { status: newStatus });
+    }
+  } catch (error) {
+    console.error(`Error updating allocation status for allocation ${allocationId}:`, error);
+  }
+}
+
 // Generate capital calls based on schedule
 router.post('/generate', async (req: Request, res: Response) => {
   try {
-    const { allocationId, scheduleType, options } = req.body;
-    await generateCapitalCalls(allocationId, scheduleType, options);
+    const { allocationId: allocId, scheduleType, options } = req.body;
+    const generatedAllocId = await generateCapitalCalls(allocId, scheduleType, options);
+    
+    // Update the allocation status based on capital calls
+    await updateAllocationStatusBasedOnCapitalCalls(generatedAllocId);
+    
     res.status(201).json({ message: 'Capital calls generated successfully' });
   } catch (error) {
     console.error('Error generating capital calls:', error);
@@ -214,13 +280,13 @@ router.post('/generate', async (req: Request, res: Response) => {
 router.get('/test-amounttype', async (req: Request, res: Response) => {
   try {
     // Create a test capital call with dollar amount type
-    const testAllocation = await storage.getFundAllocation(1); // Get first allocation for test
+    const testAllocation = await StorageFactory.storage.getFundAllocation(1); // Get first allocation for test
     
     if (!testAllocation) {
       return res.status(404).json({ error: 'No allocations found for testing' });
     }
     
-    const testCall = await storage.createCapitalCall({
+    const testCall = await StorageFactory.storage.createCapitalCall({
       allocationId: testAllocation.id,
       callAmount: 50, // 50%
       amountType: 'dollar', // Explicitly set to dollar
@@ -231,7 +297,7 @@ router.get('/test-amounttype', async (req: Request, res: Response) => {
     });
     
     // Retrieve the test call to verify the amountType was saved
-    const retrievedCall = await storage.getCapitalCall(testCall.id);
+    const retrievedCall = await StorageFactory.storage.getCapitalCall(testCall.id);
     
     res.json({
       created: testCall,
@@ -245,9 +311,9 @@ router.get('/test-amounttype', async (req: Request, res: Response) => {
 });
 
 // Helper function to generate capital calls from allocation details
-async function generateCapitalCalls(allocationId: number, scheduleType: string, options: any) {
+async function generateCapitalCalls(allocationId: number, scheduleType: string, options: any): Promise<number> {
   const { firstCallDate, callCount, callPercentage, customSchedule } = options;
-  const allocation = await storage.getFundAllocation(allocationId);
+  const allocation = await StorageFactory.storage.getFundAllocation(allocationId);
   
   if (!allocation) {
     throw new Error('Allocation not found');
@@ -268,7 +334,7 @@ async function generateCapitalCalls(allocationId: number, scheduleType: string, 
     
     // For single payments, we create a capital call that's already paid
     // This matches the 'funded' status that we set on the allocation
-    await storage.createCapitalCall({
+    await StorageFactory.storage.createCapitalCall({
       allocationId,
       callAmount: percentage, // Now callAmount represents percentage
       amountType: 'percentage', // Explicitly set the amount type
@@ -281,9 +347,9 @@ async function generateCapitalCalls(allocationId: number, scheduleType: string, 
     });
     
     // Also update the allocation status to 'funded'
-    await storage.updateFundAllocation(allocationId, { status: 'funded' });
+    await StorageFactory.storage.updateFundAllocation(allocationId, { status: 'funded' });
     
-    return;
+    return allocationId;
   }
   
   // For custom schedule
@@ -296,7 +362,7 @@ async function generateCapitalCalls(allocationId: number, scheduleType: string, 
       const dueDate = new Date(call.date);
       dueDate.setDate(dueDate.getDate() + DEFAULT_DURATIONS.CAPITAL_CALL_DUE_DAYS); // Due in configured days
       
-      await storage.createCapitalCall({
+      await StorageFactory.storage.createCapitalCall({
         allocationId,
         callAmount: percentage, // Now callAmount represents percentage
         amountType: call.amountType || 'percentage', // Use the amountType from the call or default to percentage
@@ -307,7 +373,7 @@ async function generateCapitalCalls(allocationId: number, scheduleType: string, 
       });
     }
     
-    return;
+    return allocationId;
   }
   
   // For regular schedules (monthly, quarterly, biannual, annual)
@@ -327,7 +393,7 @@ async function generateCapitalCalls(allocationId: number, scheduleType: string, 
     const dueDate = new Date(callDate);
     dueDate.setDate(dueDate.getDate() + DEFAULT_DURATIONS.CAPITAL_CALL_DUE_DAYS); // Due in configured days
     
-    await storage.createCapitalCall({
+    await StorageFactory.storage.createCapitalCall({
       allocationId,
       callAmount: perCallPercentage, // Now callAmount represents percentage
       amountType: 'percentage', // For regular schedules, always use percentage
@@ -337,6 +403,8 @@ async function generateCapitalCalls(allocationId: number, scheduleType: string, 
       notes: `${scheduleType} capital call ${i + 1} of ${count} (${formatPercentage(perCallPercentage)})`
     });
   }
+  
+  return allocationId;
 }
 
 export default router;
