@@ -175,6 +175,35 @@
   align-items: center;
 }
 
+/* Calendar specific styles */
+.rdp {
+  width: 100% !important;
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.rdp-months {
+  width: 100% !important;
+  height: 100% !important;
+  display: flex !important;
+  justify-content: center !important;
+}
+
+.rdp-month {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.rdp-table {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.rdp-cell, .rdp-head_cell {
+  padding: 0 !important;
+}
+
 .react-pdf__Page {
   margin-bottom: 1rem;
 }
