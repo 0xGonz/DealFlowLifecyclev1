@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/table";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { ArrowUp, ArrowDown } from "lucide-react";
+// No arrows needed anymore
 import DealStar from "@/components/deals/DealStar";
 import { Badge } from "@/components/ui/badge";
 import { useLocation } from "wouter";
@@ -83,20 +83,7 @@ export default function Leaderboard() {
                             </TableCell>
                             <TableCell className="text-right text-xs sm:text-sm py-2 sm:py-3">
                               <div className="flex items-center justify-end">
-                                <span className="text-base sm:text-lg font-semibold mr-1 sm:mr-2">{typeof deal.score === 'number' ? formatPercentage(deal.score, FINANCIAL_CALCULATION.PRECISION.PERCENTAGE) : deal.score}</span>
-                                {deal.change > 0 ? (
-                                  <span className="text-success text-[10px] sm:text-xs flex items-center">
-                                    <ArrowUp className="h-3 w-3 mr-0.5 sm:mr-1" />
-                                    {deal.change}
-                                  </span>
-                                ) : deal.change < 0 ? (
-                                  <span className="text-destructive text-[10px] sm:text-xs flex items-center">
-                                    <ArrowDown className="h-3 w-3 mr-0.5 sm:mr-1" />
-                                    {Math.abs(deal.change)}
-                                  </span>
-                                ) : (
-                                  <span className="text-neutral-500 text-[10px] sm:text-xs">-</span>
-                                )}
+                                <span className="text-base sm:text-lg font-semibold">{typeof deal.score === 'number' ? formatPercentage(deal.score, FINANCIAL_CALCULATION.PRECISION.PERCENTAGE) : deal.score}</span>
                               </div>
                             </TableCell>
                             <TableCell className="text-center text-xs sm:text-sm py-2 sm:py-3">
