@@ -55,14 +55,10 @@ export function hasPermission(user: any, permission: Permission, resourceType: R
     return permission === 'view';
   }
   
-  // Intern can view everything, create new deals, but can only PARTIALLY edit deals
-  // Interns specifically cannot change deal stages or delete deals
+  // Intern can view everything and only create/edit deals
   if (role === 'intern') {
     if (permission === 'view') return true;
-    if (permission === 'create' && resourceType === 'deal') return true;
-    // Allow editing only specific aspects of deals, but not stage changes
-    if (permission === 'edit' && resourceType === 'deal') return true;
-    // All other permissions denied
+    if ((permission === 'create' || permission === 'edit') && resourceType === 'deal') return true;
     return false;
   }
   
