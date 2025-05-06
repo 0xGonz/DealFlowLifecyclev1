@@ -570,68 +570,7 @@ export default function FundDetail() {
               </Card>
             </div>
             
-            {/* Fund Performance Metrics */}
-            <div className="mb-8">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Fund Performance</CardTitle>
-                  <CardDescription>
-                    Key performance metrics for this fund
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="p-4 bg-primary/5 rounded-lg">
-                      <h3 className="text-sm text-gray-500 mb-1">Called Capital</h3>
-                      <p className="text-xl font-semibold">
-                        {formatCurrency(allocations?.reduce((sum, allocation) => sum + allocation.amount, 0) || 0)}
-                      </p>
-                    </div>
-                    
-                    <div className="p-4 bg-primary/5 rounded-lg">
-                      <h3 className="text-sm text-gray-500 mb-1">Distribution Rate</h3>
-                      <p className="text-xl font-semibold">
-                        {fund?.distributionRate ? `${fund.distributionRate.toFixed(2)}%` : "0.00%"}
-                      </p>
-                    </div>
-                    
-                    <div className="p-4 bg-primary/5 rounded-lg">
-                      <h3 className="text-sm text-gray-500 mb-1">Appreciation Rate</h3>
-                      <p className="text-xl font-semibold">
-                        {fund?.appreciationRate ? `${fund.appreciationRate.toFixed(2)}%` : "0.00%"}
-                      </p>
-                    </div>
-                    
-                    <div className="p-4 bg-primary/5 rounded-lg">
-                      <h3 className="text-sm text-gray-500 mb-1">Vintage</h3>
-                      <p className="text-xl font-semibold">
-                        {fund?.createdAt ? format(new Date(fund.createdAt), "yyyy") : "N/A"}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="mt-6">
-                    <h3 className="text-base font-medium mb-3">Summary</h3>
-                    <table className="w-full">
-                      <tbody>
-                        <tr className="border-b">
-                          <td className="py-2 text-neutral-600">Fund Size</td>
-                          <td className="py-2 text-right font-medium">{formatCurrency(fund?.aum || 0)}</td>
-                        </tr>
-                        <tr className="border-b">
-                          <td className="py-2 text-neutral-600">Vintage Year</td>
-                          <td className="py-2 text-right font-medium">{fund?.vintage || "N/A"}</td>
-                        </tr>
-                        <tr className="border-b">
-                          <td className="py-2 text-neutral-600">Number of Investments</td>
-                          <td className="py-2 text-right font-medium">{allocations?.length || 0}</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            {/* Fund Performance Metrics Section Removed - Redundant with Overview */}
           </>
         )}
       </div>
