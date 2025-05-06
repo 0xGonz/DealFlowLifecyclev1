@@ -32,6 +32,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import AppLayout from '@/components/layout/AppLayout';
 import ClosingEventForm from '@/components/calendar/ClosingEventForm';
+import CapitalCallForm from '@/components/calendar/CapitalCallForm';
 
 interface CapitalCall {
   id: number;
@@ -69,8 +70,9 @@ const CalendarPage = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [eventTypeFilter, setEventTypeFilter] = useState<string>('all');
   
-  // State for closing event form
+  // State for forms
   const [isClosingEventFormOpen, setIsClosingEventFormOpen] = useState(false);
+  const [isCapitalCallFormOpen, setIsCapitalCallFormOpen] = useState(false);
   
   // Fetch capital calls
   const { data: capitalCalls = [], isLoading: isLoadingCalls } = useQuery<CapitalCall[]>({
@@ -262,14 +264,23 @@ const CalendarPage = () => {
           <h1 className="text-3xl font-bold">Calendar</h1>
           
           <div className="flex gap-2 items-center">
-            <Button 
-              onClick={() => setIsClosingEventFormOpen(true)}
-              size="sm"
-              className="mr-2"
-            >
-              <Plus className="h-4 w-4 mr-1" />
-              New Closing Event
-            </Button>
+            <div className="flex space-x-2 mr-2">
+              <Button 
+                onClick={() => setIsClosingEventFormOpen(true)}
+                size="sm"
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                New Closing Event
+              </Button>
+              <Button 
+                onClick={() => setIsCapitalCallFormOpen(true)}
+                size="sm"
+                variant="outline"
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                New Capital Call
+              </Button>
+            </div>
             
             <Tabs 
               value={selectedView} 
@@ -554,10 +565,15 @@ const CalendarPage = () => {
           </div>
         </div>
       </div>
-      {/* Closing Event Form */}
+      {/* Forms */}
       <ClosingEventForm
         isOpen={isClosingEventFormOpen}
         onClose={() => setIsClosingEventFormOpen(false)}
+        selectedDate={selectedDate}
+      />
+      <CapitalCallForm
+        isOpen={isCapitalCallFormOpen}
+        onClose={() => setIsCapitalCallFormOpen(false)}
         selectedDate={selectedDate}
       />
     </AppLayout>
