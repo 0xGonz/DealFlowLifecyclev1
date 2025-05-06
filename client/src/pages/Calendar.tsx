@@ -232,12 +232,12 @@ const CalendarPage = () => {
           {format(date, 'd')}
         </span>
         {highlight && (
-          <div className="absolute bottom-1 flex gap-0.5 justify-center">
+          <div className="absolute bottom-1 flex gap-1 justify-center">
             {highlight.types.has('call') && (
-              <div className={`h-1.5 w-1.5 rounded-full ${CALENDAR_INDICATOR_COLORS.CALL}`}></div>
+              <div className={`h-2 w-2 rounded-full ${CALENDAR_INDICATOR_COLORS.CALL}`}></div>
             )}
             {highlight.types.has('closing') && (
-              <div className={`h-1.5 w-1.5 rounded-full ${CALENDAR_INDICATOR_COLORS.CLOSING}`}></div>
+              <div className={`h-2 w-2 rounded-full ${CALENDAR_INDICATOR_COLORS.CLOSING}`}></div>
             )}
           </div>
         )}
@@ -306,9 +306,9 @@ const CalendarPage = () => {
           </div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-[minmax(350px,40%)_1fr] gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-[minmax(350px,40%)_1fr] gap-6 min-h-[600px]">
           {/* Calendar */}
-          <Card className={selectedView === CALENDAR_VIEWS.LIST ? 'hidden md:block' : ''}>
+          <Card className={`h-full ${selectedView === CALENDAR_VIEWS.LIST ? 'hidden md:block' : ''}`}>
             <CardContent className="p-4 flex flex-col h-full">
               <Calendar
                 mode="single"
