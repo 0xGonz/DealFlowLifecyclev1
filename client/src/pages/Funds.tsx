@@ -273,92 +273,94 @@ export default function Funds() {
             </div>
           ) : (
             funds?.map(fund => (
-              <Card key={fund.id} className="overflow-hidden hover:shadow-md transition-shadow duration-200 flex flex-col h-full">
-                <CardHeader className="bg-primary/10 pb-2 sm:pb-3 flex justify-between items-start">
-                  <CardTitle className="text-base sm:text-lg font-semibold truncate pr-2">{fund.name}</CardTitle>
-                  {canEdit('fund') && (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0" aria-label="Fund options">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          onClick={() => {
-                            setCurrentFund(fund);
-                            setEditFundData({
-                              name: fund.name,
-                              vintage: fund.vintage || new Date().getFullYear(),
-                              description: fund.description || "",
-                            });
-                            setIsEditFundDialogOpen(true);
-                          }}
-                        >
-                          <Pencil className="mr-2 h-4 w-4" /> Edit Fund
-                        </DropdownMenuItem>
-                        {canDelete('fund') && (
-                          <DropdownMenuItem
-                            className="text-destructive focus:text-destructive"
-                            onClick={() => {
-                              setCurrentFund(fund);
-                              setIsDeleteDialogOpen(true);
-                            }}
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" /> Delete Fund
-                          </DropdownMenuItem>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  )}
-                </CardHeader>
-                <CardContent className="pt-3 sm:pt-4 flex-grow">
-                  <div className="flex flex-col mb-3 sm:mb-4 space-y-3">
-                    <div>
-                      <p className="text-xs sm:text-sm text-neutral-600 mb-0.5">Called Capital</p>
-                      <p className="text-xl font-semibold flex items-center">
-                        {formatCurrency(fund.aum)}
-                      </p>
-                    </div>
-                    <div className="flex justify-between items-center">
+              <Link href={`/funds/${fund.id}`} className="block" key={fund.id}>
+                <Card className="overflow-hidden hover:shadow-md transition-shadow duration-200 flex flex-col h-full cursor-pointer">
+                  <CardHeader className="bg-primary/10 pb-2 sm:pb-3 flex justify-between items-start">
+                    <CardTitle className="text-base sm:text-lg font-semibold truncate pr-2">{fund.name}</CardTitle>
+                    {canEdit('fund') && (
+                      <div onClick={(e) => e.stopPropagation()}>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0" aria-label="Fund options">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              onClick={() => {
+                                setCurrentFund(fund);
+                                setEditFundData({
+                                  name: fund.name,
+                                  vintage: fund.vintage || new Date().getFullYear(),
+                                  description: fund.description || "",
+                                });
+                                setIsEditFundDialogOpen(true);
+                              }}
+                            >
+                              <Pencil className="mr-2 h-4 w-4" /> Edit Fund
+                            </DropdownMenuItem>
+                            {canDelete('fund') && (
+                              <DropdownMenuItem
+                                className="text-destructive focus:text-destructive"
+                                onClick={() => {
+                                  setCurrentFund(fund);
+                                  setIsDeleteDialogOpen(true);
+                                }}
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" /> Delete Fund
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    )}
+                  </CardHeader>
+                  <CardContent className="pt-3 sm:pt-4 flex-grow">
+                    <div className="flex flex-col mb-3 sm:mb-4 space-y-3">
                       <div>
-                        <p className="text-xs text-neutral-600 mb-0.5">Vintage</p>
-                        <p className="text-lg font-medium">
-                          {fund.vintage || "N/A"}
+                        <p className="text-xs sm:text-sm text-neutral-600 mb-0.5">Called Capital</p>
+                        <p className="text-xl font-semibold flex items-center">
+                          {formatCurrency(fund.aum)}
                         </p>
                       </div>
-                      <div>
-                        <p className="text-xs text-neutral-600 mb-0.5">Status</p>
-                        <Badge variant="outline" className="font-normal">
-                          {fund.vintage && fund.vintage >= new Date().getFullYear() ? "Active" : "Legacy"}
-                        </Badge>
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <p className="text-xs text-neutral-600 mb-0.5">Vintage</p>
+                          <p className="text-lg font-medium">
+                            {fund.vintage || "N/A"}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-neutral-600 mb-0.5">Status</p>
+                          <Badge variant="outline" className="font-normal">
+                            {fund.vintage && fund.vintage >= new Date().getFullYear() ? "Active" : "Legacy"}
+                          </Badge>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  
-                  <div className="min-h-[2.5rem] mb-3 sm:mb-4">
-                    {fund.description ? (
-                      <p className="text-xs sm:text-sm text-neutral-600 line-clamp-2">{fund.description}</p>
-                    ) : (
-                      <p className="text-xs sm:text-sm text-neutral-400 italic">No description</p>
-                    )}
-                  </div>
-                  
-                  <div className="text-[10px] sm:text-xs text-neutral-500">
-                    Created {formatDistanceToNow(new Date(fund.createdAt), { addSuffix: true })}
-                  </div>
-                </CardContent>
-                <CardFooter className="bg-neutral-50 border-t p-2 sm:p-3 mt-auto">
-                  <Button variant="ghost" size="sm" className="ml-auto h-7 sm:h-8 px-2 sm:px-3 text-xs sm:text-sm" asChild>
-                    <Link href={`/funds/${fund.id}`} className="flex items-center">
+                    
+                    <div className="min-h-[2.5rem] mb-3 sm:mb-4">
+                      {fund.description ? (
+                        <p className="text-xs sm:text-sm text-neutral-600 line-clamp-2">{fund.description}</p>
+                      ) : (
+                        <p className="text-xs sm:text-sm text-neutral-400 italic">No description</p>
+                      )}
+                    </div>
+                    
+                    <div className="text-[10px] sm:text-xs text-neutral-500">
+                      Created {formatDistanceToNow(new Date(fund.createdAt), { addSuffix: true })}
+                    </div>
+                  </CardContent>
+                  <CardFooter className="bg-neutral-50 border-t p-2 sm:p-3 mt-auto">
+                    <div className="ml-auto flex items-center text-xs sm:text-sm text-primary">
                       View Details
                       <ArrowUpRight className="ml-1 h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                    </Link>
-                  </Button>
-                </CardFooter>
-              </Card>
+                    </div>
+                  </CardFooter>
+                </Card>
+              </Link>
             ))
           )}
         </div>
