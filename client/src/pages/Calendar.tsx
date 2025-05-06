@@ -29,8 +29,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Loader2, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import AppLayout from '@/components/layout/AppLayout';
+import ClosingEventForm from '@/components/calendar/ClosingEventForm';
 
 interface CapitalCall {
   id: number;
@@ -67,6 +68,9 @@ const CalendarPage = () => {
   const [activeTab, setActiveTab] = useState<string>(CALENDAR_EVENT_TYPES.ALL);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [eventTypeFilter, setEventTypeFilter] = useState<string>('all');
+  
+  // State for closing event form
+  const [isClosingEventFormOpen, setIsClosingEventFormOpen] = useState(false);
   
   // Fetch capital calls
   const { data: capitalCalls = [], isLoading: isLoadingCalls } = useQuery<CapitalCall[]>({
@@ -257,7 +261,16 @@ const CalendarPage = () => {
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold">Calendar</h1>
           
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
+            <Button 
+              onClick={() => setIsClosingEventFormOpen(true)}
+              size="sm"
+              className="mr-2"
+            >
+              <Plus className="h-4 w-4 mr-1" />
+              New Closing Event
+            </Button>
+            
             <Tabs 
               value={selectedView} 
               onValueChange={(value) => setSelectedView(value as CalendarView)}
@@ -541,6 +554,12 @@ const CalendarPage = () => {
           </div>
         </div>
       </div>
+      {/* Closing Event Form */}
+      <ClosingEventForm
+        isOpen={isClosingEventFormOpen}
+        onClose={() => setIsClosingEventFormOpen(false)}
+        selectedDate={selectedDate}
+      />
     </AppLayout>
   );
 };

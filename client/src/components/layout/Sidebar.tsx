@@ -10,7 +10,8 @@ import {
   Settings, 
   Users,
   X,
-  DollarSign
+  DollarSign,
+  CalendarIcon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ProfileEditModal from "@/components/profile/ProfileEditModal";
@@ -68,9 +69,9 @@ export default function Sidebar({ onCloseMobile }: SidebarProps) {
       icon: <FileText className="h-5 w-5 mr-2" /> 
     },
     { 
-      href: "/capital-calls", 
-      label: "Capital Calls", 
-      icon: <DollarSign className="h-5 w-5 mr-2" /> 
+      href: "/calendar", 
+      label: "Calendar", 
+      icon: <CalendarIcon className="h-5 w-5 mr-2" /> 
     },
   ];
 
