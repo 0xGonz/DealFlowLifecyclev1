@@ -32,16 +32,16 @@ class DatabaseConnection {
 
       console.log('Initializing database connection...');
       
-      // Configure pool with more conservative settings for stability
+      // Configure pool with extremely conservative settings for maximum stability
       this._pool = new Pool({
         connectionString: process.env.DATABASE_URL,
-        max: 10,                      // Reduce maximum connections to avoid overloading the database
-        idleTimeoutMillis: 60000,     // Increased to 1 minute for better efficiency
-        connectionTimeoutMillis: 10000, // Increased to 10 seconds to allow for network latency
-        allowExitOnIdle: false,       // Prevent application from exiting when idle
-        ssl: { rejectUnauthorized: false }, // Required for some hosted databases
-        statement_timeout: 15000,     // Increase to 15 seconds
-        query_timeout: 20000,         // Increase to 20 seconds
+        max: 3,                       // Very small pool size to avoid connection limits
+        idleTimeoutMillis: 300000,    // Increased to 5 minutes to reduce reconnection cycles
+        connectionTimeoutMillis: 20000, // Increased to 20 seconds to allow for slow networks
+        allowExitOnIdle: false,       // Never exit on idle
+        ssl: { rejectUnauthorized: false }, // Required for hosted databases
+        statement_timeout: 30000,     // 30 seconds for statements
+        query_timeout: 30000,         // 30 seconds for queries
       });
 
       // Set up connection event handlers
@@ -115,16 +115,16 @@ class DatabaseConnection {
 
       console.log('Creating new database connection pool...');
       
-      // Use the same configuration as in initializeSync for consistency
+      // Use the same extreme conservation settings as in initializeSync
       this._pool = new Pool({
         connectionString: process.env.DATABASE_URL,
-        max: 10,                      // Reduce maximum connections to avoid overloading the database
-        idleTimeoutMillis: 60000,     // Increased to 1 minute for better efficiency
-        connectionTimeoutMillis: 10000, // Increased to 10 seconds to allow for network latency
-        allowExitOnIdle: false,       // Prevent application from exiting when idle
-        ssl: { rejectUnauthorized: false }, // Required for some hosted databases
-        statement_timeout: 15000,     // Increase to 15 seconds
-        query_timeout: 20000,         // Increase to 20 seconds
+        max: 3,                       // Very small pool size to avoid connection limits
+        idleTimeoutMillis: 300000,    // Increased to 5 minutes to reduce reconnection cycles
+        connectionTimeoutMillis: 20000, // Increased to 20 seconds to allow for slow networks
+        allowExitOnIdle: false,       // Never exit on idle
+        ssl: { rejectUnauthorized: false }, // Required for hosted databases
+        statement_timeout: 30000,     // 30 seconds for statements
+        query_timeout: 30000,         // 30 seconds for queries
       });
 
       // Set up connection event handlers
@@ -162,37 +162,57 @@ class DatabaseConnection {
   }
 
   /**
-   * Verify database connection by running a test query
+   * Verify database connection by running a test query with multiple retry attempts
    */
   public async verifyConnection(): Promise<boolean> {
     if (!this._pool) return false;
     
-    try {
-      await this._pool.query('SELECT 1 AS test');
-      
-      // Only log if health status changes to avoid log spam
-      if (!this._isHealthy) {
-        console.log('Database connection verified successfully - connectivity restored');
+    // Try multiple times before giving up - this helps with temporary network glitches
+    const maxAttempts = 3;
+    const delayBetweenAttempts = 1000; // 1 second
+    
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        // Use a simple query to detect connection issues
+        await this._pool.query('SELECT 1 AS test');
+        
+        // Only log if health status changes to avoid log spam
+        if (!this._isHealthy) {
+          console.log('Database connection verified successfully - connectivity restored');
+        }
+        
+        this._isHealthy = true;
+        this._reconnectAttempts = 0;
+        return true;
+      } catch (err) {
+        // Only log detailed error on first attempt to avoid spam
+        if (attempt === 1) {
+          console.error(`Database connection test failed (attempt ${attempt}/${maxAttempts}):`, err);
+        } else {
+          console.log(`Database connection test retry failed (attempt ${attempt}/${maxAttempts})`);
+        }
+        
+        // If not the last attempt, wait before trying again
+        if (attempt < maxAttempts) {
+          await new Promise(resolve => setTimeout(resolve, delayBetweenAttempts));
+        } else {
+          // This was the last attempt, mark as unhealthy
+          if (this._isHealthy) {
+            console.error('All database connection verification attempts failed');
+          }
+          
+          this._isHealthy = false;
+          this._lastError = err instanceof Error ? err : new Error(String(err));
+          this.attemptReconnect();
+        }
       }
-      
-      this._isHealthy = true;
-      this._reconnectAttempts = 0;
-      return true;
-    } catch (err) {
-      // Only log if health status changes to avoid log spam
-      if (this._isHealthy) {
-        console.error('Database connection test failed:', err);
-      }
-      
-      this._isHealthy = false;
-      this._lastError = err instanceof Error ? err : new Error(String(err));
-      this.attemptReconnect();
-      return false;
     }
+    
+    return false;
   }
 
   /**
-   * Attempt to reconnect to the database after failure
+   * Attempt to reconnect to the database after failure with exponential backoff
    */
   private attemptReconnect(): void {
     if (this._reconnectAttempts >= this.MAX_RECONNECT_ATTEMPTS) {
@@ -201,11 +221,17 @@ class DatabaseConnection {
     }
 
     this._reconnectAttempts++;
-    console.log(`Attempting to reconnect to database (attempt ${this._reconnectAttempts}/${this.MAX_RECONNECT_ATTEMPTS})...`);
+    
+    // Use exponential backoff to avoid hammering the database during outages
+    // Start with 2 seconds, then 4, 8, 16, 32 seconds between attempts
+    const backoffDelayMs = this.RECONNECT_DELAY_MS * Math.pow(2, this._reconnectAttempts - 1);
+    const cappedDelayMs = Math.min(backoffDelayMs, 60000); // Cap at 1 minute
+    
+    console.log(`Attempting to reconnect to database (attempt ${this._reconnectAttempts}/${this.MAX_RECONNECT_ATTEMPTS}) in ${cappedDelayMs / 1000} seconds...`);
     
     setTimeout(() => {
       this.initialize();
-    }, this.RECONNECT_DELAY_MS);
+    }, cappedDelayMs);
   }
 
   /**
