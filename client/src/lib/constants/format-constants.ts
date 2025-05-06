@@ -1,22 +1,9 @@
 /**
- * Format constants for the application
- * Centralizes formatting patterns for consistency
+ * @deprecated This file is deprecated. Please import from formatting-constants.ts instead.
+ * This file is kept for backward compatibility.
  */
 
-// Date formats
-export const DATE_FORMATS = {
-  DEFAULT: 'MMM d, yyyy',
-  FULL: 'MMMM d, yyyy',
-  ISO: 'yyyy-MM-dd',
-  SHORT: 'MM/dd/yyyy',
-  MONTH_YEAR: 'MMMM yyyy',
-  TIME: 'h:mm a',
-  DATETIME: 'MMM d, yyyy h:mm a'
-};
+// Re-export from the consolidated file
+import { DATE_FORMATS, NUMBER_FORMATS } from './formatting-constants';
 
-// Number formatting
-export const NUMBER_FORMATS = {
-  DEFAULT_DECIMALS: 2,
-  PERCENTAGE_DECIMALS: 1,
-  CURRENCY_DECIMALS: 0
-};
+export { DATE_FORMATS, NUMBER_FORMATS };

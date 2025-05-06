@@ -1,7 +1,25 @@
 /**
- * Formatting-related constants for the application
- * Centralizes formatting options for consistency
+ * Centralized formatting constants for the application
+ * Provides standardized formatting options for consistency across the application
  */
+
+// Date formats - imported from previous format-constants.ts
+export const DATE_FORMATS = {
+  DEFAULT: 'MMM d, yyyy',
+  FULL: 'MMMM d, yyyy',
+  ISO: 'yyyy-MM-dd',
+  SHORT: 'MM/dd/yyyy',
+  MONTH_YEAR: 'MMMM yyyy',
+  TIME: 'h:mm a',
+  DATETIME: 'MMM d, yyyy h:mm a'
+};
+
+// Basic number formatting - imported from previous format-constants.ts
+export const NUMBER_FORMATS = {
+  DEFAULT_DECIMALS: 2,
+  PERCENTAGE_DECIMALS: 1,
+  CURRENCY_DECIMALS: 0
+};
 
 // Currency formatting options
 export const CURRENCY_FORMAT = {

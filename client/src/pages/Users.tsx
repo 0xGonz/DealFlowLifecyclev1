@@ -32,6 +32,11 @@ type User = {
   lastActive: string;
 };
 
+// Extend User type for editing with newPassword field
+type EditableUser = User & {
+  newPassword?: string; 
+};
+
 const userFormSchema = z.object({
   fullName: z.string().min(2, "Full name is required"),
   username: z.string().min(3, "Username must be at least 3 characters"),
@@ -67,7 +72,7 @@ export default function UsersPage() {
   const { toast } = useToast();
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
   const [isEditUserOpen, setIsEditUserOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedUser, setSelectedUser] = useState<EditableUser | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   
@@ -134,7 +139,9 @@ export default function UsersPage() {
   
   // Handle edit user button click
   const handleEditUser = (user: User) => {
-    setSelectedUser(user);
+    // Convert User to EditableUser by spreading its properties
+    const editableUser: EditableUser = { ...user };
+    setSelectedUser(editableUser);
     setIsEditUserOpen(true);
   };
   
@@ -404,7 +411,8 @@ export default function UsersPage() {
                     <label className="text-sm font-medium">Role</label>
                     <Select 
                       defaultValue={selectedUser.role}
-                      onValueChange={(value) => setSelectedUser({...selectedUser, role: value})}
+                      onValueChange={(value: "admin" | "partner" | "analyst" | "observer" | "intern") => 
+                        setSelectedUser({...selectedUser, role: value})}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select a role" />

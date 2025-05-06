@@ -59,6 +59,7 @@ import { format } from "date-fns";
 import { formatCurrency } from "@/lib/utils";
 import FundSectorDistribution from "@/components/funds/FundSectorDistribution";
 import CalledCapitalRatio from "@/components/funds/CalledCapitalRatio";
+// Import local types instead of schema types to ensure consistency
 import { Fund, FundAllocation, Deal } from "@/lib/types";
 
 export default function FundDetail() {
