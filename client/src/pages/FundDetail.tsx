@@ -70,6 +70,7 @@ export default function FundDetail() {
   // Dialog state
   const [isNewAllocationDialogOpen, setIsNewAllocationDialogOpen] = useState(false);
   const [isEditAllocationDialogOpen, setIsEditAllocationDialogOpen] = useState(false);
+  const [isDeleteAllocationDialogOpen, setIsDeleteAllocationDialogOpen] = useState(false);
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
   
   // Define types for editing allocation with dealName added
@@ -152,16 +153,16 @@ export default function FundDetail() {
   });
 
   // Get all deals (for allocation creation and reference)
-  const { data: deals } = useQuery<Deal[]>({
+  const { data: deals } = useQuery({
     queryKey: ["/api/deals"],
     // Avoid null or undefined deals which could cause type errors
-    select: (data) => (data || []).map(deal => ({
+    select: (data: Deal[] | undefined) => (data || []).map(deal => ({
       ...deal,
       // Ensure potentially undefined fields are set to null to match component expectations
       notes: deal.notes || null,
       description: deal.description || null,
       sector: deal.sector || null
-    }))
+    })) as Deal[]
   });
 
   // Create allocation mutation
@@ -274,6 +275,62 @@ export default function FundDetail() {
     updateAllocation.mutate();
   };
 
+  // Delete allocation mutation
+  const deleteAllocation = useMutation({
+    mutationFn: async () => {
+      if (!editingAllocation) {
+        throw new Error("No allocation selected for deletion.");
+      }
+      
+      const res = await apiRequest("DELETE", `/api/allocations/${editingAllocation.id}`);
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Failed to delete allocation");
+      }
+      return true;
+    },
+    onSuccess: () => {
+      toast({
+        title: "Allocation deleted",
+        description: "The allocation has been deleted successfully.",
+      });
+      
+      // Close the dialog and reset state
+      setIsDeleteAllocationDialogOpen(false);
+      setEditingAllocation(null);
+      
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({ queryKey: [`/api/allocations/fund/${fundId}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/funds/${fundId}`] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error deleting allocation",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Handler for confirming deletion
+  const handleDeleteAllocation = () => {
+    deleteAllocation.mutate();
+  };
+  
+  // Handler for opening delete dialog
+  const handleOpenDeleteDialog = (allocation: FundAllocation) => {
+    // Get the deal name for the delete confirmation dialog
+    if (deals) {
+      const deal = deals.find((d: Deal) => d.id === allocation.dealId);
+      // Clone the allocation to avoid directly mutating the query data
+      setEditingAllocation({
+        ...allocation,
+        dealName: deal?.name || 'Unknown Deal'
+      });
+      setIsDeleteAllocationDialogOpen(true);
+    }
+  };
+
   // We don't need to warn about invalid allocations anymore
   // All data is dynamically loaded from API without hardcoded values
   
@@ -314,7 +371,7 @@ export default function FundDetail() {
                     <Select 
                       onValueChange={(value) => {
                         // Find the selected deal
-                        const selectedDeal = deals?.find(d => d.id === parseInt(value));
+                        const selectedDeal = deals?.find((d: Deal) => d.id === parseInt(value));
                         
                         // Update form with deal ID and populate sector from deal
                         setNewAllocationData({
@@ -328,7 +385,7 @@ export default function FundDetail() {
                         <SelectValue placeholder="Select a deal" />
                       </SelectTrigger>
                       <SelectContent>
-                        {deals?.map(deal => (
+                        {deals?.map((deal: Deal) => (
                           <SelectItem key={deal.id} value={deal.id.toString()}>
                             {deal.name}
                           </SelectItem>
@@ -830,7 +887,7 @@ export default function FundDetail() {
                       </TableHeader>
                       <TableBody>
                         {allocations?.map(allocation => {
-                          const deal = deals?.find(d => d.id === allocation.dealId);
+                          const deal = deals?.find((d: Deal) => d.id === allocation.dealId);
                           // Calculate totals and metrics
                           const totalInvested = allocations?.reduce((sum, alloc) => sum + alloc.amount, 0) || 0;
                           let moic = 0;
@@ -905,6 +962,15 @@ export default function FundDetail() {
                                       <span className="sr-only">Capital Calls</span>
                                     </a>
                                   </Button>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    onClick={() => handleOpenDeleteDialog(allocation)}
+                                    className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                    <span className="sr-only">Delete Allocation</span>
+                                  </Button>
                                 </div>
                               </TableCell>
                             </TableRow>
@@ -918,6 +984,63 @@ export default function FundDetail() {
             </div>
             
             {/* Fund Performance Metrics Section Removed - Redundant with Overview */}
+            
+            {/* Delete Allocation Confirmation Dialog */}
+            <Dialog open={isDeleteAllocationDialogOpen} onOpenChange={setIsDeleteAllocationDialogOpen}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle className="text-red-600">Delete Allocation</DialogTitle>
+                  <DialogDescription>
+                    Are you sure you want to delete this allocation? This action cannot be undone.
+                  </DialogDescription>
+                </DialogHeader>
+                
+                <div className="py-4">
+                  {editingAllocation && (
+                    <div className="space-y-3">
+                      <div className="p-3 bg-red-50 rounded-md border border-red-100">
+                        <p className="text-sm font-medium">Allocation Details:</p>
+                        <ul className="mt-2 text-sm space-y-1">
+                          <li><span className="font-medium">Deal:</span> {editingAllocation.dealName}</li>
+                          <li><span className="font-medium">Amount:</span> {formatCurrency(editingAllocation.amount)}</li>
+                          <li><span className="font-medium">Status:</span> {editingAllocation.status}</li>
+                          <li><span className="font-medium">Date:</span> {editingAllocation.allocationDate 
+                            ? format(new Date(editingAllocation.allocationDate), "MM/dd/yyyy")
+                            : "N/A"}</li>
+                        </ul>
+                      </div>
+                      <Alert variant="destructive">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertTitle>Warning</AlertTitle>
+                        <AlertDescription>
+                          This will permanently delete this allocation record and remove the deal from this fund. 
+                          Any associated capital calls will need to be managed separately.
+                        </AlertDescription>
+                      </Alert>
+                    </div>
+                  )}
+                </div>
+                
+                <DialogFooter>
+                  <Button 
+                    variant="outline"
+                    onClick={() => setIsDeleteAllocationDialogOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    variant="destructive"
+                    onClick={handleDeleteAllocation}
+                  >
+                    {deleteAllocation.isPending ? (
+                      <>Deleting...</>
+                    ) : (
+                      <>Delete Allocation</>
+                    )}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </>
         )}
       </div>
