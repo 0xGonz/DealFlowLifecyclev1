@@ -187,25 +187,26 @@ async function generateCapitalCalls(allocationId: number, scheduleType: string, 
     throw new Error('Allocation not found');
   }
   
-  // Calculate call amount based on total and percentage
+  // This function is no longer needed as we're directly using percentages
+  // Keeping it for reference in case we need to convert back to dollar amounts
   const calculateAmount = (percentage: number) => {
     return (percentage / 100) * allocation.amount;
   };
   
-  // For single payment
+  // For single payment - just pass through the percentage value directly
   if (scheduleType === SCHEDULE_TYPES.SINGLE) {
-    const callAmount = calculateAmount(callPercentage || 100);
+    const percentage = callPercentage || 100;
     const callDate = new Date(firstCallDate);
     const dueDate = new Date(firstCallDate);
     dueDate.setDate(dueDate.getDate() + DEFAULT_DURATIONS.CAPITAL_CALL_DUE_DAYS); // Due in configured days
     
     await storage.createCapitalCall({
       allocationId,
-      callAmount,
+      callAmount: percentage, // Now callAmount represents percentage
       callDate,
       dueDate,
       status: CAPITAL_CALL_STATUS.SCHEDULED,
-      notes: `${formatPercentage(callPercentage || 100)} capital call`
+      notes: `${formatPercentage(percentage)} capital call`
     });
     
     return;
@@ -216,18 +217,18 @@ async function generateCapitalCalls(allocationId: number, scheduleType: string, 
     const schedule = JSON.parse(customSchedule);
     
     for (const call of schedule) {
-      const callAmount = calculateAmount(call.percentage);
+      const percentage = call.percentage;
       const callDate = new Date(call.date);
       const dueDate = new Date(call.date);
       dueDate.setDate(dueDate.getDate() + DEFAULT_DURATIONS.CAPITAL_CALL_DUE_DAYS); // Due in configured days
       
       await storage.createCapitalCall({
         allocationId,
-        callAmount,
+        callAmount: percentage, // Now callAmount represents percentage
         callDate,
         dueDate,
         status: CAPITAL_CALL_STATUS.SCHEDULED,
-        notes: `${formatPercentage(call.percentage)} capital call`
+        notes: `${formatPercentage(percentage)} capital call`
       });
     }
     
@@ -238,7 +239,6 @@ async function generateCapitalCalls(allocationId: number, scheduleType: string, 
   const count = callCount || 1;
   const percentage = callPercentage || 100;
   const perCallPercentage = percentage / count;
-  const perCallAmount = calculateAmount(perCallPercentage);
   
   let intervalMonths = 1; // monthly
   if (scheduleType === SCHEDULE_TYPES.QUARTERLY) intervalMonths = 3;
@@ -254,7 +254,7 @@ async function generateCapitalCalls(allocationId: number, scheduleType: string, 
     
     await storage.createCapitalCall({
       allocationId,
-      callAmount: perCallAmount,
+      callAmount: perCallPercentage, // Now callAmount represents percentage
       callDate,
       dueDate,
       status: CAPITAL_CALL_STATUS.SCHEDULED,
