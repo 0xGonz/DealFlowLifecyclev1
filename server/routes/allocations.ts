@@ -61,11 +61,21 @@ router.post('/', async (req: Request, res: Response) => {
     
     const newAllocation = await storage.createFundAllocation(allocationData);
     
-    // Update deal stage to "closing" if not already closed
-    if (deal.stage !== 'closed' && deal.stage !== 'closing') {
+    // Update deal stage to "invested" regardless of how many funds it's allocated to
+    // This ensures the deal stays in the invested pipeline stage
+    if (deal.stage !== 'invested') {
       await storage.updateDeal(deal.id, { 
-        stage: 'closing',
+        stage: 'invested',
         createdBy: (req as any).user.id
+      });
+      
+      // Create a timeline event for this allocation
+      await storage.createTimelineEvent({
+        dealId: deal.id,
+        eventType: 'closing_scheduled',
+        content: `Deal was allocated to fund: ${fund.name}`,
+        createdBy: (req as any).user.id,
+        metadata: {} as any
       });
     }
     
@@ -167,11 +177,20 @@ router.delete('/:id', async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'Allocation not found' });
     }
     
+    // Get deal details before deletion
+    const deal = await storage.getDeal(allocation.dealId);
+    
     // Delete the allocation
     const result = await storage.deleteFundAllocation(allocationId);
     if (!result) {
       return res.status(404).json({ message: 'Allocation not found or could not be deleted' });
     }
+    
+    // Check if the deal still has any other allocations
+    const remainingAllocations = await storage.getAllocationsByDeal(allocation.dealId);
+    
+    // If no allocations remain and deal is in 'invested' stage, we could optionally change its stage
+    // but we'll leave it as 'invested' to maintain history of it being invested
     
     // Get all deals to validate allocations
     const deals = await storage.getDeals();
@@ -182,6 +201,18 @@ router.delete('/:id', async (req: Request, res: Response) => {
     const validAllocations = fundAllocations.filter(alloc => validDealIds.includes(alloc.dealId));
     const totalAllocationAmount = validAllocations.reduce((sum, alloc) => sum + alloc.amount, 0);
     await storage.updateFund(allocation.fundId, { aum: totalAllocationAmount });
+    
+    // Create a timeline event for this deletion if deal exists
+    if (deal) {
+      const fund = await storage.getFund(allocation.fundId);
+      await storage.createTimelineEvent({
+        dealId: deal.id,
+        eventType: 'closing_scheduled',
+        content: `Deal allocation to fund ${fund?.name || 'Unknown'} was removed`,
+        createdBy: (req as any).user.id,
+        metadata: {} as any
+      });
+    }
     
     res.status(200).json({ message: 'Allocation deleted successfully' });
   } catch (error) {

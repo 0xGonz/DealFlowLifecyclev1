@@ -79,8 +79,31 @@ export class DatabaseStorage implements IStorage {
     if (!db) {
       throw new Error('Database not initialized');
     }
-    const [newDeal] = await db.insert(deals).values(deal).returning();
-    return newDeal;
+    try {
+      // Extract properties to ensure proper typing
+      const dealData = {
+        name: deal.name,
+        createdBy: deal.createdBy,
+        description: deal.description || null,
+        notes: deal.notes || '',
+        sector: deal.sector || null,
+        stage: deal.stage || 'initial_review',
+        contactEmail: deal.contactEmail || null,
+        targetReturn: deal.targetReturn || null,
+        score: deal.score || 0,
+        tags: deal.tags || [],
+        round: deal.round || null,
+        targetRaise: deal.targetRaise || null,
+        valuation: deal.valuation || null,
+        leadInvestor: deal.leadInvestor || null
+      };
+      
+      const [newDeal] = await db.insert(deals).values(dealData).returning();
+      return newDeal;
+    } catch (error) {
+      console.error('Error creating deal:', error);
+      throw error;
+    }
   }
   
   async getDeal(id: number): Promise<Deal | undefined> {
@@ -97,12 +120,49 @@ export class DatabaseStorage implements IStorage {
   }
   
   async updateDeal(id: number, dealUpdate: Partial<InsertDeal>): Promise<Deal | undefined> {
-    const [updatedDeal] = await db
-      .update(deals)
-      .set(dealUpdate)
-      .where(eq(deals.id, id))
-      .returning();
-    return updatedDeal || undefined;
+    if (!db) {
+      throw new Error('Database not initialized');
+    }
+    try {
+      // Ensure proper typing by creating a new object with only valid properties
+      const validUpdateData: Record<string, any> = {};
+      
+      // Only add properties that exist in dealUpdate
+      if (dealUpdate.name !== undefined) validUpdateData.name = dealUpdate.name;
+      if (dealUpdate.description !== undefined) validUpdateData.description = dealUpdate.description;
+      if (dealUpdate.notes !== undefined) validUpdateData.notes = dealUpdate.notes;
+      if (dealUpdate.sector !== undefined) validUpdateData.sector = dealUpdate.sector;
+      if (dealUpdate.stage !== undefined) validUpdateData.stage = dealUpdate.stage;
+      if (dealUpdate.contactEmail !== undefined) validUpdateData.contactEmail = dealUpdate.contactEmail;
+      if (dealUpdate.targetReturn !== undefined) validUpdateData.targetReturn = dealUpdate.targetReturn;
+      if (dealUpdate.score !== undefined) validUpdateData.score = dealUpdate.score;
+      if (dealUpdate.tags !== undefined) validUpdateData.tags = dealUpdate.tags;
+      if (dealUpdate.round !== undefined) validUpdateData.round = dealUpdate.round;
+      if (dealUpdate.targetRaise !== undefined) validUpdateData.targetRaise = dealUpdate.targetRaise;
+      if (dealUpdate.valuation !== undefined) validUpdateData.valuation = dealUpdate.valuation;
+      if (dealUpdate.leadInvestor !== undefined) validUpdateData.leadInvestor = dealUpdate.leadInvestor;
+      if (dealUpdate.rejectionReason !== undefined) validUpdateData.rejectionReason = dealUpdate.rejectionReason;
+      if (dealUpdate.rejectedAt !== undefined) validUpdateData.rejectedAt = dealUpdate.rejectedAt;
+      if (dealUpdate.createdBy !== undefined) validUpdateData.createdBy = dealUpdate.createdBy;
+      
+      // Only update if there are valid properties to update
+      if (Object.keys(validUpdateData).length === 0) {
+        const [existingDeal] = await db.select().from(deals).where(eq(deals.id, id));
+        return existingDeal || undefined;
+      }
+      
+      // Update with the valid data
+      const [updatedDeal] = await db
+        .update(deals)
+        .set(validUpdateData)
+        .where(eq(deals.id, id))
+        .returning();
+        
+      return updatedDeal || undefined;
+    } catch (error) {
+      console.error('Error updating deal:', error);
+      return undefined;
+    }
   }
   
   async deleteDeal(id: number): Promise<boolean> {
@@ -112,8 +172,23 @@ export class DatabaseStorage implements IStorage {
   
   // Timeline events
   async createTimelineEvent(event: InsertTimelineEvent): Promise<TimelineEvent> {
-    const [newEvent] = await db.insert(timelineEvents).values(event).returning();
-    return newEvent;
+    if (!db) {
+      throw new Error('Database not initialized');
+    }
+    try {
+      // Ensure we're not passing an array
+      const [newEvent] = await db.insert(timelineEvents).values({
+        dealId: event.dealId,
+        eventType: event.eventType,
+        content: event.content,
+        createdBy: event.createdBy,
+        metadata: event.metadata || {}
+      }).returning();
+      return newEvent;
+    } catch (error) {
+      console.error('Error creating timeline event:', error);
+      throw error;
+    }
   }
   
   async getTimelineEventsByDeal(dealId: number): Promise<TimelineEvent[]> {
