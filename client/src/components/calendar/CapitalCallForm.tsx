@@ -35,8 +35,7 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { useAuth } from '@/hooks/use-auth';
 import { DATE_FORMATS } from '@/lib/constants/time-constants';
-import { CAPITAL_CALL_STATUS } from '@/lib/constants/capital-call-constants';
-import { Deal, FundAllocation } from '@/lib/types';
+import { Deal } from '@/lib/types';
 
 // Define form schema
 const capitalCallFormSchema = z.object({

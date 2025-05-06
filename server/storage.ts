@@ -167,226 +167,8 @@ export class MemStorage implements IStorage {
     this.commentIdCounter = 1;
     this.capitalCallIdCounter = 1;
     this.closingEventIdCounter = 1;
-    
-    // Initialize with some sample data
-    this.initSampleData();
   }
 
-  private initSampleData() {
-    // Create admin user
-    this.createUser({
-      username: 'admin',
-      password: 'admin123',
-      fullName: 'Admin User',
-      initials: 'AD',
-      email: 'admin@doliver.com',
-      role: 'admin',
-      avatarColor: '#0E4DA4'
-    });
-    
-    // Create partner user
-    this.createUser({
-      username: 'john',
-      password: 'partner123',
-      fullName: 'John Doe',
-      initials: 'JD',
-      email: 'john@doliver.com',
-      role: 'partner',
-      avatarColor: '#0E4DA4'
-    });
-    
-    // Create analyst user
-    this.createUser({
-      username: 'laura',
-      password: 'analyst123',
-      fullName: 'Laura Richards',
-      initials: 'LR',
-      email: 'laura@doliver.com',
-      role: 'analyst',
-      avatarColor: '#FF6B35'
-    });
-    
-    // Create observer user
-    this.createUser({
-      username: 'observer',
-      password: 'observer123',
-      fullName: 'Tom Smith',
-      initials: 'TS',
-      email: 'tom@doliver.com',
-      role: 'observer',
-      avatarColor: '#2D87BB'
-    });
-    
-    // Create sample funds
-    const fund1 = this.createUser({
-      username: 'fund1',
-      password: 'password', // In a real app, this would be hashed
-      fullName: 'Fund Manager',
-      initials: 'FM',
-      email: 'fund@example.com',
-      role: 'partner',
-      avatarColor: '#28A745'
-    });
-    
-    // Create a few sample deals
-    const deal1 = this.createDeal({
-      name: 'TechFusion AI',
-      description: 'AI-powered enterprise solutions for manufacturing optimization',
-      sector: 'Technology',
-      stage: 'diligence',
-      round: 'Series B',
-      targetRaise: '$25M',
-      valuation: '$150M valuation',
-      leadInvestor: 'Acme Ventures',
-      contactEmail: 'contact@techfusion.ai',
-      notes: 'Promising AI technology with strong team and traction',
-      createdBy: 2, // John Doe
-      tags: ['AI', 'Enterprise', 'Manufacturing']
-    });
-    
-    const deal2 = this.createDeal({
-      name: 'GreenScale Renewables',
-      description: 'Modular solar integration platform for commercial buildings',
-      sector: 'Renewable Energy',
-      stage: 'ic_review',
-      round: 'Series A',
-      targetRaise: '$12M',
-      valuation: '$45M valuation',
-      leadInvestor: 'Green Capital',
-      contactEmail: 'info@greenscale.co',
-      notes: 'Innovative renewable energy solution with growing market share',
-      createdBy: 3, // Laura Richards
-      tags: ['Solar', 'Renewable', 'Commercial']
-    });
-    
-    const deal3 = this.createDeal({
-      name: 'QuantumEdge Computing',
-      description: 'Quantum computing infrastructure for financial services',
-      sector: 'Technology',
-      stage: 'screening',
-      round: 'Seed Extension',
-      targetRaise: '$5M',
-      valuation: '$22M valuation',
-      leadInvestor: 'Frontier Tech Ventures',
-      contactEmail: 'hello@quantumedge.io',
-      notes: 'Early-stage quantum computing platform with promising applications',
-      createdBy: 2, // John Doe
-      tags: ['Quantum', 'FinTech', 'Infrastructure']
-    });
-    
-    // Create timeline events for deals
-    this.createTimelineEvent({
-      dealId: 1,
-      eventType: 'stage_change',
-      content: 'Deal moved from Screening to Diligence',
-      createdBy: 2,
-      metadata: { prevStage: 'screening', newStage: 'diligence' }
-    });
-    
-    this.createTimelineEvent({
-      dealId: 1,
-      eventType: 'note',
-      content: 'Team demonstrated impressive tech capabilities during initial meeting.',
-      createdBy: 2,
-      metadata: {}
-    });
-    
-    this.createTimelineEvent({
-      dealId: 2,
-      eventType: 'stage_change',
-      content: 'Deal moved from Diligence to IC Review',
-      createdBy: 3,
-      metadata: { prevStage: 'diligence', newStage: 'ic_review' }
-    });
-    
-    this.createTimelineEvent({
-      dealId: 2,
-      eventType: 'memo_added',
-      content: 'Added Mini-Memo with thesis and pricing considerations.',
-      createdBy: 2,
-      metadata: { memoId: 1 }
-    });
-    
-    // Add stars to deals
-    this.starDeal({ dealId: 1, userId: 2 });
-    this.starDeal({ dealId: 1, userId: 3 });
-    this.starDeal({ dealId: 1, userId: 4 });
-    this.starDeal({ dealId: 2, userId: 2 });
-    this.starDeal({ dealId: 2, userId: 3 });
-    this.starDeal({ dealId: 2, userId: 4 });
-    this.starDeal({ dealId: 2, userId: 1 });
-    
-    // Add mini memos
-    this.createMiniMemo({
-      dealId: 1,
-      userId: 2,
-      thesis: 'Strong technology with clear market fit. The team has deep expertise in AI and manufacturing.',
-      risksAndMitigations: 'Competition from established players; mitigated by proprietary algorithms and patents.',
-      pricingConsideration: 'Valuation in line with comparable companies. Growth trajectory supports the price.',
-      score: 87
-    });
-    
-    this.createMiniMemo({
-      dealId: 2,
-      userId: 3,
-      thesis: 'Revolutionary approach to solar integration with scalable business model.',
-      risksAndMitigations: 'Supply chain dependencies; mitigated by multiple supplier relationships.',
-      pricingConsideration: 'Attractive entry valuation with significant room for expansion.',
-      score: 94
-    });
-    
-    // Create fund
-    const fund = this.createFund({
-      name: 'Doliver Fund III',
-      description: 'Growth-focused fund targeting Series A and B investments',
-      aum: 127400000 // $127.4M
-    });
-    
-    // Assign users to deals
-    this.assignUserToDeal({ dealId: 1, userId: 2 });
-    this.assignUserToDeal({ dealId: 1, userId: 3 });
-    this.assignUserToDeal({ dealId: 1, userId: 4 });
-    this.assignUserToDeal({ dealId: 2, userId: 3 });
-    this.assignUserToDeal({ dealId: 2, userId: 4 });
-    this.assignUserToDeal({ dealId: 3, userId: 2 });
-    
-    // Create sample notifications
-    this.createNotification({
-      userId: 1, // Admin user
-      title: 'New deal added',
-      message: 'TechFusion AI was added to the pipeline',
-      type: 'deal',
-      relatedId: 1,
-      isRead: false
-    });
-    
-    this.createNotification({
-      userId: 1, // Admin user
-      title: 'Deal moved to diligence',
-      message: 'TechFusion AI deal moved to diligence stage',
-      type: 'deal',
-      relatedId: 1,
-      isRead: false
-    });
-    
-    this.createNotification({
-      userId: 1, // Admin user
-      title: 'You were assigned to a deal',
-      message: 'You were assigned to the GreenScale Renewables deal',
-      type: 'assignment',
-      relatedId: 2,
-      isRead: true
-    });
-    
-    this.createNotification({
-      userId: 1, // Admin user
-      title: 'New memo added',
-      message: 'A new memo was added to QuantumEdge Computing deal',
-      type: 'memo',
-      relatedId: 3,
-      isRead: false
-    });
-  }
 
   async getUser(id: number): Promise<User | undefined> {
     return this.users.get(id);
@@ -400,8 +182,13 @@ export class MemStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.userIdCounter++;
-    const createdAt = new Date();
-    const user: User = { ...insertUser, id };
+    // Ensure required fields have default values
+    const user: User = { 
+      ...insertUser, 
+      id,
+      role: insertUser.role || 'analyst', // Default role if not provided
+      avatarColor: insertUser.avatarColor || null
+    };
     this.users.set(id, user);
     return user;
   }
@@ -441,7 +228,25 @@ export class MemStorage implements IStorage {
     const id = this.dealIdCounter++;
     const createdAt = new Date();
     const updatedAt = new Date();
-    const newDeal: Deal = { ...deal, id, createdAt, updatedAt };
+    
+    // Ensure required fields have default values
+    const newDeal: Deal = { 
+      ...deal, 
+      id, 
+      createdAt, 
+      updatedAt,
+      description: deal.description || null,
+      sector: deal.sector || null,
+      notes: deal.notes || null,
+      rejectionReason: deal.rejectionReason || null,
+      rejectedAt: deal.rejectedAt || null,
+      round: deal.round || null,
+      targetRaise: deal.targetRaise || null,
+      valuation: deal.valuation || null,
+      leadInvestor: deal.leadInvestor || null,
+      tags: deal.tags || []
+    };
+    
     this.deals.set(id, newDeal);
     
     // Create initial timeline event
@@ -500,7 +305,16 @@ export class MemStorage implements IStorage {
   async createTimelineEvent(event: InsertTimelineEvent): Promise<TimelineEvent> {
     const id = this.eventIdCounter++;
     const createdAt = new Date();
-    const newEvent: TimelineEvent = { ...event, id, createdAt };
+    
+    // Ensure required fields have default values
+    const newEvent: TimelineEvent = { 
+      ...event,
+      id,
+      createdAt,
+      content: event.content || null,
+      metadata: event.metadata || null
+    };
+    
     this.timelineEvents.set(id, newEvent);
     return newEvent;
   }
@@ -575,7 +389,21 @@ export class MemStorage implements IStorage {
     const id = this.memoIdCounter++;
     const createdAt = new Date();
     const updatedAt = new Date();
-    const newMemo: MiniMemo = { ...memo, id, createdAt, updatedAt };
+    
+    // Ensure all required fields have default values
+    const newMemo: MiniMemo = { 
+      ...memo, 
+      id, 
+      createdAt, 
+      updatedAt,
+      score: memo.score || 0,  // Default score to 0 if not provided
+      risksAndMitigations: memo.risksAndMitigations || null,
+      pricingConsideration: memo.pricingConsideration || null,
+      marketRiskScore: memo.marketRiskScore || 0,
+      executionRiskScore: memo.executionRiskScore || 0,
+      dueDiligenceChecklist: memo.dueDiligenceChecklist || null
+    };
+    
     this.miniMemos.set(id, newMemo);
     
     // Create timeline event
@@ -615,7 +443,15 @@ export class MemStorage implements IStorage {
   async createDocument(document: InsertDocument): Promise<Document> {
     const id = this.documentIdCounter++;
     const uploadedAt = new Date();
-    const newDocument: Document = { ...document, id, uploadedAt };
+    
+    // Ensure required fields have default values
+    const newDocument: Document = { 
+      ...document, 
+      id, 
+      uploadedAt,
+      description: document.description || null
+    };
+    
     this.documents.set(id, newDocument);
     
     // Create a timeline event for document upload
@@ -654,7 +490,19 @@ export class MemStorage implements IStorage {
   async createFund(fund: InsertFund): Promise<Fund> {
     const id = this.fundIdCounter++;
     const createdAt = new Date();
-    const newFund: Fund = { ...fund, id, createdAt };
+    
+    // Ensure required fields have default values
+    const newFund: Fund = { 
+      ...fund, 
+      id, 
+      createdAt,
+      description: fund.description || null,
+      aum: fund.aum || 0,
+      vintage: fund.vintage || null,
+      distributionRate: fund.distributionRate || null,
+      appreciationRate: fund.appreciationRate || null
+    };
+    
     this.funds.set(id, newFund);
     return newFund;
   }
@@ -698,7 +546,23 @@ export class MemStorage implements IStorage {
   // Fund allocations
   async createFundAllocation(allocation: InsertFundAllocation): Promise<FundAllocation> {
     const id = this.allocationIdCounter++;
-    const newAllocation: FundAllocation = { ...allocation, id };
+    const allocationDate = new Date();
+    
+    // Ensure required fields have default values
+    const newAllocation: FundAllocation = { 
+      ...allocation, 
+      id,
+      status: allocation.status || 'committed',
+      notes: allocation.notes || null,
+      allocationDate: allocation.allocationDate || allocationDate,
+      portfolioWeight: allocation.portfolioWeight || null,
+      currentValue: allocation.currentValue || null,
+      multiple: allocation.multiple || null,
+      distributionAmount: allocation.distributionAmount || null,
+      appreciationAmount: allocation.appreciationAmount || null,
+      irr: allocation.irr || null
+    };
+    
     this.fundAllocations.set(id, newAllocation);
     
     // Update fund AUM
@@ -763,7 +627,17 @@ export class MemStorage implements IStorage {
   async createNotification(notification: InsertNotification): Promise<Notification> {
     const id = this.notificationIdCounter++;
     const createdAt = new Date();
-    const newNotification: Notification = { ...notification, id, createdAt };
+    
+    // Ensure required fields have default values
+    const newNotification: Notification = { 
+      ...notification, 
+      id, 
+      createdAt,
+      type: notification.type || 'system',
+      relatedId: notification.relatedId || null,
+      isRead: notification.isRead || null
+    };
+    
     this.notifications.set(id, newNotification);
     return newNotification;
   }
@@ -827,7 +701,21 @@ export class MemStorage implements IStorage {
     const id = this.capitalCallIdCounter++;
     const createdAt = new Date();
     const updatedAt = new Date();
-    const newCapitalCall: CapitalCall = { ...capitalCall, id, createdAt, updatedAt };
+    const callDate = new Date();
+    
+    // Ensure required fields have default values
+    const newCapitalCall: CapitalCall = { 
+      ...capitalCall, 
+      id, 
+      createdAt, 
+      updatedAt,
+      status: capitalCall.status || 'scheduled',
+      notes: capitalCall.notes || null,
+      callDate: capitalCall.callDate || callDate,
+      paidAmount: capitalCall.paidAmount || null,
+      paidDate: capitalCall.paidDate || null
+    };
+    
     this.capitalCalls.set(id, newCapitalCall);
     return newCapitalCall;
   }
@@ -883,7 +771,19 @@ export class MemStorage implements IStorage {
     const id = this.closingEventIdCounter++;
     const createdAt = new Date();
     const updatedAt = new Date();
-    const newEvent: ClosingScheduleEvent = { ...event, id, createdAt, updatedAt };
+    
+    // Ensure required fields have default values
+    const newEvent: ClosingScheduleEvent = { 
+      ...event, 
+      id, 
+      createdAt, 
+      updatedAt,
+      status: event.status || 'scheduled',
+      notes: event.notes || null,
+      actualAmount: event.actualAmount || null,
+      actualDate: event.actualDate || null
+    };
+    
     this.closingScheduleEvents.set(id, newEvent);
     return newEvent;
   }
