@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { ResponsiveContainer, PieChart, Pie, Cell, Legend, Tooltip } from 'recharts';
-import { FundAllocation, Deal } from "@shared/schema";
+import { FundAllocation, Deal } from "@/lib/types";
 import { getSectorColor } from "@/lib/constants/chart-constants";
 import { formatPercentage } from '@/lib/utils/format';
 
@@ -94,9 +94,16 @@ const FundSectorDistribution: React.FC<FundSectorDistributionProps> = ({
   }, []);
 
   // Process allocations into sector data that matches the dashboard format
-  const sectorData = React.useMemo(() => {
+  const sectorData = React.useMemo((): SectorData[] => {
+    // Handle null or undefined allocations to avoid runtime errors
+    if (!allocations || allocations.length === 0) {
+      return [];
+    }
+    
     // Filter to include only funded allocations with weights
-    const fundedAllocations = allocations.filter(allocation => allocation.status === 'funded');
+    const fundedAllocations = allocations.filter(allocation => 
+      allocation && allocation.status === 'funded'
+    );
     
     // If no funded allocations, show nothing
     if (fundedAllocations.length === 0) {
@@ -105,20 +112,20 @@ const FundSectorDistribution: React.FC<FundSectorDistributionProps> = ({
     
     // Group by sector and sum amounts
     const sectorTotals = new Map<string, number>();
-    const totalAmount = fundedAllocations.reduce((sum, alloc) => sum + alloc.amount, 0);
+    const totalAmount = fundedAllocations.reduce((sum, alloc) => sum + (alloc.amount || 0), 0);
     
     fundedAllocations.forEach(allocation => {
       // Use the allocation's security type as sector
       const sector = allocation.securityType || "Other";
       const currentTotal = sectorTotals.get(sector) || 0;
       
-      sectorTotals.set(sector, currentTotal + allocation.amount);
+      sectorTotals.set(sector, currentTotal + (allocation.amount || 0));
     });
     
     // Convert to the format needed for the pie chart - matching dashboard format
     return Array.from(sectorTotals.entries())
       .sort((a, b) => b[1] - a[1]) // Sort by amount (descending)
-      .map(([sector, amount]) => ({
+      .map(([sector, amount]): SectorData => ({
         sector,
         count: amount,
         percentage: totalAmount > 0 ? (amount / totalAmount) * 100 : 0

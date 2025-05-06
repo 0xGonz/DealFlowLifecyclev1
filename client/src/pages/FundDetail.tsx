@@ -123,17 +123,45 @@ export default function FundDetail() {
   const { data: allocations, isLoading: isAllocationsLoading } = useQuery<FundAllocation[]>({
     queryKey: [`/api/allocations/fund/${fundId}`],
     enabled: !!fundId,
+    // Transform the data to ensure proper type compatibility
+    select: (data) => (data || []).map(allocation => ({
+      ...allocation,
+      // Ensure all potential undefined values are converted to null
+      notes: allocation.notes || null,
+      status: allocation.status || "committed", // Default status if not provided
+      portfolioWeight: allocation.portfolioWeight || 0,
+      // Make sure the right property names are used
+      totalReturned: allocation.totalReturned || 0
+    }))
   });
 
   // Fetch invalid allocations (ones with missing deals)
   const { data: invalidAllocations, isLoading: isInvalidAllocationsLoading, refetch: refetchInvalidAllocations } = useQuery<FundAllocation[]>({
     queryKey: [`/api/allocations/fund/${fundId}/invalid`],
     enabled: !!fundId,
+    // Transform the data to ensure proper type compatibility
+    select: (data) => (data || []).map(allocation => ({
+      ...allocation,
+      // Ensure all potential undefined values are converted to null
+      notes: allocation.notes || null,
+      status: allocation.status || "committed", // Default status if not provided
+      portfolioWeight: allocation.portfolioWeight || 0,
+      // Make sure the right property names are used
+      totalReturned: allocation.totalReturned || 0
+    }))
   });
 
   // Get all deals (for allocation creation and reference)
   const { data: deals } = useQuery<Deal[]>({
     queryKey: ["/api/deals"],
+    // Avoid null or undefined deals which could cause type errors
+    select: (data) => (data || []).map(deal => ({
+      ...deal,
+      // Ensure potentially undefined fields are set to null to match component expectations
+      notes: deal.notes || null,
+      description: deal.description || null,
+      sector: deal.sector || null
+    }))
   });
 
   // Create allocation mutation

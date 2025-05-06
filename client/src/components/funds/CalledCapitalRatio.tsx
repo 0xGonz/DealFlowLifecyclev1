@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { ResponsiveContainer, PieChart, Pie, Cell, Legend, Tooltip } from 'recharts';
-import { FundAllocation } from "@shared/schema";
+import { FundAllocation } from "@/lib/types";
 import { formatCurrency } from "@/lib/utils/format";
 
 type CapitalData = {
@@ -28,16 +28,21 @@ const CalledCapitalRatio: React.FC<CalledCapitalRatioProps> = ({
   }, []);
 
   // Calculate called vs uncalled capital based on allocation status
-  const capitalData = React.useMemo(() => {
+  const capitalData = React.useMemo((): CapitalData[] => {
+    // Handle null or undefined allocations to avoid runtime errors
+    if (!allocations || allocations.length === 0) {
+      return [];
+    }
+    
     // All 'funded' allocations are counted as called capital
     const calledAmount = allocations
-      .filter(allocation => allocation.status === 'funded')
-      .reduce((sum, allocation) => sum + allocation.amount, 0);
+      .filter(allocation => allocation && allocation.status === 'funded')
+      .reduce((sum, allocation) => sum + (allocation.amount || 0), 0);
     
     // Get all committed allocations (excluding funded ones)
     const committedAmount = allocations
-      .filter(allocation => allocation.status === 'committed')
-      .reduce((sum, allocation) => sum + allocation.amount, 0);
+      .filter(allocation => allocation && allocation.status === 'committed')
+      .reduce((sum, allocation) => sum + (allocation.amount || 0), 0);
       
     // Calculate uncalled as the total committed but not funded
     const uncalledAmount = committedAmount;
@@ -54,7 +59,9 @@ const CalledCapitalRatio: React.FC<CalledCapitalRatioProps> = ({
   }, [allocations]);
   
   // Calculate percentages for display
-  const totalCapital = capitalData.reduce((sum, item) => sum + item.value, 0);
+  const totalCapital = capitalData && capitalData.length > 0 ?
+    capitalData.reduce((sum, item) => sum + (item.value || 0), 0) : 0;
+    
   const calledPercentage = totalCapital > 0 
     ? Math.round((capitalData[0]?.value || 0) / totalCapital * 100) 
     : 0;
@@ -74,7 +81,7 @@ const CalledCapitalRatio: React.FC<CalledCapitalRatioProps> = ({
         <CardTitle>Called vs. Uncalled Capital</CardTitle>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col justify-center py-0">
-        {capitalData.length > 0 ? (
+        {capitalData && capitalData.length > 0 ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
             {/* Chart Section */}
             <div className="flex flex-col items-center justify-center h-full min-h-[230px]">
