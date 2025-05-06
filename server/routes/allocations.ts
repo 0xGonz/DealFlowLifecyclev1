@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { insertCapitalCallSchema, insertFundAllocationSchema } from '@shared/schema';
 import { StorageFactory } from '../storage-factory';
+import { synchronizeAllocationDates } from '../utils/date-integration';
 import { z } from 'zod';
 
 const router = Router();
@@ -437,7 +438,7 @@ router.patch('/:id', async (req: Request, res: Response) => {
       // Create a timeline event for the date change
       await storage.createTimelineEvent({
         dealId: existingAllocation.dealId,
-        eventType: 'allocation_update',
+        eventType: 'closing_scheduled',
         content: `Allocation dates updated for fund allocation`,
         createdBy: (req as any).user?.id || 1,
         metadata: {
