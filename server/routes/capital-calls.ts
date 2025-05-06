@@ -159,11 +159,20 @@ router.post('/', async (req: Request, res: Response) => {
       delete modifiedBody.dealId;
     }
 
-    // Convert date strings to Date objects
+    // If we have an allocationId, get the allocation to use its date as fallback
+    let allocationDate = new Date();
+    if (modifiedBody.allocationId) {
+      const allocation = await StorageFactory.storage.getFundAllocation(modifiedBody.allocationId);
+      if (allocation && allocation.allocationDate) {
+        allocationDate = new Date(allocation.allocationDate);
+      }
+    }
+
+    // Convert date strings to Date objects, using allocation date as fallback
     const data = {
       ...modifiedBody,
-      callDate: modifiedBody.callDate ? new Date(modifiedBody.callDate) : new Date(),
-      dueDate: modifiedBody.dueDate ? new Date(modifiedBody.dueDate) : new Date(Date.now() + TIME_MS.DAY * DEFAULT_DURATIONS.CAPITAL_CALL_DUE_DAYS) // Default to configured days from now
+      callDate: modifiedBody.callDate ? new Date(modifiedBody.callDate) : allocationDate,
+      dueDate: modifiedBody.dueDate ? new Date(modifiedBody.dueDate) : new Date(allocationDate.getTime() + TIME_MS.DAY * DEFAULT_DURATIONS.CAPITAL_CALL_DUE_DAYS)
     };
     
     const validatedData = insertCapitalCallSchema.parse(data);
@@ -367,8 +376,10 @@ async function generateCapitalCalls(allocationId: number, scheduleType: string, 
   // For single payment - just pass through the percentage value directly
   if (scheduleType === SCHEDULE_TYPES.SINGLE) {
     const percentage = callPercentage || 100;
-    const callDate = new Date(firstCallDate);
-    const dueDate = new Date(firstCallDate);
+    // Use the allocation date if it exists, otherwise use the firstCallDate
+    const allocationDate = allocation.allocationDate ? new Date(allocation.allocationDate) : new Date(firstCallDate);
+    const callDate = allocationDate;
+    const dueDate = new Date(allocationDate);
     dueDate.setDate(dueDate.getDate() + DEFAULT_DURATIONS.CAPITAL_CALL_DUE_DAYS); // Due in configured days
     
     // For single payments, we create a capital call that's already paid
@@ -381,7 +392,7 @@ async function generateCapitalCalls(allocationId: number, scheduleType: string, 
       dueDate,
       status: CAPITAL_CALL_STATUS.PAID, // Mark as PAID for single payments
       paidAmount: percentage, // Set paid amount to match call amount
-      paidDate: new Date(), // Set paid date to today
+      paidDate: allocationDate, // Set paid date to allocation date
       notes: `${formatPercentage(percentage)} single payment - fully funded`
     });
     
@@ -389,10 +400,7 @@ async function generateCapitalCalls(allocationId: number, scheduleType: string, 
     await StorageFactory.storage.updateFundAllocation(allocationId, { status: 'funded' });
     
     // Get the fundId to recalculate portfolio weights for all allocations in this fund
-    const allocation = await StorageFactory.storage.getFundAllocation(allocationId);
-    if (allocation) {
-      await recalculatePortfolioWeights(allocation.fundId);
-    }
+    await recalculatePortfolioWeights(allocation.fundId);
     
     return allocationId;
   }
@@ -400,11 +408,14 @@ async function generateCapitalCalls(allocationId: number, scheduleType: string, 
   // For custom schedule
   if (scheduleType === SCHEDULE_TYPES.CUSTOM && customSchedule) {
     const schedule = JSON.parse(customSchedule);
+    // Get the allocation date to use as a reference point
+    const baseDate = allocation.allocationDate ? new Date(allocation.allocationDate) : new Date();
     
     for (const call of schedule) {
       const percentage = call.percentage;
-      const callDate = new Date(call.date);
-      const dueDate = new Date(call.date);
+      // Use relative dates if provided, otherwise use allocation date
+      const callDate = call.date ? new Date(call.date) : new Date(baseDate);
+      const dueDate = new Date(callDate);
       dueDate.setDate(dueDate.getDate() + DEFAULT_DURATIONS.CAPITAL_CALL_DUE_DAYS); // Due in configured days
       
       await StorageFactory.storage.createCapitalCall({
@@ -431,8 +442,11 @@ async function generateCapitalCalls(allocationId: number, scheduleType: string, 
   if (scheduleType === SCHEDULE_TYPES.BIANNUAL) intervalMonths = 6;
   if (scheduleType === SCHEDULE_TYPES.ANNUAL) intervalMonths = 12;
   
+  // Use allocation date as base date if available, otherwise use the provided firstCallDate
+  const baseDate = allocation.allocationDate ? new Date(allocation.allocationDate) : new Date(firstCallDate);
+  
   for (let i = 0; i < count; i++) {
-    const callDate = new Date(firstCallDate);
+    const callDate = new Date(baseDate);
     callDate.setMonth(callDate.getMonth() + (i * intervalMonths));
     
     const dueDate = new Date(callDate);
