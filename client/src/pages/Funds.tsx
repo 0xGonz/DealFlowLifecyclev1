@@ -259,7 +259,7 @@ export default function Funds() {
             </div>
           ) : (
             funds?.map(fund => (
-              <Card key={fund.id} className="overflow-hidden hover:shadow-md transition-shadow duration-200">
+              <Card key={fund.id} className="overflow-hidden hover:shadow-md transition-shadow duration-200 flex flex-col h-full">
                 <CardHeader className="bg-primary/10 pb-2 sm:pb-3 flex justify-between items-start">
                   <CardTitle className="text-base sm:text-lg font-semibold truncate pr-2">{fund.name}</CardTitle>
                   {canEdit && (
@@ -300,7 +300,7 @@ export default function Funds() {
                     </DropdownMenu>
                   )}
                 </CardHeader>
-                <CardContent className="pt-3 sm:pt-4">
+                <CardContent className="pt-3 sm:pt-4 flex-grow">
                   <div className="flex flex-col mb-3 sm:mb-4 space-y-3">
                     <div>
                       <p className="text-xs sm:text-sm text-neutral-600 mb-0.5">Assets Under Management</p>
@@ -324,15 +324,19 @@ export default function Funds() {
                     </div>
                   </div>
                   
-                  {fund.description && (
-                    <p className="text-xs sm:text-sm text-neutral-600 mb-3 sm:mb-4 line-clamp-2">{fund.description}</p>
-                  )}
+                  <div className="min-h-[2.5rem] mb-3 sm:mb-4">
+                    {fund.description ? (
+                      <p className="text-xs sm:text-sm text-neutral-600 line-clamp-2">{fund.description}</p>
+                    ) : (
+                      <p className="text-xs sm:text-sm text-neutral-400 italic">No description</p>
+                    )}
+                  </div>
                   
                   <div className="text-[10px] sm:text-xs text-neutral-500">
                     Created {formatDistanceToNow(new Date(fund.createdAt), { addSuffix: true })}
                   </div>
                 </CardContent>
-                <CardFooter className="bg-neutral-50 border-t p-2 sm:p-3">
+                <CardFooter className="bg-neutral-50 border-t p-2 sm:p-3 mt-auto">
                   <Button variant="ghost" size="sm" className="ml-auto h-7 sm:h-8 px-2 sm:px-3 text-xs sm:text-sm" asChild>
                     <a href={`/funds/${fund.id}`}>
                       View Details
