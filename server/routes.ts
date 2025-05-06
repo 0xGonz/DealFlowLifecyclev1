@@ -47,6 +47,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/users', usersRoutes);
   app.use('/api/auth', authRoutes);
   app.use('/api/allocations', allocationsRoutes);
+  app.use('/api/fund-allocations', allocationsRoutes); // Add this alias for client compatibility
   app.use('/api/capital-calls', capitalCallsRoutes);
   app.use('/api/closing-schedules', closingSchedulesRoutes);
   app.use('/api/dashboard', dashboardRoutes);

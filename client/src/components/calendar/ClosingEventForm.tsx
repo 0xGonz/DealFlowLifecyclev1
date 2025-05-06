@@ -26,34 +26,26 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Loader2 } from 'lucide-react';
 
-// Extend the insert schema with client-side validation
-const closingEventFormSchema = insertClosingScheduleEventSchema
-  .extend({
-    scheduledDate: z.string().min(1, 'Scheduled date is required'),
-    dealId: z.number().min(1, 'Deal is required'),
-    eventName: z.string().min(1, 'Event name is required').max(100, 'Event name is too long'),
-    eventType: z.enum([
-      CLOSING_EVENT_TYPES.FIRST_CLOSE,
-      CLOSING_EVENT_TYPES.SECOND_CLOSE,
-      CLOSING_EVENT_TYPES.FINAL_CLOSE,
-      CLOSING_EVENT_TYPES.EXTENSION,
-      CLOSING_EVENT_TYPES.CUSTOM
-    ]),
-    targetAmount: z.union([
-      z.number().min(0, 'Target percentage must be 0 or greater').max(100, 'Target percentage cannot exceed 100'),
-      z.string().transform((val) => val === '' ? undefined : Number(val)),
-      z.undefined()
-    ]).optional(),
-    notes: z.union([z.string(), z.null()]).optional(),
-  })
-  .omit({ 
-    id: true, 
-    createdAt: true, 
-    updatedAt: true, 
-    actualDate: true, 
-    actualAmount: true,
-    status: true
-  });
+// Define a custom schema for the form, extending the database schema with validation
+const closingEventFormSchema = z.object({
+  scheduledDate: z.string().min(1, 'Scheduled date is required'),
+  dealId: z.number().min(1, 'Deal is required'),
+  eventName: z.string().min(1, 'Event name is required').max(100, 'Event name is too long'),
+  eventType: z.enum([
+    CLOSING_EVENT_TYPES.FIRST_CLOSE,
+    CLOSING_EVENT_TYPES.SECOND_CLOSE,
+    CLOSING_EVENT_TYPES.FINAL_CLOSE,
+    CLOSING_EVENT_TYPES.EXTENSION,
+    CLOSING_EVENT_TYPES.CUSTOM
+  ]),
+  targetAmount: z.union([
+    z.number().min(0, 'Target percentage must be 0 or greater').max(100, 'Target percentage cannot exceed 100'),
+    z.string().transform((val) => val === '' ? undefined : Number(val)),
+    z.undefined()
+  ]).optional(),
+  notes: z.union([z.string(), z.null()]).optional(),
+  createdBy: z.number().optional()
+});
 
 type ClosingEventFormValues = z.infer<typeof closingEventFormSchema>;
 
@@ -88,14 +80,14 @@ const ClosingEventForm: React.FC<ClosingEventFormProps> = ({ isOpen, onClose, se
   const form = useForm<ClosingEventFormValues>({
     resolver: zodResolver(closingEventFormSchema),
     defaultValues: {
-      scheduledDate: selectedDate ? format(selectedDate, DATE_FORMATS.ISO) : undefined,
+      scheduledDate: selectedDate ? format(selectedDate, DATE_FORMATS.ISO) : '',
       eventName: '',
       eventType: CLOSING_EVENT_TYPES.CUSTOM,
-      dealId: undefined,
+      dealId: undefined as unknown as number,
       targetAmount: undefined,
       notes: '',
       createdBy: user?.id
-    }
+    } as unknown as ClosingEventFormValues
   });
   
   const createClosingEvent = useMutation({
@@ -128,12 +120,13 @@ const ClosingEventForm: React.FC<ClosingEventFormProps> = ({ isOpen, onClose, se
   
   const onSubmit = (data: ClosingEventFormValues) => {
     // Make sure the user ID is included
-    if (!data.createdBy && user?.id) {
-      data.createdBy = user.id;
-    }
+    const formData = {
+      ...data,
+      createdBy: data.createdBy || user?.id
+    };
     
     // Submit the form data
-    createClosingEvent.mutate(data);
+    createClosingEvent.mutate(formData);
   };
   
   return (

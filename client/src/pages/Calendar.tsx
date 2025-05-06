@@ -317,9 +317,13 @@ const CalendarPage = () => {
                 className="rounded-md border"
                 components={{
                   Day: (props) => {
+                    // Using a custom Day component to show events
                     return (
                       <button 
-                        onClick={() => props.onClick?.()} 
+                        onClick={() => {
+                          // Handle the click event manually
+                          setSelectedDate(props.date);
+                        }} 
                         className="h-9 w-9 p-0 font-normal"
                       >
                         {renderDay(props.date)}

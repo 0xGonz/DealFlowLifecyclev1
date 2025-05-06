@@ -4,6 +4,7 @@ import { insertCapitalCallSchema, type FundAllocation } from '@shared/schema';
 import * as TimeConstants from '../constants/time-constants';
 import { CAPITAL_CALL_STATUS, SCHEDULE_TYPES } from '../constants/status-constants';
 import { formatPercentage } from '../utils/format';
+import { inArray } from 'drizzle-orm';
 
 // Extract time constants for easier use
 const { TIME_MS, DEFAULT_DURATIONS } = TimeConstants;
@@ -119,12 +120,33 @@ router.get('/allocation/:allocationId', async (req: Request, res: Response) => {
 // Create a new capital call
 router.post('/', async (req: Request, res: Response) => {
   try {
-    // If percentage is provided but not callAmount, map percentage to callAmount
-    // This change maintains backwards compatibility while supporting the new percentage field
     let modifiedBody = { ...req.body };
-    if (modifiedBody.percentage !== undefined && modifiedBody.callAmount === undefined) {
+    
+    // If percentage exists, use it for callAmount
+    if (modifiedBody.percentage !== undefined) {
       modifiedBody.callAmount = modifiedBody.percentage;
       delete modifiedBody.percentage; // Remove percentage as it's not in the schema
+    }
+    
+    // If dealId is provided instead of allocationId, find a suitable allocation
+    // This allows creating capital calls directly by deal without needing allocation IDs
+    if (modifiedBody.dealId !== undefined && modifiedBody.allocationId === undefined) {
+      const dealId = modifiedBody.dealId;
+      
+      // Find a suitable allocation for this deal
+      const allocations = await storage.getAllocationsByDeal(dealId);
+      if (allocations && allocations.length > 0) {
+        // Simply use the first allocation for this deal
+        modifiedBody.allocationId = allocations[0].id;
+      } else {
+        return res.status(400).json({ 
+          error: 'No fund allocations found for this deal',
+          details: 'This deal must be allocated to at least one fund before capital calls can be created'
+        });
+      }
+      
+      // Remove dealId as it's not in the schema
+      delete modifiedBody.dealId;
     }
 
     // Convert date strings to Date objects

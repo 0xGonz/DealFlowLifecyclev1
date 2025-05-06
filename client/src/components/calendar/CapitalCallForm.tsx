@@ -40,7 +40,7 @@ import { Deal, FundAllocation } from '@/lib/types';
 
 // Define form schema
 const capitalCallFormSchema = z.object({
-  allocationId: z.coerce.number(),
+  dealId: z.coerce.number().min(1, 'Deal is required'),
   percentage: z.coerce.number().min(0, 'Percentage must be 0 or greater').max(100, 'Percentage cannot exceed 100'),
   dueDate: z.string().min(1, 'Due date is required'),
   notes: z.string().optional(),
@@ -65,20 +65,16 @@ const CapitalCallForm: React.FC<CapitalCallFormProps> = ({ isOpen, onClose, sele
     queryKey: ['/api/deals'],
   });
   
-  // Fetch fund allocations
-  const { data: allocations = [], isLoading: isLoadingAllocations } = useQuery<FundAllocation[]>({
-    queryKey: ['/api/fund-allocations'],
-  });
-  
+  // We don't need to fetch fund allocations anymore since we're using deals directly
   const form = useForm<CapitalCallFormValues>({
     resolver: zodResolver(capitalCallFormSchema),
     defaultValues: {
-      dueDate: selectedDate ? format(selectedDate, DATE_FORMATS.ISO) : undefined,
+      dueDate: selectedDate ? format(selectedDate, DATE_FORMATS.ISO) : '',
       percentage: undefined,
-      allocationId: undefined,
+      dealId: undefined as unknown as number,
       notes: '',
       createdBy: user?.id
-    }
+    } as unknown as CapitalCallFormValues
   });
   
   const createCapitalCall = useMutation({
@@ -111,25 +107,21 @@ const CapitalCallForm: React.FC<CapitalCallFormProps> = ({ isOpen, onClose, sele
   
   const onSubmit = (data: CapitalCallFormValues) => {
     // Make sure the user ID is included
-    if (!data.createdBy && user?.id) {
-      data.createdBy = user.id;
-    }
+    const formData = {
+      ...data,
+      createdBy: data.createdBy || user?.id
+    };
     
     // Submit the form data
-    createCapitalCall.mutate(data);
+    createCapitalCall.mutate(formData);
   };
   
-  // Helper to get deal name by deal ID from allocation
-  const getDealNameById = (dealId: number) => {
-    const deal = deals.find(d => d.id === dealId);
-    return deal ? deal.name : 'Unknown Deal';
-  };
-  
-  // Helper to get fund name by fund ID from allocation
-  const getFundNameById = (fundId: number) => {
-    // This would typically come from a fund query, but for simplicity we'll just return the ID
-    return `Fund ${fundId}`;
-  };
+  // Filter deals that are relevant for capital calls (e.g., in closing or closed stage)
+  const eligibleDeals = deals.filter(deal => {
+    // Show all deals or filter by stage if needed
+    // For example, only deals in closing or closed stage might be eligible
+    return true; // For now, show all deals
+  });
   
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -140,31 +132,31 @@ const CapitalCallForm: React.FC<CapitalCallFormProps> = ({ isOpen, onClose, sele
         
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            {/* Fund Allocation selector */}
+            {/* Deal selector */}
             <FormField
               control={form.control}
-              name="allocationId"
+              name="dealId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Fund Allocation</FormLabel>
+                  <FormLabel>Deal</FormLabel>
                   <Select
                     onValueChange={(value) => field.onChange(parseInt(value))}
                     defaultValue={field.value?.toString()}
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select fund allocation" />
+                        <SelectValue placeholder="Select deal" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {isLoadingAllocations ? (
+                      {isLoadingDeals ? (
                         <div className="p-2 flex justify-center">
                           <Loader2 className="h-4 w-4 animate-spin" />
                         </div>
                       ) : (
-                        allocations.map((allocation) => (
-                          <SelectItem key={allocation.id} value={allocation.id.toString()}>
-                            {getDealNameById(allocation.dealId)} - {getFundNameById(allocation.fundId)}
+                        eligibleDeals.map((deal) => (
+                          <SelectItem key={deal.id} value={deal.id.toString()}>
+                            {deal.name}
                           </SelectItem>
                         ))
                       )}

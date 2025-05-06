@@ -5,6 +5,42 @@ import { z } from 'zod';
 
 const router = Router();
 
+// Get all allocations
+router.get('/', async (req: Request, res: Response) => {
+  try {
+    const storage = StorageFactory.getStorage();
+    
+    // Get all fund allocations from each fund
+    const funds = await storage.getFunds();
+    let allAllocations: Array<any> = [];
+    
+    for (const fund of funds) {
+      const fundAllocations = await storage.getAllocationsByFund(fund.id);
+      // Add fund name to each allocation
+      const enhancedAllocations = fundAllocations.map(allocation => ({
+        ...allocation,
+        fundName: fund.name
+      }));
+      allAllocations = [...allAllocations, ...enhancedAllocations];
+    }
+    
+    // Get all deals to get deal names
+    const deals = await storage.getDeals();
+    const dealsMap = new Map(deals.map(deal => [deal.id, deal.name]));
+    
+    // Add deal names
+    const allocationsWithDealNames = allAllocations.map(allocation => ({
+      ...allocation,
+      dealName: dealsMap.get(allocation.dealId) || 'Unknown Deal'
+    }));
+    
+    res.json(allocationsWithDealNames);
+  } catch (error) {
+    console.error('Error fetching all allocations:', error);
+    res.status(500).json({ message: 'Failed to fetch allocations' });
+  }
+});
+
 // Fund allocations
 router.post('/', async (req: Request, res: Response) => {
   try {
