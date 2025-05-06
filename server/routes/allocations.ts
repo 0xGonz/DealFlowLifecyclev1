@@ -102,7 +102,7 @@ async function recalculatePortfolioWeights(fundId: number): Promise<void> {
 // Get all allocations
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const storage = StorageFactory.getStorage();
+    const storage = StorageFactory.storage;
     
     // Get all fund allocations from each fund
     const funds = await storage.getFunds();
@@ -142,7 +142,7 @@ router.get('/', async (req: Request, res: Response) => {
 // Fund allocations
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const storage = StorageFactory.getStorage();
+    const storage = StorageFactory.storage;
     
     // Log the incoming data for debugging
     console.log('Allocation request body:', req.body);
@@ -240,7 +240,7 @@ router.post('/', async (req: Request, res: Response) => {
 // Get allocations for a fund
 router.get('/fund/:fundId', async (req: Request, res: Response) => {
   try {
-    const storage = StorageFactory.getStorage();
+    const storage = StorageFactory.storage;
     const fundId = Number(req.params.fundId);
     const allocations = await storage.getAllocationsByFund(fundId);
     
@@ -263,7 +263,7 @@ router.get('/fund/:fundId', async (req: Request, res: Response) => {
 // Get invalid allocations for a fund (allocations to non-existent deals)
 router.get('/fund/:fundId/invalid', async (req: Request, res: Response) => {
   try {
-    const storage = StorageFactory.getStorage();
+    const storage = StorageFactory.storage;
     const fundId = Number(req.params.fundId);
     const allocations = await storage.getAllocationsByFund(fundId);
     
@@ -286,7 +286,7 @@ router.get('/fund/:fundId/invalid', async (req: Request, res: Response) => {
 // Get allocations for a deal
 router.get('/deal/:dealId', async (req: Request, res: Response) => {
   try {
-    const storage = StorageFactory.getStorage();
+    const storage = StorageFactory.storage;
     const dealId = Number(req.params.dealId);
     
     // First check if deal exists
@@ -306,7 +306,7 @@ router.get('/deal/:dealId', async (req: Request, res: Response) => {
 // Delete an allocation
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
-    const storage = StorageFactory.getStorage();
+    const storage = StorageFactory.storage;
     const allocationId = Number(req.params.id);
     
     // Find the allocation first to get fundId
