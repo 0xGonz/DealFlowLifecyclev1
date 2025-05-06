@@ -206,6 +206,47 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
       setShowCustomFields(false);
     }
   }, [allocationData.capitalCallSchedule]);
+  
+  // Update defaults based on capital call schedule
+  useEffect(() => {
+    if (allocationData.capitalCallSchedule === CAPITAL_CALL_SCHEDULES.SINGLE) {
+      // For single payments, set 100% and update status to 'funded'
+      setAllocationData(prev => ({
+        ...prev,
+        callPercentage: 100,
+        callCount: 1,
+        status: ALLOCATION_STATUS.FUNDED // Single payments are automatically marked as funded
+      }));
+    } else if (allocationData.capitalCallSchedule === CAPITAL_CALL_SCHEDULES.QUARTERLY) {
+      setAllocationData(prev => ({
+        ...prev,
+        callPercentage: 25, // 25% per quarter
+        callCount: 4,
+        status: ALLOCATION_STATUS.COMMITTED
+      }));
+    } else if (allocationData.capitalCallSchedule === CAPITAL_CALL_SCHEDULES.MONTHLY) {
+      setAllocationData(prev => ({
+        ...prev,
+        callPercentage: 8.33, // ~8.33% per month
+        callCount: 12,
+        status: ALLOCATION_STATUS.COMMITTED
+      }));
+    } else if (allocationData.capitalCallSchedule === CAPITAL_CALL_SCHEDULES.BIANNUAL) {
+      setAllocationData(prev => ({
+        ...prev,
+        callPercentage: 50, // 50% twice a year
+        callCount: 2,
+        status: ALLOCATION_STATUS.COMMITTED
+      }));
+    } else if (allocationData.capitalCallSchedule === CAPITAL_CALL_SCHEDULES.ANNUAL) {
+      setAllocationData(prev => ({
+        ...prev,
+        callPercentage: 100, // 100% once a year
+        callCount: 1,
+        status: ALLOCATION_STATUS.COMMITTED
+      }));
+    }
+  }, [allocationData.capitalCallSchedule]);
 
   const handleCreateAllocation = () => {
     // Log the allocation data for debugging
