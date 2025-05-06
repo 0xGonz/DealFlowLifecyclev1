@@ -47,8 +47,6 @@ const CalledCapitalRatio: React.FC<CalledCapitalRatioProps> = ({
       return [];
     }
     
-    // For single payment allocations in 'committed' status, we need to show them as fully called
-    // This is a temporary fix until we update the backend to use 'funded' status
     return [
       { name: "Called Capital", value: calledAmount, color: "#4f46e5" },
       { name: "Uncalled Capital", value: uncalledAmount, color: "#a5b4fc" }
@@ -63,29 +61,24 @@ const CalledCapitalRatio: React.FC<CalledCapitalRatioProps> = ({
 
   // Calculate dynamic sizes based on viewport
   const isSmallScreen = windowWidth < 640;
-  const isMediumScreen = windowWidth >= 640 && windowWidth < 768;
-  const isLargeScreen = windowWidth >= 768;
+  const isMediumScreen = windowWidth >= 640 && windowWidth < 1024;
+  const isLargeScreen = windowWidth >= 1024;
 
-  // Dynamic sizing for the chart
-  const chartLayout = isSmallScreen ? 'vertical' : 'horizontal';
-  const chartWidth = isSmallScreen ? '100%' : isMediumScreen ? '45%' : '40%';
-  const chartHeight = isSmallScreen ? '250px' : isMediumScreen ? '100%' : '100%';
-
-  // Dynamic inner and outer radius based on container size
-  const innerRadius = isSmallScreen ? 55 : isMediumScreen ? 60 : 65;
-  const outerRadius = isSmallScreen ? 85 : isMediumScreen ? 90 : 100;
+  // Dynamic radius sizing based on container size
+  const innerRadius = isSmallScreen ? 45 : isMediumScreen ? 50 : 55;
+  const outerRadius = isSmallScreen ? 70 : isMediumScreen ? 80 : 85;
     
   return (
     <Card className="h-full w-full flex flex-col">
-      <CardHeader className="pb-3">
+      <CardHeader className="pb-2">
         <CardTitle>Called vs. Uncalled Capital</CardTitle>
-        <p className="text-sm text-muted-foreground">Based on funded allocation status</p>
       </CardHeader>
-      <CardContent className="grow flex-1 flex flex-col">
+      <CardContent className="flex-1 flex flex-col justify-center py-0">
         {capitalData.length > 0 ? (
-          <div className={`flex flex-col ${isSmallScreen ? 'items-center' : 'sm:flex-row sm:items-stretch'} justify-between gap-4 h-full`}>
-            <div className={`${isSmallScreen ? 'w-full max-w-xs' : 'w-full sm:w-auto flex-1'} ${chartHeight}`}>
-              <ResponsiveContainer width="100%" height="100%">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
+            {/* Chart Section */}
+            <div className="flex flex-col items-center justify-center h-full min-h-[230px]">
+              <ResponsiveContainer width="100%" height="100%" minHeight={230}>
                 <PieChart>
                   <Pie
                     data={capitalData}
@@ -95,52 +88,66 @@ const CalledCapitalRatio: React.FC<CalledCapitalRatioProps> = ({
                     endAngle={-270}
                     innerRadius={innerRadius}
                     outerRadius={outerRadius}
-                    paddingAngle={0}
+                    paddingAngle={2}
                     dataKey="value"
+                    label={({ name, percent }) => `${Math.round(percent * 100)}%`}
+                    labelLine={false}
                   >
                     {capitalData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
+                      <Cell 
+                        key={`cell-${index}`} 
+                        fill={entry.color} 
+                        stroke={entry.color}
+                        strokeWidth={1}
+                      />
                     ))}
                   </Pie>
-                  <Legend 
-                    verticalAlign={isSmallScreen ? "bottom" : "middle"}
-                    align={isSmallScreen ? "center" : "right"}
-                    layout={isSmallScreen ? "horizontal" : "vertical"}
-                    iconSize={10}
-                    formatter={(value: string) => {
-                      const item = capitalData.find(item => item.name === value);
-                      if (!item) return <span>{value}</span>;
-                      
-                      const percentage = item.value / totalCapital * 100;
-                      return (
-                        <span className="text-xs sm:text-sm font-medium">
-                          {value} ({Math.round(percentage)}%)
-                        </span>
-                      );
-                    }}
-                  />
                   <Tooltip 
-                    formatter={(value: number) => [`${formatCurrency(value)}`, `Capital Amount`]}
-                    labelFormatter={(label: string) => `${label} (${label === 'Called Capital' ? 'Funded' : 'Committed but not Funded'})`}
+                    formatter={(value: number) => [`${formatCurrency(value)}`, `Amount`]}
+                    labelFormatter={(label: string) => label}
                   />
                 </PieChart>
               </ResponsiveContainer>
             </div>
             
-            <div className={`flex flex-col justify-center gap-3 sm:gap-4 ${isSmallScreen ? 'w-full' : 'sm:w-1/2 md:w-2/5'}`}>
-              <div className="text-center sm:text-left">
-                <p className="text-xs text-neutral-500 mb-0.5 sm:mb-1">Called Rate</p>
-                <p className="text-xl sm:text-2xl md:text-3xl font-semibold">{calledPercentage}%</p>
+            {/* Stats Section */}
+            <div className="flex flex-col justify-center space-y-5">
+              {/* Called Rate */}
+              <div className="bg-gray-50 rounded-lg p-4 shadow-sm">
+                <p className="text-sm text-neutral-500">Called Rate</p>
+                <div className="flex items-baseline mt-1">
+                  <span className="text-3xl font-bold">{calledPercentage}%</span>
+                  <span className="ml-2 text-sm text-neutral-500">of total capital</span>
+                </div>
               </div>
               
-              <div className="grid grid-cols-2 gap-2 sm:gap-4">
-                <div>
-                  <p className="text-xs text-neutral-500 mb-0.5 sm:mb-1">Called (Funded)</p>
-                  <p className="text-sm sm:text-base md:text-lg font-medium truncate">{formatCurrency(capitalData[0]?.value || 0)}</p>
+              {/* Capital Breakdown */}
+              <div className="space-y-3">
+                {/* Called Capital */}
+                <div className="flex items-center">
+                  <div className="w-4 h-4 rounded-full bg-indigo-600 mr-3"></div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">Called Capital</p>
+                    <p className="text-lg font-semibold">{formatCurrency(capitalData[0]?.value || 0)}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs text-neutral-500 mb-0.5 sm:mb-1">Uncalled (Committed)</p>
-                  <p className="text-sm sm:text-base md:text-lg font-medium truncate">{formatCurrency(capitalData[1]?.value || 0)}</p>
+                
+                {/* Uncalled Capital */}
+                <div className="flex items-center">
+                  <div className="w-4 h-4 rounded-full bg-indigo-300 mr-3"></div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">Uncalled Capital</p>
+                    <p className="text-lg font-semibold">{formatCurrency(capitalData[1]?.value || 0)}</p>
+                  </div>
+                </div>
+                
+                {/* Total Capital */}
+                <div className="flex items-center pt-2 border-t border-gray-200">
+                  <div className="w-4 h-4 rounded-full bg-gray-200 mr-3"></div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">Total Capital</p>
+                    <p className="text-lg font-semibold">{formatCurrency(totalCapital)}</p>
+                  </div>
                 </div>
               </div>
             </div>
