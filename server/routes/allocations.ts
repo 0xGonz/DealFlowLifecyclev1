@@ -404,4 +404,106 @@ router.delete('/:id', async (req: Request, res: Response) => {
   }
 });
 
+// Update an allocation
+router.patch('/:id', async (req: Request, res: Response) => {
+  try {
+    const storage = StorageFactory.storage;
+    const allocationId = Number(req.params.id);
+    
+    // Validate the allocation still exists
+    const existingAllocation = await storage.getFundAllocation(allocationId);
+    if (!existingAllocation) {
+      return res.status(404).json({ message: 'Allocation not found' });
+    }
+    
+    // Extract the allocation date if it's being updated
+    const updatedAllocationDate = req.body.allocationDate ? new Date(req.body.allocationDate) : null;
+    const originalDate = existingAllocation.allocationDate;
+    
+    // First update the basic allocation data
+    const updatedAllocation = await storage.updateFundAllocation(allocationId, req.body);
+    if (!updatedAllocation) {
+      return res.status(500).json({ message: 'Failed to update allocation' });
+    }
+    
+    // If the allocation date has changed, synchronize all related entities
+    if (updatedAllocationDate && 
+        originalDate && 
+        updatedAllocationDate.getTime() !== new Date(originalDate).getTime()) {
+      
+      // Use the date integration utility to synchronize dates
+      await synchronizeAllocationDates(allocationId, updatedAllocationDate);
+      
+      // Create a timeline event for the date change
+      await storage.createTimelineEvent({
+        dealId: existingAllocation.dealId,
+        eventType: 'allocation_update',
+        content: `Allocation dates updated for fund allocation`,
+        createdBy: (req as any).user?.id || 1,
+        metadata: {
+          originalDate: originalDate,
+          newDate: updatedAllocationDate
+        } as any
+      });
+    }
+    
+    // Recalculate portfolio weights for this fund
+    await recalculatePortfolioWeights(existingAllocation.fundId);
+    
+    // Return the updated allocation
+    res.json(updatedAllocation);
+  } catch (error) {
+    console.error('Error updating allocation:', error);
+    res.status(500).json({ 
+      message: 'Failed to update allocation', 
+      error: error instanceof Error ? error.message : String(error) 
+    });
+  }
+});
+
+// Update allocation date with synchronization
+router.patch('/:id/date', async (req: Request, res: Response) => {
+  try {
+    const storage = StorageFactory.storage;
+    const allocationId = Number(req.params.id);
+    
+    // Validate the new date
+    if (!req.body.allocationDate) {
+      return res.status(400).json({ message: 'Allocation date is required' });
+    }
+    
+    const newDate = new Date(req.body.allocationDate);
+    if (isNaN(newDate.getTime())) {
+      return res.status(400).json({ message: 'Invalid date format' });
+    }
+    
+    // Get the allocation to ensure it exists
+    const allocation = await storage.getFundAllocation(allocationId);
+    if (!allocation) {
+      return res.status(404).json({ message: 'Allocation not found' });
+    }
+    
+    // Use the date integration utility to synchronize all related dates
+    const result = await synchronizeAllocationDates(allocationId, newDate);
+    
+    if (!result) {
+      return res.status(500).json({ 
+        message: 'Date synchronization failed' 
+      });
+    }
+    
+    // Get the updated allocation
+    const updatedAllocation = await storage.getFundAllocation(allocationId);
+    
+    // Return the updated allocation with synchronized dates
+    res.json(updatedAllocation);
+  } catch (error) {
+    console.error('Error updating allocation date:', error);
+    res.status(500).json({ 
+      message: 'Failed to update allocation date', 
+      error: error instanceof Error ? error.message : String(error) 
+    });
+  }
+});
+
 export default router;
