@@ -20,59 +20,17 @@ import { AVATAR_COLORS } from "@/lib/constants/ui-constants";
 import { apiRequest } from "@/lib/queryClient";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
-// Dummy data for users
-const MOCK_USERS = [
-  {
-    id: 1,
-    fullName: "Admin User",
-    username: "admin",
-    email: "admin@example.com",
-    role: "admin",
-    initials: "AU",
-    avatarColor: "#4f46e5",
-    lastActive: "2023-05-15T12:30:00Z"
-  },
-  {
-    id: 2,
-    fullName: "John Partner",
-    username: "johnp",
-    email: "john@example.com",
-    role: "partner",
-    initials: "JP",
-    avatarColor: "#0ea5e9",
-    lastActive: "2023-05-14T15:45:00Z"
-  },
-  {
-    id: 3,
-    fullName: "Alice Analyst",
-    username: "alicea",
-    email: "alice@example.com",
-    role: "analyst",
-    initials: "AA",
-    avatarColor: "#10b981",
-    lastActive: "2023-05-15T09:15:00Z"
-  },
-  {
-    id: 4,
-    fullName: "Bob Observer",
-    username: "bobo",
-    email: "bob@example.com",
-    role: "observer",
-    initials: "BO",
-    avatarColor: "#f59e0b",
-    lastActive: "2023-05-12T17:30:00Z"
-  },
-  {
-    id: 5,
-    fullName: "Intern User",
-    username: "intern",
-    email: "intern@example.com",
-    role: "intern",
-    initials: "IU",
-    avatarColor: "#ef4444",
-    lastActive: "2023-05-15T10:45:00Z"
-  }
-];
+// Define User type
+type User = {
+  id: number;
+  fullName: string;
+  username: string;
+  email: string;
+  role: "admin" | "partner" | "analyst" | "observer" | "intern";
+  initials: string;
+  avatarColor: string;
+  lastActive: string;
+};
 
 const userFormSchema = z.object({
   fullName: z.string().min(2, "Full name is required"),
@@ -109,14 +67,13 @@ export default function UsersPage() {
   const { toast } = useToast();
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
   const [isEditUserOpen, setIsEditUserOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<(typeof MOCK_USERS)[0] | null>(null);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   
   // Fetch users
-  const { data: users = [], isLoading } = useQuery<typeof MOCK_USERS>({
-    queryKey: ["/api/users"],
-    placeholderData: MOCK_USERS // Use mockData as placeholder
+  const { data: users = [], isLoading } = useQuery<User[]>({
+    queryKey: ["/api/users"]
   });
 
   // Filter users based on search query
@@ -176,7 +133,7 @@ export default function UsersPage() {
   });
   
   // Handle edit user button click
-  const handleEditUser = (user: (typeof MOCK_USERS)[0]) => {
+  const handleEditUser = (user: User) => {
     setSelectedUser(user);
     setIsEditUserOpen(true);
   };
