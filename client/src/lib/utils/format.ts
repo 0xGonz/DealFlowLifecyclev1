@@ -9,8 +9,8 @@ export function formatCurrency(value: number): string {
 }
 
 // Format a percentage as a string with % sign
-export function formatPercentage(value: number): string {
-  return `${value}%`;
+export function formatPercentage(value: number, precision: number = 0): string {
+  return `${value.toFixed(precision)}%`;
 }
 
 // Format an amount based on its type (dollar or percentage)

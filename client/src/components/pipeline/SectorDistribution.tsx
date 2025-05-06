@@ -180,14 +180,15 @@ export default function SectorDistribution({ deals, stage }: SectorDistributionP
                 wrapperStyle={isMobile ? { bottom: 0, maxWidth: '100%', overflowX: 'hidden' } : { right: 0, top: 20 }}
                 formatter={(value: string, entry) => {
                   const processedEntry = processedData.find(item => item.name === entry.id);
-                  if (!processedEntry || isMobile) return <span className="text-[10px] xs:text-xs sm:text-sm font-medium truncate text-black">{value}</span>;
+                  if (!processedEntry) return <span className="text-[10px] xs:text-xs sm:text-sm font-medium truncate text-black">{value}</span>;
                   
                   const totalCount = processedData.reduce((sum, i) => sum + i.value, 0);
                   const percentageValue = processedEntry.value / totalCount * 100;
                   
+                  // Show only the percentage in xx.xx% format
                   return (
                     <span className="text-[10px] xs:text-xs sm:text-sm font-medium truncate text-black">
-                      {value} <span className="font-bold">({formatPercentage(percentageValue, 0)})</span>
+                      {formatPercentage(percentageValue, 2)}
                     </span>
                   );
                 }}

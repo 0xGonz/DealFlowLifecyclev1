@@ -199,12 +199,11 @@ export default function SectorDistributionChart() {
                     const item = processedData.find(item => item.sector === entry.id);
                     if (!item) return <span className="text-[10px] xs:text-xs sm:text-sm font-medium text-black">{value}</span>;
                     const percentage = item.count / totalCount * 100;
+                    
+                    // Show only the percentage in xx.xx% format
                     return (
                       <span className="text-[10px] xs:text-xs sm:text-sm font-medium text-black">
-                        {value}
-                        {windowWidth >= 640 && (
-                          <span className="font-bold">({formatPercentage(percentage, 0)})</span>
-                        )}
+                        {formatPercentage(percentage, 2)}
                       </span>
                     );
                   }}
