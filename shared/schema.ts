@@ -179,6 +179,7 @@ export const fundAllocations = pgTable("fund_allocations", {
   fundId: integer("fund_id").notNull(),
   dealId: integer("deal_id").notNull(),
   amount: real("amount").notNull(),
+  amountType: text("amount_type", { enum: ["percentage", "dollar"] }).default("dollar"),
   securityType: text("security_type").notNull(),
   allocationDate: timestamp("allocation_date").notNull().defaultNow(),
   notes: text("notes"),

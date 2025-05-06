@@ -37,6 +37,7 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
     fundId: null as number | null,
     dealId: dealId,
     amount: 0,
+    amountType: 'dollar' as 'dollar' | 'percentage', // Add amountType field with default value
     securityType: '',
     allocationDate: new Date().toISOString().split('T')[0], // format as YYYY-MM-DD
     capitalCallSchedule: '',
@@ -83,6 +84,7 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
         fundId: null,
         dealId: dealId,
         amount: 0,
+        amountType: 'dollar',
         securityType: '',
         allocationDate: new Date().toISOString().split('T')[0],
         capitalCallSchedule: '',
@@ -115,10 +117,11 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
       // Close modal
       onClose();
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Allocation error:', error);
       toast({
         title: "Error",
-        description: "Failed to allocate investment",
+        description: `Failed to allocate investment: ${error.message || 'Unknown error'}`,
         variant: "destructive"
       });
     }
@@ -150,6 +153,9 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
   }, [allocationData.capitalCallSchedule]);
 
   const handleCreateAllocation = () => {
+    // Log the allocation data for debugging
+    console.log('Allocation data being sent:', allocationData);
+    
     if (!allocationData.fundId) {
       toast({
         title: "Error",
@@ -264,16 +270,36 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="amount">Amount Committed *</Label>
+            <div className="flex justify-between">
+              <Label htmlFor="amount">Amount Committed *</Label>
+              <div className="flex items-center space-x-2">
+                <Label htmlFor="amountType" className="text-xs">Type:</Label>
+                <Select
+                  value={allocationData.amountType}
+                  onValueChange={(value) => setAllocationData({
+                    ...allocationData,
+                    amountType: value as 'dollar' | 'percentage'
+                  })}
+                >
+                  <SelectTrigger id="amountType" className="h-7 w-[90px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="dollar">Dollar</SelectItem>
+                    <SelectItem value="percentage">Percentage</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
             <div className="relative">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-neutral-500">
-                $
+                {allocationData.amountType === 'dollar' ? '$' : ''}
               </span>
               <Input
                 id="amount"
                 type="number"
                 min="0"
-                step="1000"
+                step={allocationData.amountType === 'dollar' ? '1000' : '1'}
                 className="pl-6"
                 value={allocationData.amount || ''}
                 onChange={(e) => setAllocationData({
@@ -282,6 +308,11 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
                 })}
                 placeholder="0.00"
               />
+              {allocationData.amountType === 'percentage' && (
+                <span className="absolute inset-y-0 right-3 flex items-center text-neutral-500">
+                  %
+                </span>
+              )}
             </div>
           </div>
 
