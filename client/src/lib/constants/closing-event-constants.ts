@@ -15,9 +15,9 @@ export type ClosingEventType = typeof CLOSING_EVENT_TYPES[keyof typeof CLOSING_E
 
 export const CLOSING_EVENT_STATUS = {
   SCHEDULED: 'scheduled',
-  IN_PROGRESS: 'in_progress',
   COMPLETED: 'completed',
-  CANCELED: 'canceled'
+  DELAYED: 'delayed',
+  CANCELLED: 'cancelled'
 } as const;
 
 export type ClosingEventStatus = typeof CLOSING_EVENT_STATUS[keyof typeof CLOSING_EVENT_STATUS];
@@ -32,14 +32,14 @@ export const CLOSING_EVENT_TYPE_LABELS = {
 
 export const CLOSING_EVENT_STATUS_COLORS = {
   [CLOSING_EVENT_STATUS.SCHEDULED]: 'bg-blue-100 hover:bg-blue-200 text-blue-800',
-  [CLOSING_EVENT_STATUS.IN_PROGRESS]: 'bg-yellow-100 hover:bg-yellow-200 text-yellow-800',
+  [CLOSING_EVENT_STATUS.DELAYED]: 'bg-amber-100 hover:bg-amber-200 text-amber-800',
   [CLOSING_EVENT_STATUS.COMPLETED]: 'bg-green-100 hover:bg-green-200 text-green-800',
-  [CLOSING_EVENT_STATUS.CANCELED]: 'bg-neutral-100 hover:bg-neutral-200 text-neutral-800'
+  [CLOSING_EVENT_STATUS.CANCELLED]: 'bg-red-100 hover:bg-red-200 text-red-800'
 };
 
 export const CLOSING_EVENT_STATUS_LABELS = {
   [CLOSING_EVENT_STATUS.SCHEDULED]: 'Scheduled',
-  [CLOSING_EVENT_STATUS.IN_PROGRESS]: 'In Progress',
+  [CLOSING_EVENT_STATUS.DELAYED]: 'Delayed',
   [CLOSING_EVENT_STATUS.COMPLETED]: 'Completed',
-  [CLOSING_EVENT_STATUS.CANCELED]: 'Canceled'
+  [CLOSING_EVENT_STATUS.CANCELLED]: 'Cancelled'
 };

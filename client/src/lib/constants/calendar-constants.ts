@@ -30,9 +30,9 @@ export const CALENDAR_VIEWS = {
 
 // Calendar event types
 export const CALENDAR_EVENT_TYPES = {
-  CAPITAL_CALL: 'capital_call' as const,
-  CLOSING: 'closing' as const,
   ALL: 'all' as const,
+  CAPITAL_CALLS: 'capital_calls' as const,
+  CLOSING_EVENTS: 'closing_events' as const,
 };
 
 // Closing event types

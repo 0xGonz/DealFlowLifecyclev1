@@ -10,7 +10,7 @@ import Leaderboard from "@/pages/Leaderboard";
 import Funds from "@/pages/Funds";
 import FundDetail from "@/pages/FundDetail";
 import DealDetail from "@/pages/DealDetail";
-import CapitalCalls from "@/pages/CapitalCalls";
+import Calendar from "@/pages/Calendar";
 import Settings from "@/pages/Settings";
 import Users from "@/pages/Users";
 import AuthPage from "@/pages/auth-page";
@@ -28,7 +28,8 @@ function Router() {
       <ProtectedRoute path="/funds" component={Funds} />
       <ProtectedRoute path="/funds/:id" component={FundDetail} />
       <ProtectedRoute path="/deals/:id" component={DealDetail} />
-      <ProtectedRoute path="/capital-calls" component={CapitalCalls} />
+      <ProtectedRoute path="/calendar" component={Calendar} />
+      <ProtectedRoute path="/capital-calls" component={Calendar} />
       <ProtectedRoute path="/settings" component={Settings} />
       <ProtectedRoute path="/users" component={Users} />
       <Route path="/auth" component={AuthPage} />
