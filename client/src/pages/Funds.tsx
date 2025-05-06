@@ -316,7 +316,7 @@ export default function Funds() {
                 <CardContent className="pt-3 sm:pt-4 flex-grow">
                   <div className="flex flex-col mb-3 sm:mb-4 space-y-3">
                     <div>
-                      <p className="text-xs sm:text-sm text-neutral-600 mb-0.5">Assets Under Management</p>
+                      <p className="text-xs sm:text-sm text-neutral-600 mb-0.5">Called Capital</p>
                       <p className="text-xl font-semibold flex items-center">
                         {formatCurrency(fund.aum)}
                       </p>

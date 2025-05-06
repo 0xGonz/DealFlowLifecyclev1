@@ -19,20 +19,32 @@ router.get('/', async (req: Request, res: Response) => {
     const deals = await storage.getDeals();
     const validDealIds = deals.map(deal => deal.id);
     
-    // For each fund, recalculate AUM based only on allocations to valid deals
+    // For each fund, recalculate Called Capital and portfolio weights based only on allocations to valid deals
     const fundsWithCorrectAum = await Promise.all(funds.map(async (fund) => {
       const allocations = await storage.getAllocationsByFund(fund.id);
       
       // Filter out allocations to non-existent deals
       const validAllocations = allocations.filter(allocation => validDealIds.includes(allocation.dealId));
       
-      // Calculate actual AUM based on valid allocations
-      const actualAum = validAllocations.reduce((sum, allocation) => sum + allocation.amount, 0);
+      // Calculate called capital based on only funded allocations
+      const calledCapital = validAllocations
+        .filter(allocation => allocation.status === 'funded')
+        .reduce((sum, allocation) => sum + allocation.amount, 0);
+      
+      // Calculate committed but not yet funded capital
+      const committedCapital = validAllocations
+        .filter(allocation => allocation.status === 'committed')
+        .reduce((sum, allocation) => sum + allocation.amount, 0);
+      
+      // Total fund size is the sum of called + committed capital
+      const totalFundSize = calledCapital + committedCapital;
       
       return {
         ...fund,
-        aum: actualAum,
-        calculatedAum: actualAum,
+        aum: calledCapital, // Update to use called capital instead of AUM
+        calculatedAum: calledCapital,
+        committedCapital: committedCapital,
+        totalFundSize: totalFundSize,
         allocationCount: validAllocations.length
       };
     }));
@@ -80,14 +92,44 @@ router.get('/:id', async (req: Request, res: Response) => {
       };
     }).filter(allocation => allocation.deal !== null); // Filter out allocations without deal info
     
-    // Calculate actual AUM based on valid allocations
-    const actualAum = validAllocations.reduce((sum, allocation) => sum + allocation.amount, 0);
+    // Calculate called capital based on only funded allocations
+    const calledCapital = validAllocations
+      .filter(allocation => allocation.status === 'funded')
+      .reduce((sum, allocation) => sum + allocation.amount, 0);
+    
+    // Calculate committed but not yet funded capital
+    const committedCapital = validAllocations
+      .filter(allocation => allocation.status === 'committed')
+      .reduce((sum, allocation) => sum + allocation.amount, 0);
+      
+    // Total fund size is the sum of called + committed capital
+    const totalFundSize = calledCapital + committedCapital;
+    
+    // Calculate portfolio weights for all allocations based on called capital
+    let allocationsWithWeights = [];
+    if (calledCapital > 0) {
+      // Only calculate weights if there is called capital
+      allocationsWithWeights = allocationsWithDealInfo.map(allocation => {
+        // Only funded allocations contribute to portfolio weight
+        const weight = allocation.status === 'funded' ? 
+          (allocation.amount / calledCapital) * 100 : 0;
+          
+        return {
+          ...allocation,
+          portfolioWeight: parseFloat(weight.toFixed(2))
+        };
+      });
+    } else {
+      allocationsWithWeights = allocationsWithDealInfo;
+    }
     
     res.json({
       ...fund,
-      aum: actualAum, // Override the static AUM with calculated value
-      calculatedAum: actualAum,
-      allocations: allocationsWithDealInfo,
+      aum: calledCapital, // Now represents called capital instead of AUM
+      calculatedAum: calledCapital,
+      committedCapital,
+      totalFundSize,
+      allocations: allocationsWithWeights,
       invalidAllocationsCount: allocations.length - validAllocations.length // For debugging purposes
     });
   } catch (error) {

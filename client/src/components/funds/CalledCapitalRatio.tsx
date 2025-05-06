@@ -57,6 +57,7 @@ const CalledCapitalRatio: React.FC<CalledCapitalRatioProps> = ({
     <Card>
       <CardHeader>
         <CardTitle>Called vs. Uncalled Capital</CardTitle>
+        <p className="text-sm text-muted-foreground">Based on funded allocation status</p>
       </CardHeader>
       <CardContent>
         {capitalData.length > 0 ? (
@@ -81,7 +82,8 @@ const CalledCapitalRatio: React.FC<CalledCapitalRatioProps> = ({
                   </Pie>
                   <Legend verticalAlign="bottom" height={36}/>
                   <Tooltip 
-                    formatter={(value: number) => [`${formatCurrency(value)}`, `Amount`]}
+                    formatter={(value: number) => [`${formatCurrency(value)}`, `Capital Amount`]}
+                    labelFormatter={(label: string) => `${label} (${label === 'Called Capital' ? 'Funded' : 'Committed but not Funded'})`}
                   />
                 </PieChart>
               </ResponsiveContainer>
@@ -95,11 +97,11 @@ const CalledCapitalRatio: React.FC<CalledCapitalRatioProps> = ({
               
               <div className="grid grid-cols-2 gap-2 sm:gap-4">
                 <div>
-                  <p className="text-xs text-neutral-500 mb-0.5 sm:mb-1">Called</p>
+                  <p className="text-xs text-neutral-500 mb-0.5 sm:mb-1">Called (Funded)</p>
                   <p className="text-sm sm:text-base md:text-lg font-medium truncate">{formatCurrency(capitalData[0]?.value || 0)}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-neutral-500 mb-0.5 sm:mb-1">Uncalled</p>
+                  <p className="text-xs text-neutral-500 mb-0.5 sm:mb-1">Uncalled (Committed)</p>
                   <p className="text-sm sm:text-base md:text-lg font-medium truncate">{formatCurrency(capitalData[1]?.value || 0)}</p>
                 </div>
               </div>

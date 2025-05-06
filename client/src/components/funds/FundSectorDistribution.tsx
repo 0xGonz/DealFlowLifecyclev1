@@ -19,15 +19,36 @@ const FundSectorDistribution: React.FC<FundSectorDistributionProps> = ({
   allocations,
   deals
  }) => {
-  // Group allocations by sector
+  // Group allocations by sector using portfolio weights for funded allocations
   const sectorData = React.useMemo(() => {
+    // Filter to include only funded allocations with weights
+    const fundedAllocations = allocations.filter(allocation => allocation.status === 'funded');
+    
+    // If no funded allocations, show nothing
+    if (fundedAllocations.length === 0) {
+      return [];
+    }
+    
+    // Group by sector and sum weights
     const sectorTotals = new Map<string, number>();
     
-    allocations.forEach(allocation => {
+    fundedAllocations.forEach(allocation => {
       // Use the allocation's security type (sector)
       const sector = allocation.securityType || "Other";
       const currentTotal = sectorTotals.get(sector) || 0;
-      sectorTotals.set(sector, currentTotal + allocation.amount);
+      
+      // Use portfolio weight if available, otherwise calculate from amount
+      let weight = allocation.portfolioWeight || 0;
+      
+      // Fallback calculation if weight is 0 or not set
+      if (weight === 0) {
+        const totalAmount = fundedAllocations.reduce((sum, alloc) => sum + alloc.amount, 0);
+        if (totalAmount > 0) {
+          weight = (allocation.amount / totalAmount) * 100;
+        }
+      }
+      
+      sectorTotals.set(sector, currentTotal + weight);
     });
     
     // Convert to the format needed for the pie chart
@@ -38,8 +59,15 @@ const FundSectorDistribution: React.FC<FundSectorDistributionProps> = ({
     }));
   }, [allocations]);
   
-  // Calculate the total fund size from the allocations
-  const totalFundSize = sectorData.reduce((total, item) => total + item.value, 0);
+  // Calculate total weight (should be close to 100%)
+  const totalWeight = sectorData.reduce((total, item) => total + item.value, 0);
+  
+  // Get the total called capital (funded allocations) for display
+  const totalCalledCapital = React.useMemo(() => {
+    return allocations
+      .filter(allocation => allocation.status === 'funded')
+      .reduce((sum, allocation) => sum + allocation.amount, 0);
+  }, [allocations]);
   
   return (
     <Card>
@@ -73,14 +101,14 @@ const FundSectorDistribution: React.FC<FundSectorDistributionProps> = ({
                     ))}
                   </Pie>
                   <Tooltip 
-                    formatter={(value: number) => [`$${value.toLocaleString()}`, 'Amount']}
+                    formatter={(value: number) => [`${value.toFixed(1)}%`, 'Portfolio Weight']}
                     labelFormatter={(label: string) => `Sector: ${label}`}
                   />
                 </PieChart>
               </ResponsiveContainer>
             </div>
             <div className="text-xs sm:text-sm text-center text-neutral-500 mt-2 px-2 sm:px-4">
-              <span className="whitespace-nowrap">Based on</span> <span className="font-medium whitespace-nowrap">${totalFundSize.toLocaleString()}</span> <span className="whitespace-nowrap">in investments</span>
+              <span className="whitespace-nowrap">Based on</span> <span className="font-medium whitespace-nowrap">${totalCalledCapital.toLocaleString()}</span> <span className="whitespace-nowrap">in called capital</span>
             </div>
           </div>
         ) : (

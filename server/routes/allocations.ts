@@ -8,7 +8,7 @@ const router = Router();
 // Helper function to update allocation status based on capital calls
 async function updateAllocationStatusBasedOnCapitalCalls(allocationId: number): Promise<void> {
   try {
-    const storage = StorageFactory.getStorage();
+    const storage = StorageFactory.storage;
     
     // Get the allocation
     const allocation = await storage.getFundAllocation(allocationId);
@@ -52,9 +52,50 @@ async function updateAllocationStatusBasedOnCapitalCalls(allocationId: number): 
     // Only update if status changed
     if (newStatus !== allocation.status) {
       await storage.updateFundAllocation(allocation.id, { status: newStatus });
+      
+      // Recalculate portfolio weights for all allocations in this fund
+      // to maintain correct weights as allocations get funded
+      await recalculatePortfolioWeights(allocation.fundId);
     }
   } catch (error) {
     console.error(`Error updating allocation status for allocation ${allocationId}:`, error);
+  }
+}
+
+// Helper function to recalculate portfolio weights for a fund
+async function recalculatePortfolioWeights(fundId: number): Promise<void> {
+  try {
+    const storage = StorageFactory.storage;
+    
+    // Get all allocations for the fund
+    const allocations = await storage.getAllocationsByFund(fundId);
+    if (!allocations || allocations.length === 0) return;
+    
+    // Calculate the total called (funded) capital in the fund
+    const calledCapital = allocations
+      .filter(allocation => allocation.status === 'funded')
+      .reduce((sum, allocation) => sum + allocation.amount, 0);
+    
+    // If there's no called capital yet, we don't need to update weights
+    if (calledCapital <= 0) return;
+    
+    // Update the weight for each allocation
+    for (const allocation of allocations) {
+      // Only funded allocations contribute to portfolio weight
+      const weight = allocation.status === 'funded'
+        ? (allocation.amount / calledCapital) * 100
+        : 0;
+      
+      // Update the allocation with the new weight
+      await storage.updateFundAllocation(
+        allocation.id,
+        { portfolioWeight: parseFloat(weight.toFixed(2)) }
+      );
+    }
+    
+    console.log(`Successfully recalculated portfolio weights for fund ID ${fundId}`);
+  } catch (error) {
+    console.error(`Error recalculating portfolio weights for fund ID ${fundId}:`, error);
   }
 }
 
@@ -172,27 +213,18 @@ router.post('/', async (req: Request, res: Response) => {
     const allDeals = await storage.getDeals();
     const validDealIds = allDeals.map(deal => deal.id);
     
-    // Update fund AUM and recalculate portfolio weights for all allocations
-    const fundAllocations = await storage.getAllocationsByFund(fund.id);
-    const validAllocations = fundAllocations.filter(alloc => validDealIds.includes(alloc.dealId));
-    const totalAllocationAmount = validAllocations.reduce((sum, allocation) => sum + allocation.amount, 0);
+    // Instead of manually calculating weights, use our new recalculatePortfolioWeights function
+    // This ensures a consistent weight calculation method across the application
     
-    // Update fund's total AUM
-    await storage.updateFund(fund.id, { aum: totalAllocationAmount });
-    
-    // Update portfolio weights for all allocations in this fund
-    if (totalAllocationAmount > 0) {
-      for (const allocation of validAllocations) {
-        // Calculate portfolio weight as percentage of total fund AUM
-        const portfolioWeight = (allocation.amount / totalAllocationAmount) * 100;
-        
-        // Update portfolio weight
-        await storage.updateFundAllocation(allocation.id, { portfolioWeight });
-        
-        // Check capital calls to update allocation status
-        await updateAllocationStatusBasedOnCapitalCalls(allocation.id);
-      }
+    // First, make sure allocation statuses are up to date based on capital calls
+    // Get all allocations for this fund
+    const allFundAllocations = await storage.getAllocationsByFund(fund.id);
+    for (const allocation of allFundAllocations) {
+      await updateAllocationStatusBasedOnCapitalCalls(allocation.id);
     }
+    
+    // Then recalculate all portfolio weights
+    await recalculatePortfolioWeights(fund.id);
     
     res.status(201).json(newAllocation);
   } catch (error) {
@@ -302,27 +334,8 @@ router.delete('/:id', async (req: Request, res: Response) => {
     const deals = await storage.getDeals();
     const validDealIds = deals.map(deal => deal.id);
     
-    // Update fund AUM and recalculate portfolio weights for all remaining allocations
-    const fundAllocations = await storage.getAllocationsByFund(allocation.fundId);
-    const validAllocations = fundAllocations.filter(alloc => validDealIds.includes(alloc.dealId));
-    const totalAllocationAmount = validAllocations.reduce((sum, alloc) => sum + alloc.amount, 0);
-    
-    // Update fund's total AUM
-    await storage.updateFund(allocation.fundId, { aum: totalAllocationAmount });
-    
-    // Update portfolio weights for all allocations in this fund
-    if (totalAllocationAmount > 0) {
-      for (const alloc of validAllocations) {
-        // Calculate portfolio weight as percentage of total fund AUM
-        const portfolioWeight = (alloc.amount / totalAllocationAmount) * 100;
-        
-        // Update portfolio weight
-        await storage.updateFundAllocation(alloc.id, { portfolioWeight });
-        
-        // Check capital calls to update allocation status
-        await updateAllocationStatusBasedOnCapitalCalls(alloc.id);
-      }
-    }
+    // Use our consistent portfolio weights recalculation function
+    await recalculatePortfolioWeights(allocation.fundId);
     
     // Create a timeline event for this deletion if deal exists
     if (deal) {
