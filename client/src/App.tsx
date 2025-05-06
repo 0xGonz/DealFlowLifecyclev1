@@ -15,6 +15,8 @@ import Settings from "@/pages/Settings";
 import Users from "@/pages/Users";
 import AuthPage from "@/pages/auth-page";
 import StarTest from "@/pages/StarTest";
+import CapitalCalls from "@/pages/CapitalCalls";
+import CapitalCallsByAllocation from "@/pages/CapitalCallsByAllocation";
 import { AuthProvider } from "@/hooks/use-auth";
 import ErrorBoundary from "@/components/common/ErrorBoundary";
 import { ProtectedRoute } from "@/components/common/ProtectedRoute";
@@ -29,7 +31,8 @@ function Router() {
       <ProtectedRoute path="/funds/:id" component={FundDetail} />
       <ProtectedRoute path="/deals/:id" component={DealDetail} />
       <ProtectedRoute path="/calendar" component={Calendar} />
-      <ProtectedRoute path="/capital-calls" component={Calendar} />
+      <ProtectedRoute path="/capital-calls" component={CapitalCalls} />
+      <ProtectedRoute path="/capital-calls/allocation/:id" component={CapitalCallsByAllocation} />
       <ProtectedRoute path="/settings" component={Settings} />
       <ProtectedRoute path="/users" component={Users} />
       <Route path="/auth" component={AuthPage} />
