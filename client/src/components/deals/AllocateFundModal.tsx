@@ -103,7 +103,30 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
         firstCallDate: data.firstCallDate instanceof Date ? data.firstCallDate.toISOString() : data.firstCallDate
       };
       console.log('Formatted data being sent:', formattedData);
-      return apiRequest("POST", "/api/allocations", formattedData);
+      
+      const response = await apiRequest("POST", "/api/allocations", formattedData);
+      
+      // Check if response is not ok and handle the error
+      if (!response.ok) {
+        // Clone the response before reading its body
+        const errorClone = response.clone();
+        let errorMessage = 'Failed to allocate investment';
+        
+        try {
+          const errorData = await errorClone.json();
+          errorMessage = errorData.message || errorMessage;
+          if (errorData.errors && errorData.errors.length > 0) {
+            // Add specific validation error details
+            errorMessage += `: ${errorData.errors[0].message}`;
+          }
+        } catch (e) {
+          console.error('Error parsing error response:', e);
+        }
+        
+        throw new Error(errorMessage);
+      }
+      
+      return await response.json();
     },
     onSuccess: () => {
       toast({

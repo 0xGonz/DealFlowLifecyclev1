@@ -45,7 +45,15 @@ router.get('/', async (req: Request, res: Response) => {
 router.post('/', async (req: Request, res: Response) => {
   try {
     const storage = StorageFactory.getStorage();
+    
+    // Log the incoming data for debugging
+    console.log('Allocation request body:', req.body);
+    
+    // Parse and validate the allocation data
     const allocationData = insertFundAllocationSchema.parse(req.body);
+    
+    // Log the validated data
+    console.log('Parsed allocation data:', allocationData);
     
     // Make sure fund and deal exist
     const fund = await storage.getFund(allocationData.fundId);
@@ -92,10 +100,11 @@ router.post('/', async (req: Request, res: Response) => {
     res.status(201).json(newAllocation);
   } catch (error) {
     if (error instanceof z.ZodError) {
+      console.error('Zod validation error:', JSON.stringify(error.errors, null, 2));
       return res.status(400).json({ message: 'Invalid allocation data', errors: error.errors });
     }
     console.error('Error creating fund allocation:', error);
-    res.status(500).json({ message: 'Failed to create fund allocation' });
+    res.status(500).json({ message: 'Failed to create fund allocation', error: error instanceof Error ? error.message : String(error) });
   }
 });
 

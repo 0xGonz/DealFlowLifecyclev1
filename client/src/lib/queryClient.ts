@@ -35,16 +35,25 @@ export async function apiRequest(
     const res = await fetch(url, options);
     console.log(`API Response from ${url}:`, { status: res.status, statusText: res.statusText, ok: res.ok });
     
+    // Create a clone of response before reading its body
+    // This allows us to both log the error response and return the original response
     if (!res.ok) {
+      const errorClone = res.clone();
       try {
-        const errorText = await res.text();
-        console.error(`Error response from ${url}:`, { status: res.status, text: errorText });
-      } catch (readError) {
-        console.error(`Failed to read error response from ${url}:`, readError);
+        const errorData = await errorClone.json();
+        console.error(`Error response from ${url}:`, { status: res.status, data: errorData });
+      } catch (jsonError) {
+        try {
+          const errorText = await errorClone.text();
+          console.error(`Error response from ${url}:`, { status: res.status, text: errorText });
+        } catch (textError) {
+          console.error(`Failed to read error response from ${url}:`, textError);
+        }
       }
     }
     
-    await throwIfResNotOk(res);
+    // We're not consuming the body here anymore, so the caller can do it
+    // Don't use throwIfResNotOk which consumes the body
     return res;
   } catch (error) {
     console.error(`Exception during fetch to ${url}:`, error);

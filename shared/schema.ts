@@ -194,9 +194,16 @@ export const fundAllocations = pgTable("fund_allocations", {
   irr: real("irr").default(0),
 });
 
-export const insertFundAllocationSchema = createInsertSchema(fundAllocations).omit({
-  id: true,
-});
+export const insertFundAllocationSchema = createInsertSchema(fundAllocations)
+  .omit({
+    id: true,
+  })
+  .extend({
+    // Convert ISO string dates to Date objects for Zod validation
+    allocationDate: z.string().transform(val => new Date(val)),
+    // Handle firstCallDate if it exists in any capital call data
+    firstCallDate: z.string().optional().transform(val => val ? new Date(val) : undefined),
+  });
 
 // User assignments to deals
 export const dealAssignments = pgTable("deal_assignments", {
