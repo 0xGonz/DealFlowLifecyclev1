@@ -25,41 +25,41 @@ export interface Deal {
   sector: string;
   stage: "initial_review" | "screening" | "diligence" | "ic_review" | "closing" | "closed" | "invested" | "rejected";
   stageLabel?: string; // Frontend computed property
-  round: string;
-  targetRaise?: string;
-  valuation?: string;
-  leadInvestor?: string;
-  contactEmail?: string;
-  notes?: string;
-  targetReturn?: string; // Expected or target return percentage
-  rejectionReason?: string;
-  rejectedAt?: string;
+  round: string | null;
+  targetRaise?: string | null;
+  valuation?: string | null;
+  leadInvestor?: string | null;
+  contactEmail?: string | null;
+  targetReturn?: string | null;
+  notes?: string | null;
+  rejectionReason?: string | null;
+  rejectedAt?: string | null;
   createdAt: string;
   updatedAt: string;
   createdBy: number;
   tags: string[];
   // Investment details
-  amount?: number; // Deal size
-  ownershipPercentage?: number; // Ownership percentage
-  companyStage?: string; // Stage of the target company
-  investmentThesis?: string; // Investment thesis
-  riskFactors?: string; // Risk factors
-  projectedIrr?: number; // Projected IRR as percentage
-  projectedMultiple?: number; // Projected return multiple
+  amount?: number | null; // Deal size
+  ownershipPercentage?: number | null; // Ownership percentage
+  companyStage?: string | null; // Stage of the target company
+  investmentThesis?: string | null; // Investment thesis
+  riskFactors?: string | null; // Risk factors
+  projectedIrr?: number | null; // Projected IRR as percentage
+  projectedMultiple?: number | null; // Projected return multiple
   // Frontend computed properties
-  assignedUsers?: User[]; // Frontend computed property from deal assignments
-  starCount?: number; // Frontend computed property from stars count
-  score?: number; // Frontend computed property from average memo scores
-  miniMemos?: MiniMemo[]; // Frontend relationship 
+  assignedUsers?: number[] | User[]; // Could be IDs or User objects depending on context
+  starCount?: number; // Frontend computed from stars count
+  score?: number; // Frontend computed from average memo scores
+  miniMemos?: MiniMemo[]; // Frontend relationship
   allocations?: FundAllocation[]; // Frontend relationship
-  timelineEvents?: TimelineEvent[]; // Frontend relationship for timeline events
+  timelineEvents?: TimelineEvent[]; // Frontend relationship
 }
 
 // Timeline event types
 export interface TimelineEvent {
   id: number;
   dealId: number;
-  eventType: "note" | "stage_change" | "document_upload" | "memo_added" | "star_added" | "ai_analysis";
+  eventType: "note" | "stage_change" | "document_upload" | "memo_added" | "star_added" | "ai_analysis" | "deal_creation" | "closing_scheduled";
   content: string;
   createdBy: number;
   createdAt: string;
@@ -72,16 +72,14 @@ export interface TimelineEvent {
   };
 }
 
-// Note: DealStar is defined above
-
 // Mini memo types
 export interface MiniMemo {
   id: number;
   dealId: number;
   userId: number;
   thesis: string;
-  risksAndMitigations?: string;
-  pricingConsideration?: string;
+  risksAndMitigations?: string | null;
+  pricingConsideration?: string | null;
   score: number;
   createdAt: string;
   updatedAt: string;
@@ -98,14 +96,16 @@ export interface MiniMemo {
 export interface Fund {
   id: number;
   name: string;
-  description: string;
+  description: string | null;
   aum: number;
+  vintage?: number | null;
   createdAt: string;
-  vintage?: number;
-  distributionRate?: number;
-  appreciationRate?: number;
+  distributionRate: number;
+  appreciationRate: number;
   // These fields are computed on the server
   calculatedAum?: number;
+  committedCapital?: number;
+  totalFundSize?: number;
   allocationCount?: number;
 }
 
@@ -115,9 +115,34 @@ export interface FundAllocation {
   fundId: number;
   dealId: number;
   amount: number;
+  amountType: "percentage" | "dollar";
   securityType: string;
-  allocationDate: string;
-  notes?: string;
+  allocationDate: string | Date;
+  notes?: string | null;
+  status: "committed" | "funded" | "unfunded";
+  portfolioWeight: number;
+  interestPaid: number;
+  distributionPaid: number;
+  totalReturned: number;
+  marketValue: number;
+  moic: number;
+  irr: number;
+  deal?: Deal; // Related deal object
+}
+
+// Capital Call types
+export interface CapitalCall {
+  id: number;
+  allocationId: number;
+  callAmount: number;
+  paidAmount?: number | null;
+  callDate: string | Date;
+  dueDate: string | Date;
+  status: "scheduled" | "called" | "paid" | "overdue" | "partial" | "defaulted";
+  notes?: string | null;
+  created: string;
+  paidDate?: Date | null;
+  allocation?: FundAllocation; // Related allocation
 }
 
 // Dashboard stats
@@ -155,5 +180,51 @@ export interface Document {
   uploadedBy: number;
   uploadedAt: string;
   documentType: string;
-  description?: string;
+  description?: string | null;
+}
+
+// Assignment types
+export interface DealAssignment {
+  id: number;
+  dealId: number;
+  userId: number;
+  assignedAt: string;
+  user?: User;
+}
+
+// Notification types
+export interface Notification {
+  id: number;
+  userId: number;
+  message: string;
+  isRead: boolean;
+  createdAt: string;
+  type: string;
+  linkUrl?: string | null;
+  metadata?: Record<string, any> | null;
+}
+
+// Closing schedule event types
+export interface ClosingScheduleEvent {
+  id: number;
+  dealId: number;
+  eventType: "custom" | "first_close" | "second_close" | "final_close" | "extension";
+  scheduledDate: string | Date;
+  actualDate?: string | Date | null;
+  scheduledAmount: number | null;
+  actualAmount?: number | null;
+  status: "scheduled" | "completed" | "cancelled" | "pending";
+  notes?: string | null;
+  createdAt: string;
+  createdBy: number;
+}
+
+// Memo comments
+export interface MemoComment {
+  id: number;
+  memoId: number;
+  userId: number;
+  content: string;
+  createdAt: string;
+  user?: User;
 }

@@ -59,6 +59,7 @@ import { format } from "date-fns";
 import { formatCurrency } from "@/lib/utils";
 import FundSectorDistribution from "@/components/funds/FundSectorDistribution";
 import CalledCapitalRatio from "@/components/funds/CalledCapitalRatio";
+import { Fund, FundAllocation, Deal } from "@/lib/types";
 
 export default function FundDetail() {
   const [, params] = useRoute("/funds/:id");
@@ -70,11 +71,32 @@ export default function FundDetail() {
   const [isEditAllocationDialogOpen, setIsEditAllocationDialogOpen] = useState(false);
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
   
+  // Define types for editing allocation with dealName added
+  type EditingAllocation = FundAllocation & { dealName?: string };
+  
   // State for allocation being edited
-  const [editingAllocation, setEditingAllocation] = useState<any>(null);
+  const [editingAllocation, setEditingAllocation] = useState<EditingAllocation | null>(null);
+  
+  // Type for new allocation form data
+  interface NewAllocationData {
+    fundId: number | null;
+    dealId: number | null;
+    amount: number;
+    amountType?: "percentage" | "dollar";
+    securityType: string;
+    allocationDate: string;
+    notes: string;
+    status: "committed" | "funded" | "unfunded";
+    portfolioWeight: number;
+    interestPaid: number;
+    distributionPaid: number;
+    marketValue: number;
+    moic: number;
+    irr: number;
+  }
   
   // Form state for new allocation
-  const [newAllocationData, setNewAllocationData] = useState({
+  const [newAllocationData, setNewAllocationData] = useState<NewAllocationData>({
     fundId: fundId,
     dealId: null,
     amount: 0,
@@ -91,25 +113,25 @@ export default function FundDetail() {
   });
 
   // Fetch fund details
-  const { data: fund, isLoading: isFundLoading } = useQuery({
+  const { data: fund, isLoading: isFundLoading } = useQuery<Fund>({
     queryKey: [`/api/funds/${fundId}`],
     enabled: !!fundId,
   });
 
   // Fetch all allocations for this fund
-  const { data: allocations, isLoading: isAllocationsLoading } = useQuery({
+  const { data: allocations, isLoading: isAllocationsLoading } = useQuery<FundAllocation[]>({
     queryKey: [`/api/allocations/fund/${fundId}`],
     enabled: !!fundId,
   });
 
   // Fetch invalid allocations (ones with missing deals)
-  const { data: invalidAllocations, isLoading: isInvalidAllocationsLoading, refetch: refetchInvalidAllocations } = useQuery({
+  const { data: invalidAllocations, isLoading: isInvalidAllocationsLoading, refetch: refetchInvalidAllocations } = useQuery<FundAllocation[]>({
     queryKey: [`/api/allocations/fund/${fundId}/invalid`],
     enabled: !!fundId,
   });
 
   // Get all deals (for allocation creation and reference)
-  const { data: deals } = useQuery({
+  const { data: deals } = useQuery<Deal[]>({
     queryKey: ["/api/deals"],
   });
 
@@ -205,10 +227,10 @@ export default function FundDetail() {
   });
 
   // Handler for opening edit dialog
-  const handleEditAllocation = (allocation: any) => {
+  const handleEditAllocation = (allocation: FundAllocation) => {
     // Get the deal name for the editing dialog
     if (deals) {
-      const deal = deals.find((d: any) => d.id === allocation.dealId);
+      const deal = deals.find((d: Deal) => d.id === allocation.dealId);
       // Clone the allocation to avoid directly mutating the query data
       setEditingAllocation({
         ...allocation,
@@ -317,7 +339,7 @@ export default function FundDetail() {
                   <div className="space-y-2">
                     <label htmlFor="status" className="text-sm font-medium">Status *</label>
                     <Select 
-                      onValueChange={(value) => setNewAllocationData({
+                      onValueChange={(value: "committed" | "funded" | "unfunded") => setNewAllocationData({
                         ...newAllocationData, 
                         status: value
                       })}
@@ -464,7 +486,7 @@ export default function FundDetail() {
                     <div className="space-y-2">
                       <label htmlFor="edit-status" className="text-sm font-medium">Status</label>
                       <Select 
-                        onValueChange={(value) => setEditingAllocation({
+                        onValueChange={(value: "committed" | "funded" | "unfunded") => setEditingAllocation({
                           ...editingAllocation, 
                           status: value
                         })}
@@ -721,10 +743,16 @@ export default function FundDetail() {
             {/* Visualizations Section */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
               {/* Sector Distribution */}
-              <FundSectorDistribution allocations={allocations || []} deals={deals || []} />
+              <FundSectorDistribution 
+                allocations={allocations || []} 
+                deals={deals || []} 
+              />
               
               {/* Called Capital Ratio */}
-              <CalledCapitalRatio allocations={allocations || []} totalFundSize={fund?.aum || 0} />
+              <CalledCapitalRatio 
+                allocations={allocations || []} 
+                totalFundSize={fund?.aum || 0} 
+              />
             </div>
             
             {/* Actions Section removed - buttons moved to the top of the page */}
