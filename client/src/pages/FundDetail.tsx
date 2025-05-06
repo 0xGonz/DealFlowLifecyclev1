@@ -203,7 +203,7 @@ export default function FundDetail() {
                 
                 <div className="space-y-4 py-4">
                   <div className="space-y-2">
-                    <label htmlFor="deal" className="text-sm font-medium">Deal *</label>
+                    <label htmlFor="deal" className="text-sm font-medium">Investment (Deal) *</label>
                     <Select 
                       onValueChange={(value) => setNewAllocationData({
                         ...newAllocationData, 
@@ -221,24 +221,6 @@ export default function FundDetail() {
                         ))}
                       </SelectContent>
                     </Select>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <label htmlFor="amount" className="text-sm font-medium">Investment Amount *</label>
-                    <div className="relative">
-                      <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-500" />
-                      <Input 
-                        id="amount"
-                        type="number"
-                        className="pl-10"
-                        value={newAllocationData.amount}
-                        onChange={(e) => setNewAllocationData({
-                          ...newAllocationData, 
-                          amount: parseFloat(e.target.value)
-                        })}
-                        placeholder="0.00"
-                      />
-                    </div>
                   </div>
                   
                   <div className="space-y-2">
@@ -263,12 +245,30 @@ export default function FundDetail() {
                         <SelectItem value="SaaS">SaaS</SelectItem>
                         <SelectItem value="Fintech">Fintech</SelectItem>
                         <SelectItem value="Healthcare">Healthcare</SelectItem>
+                        <SelectItem value="Real Estate">Real Estate</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   
                   <div className="space-y-2">
-                    <label htmlFor="status" className="text-sm font-medium">Investment Status *</label>
+                    <label htmlFor="allocationDate" className="text-sm font-medium">Date *</label>
+                    <div className="relative">
+                      <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-500" />
+                      <Input 
+                        id="allocationDate"
+                        type="date"
+                        className="pl-10"
+                        value={newAllocationData.allocationDate}
+                        onChange={(e) => setNewAllocationData({
+                          ...newAllocationData, 
+                          allocationDate: e.target.value
+                        })}
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label htmlFor="status" className="text-sm font-medium">Status *</label>
                     <Select 
                       onValueChange={(value) => setNewAllocationData({
                         ...newAllocationData, 
@@ -285,6 +285,90 @@ export default function FundDetail() {
                         <SelectItem value="unfunded">Unfunded</SelectItem>
                       </SelectContent>
                     </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label htmlFor="portfolioWeight" className="text-sm font-medium">Weight (%)</label>
+                    <Input 
+                      id="portfolioWeight"
+                      type="number"
+                      step="0.01"
+                      value={newAllocationData.portfolioWeight || 0}
+                      onChange={(e) => setNewAllocationData({
+                        ...newAllocationData, 
+                        portfolioWeight: parseFloat(e.target.value)
+                      })}
+                      placeholder="0.00"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label htmlFor="amount" className="text-sm font-medium">Committed Amount *</label>
+                    <div className="relative">
+                      <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-500" />
+                      <Input 
+                        id="amount"
+                        type="number"
+                        className="pl-10"
+                        value={newAllocationData.amount}
+                        onChange={(e) => setNewAllocationData({
+                          ...newAllocationData, 
+                          amount: parseFloat(e.target.value)
+                        })}
+                        placeholder="0.00"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label htmlFor="distributionPaid" className="text-sm font-medium">Distributions</label>
+                    <div className="relative">
+                      <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-500" />
+                      <Input 
+                        id="distributionPaid"
+                        type="number"
+                        className="pl-10"
+                        value={newAllocationData.distributionPaid || 0}
+                        onChange={(e) => setNewAllocationData({
+                          ...newAllocationData, 
+                          distributionPaid: parseFloat(e.target.value)
+                        })}
+                        placeholder="0.00"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label htmlFor="marketValue" className="text-sm font-medium">Current Value</label>
+                    <div className="relative">
+                      <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-500" />
+                      <Input 
+                        id="marketValue"
+                        type="number"
+                        className="pl-10"
+                        value={newAllocationData.marketValue || 0}
+                        onChange={(e) => setNewAllocationData({
+                          ...newAllocationData, 
+                          marketValue: parseFloat(e.target.value)
+                        })}
+                        placeholder="0.00"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label htmlFor="irr" className="text-sm font-medium">IRR (%)</label>
+                    <Input 
+                      id="irr"
+                      type="number"
+                      step="0.01"
+                      value={newAllocationData.irr || 0}
+                      onChange={(e) => setNewAllocationData({
+                        ...newAllocationData, 
+                        irr: parseFloat(e.target.value)
+                      })}
+                      placeholder="0.00"
+                    />
                   </div>
                   
                   <div className="space-y-2">
@@ -493,20 +577,23 @@ export default function FundDetail() {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Deal</TableHead>
+                          <TableHead>Investment</TableHead>
                           <TableHead>Sector</TableHead>
+                          <TableHead>Date</TableHead>
                           <TableHead>Status</TableHead>
-                          <TableHead className="text-right">Allocated</TableHead>
+                          <TableHead className="text-right">Weight</TableHead>
+                          <TableHead className="text-right">Committed</TableHead>
                           <TableHead className="text-right">Distributions</TableHead>
-                          <TableHead className="text-right">Current Value</TableHead>
+                          <TableHead className="text-right">Value</TableHead>
                           <TableHead className="text-right">MOIC</TableHead>
+                          <TableHead className="text-right">IRR</TableHead>
                           <TableHead>Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {allocations?.map(allocation => {
                           const deal = deals?.find(d => d.id === allocation.dealId);
-                          // Calculate totals
+                          // Calculate totals and metrics
                           const totalInvested = allocations?.reduce((sum, alloc) => sum + alloc.amount, 0) || 0;
                           let moic = 0;
                           if (allocation.amount > 0) {
@@ -522,6 +609,11 @@ export default function FundDetail() {
                                 {allocation.securityType || "N/A"}
                               </TableCell>
                               <TableCell>
+                                {allocation.allocationDate 
+                                  ? format(new Date(allocation.allocationDate), "MM/dd/yyyy")
+                                  : "N/A"}
+                              </TableCell>
+                              <TableCell>
                                 {allocation.status && (
                                   <Badge 
                                     className={`
@@ -535,6 +627,9 @@ export default function FundDetail() {
                                 )}
                               </TableCell>
                               <TableCell className="text-right">
+                                {allocation.portfolioWeight ? `${allocation.portfolioWeight.toFixed(2)}%` : "0.00%"}
+                              </TableCell>
+                              <TableCell className="text-right">
                                 {formatCurrency(allocation.amount)}
                               </TableCell>
                               <TableCell className="text-right">
@@ -546,6 +641,9 @@ export default function FundDetail() {
                               <TableCell className="text-right">
                                 {moic.toFixed(2)}x
                               </TableCell>
+                              <TableCell className="text-right">
+                                {allocation.irr ? `${allocation.irr.toFixed(2)}%` : "0.00%"}
+                              </TableCell>
                               <TableCell>
                                 <div className="flex justify-end gap-2">
                                   <Button variant="ghost" size="icon">
@@ -555,8 +653,10 @@ export default function FundDetail() {
                                     </a>
                                   </Button>
                                   <Button variant="ghost" size="icon">
-                                    <CreditCard className="h-4 w-4" />
-                                    <span className="sr-only">Capital Calls</span>
+                                    <a href={`/capital-calls/allocation/${allocation.id}`}>
+                                      <CreditCard className="h-4 w-4" />
+                                      <span className="sr-only">Capital Calls</span>
+                                    </a>
                                   </Button>
                                 </div>
                               </TableCell>
