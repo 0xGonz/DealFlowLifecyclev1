@@ -63,7 +63,7 @@ const renderCustomizedLabel = ({
       fontSize={12}
       fontWeight="bold"
     >
-      {formatPercentage(percent * 100, 0)}
+      {formatPercentage(percent * 100, 2)}
     </text>
   );
 };
@@ -77,14 +77,16 @@ interface TooltipProps {
 const CustomTooltip = ({ active, payload, sectorData }: TooltipProps) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
+    // Use the percentage directly from the data if available
+    // Otherwise calculate it
     const totalCount = sectorData.reduce((sum: number, item: SectorStatItem) => sum + item.count, 0);
-    const percentage = data.count / totalCount * 100;
+    const percentage = data.percentage || (data.count / totalCount * 100);
     
     return (
       <div className="bg-white p-2 border border-neutral-200 rounded-md shadow-sm">
         <p className="font-medium text-black">{data.sector}</p>
         <p className="text-black"><span className="font-medium text-black">Count:</span> {data.count}</p>
-        <p className="text-black"><span className="font-medium text-black">Percentage:</span> <span className="font-bold">{formatPercentage(percentage, 0)}</span></p>
+        <p className="text-black"><span className="font-medium text-black">Percentage:</span> <span className="font-bold">{formatPercentage(percentage, 2)}</span></p>
       </div>
     );
   }

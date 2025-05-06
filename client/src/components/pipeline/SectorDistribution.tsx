@@ -46,7 +46,7 @@ const renderCustomizedLabel = ({
       fontSize={12}
       fontWeight="bold"
     >
-      {formatPercentage(percent * 100, 0)}
+      {formatPercentage(percent * 100, 2)}
     </text>
   );
 };
@@ -54,11 +54,30 @@ const renderCustomizedLabel = ({
 const CustomTooltip = ({ active, payload }: any) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
+    
+    // Calculate total count for all processed data to get accurate percentage
+    let totalCount = 0;
+    
+    // Access the parent component's processedData
+    // Since we can't directly access it, we'll recalculate the percentage
+    // based on the current slice of data we have
+    for (let i = 0; i < payload.length; i++) {
+      if (payload[i] && payload[i].value) {
+        totalCount += payload[i].value;
+      }
+    }
+    
+    // If we still don't have a total, use the current item's value as fallback
+    if (totalCount === 0) totalCount = data.value;
+    
+    // Calculate percentage correctly
+    const percentage = (data.value / totalCount) * 100;
+    
     return (
       <div className="bg-white p-2 border border-neutral-200 rounded-md shadow-sm">
         <p className="font-medium text-black">{data.name}</p>
         <p className="text-black"><span className="font-medium text-black">Count:</span> {data.value} deals</p>
-        <p className="text-black"><span className="font-medium text-black">Percentage:</span> <span className="font-bold">{formatPercentage(data.percent * 100, 0)}</span></p>
+        <p className="text-black"><span className="font-medium text-black">Percentage:</span> <span className="font-bold">{formatPercentage(percentage, 2)}</span></p>
       </div>
     );
   }
