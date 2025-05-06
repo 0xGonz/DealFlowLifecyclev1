@@ -166,8 +166,18 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
 
       // Invalidate queries to refresh data
       queryClient.invalidateQueries({ queryKey: [`/api/allocations/deal/${dealId}`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/allocations'] }); // Invalidate all allocations for funds page
       queryClient.invalidateQueries({ queryKey: ['/api/deals'] });
       queryClient.invalidateQueries({ queryKey: [`/api/deals/${dealId}`] });
+      
+      // If there's a fundId, invalidate that fund's data too
+      if (allocationData.fundId) {
+        queryClient.invalidateQueries({ queryKey: [`/api/funds/${allocationData.fundId}`] });
+        queryClient.invalidateQueries({ queryKey: [`/api/allocations/fund/${allocationData.fundId}`] });
+      }
+      
+      // Invalidate funds query to refresh the AUM calculations
+      queryClient.invalidateQueries({ queryKey: ['/api/funds'] });
       
       // Close modal
       onClose();

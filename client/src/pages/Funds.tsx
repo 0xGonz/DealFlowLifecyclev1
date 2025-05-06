@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import AppLayout from "@/components/layout/AppLayout";
 import { 
@@ -45,7 +45,8 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { usePermissions } from "@/hooks/use-permissions";
 import { Plus, DollarSign, TrendingUp, TrendingDown, ArrowUpRight, Pencil, Trash2, MoreHorizontal } from "lucide-react";
-import { formatCurrency, formatDate } from "@/lib/utils/format";
+import { formatCurrency } from "@/lib/utils/format";
+import { format } from "date-fns";
 import { formatDistanceToNow } from "date-fns";
 import {
   DropdownMenu,
@@ -78,6 +79,18 @@ export default function Funds() {
   const { data: funds = [], isLoading } = useQuery<Fund[]>({
     queryKey: ['/api/funds'],
   });
+  
+  // Fetch all allocations
+  const { data: allAllocations = [], isLoading: isAllocationsLoading } = useQuery({
+    queryKey: ['/api/allocations'],
+  });
+  
+  // Process allocations to get the most recent ones
+  const recentAllocations = useMemo(() => {
+    return (allAllocations as any[])
+      .sort((a, b) => new Date(b.allocationDate).getTime() - new Date(a.allocationDate).getTime())
+      .slice(0, 5); // Get the 5 most recent allocations
+  }, [allAllocations]);
   
   // Update fund mutation
   const updateFundMutation = useMutation({
@@ -262,7 +275,7 @@ export default function Funds() {
               <Card key={fund.id} className="overflow-hidden hover:shadow-md transition-shadow duration-200 flex flex-col h-full">
                 <CardHeader className="bg-primary/10 pb-2 sm:pb-3 flex justify-between items-start">
                   <CardTitle className="text-base sm:text-lg font-semibold truncate pr-2">{fund.name}</CardTitle>
-                  {canEdit && (
+                  {canEdit() && (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" className="h-8 w-8 p-0" aria-label="Fund options">
@@ -285,7 +298,7 @@ export default function Funds() {
                         >
                           <Pencil className="mr-2 h-4 w-4" /> Edit Fund
                         </DropdownMenuItem>
-                        {canDelete && (
+                        {canDelete() && (
                           <DropdownMenuItem
                             className="text-destructive focus:text-destructive"
                             onClick={() => {
@@ -367,14 +380,47 @@ export default function Funds() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 sm:py-10 text-neutral-500">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 mx-auto text-neutral-300 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                      </svg>
-                      <p className="text-sm">No recent allocations to display.</p>
-                    </TableCell>
-                  </TableRow>
+                  {isAllocationsLoading ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-8 sm:py-10 text-neutral-500">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+                        <p className="text-sm">Loading recent allocations...</p>
+                      </TableCell>
+                    </TableRow>
+                  ) : recentAllocations.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-8 sm:py-10 text-neutral-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 mx-auto text-neutral-300 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                        <p className="text-sm">No recent allocations to display.</p>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    recentAllocations.map((allocation) => (
+                      <TableRow key={allocation.id} className="hover:bg-neutral-50">
+                        <TableCell className="font-medium">
+                          <a href={`/deals/${allocation.dealId}`} className="hover:text-primary hover:underline">
+                            {allocation.dealName}
+                          </a>
+                        </TableCell>
+                        <TableCell>
+                          <a href={`/funds/${allocation.fundId}`} className="hover:text-primary hover:underline">
+                            {allocation.fundName}
+                          </a>
+                        </TableCell>
+                        <TableCell>
+                          {formatCurrency(allocation.amount)}
+                        </TableCell>
+                        <TableCell className="hidden sm:table-cell text-neutral-600">
+                          {allocation.securityType || "N/A"}
+                        </TableCell>
+                        <TableCell className="text-neutral-600">
+                          {format(new Date(allocation.allocationDate), "MMM d, yyyy")}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </div>
