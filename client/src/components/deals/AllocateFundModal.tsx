@@ -104,29 +104,39 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
       };
       console.log('Formatted data being sent:', formattedData);
       
-      const response = await apiRequest("POST", "/api/allocations", formattedData);
-      
-      // Check if response is not ok and handle the error
-      if (!response.ok) {
-        // Clone the response before reading its body
-        const errorClone = response.clone();
-        let errorMessage = 'Failed to allocate investment';
+      try {
+        console.log('Sending API request to POST /api/allocations');
+        const response = await apiRequest("POST", "/api/allocations", formattedData);
+        console.log('API response received:', response);
         
-        try {
-          const errorData = await errorClone.json();
-          errorMessage = errorData.message || errorMessage;
-          if (errorData.errors && errorData.errors.length > 0) {
-            // Add specific validation error details
-            errorMessage += `: ${errorData.errors[0].message}`;
+        // Check if response is not ok and handle the error
+        if (!response.ok) {
+          // Clone the response before reading its body
+          const errorClone = response.clone();
+          let errorMessage = 'Failed to allocate investment';
+          
+          try {
+            console.log('Parsing error response...');
+            const errorData = await errorClone.json();
+            console.log('Parsed error data:', errorData);
+            errorMessage = errorData.message || errorMessage;
+            if (errorData.errors && errorData.errors.length > 0) {
+              // Add specific validation error details
+              errorMessage += `: ${errorData.errors[0].message}`;
+            }
+          } catch (e) {
+            console.error('Error parsing error response:', e);
           }
-        } catch (e) {
-          console.error('Error parsing error response:', e);
+          
+          throw new Error(errorMessage);
         }
         
-        throw new Error(errorMessage);
+        console.log('Successful response, parsing JSON');
+        return await response.json();
+      } catch (error) {
+        console.error('Exception in mutation function:', error);
+        throw error;
       }
-      
-      return await response.json();
     },
     onSuccess: () => {
       toast({

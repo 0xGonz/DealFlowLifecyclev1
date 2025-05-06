@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { Link } from "wouter";
 import AppLayout from "@/components/layout/AppLayout";
 import { 
   Card, 
@@ -275,7 +276,7 @@ export default function Funds() {
               <Card key={fund.id} className="overflow-hidden hover:shadow-md transition-shadow duration-200 flex flex-col h-full">
                 <CardHeader className="bg-primary/10 pb-2 sm:pb-3 flex justify-between items-start">
                   <CardTitle className="text-base sm:text-lg font-semibold truncate pr-2">{fund.name}</CardTitle>
-                  {canEdit() && (
+                  {canEdit('fund') && (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" className="h-8 w-8 p-0" aria-label="Fund options">
@@ -298,7 +299,7 @@ export default function Funds() {
                         >
                           <Pencil className="mr-2 h-4 w-4" /> Edit Fund
                         </DropdownMenuItem>
-                        {canDelete() && (
+                        {canDelete('fund') && (
                           <DropdownMenuItem
                             className="text-destructive focus:text-destructive"
                             onClick={() => {
@@ -351,10 +352,10 @@ export default function Funds() {
                 </CardContent>
                 <CardFooter className="bg-neutral-50 border-t p-2 sm:p-3 mt-auto">
                   <Button variant="ghost" size="sm" className="ml-auto h-7 sm:h-8 px-2 sm:px-3 text-xs sm:text-sm" asChild>
-                    <a href={`/funds/${fund.id}`}>
+                    <Link href={`/funds/${fund.id}`} className="flex items-center">
                       View Details
                       <ArrowUpRight className="ml-1 h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                    </a>
+                    </Link>
                   </Button>
                 </CardFooter>
               </Card>
@@ -400,14 +401,14 @@ export default function Funds() {
                     recentAllocations.map((allocation) => (
                       <TableRow key={allocation.id} className="hover:bg-neutral-50">
                         <TableCell className="font-medium">
-                          <a href={`/deals/${allocation.dealId}`} className="hover:text-primary hover:underline">
+                          <Link href={`/deals/${allocation.dealId}`} className="hover:text-primary hover:underline">
                             {allocation.dealName}
-                          </a>
+                          </Link>
                         </TableCell>
                         <TableCell>
-                          <a href={`/funds/${allocation.fundId}`} className="hover:text-primary hover:underline">
+                          <Link href={`/funds/${allocation.fundId}`} className="hover:text-primary hover:underline">
                             {allocation.fundName}
-                          </a>
+                          </Link>
                         </TableCell>
                         <TableCell>
                           {formatCurrency(allocation.amount)}
