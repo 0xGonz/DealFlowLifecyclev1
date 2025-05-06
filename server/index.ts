@@ -7,22 +7,38 @@ import { pool } from "./db";
 import * as fs from 'fs';
 import * as path from 'path';
 import connectPgSimple from 'connect-pg-simple';
+import memorystore from 'memorystore';
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+// Create a memory store as a fallback option
+const MemoryStore = memorystore(session);
+const memorySessionStore = new MemoryStore({
+  checkPeriod: 86400000 // prune expired entries every 24h
+});
+
 // Configure session middleware with PostgreSQL session store
 const PgSession = connectPgSimple(session);
 
-// Improved session store configuration with additional options for reliability
-const sessionStore = new PgSession({
-  pool,
-  tableName: 'session', // Use this specific table name for compatibility
-  createTableIfMissing: true, // Create the session table if it doesn't exist
-  pruneSessionInterval: 60, // Prune expired sessions every minute
-  errorLog: console.error, // Log session storage errors
-});
+// Initialize session store - try PostgreSQL first with a memory store fallback
+let sessionStore;
+try {
+  // Improved session store configuration with additional options for reliability
+  sessionStore = new PgSession({
+    pool,
+    tableName: 'session', // Use this specific table name for compatibility
+    createTableIfMissing: true, // Create the session table if it doesn't exist
+    pruneSessionInterval: 60, // Prune expired sessions every minute
+    errorLog: console.error, // Log session storage errors
+  });
+  console.log('Using PostgreSQL session store');
+} catch (error) {
+  console.error('Failed to initialize PostgreSQL session store:', error);
+  console.log('Falling back to memory session store');
+  sessionStore = memorySessionStore;
+}
 
 // Configure CORS to allow cross-origin requests for development/embedding
 app.use((req, res, next) => {
