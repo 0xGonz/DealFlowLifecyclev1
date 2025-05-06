@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { ResponsiveContainer, PieChart, Pie, Cell, Legend, Tooltip } from 'recharts';
 import { FundAllocation } from "@shared/schema";
@@ -19,6 +19,14 @@ const CalledCapitalRatio: React.FC<CalledCapitalRatioProps> = ({
   allocations,
   totalFundSize
 }) => {
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   // Calculate called vs uncalled capital based on allocation status
   const capitalData = React.useMemo(() => {
     // All 'funded' allocations are counted as called capital
@@ -52,17 +60,31 @@ const CalledCapitalRatio: React.FC<CalledCapitalRatioProps> = ({
   const calledPercentage = totalCapital > 0 
     ? Math.round((capitalData[0]?.value || 0) / totalCapital * 100) 
     : 0;
+
+  // Calculate dynamic sizes based on viewport
+  const isSmallScreen = windowWidth < 640;
+  const isMediumScreen = windowWidth >= 640 && windowWidth < 768;
+  const isLargeScreen = windowWidth >= 768;
+
+  // Dynamic sizing for the chart
+  const chartLayout = isSmallScreen ? 'vertical' : 'horizontal';
+  const chartWidth = isSmallScreen ? '100%' : isMediumScreen ? '45%' : '40%';
+  const chartHeight = isSmallScreen ? '250px' : isMediumScreen ? '100%' : '100%';
+
+  // Dynamic inner and outer radius based on container size
+  const innerRadius = isSmallScreen ? 55 : isMediumScreen ? 60 : 65;
+  const outerRadius = isSmallScreen ? 85 : isMediumScreen ? 90 : 100;
     
   return (
-    <Card>
-      <CardHeader>
+    <Card className="h-full w-full flex flex-col">
+      <CardHeader className="pb-3">
         <CardTitle>Called vs. Uncalled Capital</CardTitle>
         <p className="text-sm text-muted-foreground">Based on funded allocation status</p>
       </CardHeader>
-      <CardContent>
+      <CardContent className="grow flex-1 flex flex-col">
         {capitalData.length > 0 ? (
-          <div className="flex flex-col xs:flex-row items-center justify-between gap-4">
-            <div className="h-44 sm:h-48 w-full max-w-[140px] xs:max-w-[170px] sm:max-w-[180px]">
+          <div className={`flex flex-col ${isSmallScreen ? 'items-center' : 'sm:flex-row sm:items-stretch'} justify-between gap-4 h-full`}>
+            <div className={`${isSmallScreen ? 'w-full max-w-xs' : 'w-full sm:w-auto flex-1'} ${chartHeight}`}>
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -71,8 +93,8 @@ const CalledCapitalRatio: React.FC<CalledCapitalRatioProps> = ({
                     cy="50%"
                     startAngle={90}
                     endAngle={-270}
-                    innerRadius={45}
-                    outerRadius={65}
+                    innerRadius={innerRadius}
+                    outerRadius={outerRadius}
                     paddingAngle={0}
                     dataKey="value"
                   >
@@ -80,7 +102,23 @@ const CalledCapitalRatio: React.FC<CalledCapitalRatioProps> = ({
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Legend verticalAlign="bottom" height={36}/>
+                  <Legend 
+                    verticalAlign={isSmallScreen ? "bottom" : "middle"}
+                    align={isSmallScreen ? "center" : "right"}
+                    layout={isSmallScreen ? "horizontal" : "vertical"}
+                    iconSize={10}
+                    formatter={(value: string) => {
+                      const item = capitalData.find(item => item.name === value);
+                      if (!item) return <span>{value}</span>;
+                      
+                      const percentage = item.value / totalCapital * 100;
+                      return (
+                        <span className="text-xs sm:text-sm font-medium">
+                          {value} ({Math.round(percentage)}%)
+                        </span>
+                      );
+                    }}
+                  />
                   <Tooltip 
                     formatter={(value: number) => [`${formatCurrency(value)}`, `Capital Amount`]}
                     labelFormatter={(label: string) => `${label} (${label === 'Called Capital' ? 'Funded' : 'Committed but not Funded'})`}
@@ -89,8 +127,8 @@ const CalledCapitalRatio: React.FC<CalledCapitalRatioProps> = ({
               </ResponsiveContainer>
             </div>
             
-            <div className="flex flex-col gap-3 sm:gap-4 grow">
-              <div className="text-center xs:text-left">
+            <div className={`flex flex-col justify-center gap-3 sm:gap-4 ${isSmallScreen ? 'w-full' : 'sm:w-1/2 md:w-2/5'}`}>
+              <div className="text-center sm:text-left">
                 <p className="text-xs text-neutral-500 mb-0.5 sm:mb-1">Called Rate</p>
                 <p className="text-xl sm:text-2xl md:text-3xl font-semibold">{calledPercentage}%</p>
               </div>
