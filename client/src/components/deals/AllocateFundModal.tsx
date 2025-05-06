@@ -29,11 +29,35 @@ interface AllocateFundModalProps {
   dealName: string;
 }
 
+// Define the allocation data interface
+interface AllocationFormData {
+  fundId: number | null;
+  dealId: number;
+  amount: number;
+  amountType: 'dollar' | 'percentage';
+  securityType: string;
+  allocationDate: Date;
+  capitalCallSchedule: string;
+  callFrequency: string;
+  callPercentage: number;
+  firstCallDate: Date;
+  callCount: number;
+  customSchedule: string;
+  notes: string;
+  status: string;
+  portfolioWeight: number;
+  interestPaid: number;
+  distributionPaid: number;
+  marketValue: number;
+  moic: number;
+  irr: number;
+}
+
 export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }: AllocateFundModalProps) {
   const { toast } = useToast();
 
   // State for the allocation form
-  const [allocationData, setAllocationData] = useState({
+  const [allocationData, setAllocationData] = useState<AllocationFormData>({
     fundId: null as number | null,
     dealId: dealId,
     amount: 0,
@@ -70,8 +94,16 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
 
   // Create allocation mutation
   const createAllocation = useMutation({
-    mutationFn: async (data: any) => {
-      return apiRequest("POST", "/api/allocations", data);
+    mutationFn: async (data: AllocationFormData) => {
+      // Format dates as ISO strings (needed for Zod parsing on the server-side)
+      const formattedData = {
+        ...data,
+        // Convert Date objects to strings
+        allocationDate: data.allocationDate instanceof Date ? data.allocationDate.toISOString() : data.allocationDate,
+        firstCallDate: data.firstCallDate instanceof Date ? data.firstCallDate.toISOString() : data.firstCallDate
+      };
+      console.log('Formatted data being sent:', formattedData);
+      return apiRequest("POST", "/api/allocations", formattedData);
     },
     onSuccess: () => {
       toast({
@@ -86,12 +118,12 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
         amount: 0,
         amountType: 'dollar',
         securityType: '',
-        allocationDate: new Date().toISOString().split('T')[0],
+        allocationDate: new Date(),
         capitalCallSchedule: '',
         // Reset capital call details
         callFrequency: '',
         callPercentage: 0,
-        firstCallDate: new Date().toISOString().split('T')[0],
+        firstCallDate: new Date(),
         callCount: 1,
         customSchedule: '',
         notes: '',
