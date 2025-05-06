@@ -39,12 +39,12 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
     amount: 0,
     amountType: 'dollar' as 'dollar' | 'percentage', // Add amountType field with default value
     securityType: '',
-    allocationDate: new Date().toISOString().split('T')[0], // format as YYYY-MM-DD
+    allocationDate: new Date(), // Use actual Date object instead of string
     capitalCallSchedule: '',
     // Capital call details
     callFrequency: '',
     callPercentage: 0,
-    firstCallDate: new Date().toISOString().split('T')[0],
+    firstCallDate: new Date(), // Use actual Date object instead of string
     callCount: 1,
     customSchedule: '', // JSON string for custom payment structure
     notes: '',
@@ -321,10 +321,12 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
             <Input
               id="allocationDate"
               type="date"
-              value={allocationData.allocationDate}
+              value={allocationData.allocationDate instanceof Date 
+                ? allocationData.allocationDate.toISOString().split('T')[0] 
+                : ''}
               onChange={(e) => setAllocationData({
                 ...allocationData,
-                allocationDate: e.target.value
+                allocationDate: e.target.value ? new Date(e.target.value) : new Date()
               })}
             />
           </div>
@@ -388,10 +390,12 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
                 <Input
                   id="firstCallDate"
                   type="date"
-                  value={allocationData.firstCallDate}
+                  value={allocationData.firstCallDate instanceof Date 
+                    ? allocationData.firstCallDate.toISOString().split('T')[0] 
+                    : ''}
                   onChange={(e) => setAllocationData({
                     ...allocationData,
-                    firstCallDate: e.target.value
+                    firstCallDate: e.target.value ? new Date(e.target.value) : new Date()
                   })}
                 />
               </div>
