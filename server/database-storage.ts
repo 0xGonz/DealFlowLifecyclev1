@@ -300,7 +300,30 @@ export class DatabaseStorage implements IStorage {
   
   // Fund allocations
   async createFundAllocation(allocation: InsertFundAllocation): Promise<FundAllocation> {
-    const [newAllocation] = await db.insert(fundAllocations).values(allocation).returning();
+    if (!db) {
+      throw new Error('Database not initialized');
+    }
+    
+    // Prepare allocation data with default values for optional fields
+    const allocationData = {
+      ...allocation,
+      status: allocation.status || 'committed',
+      notes: allocation.notes || null,
+      allocationDate: allocation.allocationDate || new Date(),
+      portfolioWeight: allocation.portfolioWeight || 0,
+      interestPaid: allocation.interestPaid || 0,
+      distributionPaid: allocation.distributionPaid || 0,
+      totalReturned: allocation.totalReturned || 0,
+      marketValue: allocation.marketValue || 0,
+      moic: allocation.moic || 1,
+      irr: allocation.irr || 0
+    };
+    
+    const [newAllocation] = await db
+      .insert(fundAllocations)
+      .values(allocationData)
+      .returning();
+      
     return newAllocation;
   }
   
