@@ -67,7 +67,11 @@ export default function FundDetail() {
 
   // Dialog state
   const [isNewAllocationDialogOpen, setIsNewAllocationDialogOpen] = useState(false);
+  const [isEditAllocationDialogOpen, setIsEditAllocationDialogOpen] = useState(false);
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
+  
+  // State for allocation being edited
+  const [editingAllocation, setEditingAllocation] = useState<any>(null);
   
   // Form state for new allocation
   const [newAllocationData, setNewAllocationData] = useState({
@@ -165,6 +169,51 @@ export default function FundDetail() {
   // Handler for creating a new allocation
   const handleCreateAllocation = () => {
     createAllocation.mutate();
+  };
+
+  // Update allocation mutation
+  const updateAllocation = useMutation({
+    mutationFn: async () => {
+      if (!editingAllocation) {
+        throw new Error("No allocation selected for editing.");
+      }
+      
+      const res = await apiRequest("PATCH", `/api/allocations/${editingAllocation.id}`, editingAllocation);
+      return await res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Allocation updated",
+        description: "The allocation has been updated successfully.",
+      });
+      
+      // Close the dialog and reset state
+      setIsEditAllocationDialogOpen(false);
+      setEditingAllocation(null);
+      
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({ queryKey: [`/api/allocations/fund/${fundId}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/funds/${fundId}`] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error updating allocation",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Handler for opening edit dialog
+  const handleEditAllocation = (allocation) => {
+    // Clone the allocation to avoid directly mutating the query data
+    setEditingAllocation({...allocation});
+    setIsEditAllocationDialogOpen(true);
+  };
+
+  // Handler for saving edited allocation
+  const handleSaveAllocation = () => {
+    updateAllocation.mutate();
   };
 
   // We don't need to warn about invalid allocations anymore
@@ -393,6 +442,140 @@ export default function FundDetail() {
               </DialogContent>
             </Dialog>
             
+            {/* Edit Allocation Dialog */}
+            <Dialog open={isEditAllocationDialogOpen} onOpenChange={setIsEditAllocationDialogOpen}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Edit Allocation</DialogTitle>
+                  <DialogDescription>
+                    Update allocation details for {editingAllocation?.dealName || "this investment"}
+                  </DialogDescription>
+                </DialogHeader>
+                
+                {editingAllocation && (
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <label htmlFor="edit-status" className="text-sm font-medium">Status</label>
+                      <Select 
+                        onValueChange={(value) => setEditingAllocation({
+                          ...editingAllocation, 
+                          status: value
+                        })}
+                        defaultValue={editingAllocation.status}
+                      >
+                        <SelectTrigger id="edit-status">
+                          <SelectValue placeholder="Select investment status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="committed">Committed</SelectItem>
+                          <SelectItem value="funded">Funded</SelectItem>
+                          <SelectItem value="unfunded">Unfunded</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <label htmlFor="edit-amount" className="text-sm font-medium">Committed Amount</label>
+                      <div className="relative">
+                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-500" />
+                        <Input 
+                          id="edit-amount"
+                          type="number"
+                          className="pl-10"
+                          value={editingAllocation.amount}
+                          onChange={(e) => setEditingAllocation({
+                            ...editingAllocation, 
+                            amount: parseFloat(e.target.value)
+                          })}
+                          placeholder="0.00"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <label htmlFor="edit-distributionPaid" className="text-sm font-medium">Distributions</label>
+                      <div className="relative">
+                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-500" />
+                        <Input 
+                          id="edit-distributionPaid"
+                          type="number"
+                          className="pl-10"
+                          value={editingAllocation.distributionPaid || 0}
+                          onChange={(e) => setEditingAllocation({
+                            ...editingAllocation, 
+                            distributionPaid: parseFloat(e.target.value)
+                          })}
+                          placeholder="0.00"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <label htmlFor="edit-marketValue" className="text-sm font-medium">Current Value</label>
+                      <div className="relative">
+                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-500" />
+                        <Input 
+                          id="edit-marketValue"
+                          type="number"
+                          className="pl-10"
+                          value={editingAllocation.marketValue || 0}
+                          onChange={(e) => setEditingAllocation({
+                            ...editingAllocation, 
+                            marketValue: parseFloat(e.target.value)
+                          })}
+                          placeholder="0.00"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <label htmlFor="edit-irr" className="text-sm font-medium">IRR (%)</label>
+                      <Input 
+                        id="edit-irr"
+                        type="number"
+                        step="0.01"
+                        value={editingAllocation.irr || 0}
+                        onChange={(e) => setEditingAllocation({
+                          ...editingAllocation, 
+                          irr: parseFloat(e.target.value)
+                        })}
+                        placeholder="0.00"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <label htmlFor="edit-notes" className="text-sm font-medium">Notes</label>
+                      <Textarea 
+                        id="edit-notes" 
+                        value={editingAllocation.notes || ""}
+                        onChange={(e) => setEditingAllocation({
+                          ...editingAllocation, 
+                          notes: e.target.value
+                        })}
+                        placeholder="Additional details about this allocation"
+                      />
+                    </div>
+                  </div>
+                )}
+                
+                <DialogFooter>
+                  <Button 
+                    variant="outline"
+                    onClick={() => setIsEditAllocationDialogOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={handleSaveAllocation}
+                    disabled={updateAllocation.isPending}
+                  >
+                    {updateAllocation.isPending ? "Saving..." : "Save Changes"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            {/* Report Dialog */}
             <Dialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
               <DialogTrigger asChild>
                 <Button variant="outline">
@@ -637,6 +820,14 @@ export default function FundDetail() {
                               </TableCell>
                               <TableCell>
                                 <div className="flex justify-end gap-2">
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    onClick={() => handleEditAllocation(allocation)}
+                                  >
+                                    <FilePenLine className="h-4 w-4" />
+                                    <span className="sr-only">Edit Allocation</span>
+                                  </Button>
                                   <Button variant="ghost" size="icon">
                                     <a href={`/deals/${allocation.dealId}`}>
                                       <FilePenLine className="h-4 w-4" />
