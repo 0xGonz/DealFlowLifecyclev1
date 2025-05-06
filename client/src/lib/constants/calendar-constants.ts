@@ -55,6 +55,6 @@ export const CALENDAR_LAYOUT = {
     HEIGHT: 9,
   },
   INDICATOR: {
-    SIZE: 1, // Size of the indicator dot in rem or px units
+    SIZE: 1.5, // Size of the indicator dot in rem or px units
   },
 };
