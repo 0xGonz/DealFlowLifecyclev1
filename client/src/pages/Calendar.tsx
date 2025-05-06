@@ -306,15 +306,15 @@ const CalendarPage = () => {
           </div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-[450px_1fr] gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-[minmax(350px,40%)_1fr] gap-6">
           {/* Calendar */}
           <Card className={selectedView === CALENDAR_VIEWS.LIST ? 'hidden md:block' : ''}>
-            <CardContent className="p-4">
+            <CardContent className="p-4 flex flex-col h-full">
               <Calendar
                 mode="single"
                 selected={selectedDate}
                 onSelect={setSelectedDate}
-                className="rounded-md border text-base"
+                className="rounded-md border text-base w-full flex-grow"
                 components={{
                   Day: (props) => {
                     // Using a custom Day component to show events
@@ -324,7 +324,7 @@ const CalendarPage = () => {
                           // Handle the click event manually
                           setSelectedDate(props.date);
                         }} 
-                        className="h-14 w-14 p-0 font-normal text-base"
+                        className="w-full h-full p-0 font-normal text-base aspect-square flex items-center justify-center"
                       >
                         {renderDay(props.date)}
                       </button>

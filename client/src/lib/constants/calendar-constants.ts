@@ -50,10 +50,6 @@ export type HighlightType = 'call' | 'due' | 'paid' | 'closing' | 'actual_closin
 
 // Calendar layout constants
 export const CALENDAR_LAYOUT = {
-  DAY_SIZE: {
-    WIDTH: 9,
-    HEIGHT: 9,
-  },
   INDICATOR: {
     SIZE: 1.5, // Size of the indicator dot in rem or px units
   },
