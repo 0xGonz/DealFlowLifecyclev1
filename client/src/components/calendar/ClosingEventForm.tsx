@@ -39,10 +39,11 @@ const closingEventFormSchema = z.object({
     CLOSING_EVENT_TYPES.CUSTOM
   ]),
   targetAmount: z.union([
-    z.number().min(0, 'Target percentage must be 0 or greater').max(100, 'Target percentage cannot exceed 100'),
+    z.number().min(0, 'Target amount must be 0 or greater'),
     z.string().transform((val) => val === '' ? undefined : Number(val)),
     z.undefined()
   ]).optional(),
+  amountType: z.enum(['percentage', 'dollar']).default('percentage'),
   notes: z.union([z.string(), z.null()]).optional(),
   createdBy: z.number().optional()
 });
@@ -85,6 +86,7 @@ const ClosingEventForm: React.FC<ClosingEventFormProps> = ({ isOpen, onClose, se
       eventType: CLOSING_EVENT_TYPES.CUSTOM,
       dealId: undefined as unknown as number,
       targetAmount: undefined,
+      amountType: 'percentage', // Default to percentage
       notes: '',
       createdBy: user?.id
     } as unknown as ClosingEventFormValues
@@ -232,18 +234,48 @@ const ClosingEventForm: React.FC<ClosingEventFormProps> = ({ isOpen, onClose, se
               )}
             />
             
+            {/* Amount type selector */}
+            <FormField
+              control={form.control}
+              name="amountType"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Amount Type</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select amount type" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="percentage">Percentage (%)</SelectItem>
+                      <SelectItem value="dollar">Dollar Amount ($)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
             {/* Target amount input */}
             <FormField
               control={form.control}
               name="targetAmount"
-              render={({ field }) => (
+              render={({ field }) => {
+                const amountType = form.watch('amountType');
+                return (
                 <FormItem>
-                  <FormLabel>Target Percentage (optional)</FormLabel>
+                  <FormLabel>
+                    {amountType === 'dollar' ? 'Target Amount ($)' : 'Target Percentage (%)'} (optional)
+                  </FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Input 
                         type="number" 
-                        placeholder="Percentage" 
+                        placeholder={amountType === 'dollar' ? 'Amount' : 'Percentage'} 
                         {...field} 
                         onChange={(e) => {
                           const value = e.target.value;
@@ -251,15 +283,18 @@ const ClosingEventForm: React.FC<ClosingEventFormProps> = ({ isOpen, onClose, se
                         }}
                         value={field.value === undefined ? '' : field.value}
                         className="pr-8"
+                        min="0"
+                        max={amountType === 'percentage' ? 100 : undefined}
+                        step={amountType === 'dollar' ? 1000 : 1}
                       />
                       <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-neutral-500">
-                        %
+                        {amountType === 'dollar' ? '$' : '%'}
                       </div>
                     </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
-              )}
+              )}}
             />
             
             {/* Notes textarea */}

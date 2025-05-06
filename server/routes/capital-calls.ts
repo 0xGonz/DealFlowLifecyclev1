@@ -128,6 +128,16 @@ router.post('/', async (req: Request, res: Response) => {
       delete modifiedBody.percentage; // Remove percentage as it's not in the schema
     }
     
+    // Handle amountType field
+    if (modifiedBody.amountType !== undefined) {
+      // Make sure it's a valid value
+      if (!['percentage', 'dollar'].includes(modifiedBody.amountType)) {
+        modifiedBody.amountType = 'percentage'; // Default to percentage if invalid
+      }
+    } else {
+      modifiedBody.amountType = 'percentage'; // Default value if not provided
+    }
+    
     // If dealId is provided instead of allocationId, find a suitable allocation
     // This allows creating capital calls directly by deal without needing allocation IDs
     if (modifiedBody.dealId !== undefined && modifiedBody.allocationId === undefined) {

@@ -40,7 +40,8 @@ import { Deal } from '@/lib/types';
 // Define form schema
 const capitalCallFormSchema = z.object({
   dealId: z.coerce.number().min(1, 'Deal is required'),
-  percentage: z.coerce.number().min(0, 'Percentage must be 0 or greater').max(100, 'Percentage cannot exceed 100'),
+  percentage: z.coerce.number().min(0, 'Amount must be 0 or greater'),
+  amountType: z.enum(['percentage', 'dollar']).default('percentage'),
   dueDate: z.string().min(1, 'Due date is required'),
   notes: z.string().optional(),
   createdBy: z.number().optional(),
@@ -70,6 +71,7 @@ const CapitalCallForm: React.FC<CapitalCallFormProps> = ({ isOpen, onClose, sele
     defaultValues: {
       dueDate: selectedDate ? format(selectedDate, DATE_FORMATS.ISO) : '',
       percentage: undefined,
+      amountType: 'percentage',
       dealId: undefined as unknown as number,
       notes: '',
       createdBy: user?.id
@@ -165,18 +167,48 @@ const CapitalCallForm: React.FC<CapitalCallFormProps> = ({ isOpen, onClose, sele
               )}
             />
             
-            {/* Percentage input */}
+            {/* Amount type selector */}
+            <FormField
+              control={form.control}
+              name="amountType"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Amount Type</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select amount type" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="percentage">Percentage (%)</SelectItem>
+                      <SelectItem value="dollar">Dollar Amount ($)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            {/* Amount input */}
             <FormField
               control={form.control}
               name="percentage"
-              render={({ field }) => (
+              render={({ field }) => {
+                const amountType = form.watch('amountType');
+                return (
                 <FormItem>
-                  <FormLabel>Percentage</FormLabel>
+                  <FormLabel>
+                    {amountType === 'dollar' ? 'Amount ($)' : 'Percentage (%)'}
+                  </FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Input 
                         type="number" 
-                        placeholder="Percentage" 
+                        placeholder={amountType === 'dollar' ? 'Amount' : 'Percentage'} 
                         {...field} 
                         onChange={(e) => {
                           const value = e.target.value;
@@ -184,15 +216,18 @@ const CapitalCallForm: React.FC<CapitalCallFormProps> = ({ isOpen, onClose, sele
                         }}
                         value={field.value === undefined ? '' : field.value}
                         className="pr-8"
+                        min="0"
+                        max={amountType === 'percentage' ? 100 : undefined}
+                        step={amountType === 'dollar' ? 1000 : 1}
                       />
                       <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-neutral-500">
-                        %
+                        {amountType === 'dollar' ? '$' : '%'}
                       </div>
                     </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
-              )}
+              )}}
             />
             
             {/* Due date input */}

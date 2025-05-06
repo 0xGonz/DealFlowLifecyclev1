@@ -59,7 +59,7 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
   });
   
   // For managing custom capital call schedule entries
-  const [customCalls, setCustomCalls] = useState<Array<{date: string, percentage: number}>>([]);
+  const [customCalls, setCustomCalls] = useState<Array<{date: string, percentage: number, amountType: string}>>([]);
   const [showCustomFields, setShowCustomFields] = useState(false);
 
   // Fetch funds for dropdown
@@ -400,7 +400,8 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
                     // Add a new custom call entry
                     const newCustomCalls = [...customCalls, {
                       date: new Date().toISOString().split('T')[0],
-                      percentage: 0
+                      percentage: 0,
+                      amountType: 'percentage' // Default to percentage
                     }];
                     setCustomCalls(newCustomCalls);
                     
@@ -440,17 +441,42 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
                           }}
                         />
                       </div>
-                      <div className="w-24">
-                        <Label htmlFor={`callPercentage-${index}`} className="text-xs">Percentage</Label>
+                      <div className="flex flex-col w-36">
+                        <div className="flex justify-between items-center mb-1">
+                          <Label htmlFor={`callPercentage-${index}`} className="text-xs">
+                            {call.amountType === 'dollar' ? 'Amount' : 'Percentage'}
+                          </Label>
+                          <Select
+                            value={call.amountType || 'percentage'}
+                            onValueChange={(value) => {
+                              const updatedCalls = [...customCalls];
+                              updatedCalls[index].amountType = value;
+                              setCustomCalls(updatedCalls);
+                              setAllocationData({
+                                ...allocationData,
+                                customSchedule: JSON.stringify(updatedCalls)
+                              });
+                            }}
+                          >
+                            <SelectTrigger className="h-6 text-xs border-none bg-transparent px-0">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="percentage">Percentage</SelectItem>
+                              <SelectItem value="dollar">Dollar Amount</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
                         <div className="relative">
                           <span className="absolute inset-y-0 right-3 flex items-center text-neutral-500">
-                            %
+                            {call.amountType === 'dollar' ? '$' : '%'}
                           </span>
                           <Input
                             id={`callPercentage-${index}`}
                             type="number"
                             min="0"
-                            max="100"
+                            max={call.amountType === 'percentage' ? 100 : undefined}
+                            step={call.amountType === 'dollar' ? 1000 : 1}
                             className="pr-8"
                             value={call.percentage}
                             onChange={(e) => {
@@ -486,9 +512,26 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
                   
                   <div className="flex justify-between items-center text-sm font-medium pt-2">
                     <span>Total:</span>
-                    <span>
-                      {formatPercentage(customCalls.reduce((sum, call) => sum + (call.percentage || 0), 0), FINANCIAL_CALCULATION.PRECISION.PERCENTAGE)}
-                    </span>
+                    <div className="space-y-1">
+                      {/* Show percentage total */}
+                      <div className="text-sm">
+                        {formatPercentage(
+                          customCalls
+                            .filter(call => call.amountType === 'percentage' || !call.amountType)
+                            .reduce((sum, call) => sum + (call.percentage || 0), 0), 
+                          FINANCIAL_CALCULATION.PRECISION.PERCENTAGE
+                        )}
+                      </div>
+                      {/* Show dollar amount total if any dollar amounts exist */}
+                      {customCalls.some(call => call.amountType === 'dollar') && (
+                        <div className="text-sm">
+                          ${customCalls
+                              .filter(call => call.amountType === 'dollar')
+                              .reduce((sum, call) => sum + (call.percentage || 0), 0)
+                              .toLocaleString()}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               )}
