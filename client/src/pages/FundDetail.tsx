@@ -588,8 +588,9 @@ export default function FundDetail() {
                                   {allocation.allocationDate ? format(new Date(allocation.allocationDate), "MMM d, yyyy") : "-"}
                                 </TableCell>
                                 <TableCell className="hidden sm:table-cell">
-                                  <Badge variant={allocation.status === "funded" ? "success" : 
-                                        allocation.status === "committed" ? "outline" : "secondary"}>
+                                  <Badge variant={allocation.status === "funded" ? "default" : 
+                                        allocation.status === "committed" ? "outline" : "secondary"}
+                                        className={allocation.status === "funded" ? "bg-emerald-500 hover:bg-emerald-600" : ""}>
                                     {allocation.status?.charAt(0).toUpperCase() + allocation.status?.slice(1)}
                                   </Badge>
                                 </TableCell>
