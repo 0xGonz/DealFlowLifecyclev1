@@ -3,7 +3,7 @@ import { Link } from 'wouter';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { MoreHorizontal, ChevronDown, User, FileText, Check, Edit, Trash2, FileSearch, DollarSign } from "lucide-react";
+import { MoreHorizontal, ChevronDown, User, FileText, Check, Edit, Trash2, FileSearch, DollarSign, Lock } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,6 +15,8 @@ import { Deal } from "@/lib/types";
 import { getDealStageBadgeClass, formatCurrency, formatDate, formatPercentage } from "@/lib/utils/format";
 import { DealStageLabels } from "@shared/schema";
 import { DEFAULT_DEAL_SECTOR, DEAL_STAGES } from "@/lib/constants/deal-constants";
+import { usePermissions } from "@/hooks/use-permissions";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 type DealsTableProps = {
   deals: Deal[] | undefined;
@@ -27,6 +29,7 @@ type DealsTableProps = {
 };
 
 export default function DealsTable({ deals, onEdit, onAllocate, onUpdateStatus, onViewDocuments, onDelete, isLoading }: DealsTableProps) {
+  const { userRole } = usePermissions();
   if (isLoading) {
     return (
       <div className="py-8 text-center text-neutral-500">
@@ -90,31 +93,49 @@ export default function DealsTable({ deals, onEdit, onAllocate, onUpdateStatus, 
                     </span>
                   </TableCell>
                   <TableCell className="py-1 sm:py-2 px-2 sm:px-4">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger className="focus:outline-none" asChild>
-                        <div className="flex items-center gap-1 sm:gap-2 cursor-pointer max-w-full" onClick={(e) => e.stopPropagation()}>
-                          <Badge variant="outline" className={`${stageBadgeClass} text-[9px] xs:text-xs sm:text-sm px-1.5 py-0.5 truncate max-w-[85%] sm:max-w-none`}>
-                            {dealStageLabel}
-                          </Badge>
-                          <ChevronDown className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 flex-shrink-0 text-neutral-400" />
-                        </div>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="start" className="w-[180px]">
-                        {Object.entries(DealStageLabels).map(([stage, label]) => (
-                          <DropdownMenuItem 
-                            key={stage} 
-                            className="flex items-center justify-between text-xs sm:text-sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onUpdateStatus ? onUpdateStatus(deal.id, stage) : console.log(`Changed status to ${stage}`);
-                            }}
-                          >
-                            <span>{label}</span>
-                            {stage === deal.stage && <Check className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-primary" />}
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    {userRole === 'intern' ? (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="flex items-center gap-1 sm:gap-2 cursor-not-allowed max-w-full">
+                              <Badge variant="outline" className={`${stageBadgeClass} text-[9px] xs:text-xs sm:text-sm px-1.5 py-0.5 truncate max-w-[85%] sm:max-w-none`}>
+                                {dealStageLabel}
+                              </Badge>
+                              <Lock className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 flex-shrink-0 text-neutral-400" />
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="text-xs">Interns cannot change deal stages</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    ) : (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger className="focus:outline-none" asChild>
+                          <div className="flex items-center gap-1 sm:gap-2 cursor-pointer max-w-full" onClick={(e) => e.stopPropagation()}>
+                            <Badge variant="outline" className={`${stageBadgeClass} text-[9px] xs:text-xs sm:text-sm px-1.5 py-0.5 truncate max-w-[85%] sm:max-w-none`}>
+                              {dealStageLabel}
+                            </Badge>
+                            <ChevronDown className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 flex-shrink-0 text-neutral-400" />
+                          </div>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start" className="w-[180px]">
+                          {Object.entries(DealStageLabels).map(([stage, label]) => (
+                            <DropdownMenuItem 
+                              key={stage} 
+                              className="flex items-center justify-between text-xs sm:text-sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onUpdateStatus ? onUpdateStatus(deal.id, stage) : console.log(`Changed status to ${stage}`);
+                              }}
+                            >
+                              <span>{label}</span>
+                              {stage === deal.stage && <Check className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-primary" />}
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
                   </TableCell>
                   <TableCell className="py-1 sm:py-2 px-2 sm:px-4">
                     <div className="flex justify-center gap-1 md:gap-2" onClick={(e) => e.stopPropagation()}>
@@ -147,15 +168,17 @@ export default function DealsTable({ deals, onEdit, onAllocate, onUpdateStatus, 
                           <DollarSign className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 text-green-600" />
                         </Button>
                       )}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => { e.stopPropagation(); onDelete && onDelete(deal.id, deal.name); }}
-                        className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 p-0"
-                        title="Delete deal"
-                      >
-                        <Trash2 className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 text-red-600" />
-                      </Button>
+                      {userRole !== 'intern' && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => { e.stopPropagation(); onDelete && onDelete(deal.id, deal.name); }}
+                          className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 p-0"
+                          title="Delete deal"
+                        >
+                          <Trash2 className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 text-red-600" />
+                        </Button>
+                      )}
 
                     </div>
                   </TableCell>

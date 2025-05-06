@@ -39,7 +39,8 @@ export function usePermissions() {
       return permission === 'view';
     }
     
-    // Intern can view everything and only create/edit deals
+    // Intern can view everything, create new deals, but can only PARTIALLY edit deals
+    // Interns specifically cannot change deal stages or delete deals
     if (role === 'intern') {
       if (permission === 'view') return true;
       if (permission === 'create' && resourceType === 'deal') return true;

@@ -183,6 +183,13 @@ router.patch('/:id', requirePermission('edit', 'deal'), async (req: Request, res
       ...(req.body.stage && { createdBy: user.id })
     });
     
+    // Prevent interns from changing deal stages
+    if (dealUpdate.stage && dealUpdate.stage !== deal.stage && user.role === 'intern') {
+      return res.status(403).json({
+        message: 'Interns are not permitted to change deal stages. Please contact an analyst or manager.'
+      });
+    }
+    
     // Handle stage changes
     if (dealUpdate.stage && dealUpdate.stage !== deal.stage) {
       // If changing to rejected stage
