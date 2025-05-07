@@ -954,21 +954,26 @@ export default function FundDetail() {
                               className="group hover:bg-blue-50 hover:shadow-sm transition-all cursor-pointer"
                               onClick={() => window.location.href = `/deals/${allocation.dealId}`}
                             >
-                              <TableCell className="font-medium">
-                                {deal?.name || "Unknown Deal"}
+                              <TableCell className="py-1.5 sm:py-2.5 px-2 sm:px-4">
+                                <div className="font-medium text-xs sm:text-sm md:text-base text-neutral-900 truncate group-hover:text-blue-700 transition-colors">
+                                  {deal?.name || "Unknown Deal"}
+                                </div>
                               </TableCell>
-                              <TableCell>
-                                {allocation.securityType || "N/A"}
+                              <TableCell className="py-1.5 sm:py-2.5 px-2 sm:px-4">
+                                <span className="text-2xs xs:text-xs sm:text-sm">{allocation.securityType || "N/A"}</span>
                               </TableCell>
-                              <TableCell>
-                                {allocation.allocationDate 
-                                  ? format(new Date(allocation.allocationDate), "MM/dd/yyyy")
-                                  : "N/A"}
+                              <TableCell className="py-1.5 sm:py-2.5 px-2 sm:px-4">
+                                <span className="text-2xs xs:text-xs sm:text-sm">
+                                  {allocation.allocationDate 
+                                    ? format(new Date(allocation.allocationDate), "MM/dd/yyyy")
+                                    : "N/A"}
+                                </span>
                               </TableCell>
-                              <TableCell>
+                              <TableCell className="py-1 sm:py-2 px-2 sm:px-4">
                                 {allocation.status && (
                                   <Badge 
                                     className={`
+                                      text-[9px] xs:text-xs sm:text-sm px-1.5 py-0.5
                                       ${allocation.status === "funded" ? "bg-emerald-100 text-emerald-800" : ""}
                                       ${allocation.status === "committed" ? "bg-blue-100 text-blue-800" : ""}
                                       ${allocation.status === "unfunded" ? "bg-amber-100 text-amber-800" : ""}
@@ -978,96 +983,106 @@ export default function FundDetail() {
                                   </Badge>
                                 )}
                               </TableCell>
-                              <TableCell className="text-right">
-                                {allocation.portfolioWeight ? `${allocation.portfolioWeight.toFixed(2)}%` : "0.00%"}
+                              <TableCell className="py-1.5 sm:py-2.5 px-2 sm:px-4 text-right">
+                                <span className="text-2xs xs:text-xs sm:text-sm">
+                                  {allocation.portfolioWeight ? `${allocation.portfolioWeight.toFixed(2)}%` : "0.00%"}
+                                </span>
                               </TableCell>
-                              <TableCell className="text-right">
-                                {formatCurrency(allocation.amount)}
+                              <TableCell className="py-1.5 sm:py-2.5 px-2 sm:px-4 text-right">
+                                <span className="text-2xs xs:text-xs sm:text-sm">
+                                  {formatCurrency(allocation.amount)}
+                                </span>
                               </TableCell>
-                              <TableCell className="text-right">
-                                {formatCurrency(allocation.distributionPaid || 0)}
+                              <TableCell className="py-1.5 sm:py-2.5 px-2 sm:px-4 text-right">
+                                <span className="text-2xs xs:text-xs sm:text-sm">
+                                  {formatCurrency(allocation.distributionPaid || 0)}
+                                </span>
                               </TableCell>
-                              <TableCell className="text-right">
-                                {formatCurrency(allocation.marketValue || 0)}
+                              <TableCell className="py-1.5 sm:py-2.5 px-2 sm:px-4 text-right">
+                                <span className="text-2xs xs:text-xs sm:text-sm">
+                                  {formatCurrency(allocation.marketValue || 0)}
+                                </span>
                               </TableCell>
-                              <TableCell className="text-right">
-                                {moic.toFixed(2)}x
+                              <TableCell className="py-1.5 sm:py-2.5 px-2 sm:px-4 text-right">
+                                <span className="text-2xs xs:text-xs sm:text-sm">
+                                  {moic.toFixed(2)}x
+                                </span>
                               </TableCell>
-                              <TableCell className="text-right">
-                                {allocation.irr ? `${allocation.irr.toFixed(2)}%` : "0.00%"}
+                              <TableCell className="py-1.5 sm:py-2.5 px-2 sm:px-4 text-right">
+                                <span className="text-2xs xs:text-xs sm:text-sm">
+                                  {allocation.irr ? `${allocation.irr.toFixed(2)}%` : "0.00%"}
+                                </span>
                               </TableCell>
-                              <TableCell className="text-center">
-                                <div className="flex justify-center gap-1">
-                                  <Button 
-                                    variant="ghost" 
-                                    size="icon" 
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleEditAllocation(allocation);
-                                    }}
-                                    className="text-blue-600 hover:text-blue-800"
+                              <TableCell className="py-1 sm:py-2 px-2 sm:px-4 text-center">
+                                <div className="flex justify-center gap-1 md:gap-2">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={(e) => { e.stopPropagation(); handleEditAllocation(allocation); }}
+                                    className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 p-0"
+                                    title="Edit allocation"
                                   >
-                                    <FilePenLine className="h-4 w-4" />
-                                    <span className="sr-only">Edit Allocation</span>
+                                    <FilePenLine className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 text-neutral-600" />
                                   </Button>
                                   <DropdownMenu>
                                     <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                                      <Button variant="ghost" size="icon">
-                                        <CreditCard className="h-4 w-4" />
-                                        <span className="sr-only">Capital Calls</span>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 p-0"
+                                        title="Capital calls"
+                                      >
+                                        <CreditCard className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 text-neutral-600" />
                                       </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
                                       <DropdownMenuLabel>Capital Calls</DropdownMenuLabel>
                                       <DropdownMenuSeparator />
                                       <DropdownMenuItem asChild>
-                                        <a href={`/capital-calls/allocation/${allocation.id}`} className="cursor-pointer flex items-center" onClick={(e) => e.stopPropagation()}>
-                                          <Eye className="h-4 w-4 mr-2" />
+                                        <a href={`/capital-calls/allocation/${allocation.id}`} className="cursor-pointer flex items-center text-xs sm:text-sm" onClick={(e) => e.stopPropagation()}>
+                                          <Eye className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-2" />
                                           View Capital Calls
                                         </a>
                                       </DropdownMenuItem>
                                       <DropdownMenuItem asChild>
-                                        <a href={`/deals/${allocation.dealId}?tab=capitalcalls&createFor=${allocation.id}`} className="cursor-pointer flex items-center" onClick={(e) => e.stopPropagation()}>
-                                          <Plus className="h-4 w-4 mr-2" />
+                                        <a href={`/deals/${allocation.dealId}?tab=capitalcalls&createFor=${allocation.id}`} className="cursor-pointer flex items-center text-xs sm:text-sm" onClick={(e) => e.stopPropagation()}>
+                                          <Plus className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-2" />
                                           Create Capital Call
                                         </a>
                                       </DropdownMenuItem>
                                       <DropdownMenuSeparator />
                                       <DropdownMenuItem 
                                         disabled={allocation.status === 'funded'}
-                                        className={allocation.status === 'funded' ? "text-gray-400" : "text-green-600"}
+                                        className={`text-xs sm:text-sm ${allocation.status === 'funded' ? "text-gray-400" : "text-green-600"}`}
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           allocation.status !== 'funded' && handleMarkAsFunded(allocation);
                                         }}
                                       >
-                                        <CheckCircle className="h-4 w-4 mr-2" />
+                                        <CheckCircle className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-2" />
                                         {allocation.status === 'funded' ? 'Already Funded' : 'Mark as Funded'}
                                       </DropdownMenuItem>
                                       <DropdownMenuItem 
                                         disabled={allocation.status === 'unfunded'}
-                                        className={allocation.status === 'unfunded' ? "text-gray-400" : "text-amber-600"}
+                                        className={`text-xs sm:text-sm ${allocation.status === 'unfunded' ? "text-gray-400" : "text-amber-600"}`}
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           allocation.status !== 'unfunded' && handleMarkAsUnfunded(allocation);
                                         }}
                                       >
-                                        <AlertCircle className="h-4 w-4 mr-2" />
+                                        <AlertCircle className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-2" />
                                         {allocation.status === 'unfunded' ? 'Already Unfunded' : 'Mark as Unfunded'}
                                       </DropdownMenuItem>
                                     </DropdownMenuContent>
                                   </DropdownMenu>
                                   <Button 
-                                    variant="ghost" 
-                                    size="icon" 
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleOpenDeleteDialog(allocation);
-                                    }}
-                                    className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={(e) => { e.stopPropagation(); handleOpenDeleteDialog(allocation); }}
+                                    className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 p-0"
+                                    title="Delete allocation"
                                   >
-                                    <Trash2 className="h-4 w-4" />
-                                    <span className="sr-only">Delete Allocation</span>
+                                    <Trash2 className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 text-red-600" />
                                   </Button>
                                 </div>
                               </TableCell>
