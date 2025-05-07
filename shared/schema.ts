@@ -81,7 +81,7 @@ export const timelineEvents = pgTable("timeline_events", {
   content: text("content"),
   createdBy: integer("created_by").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
-  metadata: jsonb("metadata").$type<{ previousStage?: string[]; newStage?: string[]; assignedUserId?: number[]; unassignedUserId?: number[]; closingEventId?: number[]; closingEventType?: string[]; closingEventStatus?: string[]; capitalCallId?: number; allocationId?: number; fundId?: number; amount?: number; amountType?: string; newStatus?: string; previousStatus?: string; paidAmount?: number; [key: string]: any; }>().default({}),
+  metadata: jsonb("metadata").$type<Record<string, any>>().default({}),
 });
 
 export const insertTimelineEventSchema = createInsertSchema(timelineEvents).omit({

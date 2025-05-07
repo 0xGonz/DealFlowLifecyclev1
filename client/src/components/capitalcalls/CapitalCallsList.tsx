@@ -27,7 +27,7 @@ import {
   MoreHorizontal,
   CheckCircle2
 } from 'lucide-react';
-import { EditCapitalCallForm } from './EditCapitalCallForm';
+import { EditCapitalCallForm } from '@/components/capitalcalls/EditCapitalCallForm';
 
 // UI Components
 import {

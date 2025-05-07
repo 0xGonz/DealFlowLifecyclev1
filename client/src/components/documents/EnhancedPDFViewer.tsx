@@ -16,8 +16,8 @@ import { Download, ZoomIn, ZoomOut, RotateCw, File, Printer, ChevronLeft, Chevro
 
 // Import react-pdf - making it a dynamic import to avoid issues with SSR
 import { Document as PDFDocument, Page as PDFPage } from 'react-pdf';
-// Import centralized PDF configuration
-import '@/lib/pdf-config';
+// Import and initialize the PDF configuration before using PDFDocument
+import { configurePdfWorker } from '@/lib/pdf-config';
 
 interface EnhancedPDFViewerProps {
   isOpen: boolean;
@@ -29,6 +29,11 @@ interface EnhancedPDFViewerProps {
 export default function EnhancedPDFViewer({ isOpen, onClose, documentId, documentName }: EnhancedPDFViewerProps) {
   const { toast } = useToast();
   const documentUrl = `/api/documents/${documentId}/download`;
+  
+  // Initialize PDF worker configuration
+  useEffect(() => {
+    configurePdfWorker();
+  }, []);
   
   // Function to handle authentication errors
   const handleAuthError = (error: any) => {

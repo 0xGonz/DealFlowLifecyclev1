@@ -4,9 +4,16 @@ import { pdfjs } from 'react-pdf';
 // For react-pdf 9.2.1, the PDFjs version is 4.8.69
 // This ensures the API and worker versions match
 export const configurePdfWorker = () => {
-  // Ensure we only set the worker src once
-  if (!pdfjs.GlobalWorkerOptions.workerSrc) {
-    pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@4.8.69/build/pdf.worker.min.js`;
+  try {
+    // Ensure we only set the worker src once
+    if (!pdfjs.GlobalWorkerOptions.workerSrc) {
+      // Using CDN-hosted worker for better reliability
+      const workerUrl = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.8.69/pdf.worker.min.js`;
+      console.log('Setting PDF worker URL:', workerUrl);
+      pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
+    }
+  } catch (error) {
+    console.error('Failed to set PDF.js worker:', error);
   }
 };
 

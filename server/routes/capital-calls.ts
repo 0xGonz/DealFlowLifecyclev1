@@ -125,12 +125,12 @@ router.patch('/:id/status', requireAuth, requirePermission('edit', 'capital-call
         content: `Capital call status updated to ${status}`,
         createdBy: req.user?.id || 0,
         metadata: {
-          capitalCallId: id,
-          allocationId: allocation.id,
-          fundId: allocation.fundId,
-          newStatus: status,
-          previousStatus: updatedCapitalCall.status,
-          paidAmount: paidAmount || 0
+          capitalCallId: [id],
+          allocationId: [allocation.id],
+          fundId: [allocation.fundId],
+          newStatus: [status],
+          previousStatus: [updatedCapitalCall.status],
+          paidAmount: [paidAmount || 0]
         }
       });
     }
@@ -272,9 +272,9 @@ router.patch('/:id', requireAuth, requirePermission('edit', 'capital-call'), asy
         content: `Capital call updated${validatedData.status ? ` (status: ${validatedData.status})` : ''}`,
         createdBy: req.user?.id || 0,
         metadata: {
-          capitalCallId: id,
-          allocationId: allocation.id,
-          fundId: allocation.fundId
+          capitalCallId: [id],
+          allocationId: [allocation.id],
+          fundId: [allocation.fundId]
         }
       });
     }
@@ -322,11 +322,11 @@ router.delete('/:id', requireAuth, requirePermission('delete', 'capital-call'), 
         content: `Capital call deleted`,
         createdBy: req.user?.id || 0,
         metadata: {
-          capitalCallId: id,
-          allocationId: allocation.id,
-          fundId: allocation.fundId,
-          newStatus: 'defaulted', // Using a valid status
-          previousStatus: capitalCall.status
+          capitalCallId: [id],
+          allocationId: [allocation.id],
+          fundId: [allocation.fundId],
+          newStatus: ['defaulted'], // Using a valid status
+          previousStatus: [capitalCall.status]
         }
       });
     }
