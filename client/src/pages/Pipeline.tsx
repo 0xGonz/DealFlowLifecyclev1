@@ -190,8 +190,13 @@ export default function Pipeline() {
     "Retail", "Real Estate", "Other"
   ];
 
-  // Group deals by stage for the tab view
-  const dealsByStage = filteredDeals?.reduce((acc: Record<string, Deal[]>, deal: Deal) => {
+  // Sort filtered deals by creation date (newest first)
+  const sortedFilteredDeals = filteredDeals?.sort((a, b) => 
+    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
+
+  // Group deals by stage for the tab view, maintaining sort order (newest first)
+  const dealsByStage = sortedFilteredDeals?.reduce((acc: Record<string, Deal[]>, deal: Deal) => {
     const stage = deal.stage;
     if (!acc[stage]) {
       acc[stage] = [];
@@ -301,7 +306,7 @@ export default function Pipeline() {
                 </div>
                 
                 <DealsTable 
-                  deals={filteredDeals}
+                  deals={sortedFilteredDeals}
                   isLoading={isLoading}
                   onEdit={(dealId) => {
                     setSelectedDealId(dealId);
