@@ -59,3 +59,9 @@ export function getDealStageBadgeClass(stage: string): string {
       return 'bg-gray-100 text-gray-800';
   }
 }
+
+// Format a date using standard format
+export function formatDate(date: Date | string, formatString: string = 'MMM d, yyyy'): string {
+  if (!date) return 'N/A';
+  return format(new Date(date), formatString);
+}
