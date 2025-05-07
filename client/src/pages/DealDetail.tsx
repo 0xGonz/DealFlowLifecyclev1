@@ -471,7 +471,7 @@ export default function DealDetail() {
                     <div>
                       <p className="text-xs sm:text-sm font-medium">Target Return</p>
                       <p className="text-xs sm:text-sm text-neutral-600">
-                        {deal?.targetReturn ? deal.targetReturn : 'Not specified'}
+                        {deal?.targetReturn ? `${deal.targetReturn}${!deal.targetReturn.includes('%') ? '%' : ''}` : 'Not specified'}
                       </p>
                     </div>
                   </div>
