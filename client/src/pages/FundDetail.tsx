@@ -341,6 +341,46 @@ export default function FundDetail() {
       setIsDeleteAllocationDialogOpen(true);
     }
   };
+  
+  // Mark allocation status mutation
+  const updateAllocationStatusMutation = useMutation({
+    mutationFn: async ({ allocationId, status }: { allocationId: number; status: "funded" | "unfunded" | "committed" }) => {
+      return apiRequest("PATCH", `/api/allocations/${allocationId}`, {
+        status
+      });
+    },
+    onSuccess: (_, variables) => {
+      const statusLabel = 
+        variables.status === "funded" ? "funded" : 
+        variables.status === "unfunded" ? "unfunded" : "committed";
+        
+      toast({
+        title: `Allocation marked as ${statusLabel}`,
+        description: "The allocation status has been updated successfully.",
+      });
+      
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({ queryKey: [`/api/allocations/fund/${fundId}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/funds/${fundId}`] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error updating allocation",
+        description: error instanceof Error ? error.message : "An unknown error occurred",
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Handler for marking allocation as funded
+  const handleMarkAsFunded = (allocation: FundAllocation) => {
+    updateAllocationStatusMutation.mutate({ allocationId: allocation.id, status: "funded" });
+  };
+  
+  // Handler for marking allocation as unfunded
+  const handleMarkAsUnfunded = (allocation: FundAllocation) => {
+    updateAllocationStatusMutation.mutate({ allocationId: allocation.id, status: "unfunded" });
+  };
 
   // We don't need to warn about invalid allocations anymore
   // All data is dynamically loaded from API without hardcoded values
@@ -933,7 +973,7 @@ export default function FundDetail() {
                                     className={`
                                       ${allocation.status === "funded" ? "bg-emerald-100 text-emerald-800" : ""}
                                       ${allocation.status === "committed" ? "bg-blue-100 text-blue-800" : ""}
-                                      ${allocation.status === "unfunded" ? "bg-neutral-100 text-neutral-800" : ""}
+                                      ${allocation.status === "unfunded" ? "bg-amber-100 text-amber-800" : ""}
                                     `}
                                   >
                                     {allocation.status.charAt(0).toUpperCase() + allocation.status.slice(1)}
@@ -1001,9 +1041,18 @@ export default function FundDetail() {
                                       <DropdownMenuItem 
                                         disabled={allocation.status === 'funded'}
                                         className={allocation.status === 'funded' ? "text-gray-400" : "text-green-600"}
+                                        onClick={() => allocation.status !== 'funded' && handleMarkAsFunded(allocation)}
                                       >
                                         <CheckCircle className="h-4 w-4 mr-2" />
                                         {allocation.status === 'funded' ? 'Already Funded' : 'Mark as Funded'}
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem 
+                                        disabled={allocation.status === 'unfunded'}
+                                        className={allocation.status === 'unfunded' ? "text-gray-400" : "text-amber-600"}
+                                        onClick={() => allocation.status !== 'unfunded' && handleMarkAsUnfunded(allocation)}
+                                      >
+                                        <AlertCircle className="h-4 w-4 mr-2" />
+                                        {allocation.status === 'unfunded' ? 'Already Unfunded' : 'Mark as Unfunded'}
                                       </DropdownMenuItem>
                                     </DropdownMenuContent>
                                   </DropdownMenu>
