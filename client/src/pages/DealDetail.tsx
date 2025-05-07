@@ -750,16 +750,23 @@ export default function DealDetail() {
                       </div>
                       
                       {canCreate('capital-call') && (
-                        <Button 
-                          size="sm" 
-                          className="ml-auto"
-                          onClick={() => setIsCapitalCallFormOpen(true)}
-                          disabled={!deal?.allocations?.length}
-                          title={!deal?.allocations?.length ? "Deal must have fund allocations to create capital calls" : "Create a new capital call"}
-                        >
-                          <DollarSign className="h-3.5 w-3.5 mr-1.5" />
-                          Create Capital Call
-                        </Button>
+                        <div className="relative ml-auto group">
+                          <Button 
+                            size="sm" 
+                            onClick={() => setIsCapitalCallFormOpen(true)}
+                            disabled={!deal?.allocations?.length}
+                            className={!deal?.allocations?.length ? "cursor-not-allowed opacity-70" : ""}
+                            title={!deal?.allocations?.length ? "Deal must have fund allocations to create capital calls" : "Create a new capital call"}
+                          >
+                            <DollarSign className="h-3.5 w-3.5 mr-1.5" />
+                            Create Capital Call
+                          </Button>
+                          {!deal?.allocations?.length && (
+                            <div className="absolute -bottom-10 right-0 w-60 text-xs bg-black text-white p-1.5 rounded shadow-lg z-10 opacity-90 hidden group-hover:block">
+                              First allocate this deal to a fund in the Allocations tab
+                            </div>
+                          )}
+                        </div>
                       )}
                     </div>
                     

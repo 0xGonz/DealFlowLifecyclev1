@@ -106,9 +106,22 @@ export default function CapitalCallsList({ dealId }: CapitalCallsListProps) {
               <p className="text-sm text-neutral-400">
                 This deal must be allocated to a fund before you can create capital calls.
               </p>
-              <p className="text-xs text-neutral-400">
-                Go to the "Allocations" tab to create a fund allocation.
-              </p>
+              <div className="flex justify-center mt-2">
+                <Button 
+                  variant="outline"
+                  size="sm"
+                  className="text-xs rounded-full px-4 flex items-center gap-1.5 text-primary border-primary/30 hover:bg-primary/5 hover:border-primary/50"
+                  onClick={() => {
+                    const tabElement = document.querySelector('[data-value="allocations"]');
+                    if (tabElement) {
+                      (tabElement as HTMLElement).click();
+                    }
+                  }}
+                >
+                  <span className="inline-block h-2 w-2 rounded-full bg-primary animate-pulse"></span>
+                  Go to Allocations Tab
+                </Button>
+              </div>
             </div>
           )}
         </div>
