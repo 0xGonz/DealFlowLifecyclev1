@@ -299,61 +299,87 @@ export default function DocumentList({ dealId }: DocumentListProps) {
           {/* Document list */}
           <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
             {documents.map((document) => (
-              <Card className="p-4 flex" key={document.id}>
-                <div className="mr-4 flex-shrink-0 flex items-center justify-center bg-neutral-100 p-3 rounded-lg">
-                  {getDocumentTypeIcon(document.documentType)}
+              <Card className="flex flex-col" key={document.id}>
+                <div className="p-3 bg-neutral-50 border-b flex justify-between items-center">
+                  <div className="flex items-center">
+                    <div className="mr-3 flex-shrink-0 flex items-center justify-center bg-neutral-100 p-2 rounded-lg">
+                      {getDocumentTypeIcon(document.documentType, 'h-6 w-6')}
+                    </div>
+                    <div className="flex-grow overflow-hidden">
+                      <h4 className="font-medium text-neutral-800 truncate">{document.fileName}</h4>
+                      <p className="text-xs text-neutral-500">
+                        {getDocumentTypeLabel(document.documentType)} • {formatBytes(document.fileSize)}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex space-x-1">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => handleViewDocument(document)}
+                      className="h-8 px-2"
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="sm" asChild className="h-8 px-2">
+                      <a href={`/api/documents/${document.id}/download`} target="_blank" rel="noopener noreferrer">
+                        <Download className="h-4 w-4" />
+                      </a>
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-8 px-2">
+                          <Trash2 className="h-4 w-4 text-red-500" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This will permanently delete this document and cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => deleteMutation.mutate(document.id)}
+                          >
+                            {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
                 </div>
-                <div className="flex-grow overflow-hidden">
-                  <h4 className="font-medium text-neutral-800 truncate">{document.fileName}</h4>
-                  <p className="text-sm text-neutral-500 mb-2">
-                    {getDocumentTypeLabel(document.documentType)} • {formatBytes(document.fileSize)}
-                  </p>
+                <div className="p-4">
                   {document.description && (
-                    <p className="text-sm text-neutral-600 mb-2 line-clamp-2">{document.description}</p>
+                    <p className="text-sm text-neutral-600 mb-3 line-clamp-2">{document.description}</p>
                   )}
-                  <p className="text-xs text-neutral-400">
+                  {document.fileType === 'application/pdf' || document.fileName.toLowerCase().endsWith('.pdf') ? (
+                    <div className="border rounded-lg overflow-hidden h-[250px] bg-neutral-50 relative">
+                      <iframe 
+                        src={`/api/documents/${document.id}/download`} 
+                        className="w-full h-full border-0" 
+                        title={document.fileName}
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center h-[250px] bg-neutral-50 rounded-lg border">
+                      <div className="text-center">
+                        <FileText className="h-12 w-12 mx-auto mb-3 text-neutral-300" />
+                        <p className="text-sm text-neutral-500">Preview not available</p>
+                        <Button variant="outline" size="sm" className="mt-3" asChild>
+                          <a href={`/api/documents/${document.id}/download`} target="_blank" rel="noopener noreferrer">
+                            <Download className="h-4 w-4 mr-1" />
+                            Download to view
+                          </a>
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                  <p className="text-xs text-neutral-400 mt-3">
                     Uploaded {formatDistanceToNow(new Date(document.uploadedAt), { addSuffix: true })}
                   </p>
-                </div>
-                <div className="flex flex-col justify-center space-y-2 ml-2">
-                  <Button 
-                    variant="secondary" 
-                    size="sm" 
-                    onClick={() => handleViewDocument(document)}
-                  >
-                    <Eye className="h-4 w-4 mr-1" />
-                    View
-                  </Button>
-                  <Button variant="outline" size="sm" asChild>
-                    <a href={`/api/documents/${document.id}/download`} target="_blank" rel="noopener noreferrer">
-                      <Download className="h-4 w-4 mr-1" />
-                      Download
-                    </a>
-                  </Button>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="ghost" size="sm">
-                        <Trash2 className="h-4 w-4 mr-1" />
-                        Delete
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          This will permanently delete this document and cannot be undone.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={() => deleteMutation.mutate(document.id)}
-                        >
-                          {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
                 </div>
               </Card>
             ))}

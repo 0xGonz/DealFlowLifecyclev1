@@ -12,22 +12,21 @@ export default function EmbeddedPDFViewer({ documentId, documentName }: Embedded
   // Simplified PDF viewer using iframe
   return (
     <Card className="w-full">
-      <CardContent className="p-6">
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4">
-          <div className="flex-1 mb-2 sm:mb-0">
-            <h3 className="text-lg font-medium truncate">{documentName}</h3>
-          </div>
-          <div className="flex justify-end space-x-2">
-            <Button variant="outline" size="sm" asChild>
-              <a href={`/api/documents/${documentId}/download`} target="_blank" rel="noopener noreferrer">
-                <Download className="h-4 w-4 mr-1" />
-                Download
-              </a>
-            </Button>
-          </div>
+      <div className="p-3 bg-neutral-50 border-b flex justify-between items-center">
+        <div className="flex-1">
+          <h3 className="text-base font-medium truncate">{documentName}</h3>
         </div>
-        
-        <div className="border rounded-lg overflow-hidden h-[500px] bg-neutral-50 relative">
+        <div className="flex space-x-1">
+          <Button variant="ghost" size="sm" asChild className="h-8 px-2">
+            <a href={`/api/documents/${documentId}/download`} target="_blank" rel="noopener noreferrer">
+              <Download className="h-4 w-4" />
+            </a>
+          </Button>
+        </div>
+      </div>
+      
+      <CardContent className="p-4">
+        <div className="border rounded-lg overflow-hidden h-[650px] bg-neutral-50 relative">
           <iframe 
             src={`/api/documents/${documentId}/download`} 
             className="w-full h-full border-0" 
