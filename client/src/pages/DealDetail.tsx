@@ -459,14 +459,14 @@ export default function DealDetail() {
               </div>
               
               <div>
-                <h3 className="text-xs sm:text-sm font-medium text-neutral-500 mb-1.5 sm:mb-2">Projected Returns</h3>
+                <h3 className="text-xs sm:text-sm font-medium text-neutral-500 mb-1.5 sm:mb-2">Return Metrics</h3>
                 <div className="space-y-2 sm:space-y-3">
                   <div className="flex items-start">
                     <DollarSign className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-neutral-500 mt-0.5 mr-1.5 sm:mr-2 flex-shrink-0" />
                     <div>
-                      <p className="text-xs sm:text-sm font-medium">Projected IRR</p>
+                      <p className="text-xs sm:text-sm font-medium">Target Return</p>
                       <p className="text-xs sm:text-sm text-neutral-600">
-                        {deal?.projectedIrr ? `${deal.projectedIrr}%` : 'Not specified'}
+                        {deal?.targetReturn ? deal.targetReturn : 'Not specified'}
                       </p>
                     </div>
                   </div>

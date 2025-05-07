@@ -274,9 +274,7 @@ export default function EditDealModal({ isOpen, onClose, dealId }: EditDealModal
                           {...field} 
                         />
                       </FormControl>
-                      <FormMessage className="text-xs">
-                        This will be shown in Pipeline view
-                      </FormMessage>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />

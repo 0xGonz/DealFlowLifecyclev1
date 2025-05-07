@@ -292,9 +292,7 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
                         {...field} 
                       />
                     </FormControl>
-                    <FormMessage className="text-xs">
-                      This will be shown in Pipeline view
-                    </FormMessage>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
