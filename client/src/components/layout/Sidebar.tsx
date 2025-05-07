@@ -20,7 +20,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { LAYOUT, AVATAR_COLORS } from "@/lib/constants/ui-constants";
 import { DEFAULT_AVATAR_TEXT } from "@/lib/constants/display-constants";
 import { useAuth } from "@/hooks/use-auth";
-import { ThemeToggle } from "@/components/theme-toggle";
 
 interface SidebarProps {
   onCloseMobile?: () => void;
@@ -186,15 +185,8 @@ export default function Sidebar({ onCloseMobile }: SidebarProps) {
           </ul>
         </nav>
         
-        {/* Theme and logout section */}
+        {/* Logout section */}
         <div className="p-3 border-t border-neutral-200">
-          <div className="flex items-center justify-between mb-2">
-            <div className="text-xs font-semibold text-neutral-500 uppercase tracking-wider pl-3">
-              Theme
-            </div>
-            <ThemeToggle />
-          </div>
-          
           <a 
             href="#" 
             className="flex items-center py-2 px-3 rounded-md text-sm text-foreground hover:bg-muted hover:text-foreground transition-colors"

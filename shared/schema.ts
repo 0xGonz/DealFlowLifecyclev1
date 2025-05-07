@@ -181,7 +181,7 @@ export const fundAllocations = pgTable("fund_allocations", {
   id: serial("id").primaryKey(),
   fundId: integer("fund_id").notNull(),
   dealId: integer("deal_id").notNull(),
-  amount: real("amount").notNull(),
+  amount: real("amount").notNull(), // Using real instead of integer to support larger numbers
   amountType: text("amount_type", { enum: ["percentage", "dollar"] }).default("dollar"),
   securityType: text("security_type").notNull(),
   allocationDate: timestamp("allocation_date").notNull().defaultNow(),
@@ -206,6 +206,8 @@ export const insertFundAllocationSchema = createInsertSchema(fundAllocations)
     allocationDate: z.string().transform(val => new Date(val)),
     // Handle firstCallDate if it exists in any capital call data
     firstCallDate: z.string().optional().transform(val => val ? new Date(val) : undefined),
+    // Override the amount validation to allow much larger numbers
+    amount: z.number().positive().max(1000000000), // Allow up to 1 billion
   });
 
 // User assignments to deals
