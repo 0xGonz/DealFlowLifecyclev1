@@ -286,14 +286,16 @@ export default function EditDealModal({ isOpen, onClose, dealId }: EditDealModal
                   name="projectedIrr"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Projected Return (%)</FormLabel>
+                      <FormLabel>Projected IRR (%)</FormLabel>
                       <FormControl>
                         <Input 
                           placeholder="e.g., 22" 
                           {...field} 
                         />
                       </FormControl>
-                      <FormMessage />
+                      <FormMessage className="text-xs">
+                        This will be shown in Pipeline view
+                      </FormMessage>
                     </FormItem>
                   )}
                 />
@@ -312,7 +314,9 @@ export default function EditDealModal({ isOpen, onClose, dealId }: EditDealModal
                           {...field} 
                         />
                       </FormControl>
-                      <FormMessage />
+                      <FormMessage className="text-xs">
+                        This will be shown in Pipeline view
+                      </FormMessage>
                     </FormItem>
                   )}
                 />

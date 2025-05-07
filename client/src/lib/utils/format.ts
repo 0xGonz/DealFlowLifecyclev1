@@ -2,6 +2,7 @@
  * Utility functions for formatting values
  */
 import { DealStageColors } from '@shared/schema';
+import { format } from 'date-fns';
 
 // Format currency with $ sign and commas
 export function formatCurrency(value: number): string {
