@@ -46,7 +46,8 @@ router.get('/', async (req: Request, res: Response) => {
           id: user.id,
           fullName: user.fullName,
           initials: user.initials,
-          avatarColor: user.avatarColor
+          avatarColor: user.avatarColor,
+          role: user.role
         } : null
       };
     });

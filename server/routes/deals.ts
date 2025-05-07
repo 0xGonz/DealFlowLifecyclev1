@@ -264,7 +264,8 @@ router.get('/:dealId/timeline', async (req: Request, res: Response) => {
           id: user.id,
           fullName: user.fullName,
           initials: user.initials,
-          avatarColor: user.avatarColor
+          avatarColor: user.avatarColor,
+          role: user.role
         } : null
       };
     });
@@ -308,7 +309,8 @@ router.post('/:dealId/timeline', async (req: Request, res: Response) => {
         id: userInfo.id,
         fullName: userInfo.fullName,
         initials: userInfo.initials,
-        avatarColor: userInfo.avatarColor
+        avatarColor: userInfo.avatarColor,
+        role: userInfo.role
       } : null
     });
   } catch (error) {
@@ -367,7 +369,8 @@ router.put('/:dealId/timeline/:eventId', async (req: Request, res: Response) => 
         id: userInfo.id,
         fullName: userInfo.fullName,
         initials: userInfo.initials,
-        avatarColor: userInfo.avatarColor
+        avatarColor: userInfo.avatarColor,
+        role: userInfo.role
       } : null
     });
   } catch (error) {

@@ -636,8 +636,13 @@ export default function Timeline({ dealId }: TimelineProps) {
                 {event.user && (
                   <div className="flex items-center mt-2">
                     <Avatar className="h-6 w-6 mr-2">
-                      <AvatarFallback style={{ backgroundColor: event.user.avatarColor || AVATAR_COLORS.DEFAULT }}>
-                        {event.user.initials}
+                      <AvatarFallback 
+                        style={{ 
+                          backgroundColor: event.user.avatarColor || AVATAR_COLORS.DEFAULT,
+                          color: '#FFFFFF'
+                        }}
+                      >
+                        {event.user.initials || '??'}
                       </AvatarFallback>
                     </Avatar>
                     <span className="text-xs text-neutral-500">{event.user.fullName}</span>

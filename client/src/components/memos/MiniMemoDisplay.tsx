@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { MiniMemo } from '@shared/schema';
+import { AVATAR_COLORS } from '@/lib/constants/ui-constants';
 
 // Import due diligence checklist as a constant to be used throughout the app
 export const DUE_DILIGENCE_CHECKLIST = {
@@ -94,9 +95,13 @@ export function MiniMemoDisplay({
         <div className="flex items-center">
           <Avatar className="h-7 w-7 sm:h-8 sm:w-8 mr-2">
             <AvatarFallback 
-              className="text-xs sm:text-sm bg-primary-100 text-primary-800"
+              style={{ 
+                backgroundColor: memo.user?.avatarColor || AVATAR_COLORS.DEFAULT,
+                color: '#FFFFFF',
+                fontSize: '12px'
+              }}
             >
-              {memo.user?.initials || "?"}
+              {memo.user?.initials || "??"}
             </AvatarFallback>
           </Avatar>
           <div>
