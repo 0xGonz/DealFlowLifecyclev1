@@ -86,11 +86,9 @@ export default function DealsTable({ deals, onEdit, onAllocate, onUpdateStatus, 
                   </TableCell>
                   <TableCell className="text-right py-2 sm:py-3 px-2 sm:px-4 hidden md:table-cell">
                     <span className="text-2xs xs:text-xs sm:text-sm font-medium text-emerald-700">
-                      {deal.projectedIrr 
-                        ? `${deal.projectedIrr}%` 
-                        : (deal.targetReturn 
-                          ? deal.targetReturn 
-                          : (deal.score ? `${deal.score}%` : 'N/A'))}
+                      {deal.targetReturn 
+                        ? deal.targetReturn 
+                        : (deal.score ? `${deal.score}%` : 'N/A')}
                       {deal.projectedMultiple && 
                         <span className="ml-1 text-2xs xs:text-xs text-emerald-600">(x{deal.projectedMultiple})</span>}
                     </span>

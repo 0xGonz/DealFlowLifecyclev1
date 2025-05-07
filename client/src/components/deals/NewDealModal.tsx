@@ -303,16 +303,14 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
                 name="projectedIrr"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Projected IRR (%)</FormLabel>
+                    <FormLabel>Projected Return (%)</FormLabel>
                     <FormControl>
                       <Input 
                         placeholder="e.g., 22" 
                         {...field} 
                       />
                     </FormControl>
-                    <FormMessage className="text-xs">
-                      This will be shown in Pipeline view
-                    </FormMessage>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -331,9 +329,7 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
                         {...field} 
                       />
                     </FormControl>
-                    <FormMessage className="text-xs">
-                      This will be shown in Pipeline view
-                    </FormMessage>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
