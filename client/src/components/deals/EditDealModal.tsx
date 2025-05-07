@@ -268,22 +268,11 @@ export default function EditDealModal({ isOpen, onClose, dealId }: EditDealModal
                   name="targetReturn"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Target Return</FormLabel>
+                      <FormLabel>Target Return (%)</FormLabel>
                       <FormControl>
                         <Input 
-                          placeholder="e.g., 20%" 
-                          value={field.value}
-                          onChange={(e) => {
-                            let value = e.target.value;
-                            // Remove any existing % symbol
-                            value = value.replace(/%/g, '');
-                            // If it's a valid number, add the % symbol
-                            if (value && !isNaN(parseFloat(value))) {
-                              field.onChange(`${value}%`);
-                            } else {
-                              field.onChange(value);
-                            }
-                          }}
+                          placeholder="e.g., 20" 
+                          {...field}
                         />
                       </FormControl>
                       <FormMessage />
