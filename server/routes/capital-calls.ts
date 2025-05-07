@@ -1,9 +1,10 @@
 import express from 'express';
 import { z } from 'zod';
 import { StorageFactory } from '../storage-factory';
-import { insertCapitalCallSchema } from '../../shared/schema';
+import { insertCapitalCallSchema, capitalCalls } from '../../shared/schema';
 import { requireAuth } from '../utils/auth';
 import { requirePermission } from '../utils/permissions';
+import { eq } from 'drizzle-orm';
 
 const router = express.Router();
 const storage = StorageFactory.getStorage();
@@ -77,11 +78,11 @@ router.post('/', requireAuth, requirePermission('create', 'capital-call'), async
       content: `Capital call ${validatedData.status === 'scheduled' ? 'scheduled' : 'created'} for ${fund?.name || 'a fund'}`,
       createdBy: req.user?.id || 0,
       metadata: {
-        capitalCallId: String(capitalCall.id).split(','),
-        allocationId: String(allocation.id).split(','),
-        fundId: String(allocation.fundId).split(','),
-        amount: String(validatedData.callAmount).split(','),
-        amountType: String(validatedData.amountType).split(',')
+        capitalCallId: capitalCall.id,
+        allocationId: allocation.id,
+        fundId: allocation.fundId,
+        amount: validatedData.callAmount,
+        amountType: validatedData.amountType
       }
     });
 
@@ -124,12 +125,12 @@ router.patch('/:id/status', requireAuth, requirePermission('edit', 'capital-call
         content: `Capital call status updated to ${status}`,
         createdBy: req.user?.id || 0,
         metadata: {
-          capitalCallId: String(id).split(','),
-          allocationId: String(allocation.id).split(','),
-          fundId: String(allocation.fundId).split(','),
-          newStatus: String(status).split(','),
-          previousStatus: String(updatedCapitalCall.status).split(','),
-          paidAmount: paidAmount ? String(paidAmount).split(',') : []
+          capitalCallId: id,
+          allocationId: allocation.id,
+          fundId: allocation.fundId,
+          newStatus: status,
+          previousStatus: updatedCapitalCall.status,
+          paidAmount: paidAmount || 0
         }
       });
     }
@@ -167,6 +168,172 @@ router.patch('/:id/dates', requireAuth, requirePermission('edit', 'capital-call'
     return res.json(updatedCapitalCall);
   } catch (error: any) {
     console.error('Error updating capital call dates:', error);
+    return res.status(500).json({ message: error.message || 'Internal server error' });
+  }
+});
+
+// Create schema for updating a capital call
+const updateCapitalCallSchema = z.object({
+  callAmount: z.number().positive("Call amount must be greater than 0").optional(),
+  amountType: z.enum(["percentage", "dollar"]).optional(),
+  callDate: z.string().or(z.date()).optional(),
+  dueDate: z.string().or(z.date()).optional(),
+  status: z.enum(["scheduled", "called", "partial", "paid", "defaulted"]).optional(),
+  notes: z.string().nullable().optional(),
+  paidAmount: z.number().optional(),
+  paidDate: z.string().or(z.date()).nullable().optional(),
+});
+
+// Update a capital call (comprehensive update)
+router.patch('/:id', requireAuth, requirePermission('edit', 'capital-call'), async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ message: 'Invalid capital call ID' });
+    }
+    
+    // Validate request body
+    const validatedData = updateCapitalCallSchema.parse(req.body);
+    
+    // Get the existing capital call
+    const existingCapitalCall = await storage.getCapitalCall(id);
+    if (!existingCapitalCall) {
+      return res.status(404).json({ message: 'Capital call not found' });
+    }
+    
+    // Prepare update data
+    const updateData: any = { ...validatedData };
+    
+    // Convert date strings to Date objects
+    if (updateData.callDate) {
+      updateData.callDate = new Date(updateData.callDate);
+    }
+    
+    if (updateData.dueDate) {
+      updateData.dueDate = new Date(updateData.dueDate);
+    }
+    
+    if (updateData.paidDate) {
+      updateData.paidDate = new Date(updateData.paidDate);
+    }
+    
+    // Update the capital call in the database
+    let updatedCapitalCall;
+    
+    try {
+      // Try to update using existing method if possible
+      if (updateData.status) {
+        updatedCapitalCall = await storage.updateCapitalCallStatus(
+          id, 
+          updateData.status, 
+          updateData.paidAmount
+        );
+      } else if (updateData.callDate && updateData.dueDate) {
+        updatedCapitalCall = await storage.updateCapitalCallDates(
+          id,
+          updateData.callDate,
+          updateData.dueDate
+        );
+      } else {
+        // For more complex updates, use a combination of methods or create a new one
+        const capitalCall = await storage.getCapitalCall(id);
+        if (!capitalCall) {
+          return res.status(404).json({ message: 'Capital call not found' });
+        }
+        
+        // Apply updates one by one
+        if (updateData.callDate && updateData.dueDate) {
+          await storage.updateCapitalCallDates(id, updateData.callDate, updateData.dueDate);
+        }
+        if (updateData.status) {
+          await storage.updateCapitalCallStatus(id, updateData.status, updateData.paidAmount);
+        }
+        
+        // Get the updated capital call
+        updatedCapitalCall = await storage.getCapitalCall(id);
+      }
+    } catch (error) {
+      console.error('Error updating capital call:', error);
+      return res.status(500).json({ message: 'Failed to update capital call' });
+    }
+    
+    if (!updatedCapitalCall) {
+      return res.status(500).json({ message: 'Failed to update capital call' });
+    }
+    
+    // Get allocation for timeline event
+    const allocation = await storage.getFundAllocation(updatedCapitalCall.allocationId);
+    
+    // Create timeline event if necessary
+    if (allocation && (validatedData.status || validatedData.callAmount)) {
+      await storage.createTimelineEvent({
+        dealId: allocation.dealId,
+        eventType: 'capital_call_update',
+        content: `Capital call updated${validatedData.status ? ` (status: ${validatedData.status})` : ''}`,
+        createdBy: req.user?.id || 0,
+        metadata: {
+          capitalCallId: id,
+          allocationId: allocation.id,
+          fundId: allocation.fundId
+        }
+      });
+    }
+    
+    return res.json(updatedCapitalCall);
+  } catch (error: any) {
+    console.error('Error updating capital call:', error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: 'Validation error', errors: error.errors });
+    }
+    return res.status(500).json({ message: error.message || 'Internal server error' });
+  }
+});
+
+// Delete a capital call
+router.delete('/:id', requireAuth, requirePermission('delete', 'capital-call'), async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ message: 'Invalid capital call ID' });
+    }
+    
+    // Get capital call to retrieve allocation info before deletion
+    const capitalCall = await storage.getCapitalCall(id);
+    if (!capitalCall) {
+      return res.status(404).json({ message: 'Capital call not found' });
+    }
+    
+    // Get allocation to get deal ID for timeline event
+    const allocation = await storage.getFundAllocation(capitalCall.allocationId);
+    
+    // Since we don't have a dedicated deleteCapitalCall method, we'll do a workaround
+    // We'll update it to defaulted status instead as a soft delete
+    const updatedCapitalCall = await storage.updateCapitalCallStatus(id, 'defaulted');
+    
+    if (!updatedCapitalCall) {
+      return res.status(500).json({ message: 'Failed to delete capital call' });
+    }
+    
+    // Create timeline event for the deletion
+    if (allocation) {
+      await storage.createTimelineEvent({
+        dealId: allocation.dealId,
+        eventType: 'capital_call_update', // Use the existing event type
+        content: `Capital call deleted`,
+        createdBy: req.user?.id || 0,
+        metadata: {
+          capitalCallId: id,
+          allocationId: allocation.id,
+          fundId: allocation.fundId,
+          newStatus: 'defaulted', // Using a valid status
+          previousStatus: capitalCall.status
+        }
+      });
+    }
+    
+    return res.json({ success: true, id });
+  } catch (error: any) {
+    console.error('Error deleting capital call:', error);
     return res.status(500).json({ message: error.message || 'Internal server error' });
   }
 });

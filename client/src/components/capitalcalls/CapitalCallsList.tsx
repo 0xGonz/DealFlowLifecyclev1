@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { format } from 'date-fns';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 import {
   Table,
   TableBody,
@@ -11,6 +12,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 import {
   InfoIcon,
   DollarSign,
@@ -19,8 +21,34 @@ import {
   XCircle,
   Clock,
   AlertCircle,
-  Eye
+  Eye,
+  Edit,
+  Trash2,
+  MoreHorizontal,
+  CheckCircle2
 } from 'lucide-react';
+import { EditCapitalCallForm } from './EditCapitalCallForm';
+
+// UI Components
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface CapitalCallsListProps {
   dealId: number;
@@ -61,6 +89,15 @@ const getStatusIcon = (status: string) => {
 };
 
 export default function CapitalCallsList({ dealId }: CapitalCallsListProps) {
+  const { toast } = useToast();
+  const [selectedCall, setSelectedCall] = useState<any>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  
+  // Fetch all funds for reference
+  const { data: funds = [] } = useQuery<any[]>({
+    queryKey: ['/api/funds'],
+  });
+  
   // Fetch capital calls for this deal
   const { data: capitalCalls = [], isLoading } = useQuery<any[]>({
     queryKey: [`/api/capital-calls/deal/${dealId}`],
@@ -73,10 +110,70 @@ export default function CapitalCallsList({ dealId }: CapitalCallsListProps) {
     enabled: !!dealId
   });
 
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (capitalCallId: number) => {
+      return apiRequest('DELETE', `/api/capital-calls/${capitalCallId}`, {});
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/capital-calls/deal/${dealId}`] });
+      toast({
+        title: 'Capital call deleted',
+        description: 'The capital call has been successfully deleted.',
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error deleting capital call',
+        description: error instanceof Error ? error.message : 'An unknown error occurred',
+        variant: 'destructive',
+      });
+    }
+  });
+
+  // Mark as paid mutation
+  const markAsPaidMutation = useMutation({
+    mutationFn: async ({ id, amount }: { id: number, amount: number }) => {
+      return apiRequest('PATCH', `/api/capital-calls/${id}/status`, {
+        status: 'paid',
+        paidAmount: amount
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/capital-calls/deal/${dealId}`] });
+      toast({
+        title: 'Capital call marked as paid',
+        description: 'The capital call status has been updated successfully.',
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error updating capital call',
+        description: error instanceof Error ? error.message : 'An unknown error occurred',
+        variant: 'destructive',
+      });
+    }
+  });
+
   // Function to look up fund name from allocation ID
   const getFundNameByAllocationId = (allocationId: number) => {
     const allocation = allocations.find((a: any) => a.id === allocationId);
-    return allocation?.fund?.name || 'Unknown Fund';
+    
+    if (allocation) {
+      // First try to get the fund from the allocation's fund object
+      if (allocation.fund && allocation.fund.name) {
+        return allocation.fund.name;
+      }
+      
+      // If that's not available, look up the fund by ID
+      const fundId = allocation.fundId;
+      const fund = funds.find((f: any) => f.id === fundId);
+      if (fund) {
+        return fund.name;
+      }
+    }
+    
+    return 'Unknown Fund';
   };
 
   if (isLoading) {
@@ -130,59 +227,121 @@ export default function CapitalCallsList({ dealId }: CapitalCallsListProps) {
   }
 
   return (
-    <div className="rounded-md border overflow-hidden">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[250px]">Fund</TableHead>
-            <TableHead>Amount</TableHead>
-            <TableHead>Call Date</TableHead>
-            <TableHead>Due Date</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="w-10">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {capitalCalls.map((call: any) => (
-            <TableRow key={call.id}>
-              <TableCell className="font-medium">
-                {getFundNameByAllocationId(call.allocationId)}
-              </TableCell>
-              <TableCell>
-                {call.amountType === 'dollar' ? (
-                  <span>${call.callAmount.toLocaleString()}</span>
-                ) : (
-                  <span>{call.callAmount}%</span>
-                )}
-              </TableCell>
-              <TableCell>
-                {call.callDate ? format(new Date(call.callDate), 'MMM d, yyyy') : '-'}
-              </TableCell>
-              <TableCell>
-                {call.dueDate ? format(new Date(call.dueDate), 'MMM d, yyyy') : '-'}
-              </TableCell>
-              <TableCell>
-                <Badge className={`${getStatusBadgeClass(call.status)} gap-1 whitespace-nowrap`}>
-                  {getStatusIcon(call.status)}
-                  <span className="capitalize">{call.status}</span>
-                </Badge>
-              </TableCell>
-              <TableCell>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="h-8 w-8"
-                  title="View details"
-                  onClick={() => {/* Future feature: view/edit capital call details */}}
-                  disabled
-                >
-                  <Eye className="h-4 w-4" />
-                </Button>
-              </TableCell>
+    <>
+      <div className="rounded-md border overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[250px]">Fund</TableHead>
+              <TableHead>Amount</TableHead>
+              <TableHead>Call Date</TableHead>
+              <TableHead>Due Date</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+          </TableHeader>
+          <TableBody>
+            {capitalCalls.map((call: any) => (
+              <TableRow key={call.id}>
+                <TableCell className="font-medium">
+                  {getFundNameByAllocationId(call.allocationId)}
+                </TableCell>
+                <TableCell>
+                  {call.amountType === 'dollar' ? (
+                    <span>${call.callAmount.toLocaleString()}</span>
+                  ) : (
+                    <span>{call.callAmount}%</span>
+                  )}
+                </TableCell>
+                <TableCell>
+                  {call.callDate ? format(new Date(call.callDate), 'MMM d, yyyy') : '-'}
+                </TableCell>
+                <TableCell>
+                  {call.dueDate ? format(new Date(call.dueDate), 'MMM d, yyyy') : '-'}
+                </TableCell>
+                <TableCell>
+                  <Badge className={`${getStatusBadgeClass(call.status)} gap-1 whitespace-nowrap`}>
+                    {getStatusIcon(call.status)}
+                    <span className="capitalize">{call.status}</span>
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-right">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem 
+                        onClick={() => {
+                          setSelectedCall(call);
+                          setIsEditModalOpen(true);
+                        }}
+                      >
+                        <Edit className="h-4 w-4 mr-2" />
+                        Edit Capital Call
+                      </DropdownMenuItem>
+                      {call.status !== 'paid' && (
+                        <DropdownMenuItem
+                          onClick={() => markAsPaidMutation.mutate({ 
+                            id: call.id, 
+                            amount: call.callAmount 
+                          })}
+                        >
+                          <CheckCircle2 className="h-4 w-4 mr-2 text-green-500" />
+                          Mark as Paid
+                        </DropdownMenuItem>
+                      )}
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                            <Trash2 className="h-4 w-4 mr-2 text-red-500" />
+                            Delete Capital Call
+                          </DropdownMenuItem>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action cannot be undone. This will permanently delete the 
+                              capital call from our servers.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction 
+                              className="bg-red-500 hover:bg-red-600"
+                              onClick={() => deleteMutation.mutate(call.id)}
+                            >
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* Edit Modal */}
+      {selectedCall && (
+        <EditCapitalCallForm
+          isOpen={isEditModalOpen}
+          onClose={() => {
+            setIsEditModalOpen(false);
+            setSelectedCall(null);
+          }}
+          capitalCall={selectedCall}
+          dealId={dealId}
+        />
+      )}
+    </>
   );
 }
