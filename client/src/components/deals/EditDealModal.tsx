@@ -79,6 +79,7 @@ export default function EditDealModal({ isOpen, onClose, dealId }: EditDealModal
       contactEmail: "",
       notes: "",
       targetReturn: "",
+      projectedMultiple: "",
       stage: "initial_review",
       tags: []
     },
