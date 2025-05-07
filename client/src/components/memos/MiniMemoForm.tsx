@@ -68,7 +68,7 @@ type MiniMemoFormValues = z.infer<typeof miniMemoSchema>;
 
 interface MiniMemoFormProps {
   isOpen?: boolean;
-  onClose?: () => void;
+  onOpenChange?: (open: boolean) => void;
   dealId?: number;
   // Button customization
   buttonLabel?: string;
@@ -78,18 +78,23 @@ interface MiniMemoFormProps {
   className?: string;
   // Callback after submission
   onSubmit?: () => void;
+  // For editing mode
+  initialData?: any;
+  isEdit?: boolean;
 }
 
 export function MiniMemoForm({ 
   isOpen, 
-  onClose, 
+  onOpenChange, 
   dealId,
   buttonLabel = "Create Mini-Memo",
   buttonVariant = "default",
   buttonSize = "default",
   buttonIcon,
   className,
-  onSubmit: onSubmitCallback
+  onSubmit: onSubmitCallback,
+  initialData,
+  isEdit = false
 }: MiniMemoFormProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -132,22 +137,45 @@ export function MiniMemoForm({
     initialChecklist[key] = false;
   });
 
+  // Set initial form values, either from initialData in edit mode or default values in create mode
+  const defaultValues = isEdit && initialData ? {
+    dealId: dealId || initialData.dealId,
+    thesis: initialData.thesis || "",
+    risksAndMitigations: initialData.risksAndMitigations || "",
+    pricingConsideration: initialData.pricingConsideration || "",
+    score: initialData.score || 5,
+    marketRiskScore: initialData.marketRiskScore || 5,
+    executionRiskScore: initialData.executionRiskScore || 5,
+    teamStrengthScore: initialData.teamStrengthScore || 5,
+    productFitScore: initialData.productFitScore || 5,
+    valuationScore: initialData.valuationScore || 5,
+    competitiveAdvantageScore: initialData.competitiveAdvantageScore || 5,
+    dueDiligenceChecklist: initialData.dueDiligenceChecklist || initialChecklist,
+  } : {
+    dealId: dealId,
+    thesis: "",
+    risksAndMitigations: "",
+    pricingConsideration: "",
+    score: 5,
+    marketRiskScore: 5 as number,
+    executionRiskScore: 5 as number,
+    teamStrengthScore: 5 as number,
+    productFitScore: 5 as number,
+    valuationScore: 5 as number,
+    competitiveAdvantageScore: 5 as number,
+    dueDiligenceChecklist: initialChecklist,
+  };
+
+  // Initialize userId state if we're in edit mode
+  useEffect(() => {
+    if (isEdit && initialData && initialData.userId) {
+      setSelectedUserId(initialData.userId);
+    }
+  }, [isEdit, initialData]);
+
   const form = useForm<MiniMemoFormValues>({
     resolver: zodResolver(miniMemoSchema),
-    defaultValues: {
-      dealId: dealId,
-      thesis: "",
-      risksAndMitigations: "",
-      pricingConsideration: "",
-      score: 5,
-      marketRiskScore: 5 as number,
-      executionRiskScore: 5 as number,
-      teamStrengthScore: 5 as number,
-      productFitScore: 5 as number,
-      valuationScore: 5 as number,
-      competitiveAdvantageScore: 5 as number,
-      dueDiligenceChecklist: initialChecklist,
-    },
+    defaultValues,
   });
 
   const onSubmit = async (values: MiniMemoFormValues) => {
@@ -165,8 +193,8 @@ export function MiniMemoForm({
       // Find selected team member
       const finalUserId = selectedUserId || user?.id;
       
-      // Submit the mini memo with all structured fields
-      await apiRequest('POST', `/api/deals/${finalDealId}/memos`, {
+      // Create payload with all structured fields
+      const memoData = {
         // Basic fields
         thesis: values.thesis,
         risksAndMitigations: values.risksAndMitigations || null,
@@ -182,9 +210,19 @@ export function MiniMemoForm({
         competitiveAdvantageScore: values.competitiveAdvantageScore,
         dueDiligenceChecklist: values.dueDiligenceChecklist,
         
-        // User details
+        // User details - for edit mode, we'll use the original user ID
         userId: finalUserId
-      });
+      };
+      
+      let response;
+      
+      if (isEdit && initialData?.id) {
+        // If we're in edit mode, update the existing memo
+        response = await apiRequest('PATCH', `/api/deals/${finalDealId}/memos/${initialData.id}`, memoData);
+      } else {
+        // Otherwise create a new memo
+        response = await apiRequest('POST', `/api/deals/${finalDealId}/memos`, memoData);
+      }
 
       // Invalidate deal queries to refresh data
       queryClient.invalidateQueries({ queryKey: [`/api/deals/${finalDealId}`] });
@@ -192,26 +230,30 @@ export function MiniMemoForm({
       // Get the selected team member's name
       const selectedTeamMember = users.find(u => u.id === finalUserId) || user;
       const submitterName = selectedTeamMember?.fullName || selectedTeamMember?.username || 'selected team member';
+      
+      // Show success message
       toast({
         title: "Success",
-        description: `Mini memo has been created by ${submitterName}`,
+        description: isEdit 
+          ? `Mini memo has been updated by ${submitterName}`
+          : `Mini memo has been created by ${submitterName}`,
       });
 
       // Close form and redirect if needed
-      if (onClose) {
-        onClose();
+      if (onOpenChange) {
+        onOpenChange(false);
       }
       if (onSubmitCallback) {
         onSubmitCallback();
       }
-      if (!dealId && finalDealId) {
+      if (!dealId && finalDealId && !isEdit) {
         navigate(`/deals/${finalDealId}?tab=memos`);
       }
     } catch (error) {
-      console.error("Failed to create mini memo", error);
+      console.error(`Failed to ${isEdit ? 'update' : 'create'} mini memo`, error);
       toast({
         title: "Error",
-        description: "Failed to create mini memo",
+        description: `Failed to ${isEdit ? 'update' : 'create'} mini memo. ${isEdit ? 'You can only edit memos you created.' : ''}`,
         variant: "destructive"
       });
     }
@@ -230,8 +272,8 @@ export function MiniMemoForm({
   // Handle dialog close (triggered internally)
   const handleDialogOpenChange = (open: boolean) => {
     setDialogOpen(open);
-    if (!open && onClose) {
-      onClose();
+    if (!open && onOpenChange) {
+      onOpenChange(false);
     }
   };
 
@@ -253,9 +295,9 @@ export function MiniMemoForm({
     <Dialog open={dialogOpen} onOpenChange={handleDialogOpenChange}>
       <DialogContent className="sm:max-w-[725px]">
         <DialogHeader>
-          <DialogTitle>Create Collaborative Mini-Memo</DialogTitle>
+          <DialogTitle>{isEdit ? 'Edit' : 'Create'} Collaborative Mini-Memo</DialogTitle>
           <DialogDescription>
-            Share your investment thesis and detailed evaluation.
+            {isEdit ? 'Update' : 'Share'} your investment thesis and detailed evaluation.
           </DialogDescription>
         </DialogHeader>
 
@@ -572,7 +614,7 @@ export function MiniMemoForm({
             </Tabs>
 
             <DialogFooter>
-              <Button variant="outline" type="button" onClick={onClose}>
+              <Button variant="outline" type="button" onClick={() => onOpenChange ? onOpenChange(false) : null}>
                 Cancel
               </Button>
               <Button type="submit">
@@ -580,9 +622,12 @@ export function MiniMemoForm({
                   const teamMember = selectedUserId 
                     ? users.find(u => u.id === selectedUserId) 
                     : user;
+                  
+                  const action = isEdit ? 'Update' : 'Create';
+                  
                   return teamMember 
-                    ? `Submit as ${teamMember.fullName || teamMember.username}` 
-                    : 'Create Mini-Memo';
+                    ? `${action} as ${teamMember.fullName || teamMember.username}` 
+                    : `${action} Mini-Memo`;
                 })()}
               </Button>
             </DialogFooter>
