@@ -16,8 +16,8 @@ import { Download, ZoomIn, ZoomOut, RotateCw, File, Printer, ChevronLeft, Chevro
 
 // Import react-pdf - making it a dynamic import to avoid issues with SSR
 import { Document as PDFDocument, Page as PDFPage, pdfjs } from 'react-pdf';
-// Set the worker source URL to our local copy - using absolute URL with origin to ensure it's found
-pdfjs.GlobalWorkerOptions.workerSrc = `${window.location.origin}/pdfjs/pdf.worker.min.js`;
+// Set the worker source URL to the official CDN version to ensure it loads properly
+pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.5.141/pdf.worker.min.js`;
 
 interface EnhancedPDFViewerProps {
   isOpen: boolean;
@@ -261,23 +261,52 @@ export default function EnhancedPDFViewer({ isOpen, onClose, documentId, documen
               </Button>
             </div>
           ) : (
-            <div style={{ transform: `rotate(${rotation}deg)` }} className="transition-transform duration-300">
-              <PDFDocument
-                file={documentUrl}
-                onLoadSuccess={onDocumentLoadSuccess}
-                onLoadError={onDocumentLoadError}
-                className="pdf-document"
-                loading={<div className="opacity-0">Loading document...</div>}
-              >
-                <PDFPage
-                  key={`page_${pageNumber}`}
-                  pageNumber={pageNumber}
-                  scale={scale}
-                  renderAnnotationLayer={true}
-                  renderTextLayer={true}
-                  className="shadow-md"
+            <div>
+              {/* Main PDF viewer with rotation */}
+              <div id="enhanced-pdf-viewer" style={{ transform: `rotate(${rotation}deg)` }} className="transition-transform duration-300">
+                <PDFDocument
+                  file={documentUrl}
+                  onLoadSuccess={onDocumentLoadSuccess}
+                  onLoadError={(error) => {
+                    // First try standard error handling
+                    onDocumentLoadError(error);
+                    
+                    // Then switch to iframe fallback if needed
+                    const container = document.getElementById('enhanced-pdf-viewer');
+                    const fallback = document.getElementById('enhanced-pdf-iframe-fallback');
+                    
+                    if (container && fallback) {
+                      container.style.display = 'none';
+                      fallback.style.display = 'block';
+                    }
+                    
+                    toast({
+                      title: 'Using simple document viewer',
+                      description: 'PDF viewer could not be initialized. Using simple document viewer instead.',
+                    });
+                  }}
+                  className="pdf-document"
+                  loading={<div className="opacity-0">Loading document...</div>}
+                >
+                  <PDFPage
+                    key={`page_${pageNumber}`}
+                    pageNumber={pageNumber}
+                    scale={scale}
+                    renderAnnotationLayer={true}
+                    renderTextLayer={true}
+                    className="shadow-md"
+                  />
+                </PDFDocument>
+              </div>
+              
+              {/* Fallback iframe viewer */}
+              <div id="enhanced-pdf-iframe-fallback" style={{display: 'none'}} className="w-full h-full flex items-center justify-center">
+                <iframe 
+                  src={documentUrl}
+                  className="w-full h-[800px] border-0" 
+                  title={documentName}
                 />
-              </PDFDocument>
+              </div>
             </div>
           )}
         </div>

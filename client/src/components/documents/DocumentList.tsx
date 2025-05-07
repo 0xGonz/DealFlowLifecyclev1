@@ -12,8 +12,8 @@ import EnhancedPDFViewer from './EnhancedPDFViewer';
 import EmbeddedPDFViewer from './EmbeddedPDFViewer';
 // Import react-pdf components
 import { Document as PDFDocument, Page as PDFPage, pdfjs } from 'react-pdf';
-// Set the worker source URL - using a relative path that matches our public directory structure
-pdfjs.GlobalWorkerOptions.workerSrc = `${window.location.origin}/pdfjs/pdf.worker.min.js`;
+// Set the worker source URL to the official CDN version to ensure it loads properly
+pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.5.141/pdf.worker.min.js`;
 import {
   AlertDialog,
   AlertDialogAction,
@@ -398,26 +398,45 @@ export default function DocumentList({ dealId }: DocumentListProps) {
                   <div className="overflow-hidden h-[900px] bg-neutral-50 flex justify-center">
                     {selectedDocument.fileType === 'application/pdf' || 
                      selectedDocument.fileName.toLowerCase().endsWith('.pdf') ? (
-                      <PDFDocument
-                        file={`/api/documents/${selectedDocument.id}/download`}
-                        onLoadError={(error) => {
-                          console.error('Error loading PDF:', error);
-                          toast({
-                            title: 'Error loading document',
-                            description: 'The document could not be displayed properly.',
-                            variant: 'destructive',
-                          });
-                        }}
-                        className="pdf-document w-full h-full"
-                      >
-                        <PDFPage
-                          pageNumber={1}
-                          renderAnnotationLayer={true}
-                          renderTextLayer={true}
-                          className="shadow-md"
-                          width={800}
-                        />
-                      </PDFDocument>
+                      <div className="w-full h-full">
+                        <div id="pdf-viewer-container" className="w-full h-full">
+                          <PDFDocument
+                            file={`/api/documents/${selectedDocument.id}/download`}
+                            onLoadError={(error) => {
+                              console.error('Error loading PDF:', error);
+                              // Switch to iframe fallback
+                              const container = document.getElementById('pdf-viewer-container');
+                              const fallback = document.getElementById('pdf-iframe-fallback');
+                              
+                              if (container && fallback) {
+                                container.style.display = 'none';
+                                fallback.style.display = 'block';
+                              }
+                              
+                              toast({
+                                title: 'Using simple document viewer',
+                                description: 'PDF viewer could not be initialized. Using simple document viewer instead.',
+                              });
+                            }}
+                            className="pdf-document w-full h-full"
+                          >
+                            <PDFPage
+                              pageNumber={1}
+                              renderAnnotationLayer={true}
+                              renderTextLayer={true}
+                              className="shadow-md"
+                              width={800}
+                            />
+                          </PDFDocument>
+                        </div>
+                        <div id="pdf-iframe-fallback" style={{display: 'none'}} className="w-full h-full">
+                          <iframe 
+                            src={`/api/documents/${selectedDocument.id}/download`} 
+                            className="w-full h-full border-0" 
+                            title={selectedDocument.fileName}
+                          />
+                        </div>
+                      </div>
                     ) : (
                       <iframe 
                         src={`/api/documents/${selectedDocument.id}/download`} 
