@@ -12,8 +12,8 @@ import EnhancedPDFViewer from './EnhancedPDFViewer';
 import EmbeddedPDFViewer from './EmbeddedPDFViewer';
 // Import react-pdf components
 import { Document as PDFDocument, Page as PDFPage, pdfjs } from 'react-pdf';
-// Set the worker source URL
-pdfjs.GlobalWorkerOptions.workerSrc = `/pdfjs/pdf.worker.min.js`;
+// Set the worker source URL - using a relative path that matches our public directory structure
+pdfjs.GlobalWorkerOptions.workerSrc = `${window.location.origin}/pdfjs/pdf.worker.min.js`;
 import {
   AlertDialog,
   AlertDialogAction,
