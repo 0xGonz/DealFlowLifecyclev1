@@ -47,7 +47,7 @@ const dealFormSchema = z.object({
   contactEmail: z.string().email("Invalid email address").optional().or(z.literal("")),
   notes: z.string().optional().or(z.literal("")),
   targetReturn: z.string().optional().or(z.literal("")),
-  projectedIrr: z.string().optional().or(z.literal("")),
+  // Removed projectedIrr - using targetReturn instead
   projectedMultiple: z.string().optional().or(z.literal("")),
   stage: z.enum(DEAL_STAGES),
   tags: z.array(z.string()).optional()
@@ -75,7 +75,6 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
       contactEmail: "",
       notes: "",
       targetReturn: "",
-      projectedIrr: "",
       projectedMultiple: "",
       stage: "initial_review",
       tags: []
@@ -293,30 +292,13 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
                         {...field} 
                       />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className="text-xs">
+                      This will be shown in Pipeline view
+                    </FormMessage>
                   </FormItem>
                 )}
               />
               
-              <FormField
-                control={form.control}
-                name="projectedIrr"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Projected Return (%)</FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder="e.g., 22" 
-                        {...field} 
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="projectedMultiple"
@@ -333,25 +315,25 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
                   </FormItem>
                 )}
               />
-              
-              <FormField
-                control={form.control}
-                name="notes"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Notes</FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        placeholder="Any initial notes or reminders" 
-                        rows={2} 
-                        {...field} 
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
             </div>
+            
+            <FormField
+              control={form.control}
+              name="notes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Notes</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="Any initial notes or reminders" 
+                      rows={3} 
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <FormField
               control={form.control}

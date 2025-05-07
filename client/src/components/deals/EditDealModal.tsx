@@ -45,7 +45,7 @@ const dealFormSchema = z.object({
   contactEmail: z.string().email("Invalid email address").optional().or(z.literal("")),
   notes: z.string().optional(),
   targetReturn: z.string().optional().or(z.literal("")),
-  projectedIrr: z.string().optional().or(z.literal("")),
+  // Removed projectedIrr - using targetReturn instead
   projectedMultiple: z.string().optional().or(z.literal("")),
   stage: z.enum(DEAL_STAGES),
   rejectionReason: z.string().optional(),
@@ -89,7 +89,6 @@ export default function EditDealModal({ isOpen, onClose, dealId }: EditDealModal
       contactEmail: deal.contactEmail || "",
       notes: deal.notes || "",
       targetReturn: deal.targetReturn || "",
-      projectedIrr: deal.projectedIrr || "",
       projectedMultiple: deal.projectedMultiple || "",
       stage: deal.stage,
       tags: deal.tags || []
@@ -106,7 +105,6 @@ export default function EditDealModal({ isOpen, onClose, dealId }: EditDealModal
         contactEmail: deal.contactEmail || "",
         notes: deal.notes || "",
         targetReturn: deal.targetReturn || "",
-        projectedIrr: deal.projectedIrr || "",
         projectedMultiple: deal.projectedMultiple || "",
         stage: deal.stage,
         tags: deal.tags || []
@@ -276,30 +274,13 @@ export default function EditDealModal({ isOpen, onClose, dealId }: EditDealModal
                           {...field} 
                         />
                       </FormControl>
-                      <FormMessage />
+                      <FormMessage className="text-xs">
+                        This will be shown in Pipeline view
+                      </FormMessage>
                     </FormItem>
                   )}
                 />
                 
-                <FormField
-                  control={form.control}
-                  name="projectedIrr"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Projected Return (%)</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="e.g., 22" 
-                          {...field} 
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="projectedMultiple"
@@ -316,25 +297,25 @@ export default function EditDealModal({ isOpen, onClose, dealId }: EditDealModal
                     </FormItem>
                   )}
                 />
-                
-                <FormField
-                  control={form.control}
-                  name="notes"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Notes</FormLabel>
-                      <FormControl>
-                        <Textarea 
-                          placeholder="Any additional notes" 
-                          rows={2} 
-                          {...field} 
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
               </div>
+              
+              <FormField
+                control={form.control}
+                name="notes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Notes</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="Any additional notes" 
+                        rows={2} 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <FormField
                 control={form.control}
