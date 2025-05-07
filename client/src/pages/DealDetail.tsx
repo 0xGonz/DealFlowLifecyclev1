@@ -466,7 +466,7 @@ export default function DealDetail() {
                     <div>
                       <p className="text-xs sm:text-sm font-medium">Projected IRR</p>
                       <p className="text-xs sm:text-sm text-neutral-600">
-                        {deal?.projectedIrr ? `${deal.projectedIrr}%` : '20-25%'}
+                        {deal?.projectedIrr ? `${deal.projectedIrr}%` : 'Not specified'}
                       </p>
                     </div>
                   </div>
@@ -476,7 +476,7 @@ export default function DealDetail() {
                     <div>
                       <p className="text-xs sm:text-sm font-medium">Projected Multiple</p>
                       <p className="text-xs sm:text-sm text-neutral-600">
-                        {deal?.projectedMultiple ? `${deal.projectedMultiple}x` : '2.5-3.0x'}
+                        {deal?.projectedMultiple ? `${deal.projectedMultiple}x` : 'Not specified'}
                       </p>
                     </div>
                   </div>

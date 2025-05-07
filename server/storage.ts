@@ -52,6 +52,7 @@ export interface IStorage {
   getMiniMemo(id: number): Promise<MiniMemo | undefined>;
   getMiniMemosByDeal(dealId: number): Promise<MiniMemo[]>;
   updateMiniMemo(id: number, memo: Partial<InsertMiniMemo>): Promise<MiniMemo | undefined>;
+  deleteMiniMemo(id: number): Promise<boolean>;
   
   // Documents
   createDocument(document: InsertDocument): Promise<Document>;

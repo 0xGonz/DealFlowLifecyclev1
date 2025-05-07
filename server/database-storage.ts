@@ -90,6 +90,8 @@ export class DatabaseStorage implements IStorage {
         stage: deal.stage || 'initial_review',
         contactEmail: deal.contactEmail || null,
         targetReturn: deal.targetReturn || null,
+        projectedIrr: deal.projectedIrr || null,
+        projectedMultiple: deal.projectedMultiple || null,
         score: deal.score || 0,
         tags: deal.tags || [],
         round: deal.round || null,
@@ -135,6 +137,8 @@ export class DatabaseStorage implements IStorage {
       if (dealUpdate.stage !== undefined) validUpdateData.stage = dealUpdate.stage;
       if (dealUpdate.contactEmail !== undefined) validUpdateData.contactEmail = dealUpdate.contactEmail;
       if (dealUpdate.targetReturn !== undefined) validUpdateData.targetReturn = dealUpdate.targetReturn;
+      if (dealUpdate.projectedIrr !== undefined) validUpdateData.projectedIrr = dealUpdate.projectedIrr;
+      if (dealUpdate.projectedMultiple !== undefined) validUpdateData.projectedMultiple = dealUpdate.projectedMultiple;
       if (dealUpdate.score !== undefined) validUpdateData.score = dealUpdate.score;
       if (dealUpdate.tags !== undefined) validUpdateData.tags = dealUpdate.tags;
       if (dealUpdate.round !== undefined) validUpdateData.round = dealUpdate.round;

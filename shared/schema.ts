@@ -42,6 +42,9 @@ export const deals = pgTable("deals", {
   targetRaise: text("target_raise"),
   valuation: text("valuation"),
   leadInvestor: text("lead_investor"),
+  // Adding projected returns fields
+  projectedIrr: text("projected_irr"),
+  projectedMultiple: text("projected_multiple"),
 });
 
 export const insertDealSchema = createInsertSchema(deals).omit({

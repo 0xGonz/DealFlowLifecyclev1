@@ -47,6 +47,8 @@ const dealFormSchema = z.object({
   contactEmail: z.string().email("Invalid email address").optional().or(z.literal("")),
   notes: z.string().optional().or(z.literal("")),
   targetReturn: z.string().optional().or(z.literal("")),
+  projectedIrr: z.string().optional().or(z.literal("")),
+  projectedMultiple: z.string().optional().or(z.literal("")),
   stage: z.enum(DEAL_STAGES),
   tags: z.array(z.string()).optional()
 });
@@ -73,6 +75,8 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
       contactEmail: "",
       notes: "",
       targetReturn: "",
+      projectedIrr: "",
+      projectedMultiple: "",
       stage: "initial_review",
       tags: []
     }
@@ -286,6 +290,42 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
                     <FormControl>
                       <Input 
                         placeholder="e.g., 20%" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="projectedIrr"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Projected Return (%)</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="e.g., 22" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="projectedMultiple"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Projected Multiple (x)</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="e.g., 2.5" 
                         {...field} 
                       />
                     </FormControl>

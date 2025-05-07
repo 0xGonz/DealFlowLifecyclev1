@@ -45,6 +45,8 @@ const dealFormSchema = z.object({
   contactEmail: z.string().email("Invalid email address").optional().or(z.literal("")),
   notes: z.string().optional(),
   targetReturn: z.string().optional().or(z.literal("")),
+  projectedIrr: z.string().optional().or(z.literal("")),
+  projectedMultiple: z.string().optional().or(z.literal("")),
   stage: z.enum(DEAL_STAGES),
   rejectionReason: z.string().optional(),
   tags: z.array(z.string()).optional()
@@ -87,6 +89,8 @@ export default function EditDealModal({ isOpen, onClose, dealId }: EditDealModal
       contactEmail: deal.contactEmail || "",
       notes: deal.notes || "",
       targetReturn: deal.targetReturn || "",
+      projectedIrr: deal.projectedIrr || "",
+      projectedMultiple: deal.projectedMultiple || "",
       stage: deal.stage,
       tags: deal.tags || []
     } : undefined
@@ -102,6 +106,8 @@ export default function EditDealModal({ isOpen, onClose, dealId }: EditDealModal
         contactEmail: deal.contactEmail || "",
         notes: deal.notes || "",
         targetReturn: deal.targetReturn || "",
+        projectedIrr: deal.projectedIrr || "",
+        projectedMultiple: deal.projectedMultiple || "",
         stage: deal.stage,
         tags: deal.tags || []
       });
@@ -267,6 +273,42 @@ export default function EditDealModal({ isOpen, onClose, dealId }: EditDealModal
                       <FormControl>
                         <Input 
                           placeholder="e.g., 20%" 
+                          {...field} 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="projectedIrr"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Projected Return (%)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="e.g., 22" 
+                          {...field} 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="projectedMultiple"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Projected Multiple (x)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="e.g., 2.5" 
                           {...field} 
                         />
                       </FormControl>
