@@ -213,19 +213,6 @@ export default function EditDealModal({ isOpen, onClose, dealId }: EditDealModal
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent className="max-h-[300px]">
-                          <div className="px-2 py-1.5">
-                            <Input
-                              placeholder="Search sectors..."
-                              className="mb-2 mt-1"
-                              onChange={(e) => {
-                                const searchField = e.currentTarget.parentElement?.parentElement?.querySelector('input[name="radix-:r1:"]');
-                                if (searchField) {
-                                  (searchField as HTMLInputElement).value = e.target.value;
-                                  (searchField as HTMLInputElement).dispatchEvent(new Event('input', { bubbles: true }));
-                                }
-                              }}
-                            />
-                          </div>
                           {DEAL_SECTORS.map((sector) => (
                             <SelectItem key={sector} value={sector}>{sector}</SelectItem>
                           ))}
