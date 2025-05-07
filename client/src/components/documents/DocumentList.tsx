@@ -187,15 +187,11 @@ export default function DocumentList({ dealId }: DocumentListProps) {
   };
   
   const handleViewDocument = (document: Document) => {
+    // Just set the selected document, don't open any pop-up
     setSelectedDocument(document);
     
-    if (document.fileType === 'application/pdf' || document.fileName.toLowerCase().endsWith('.pdf')) {
-      // For PDFs, we can preview inline using our enhanced viewer
-      setIsPdfViewerOpen(true);
-    } else {
-      // For non-PDF documents, just download them
-      window.open(`/api/documents/${document.id}/download`, '_blank');
-    }
+    // Don't open the PDF viewer modal or download the file
+    // The document will be displayed in the iframe below
   };
 
   if (isLoading) {
@@ -316,7 +312,11 @@ export default function DocumentList({ dealId }: DocumentListProps) {
               {documents.map((document) => (
                 <div 
                   key={document.id} 
-                  className="flex justify-between items-center p-2 bg-neutral-50 rounded border cursor-pointer"
+                  className={`flex justify-between items-center p-2 rounded border cursor-pointer ${
+                    selectedDocument?.id === document.id 
+                      ? 'bg-blue-50 border-blue-200' 
+                      : 'bg-neutral-50'
+                  }`}
                   onClick={() => handleViewDocument(document)}
                 >
                   <div className="flex items-center flex-1 min-w-0">
