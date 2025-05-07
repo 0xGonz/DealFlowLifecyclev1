@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { formatDistanceToNow } from "date-fns";
 import { 
@@ -12,7 +11,8 @@ import {
   UserPlus,
   Settings
 } from "lucide-react";
-import { ICON_SIZES, AVATAR_COLORS } from "@/lib/constants/ui-constants";
+import { ICON_SIZES } from "@/lib/constants/ui-constants";
+import { UserAvatar } from "@/components/common/UserAvatar";
 
 interface ActivityItem {
   id: number;
@@ -145,17 +145,11 @@ export default function TeamActivity() {
                 
                 {activity.user && (
                   <div className="flex items-center mt-2">
-                    <Avatar key={`activity-user-${activity.id}`} className="h-4 w-4 sm:h-5 sm:w-5 mr-1">
-                      <AvatarFallback 
-                        style={{ 
-                          backgroundColor: activity.user.avatarColor || AVATAR_COLORS.DEFAULT, 
-                          fontSize: '9px',
-                          color: '#FFFFFF'
-                        }}
-                      >
-                        {activity.user.initials || '??'}
-                      </AvatarFallback>
-                    </Avatar>
+                    <UserAvatar
+                      user={activity.user}
+                      size="xs"
+                      className="mr-1"
+                    />
                     <span className="text-[10px] xs:text-xs text-neutral-500">{activity.user.fullName}</span>
                   </div>
                 )}

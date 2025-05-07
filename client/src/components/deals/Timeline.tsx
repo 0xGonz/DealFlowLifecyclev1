@@ -1,13 +1,12 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow, format } from "date-fns";
-import { AVATAR_COLORS } from "@/lib/constants/ui-constants";
+import { UserAvatar } from "@/components/common/UserAvatar";
 import { 
   CheckCircle, 
   FileEdit,
@@ -635,16 +634,11 @@ export default function Timeline({ dealId }: TimelineProps) {
                 
                 {event.user && (
                   <div className="flex items-center mt-2">
-                    <Avatar className="h-6 w-6 mr-2">
-                      <AvatarFallback 
-                        style={{ 
-                          backgroundColor: event.user.avatarColor || AVATAR_COLORS.DEFAULT,
-                          color: '#FFFFFF'
-                        }}
-                      >
-                        {event.user.initials || '??'}
-                      </AvatarFallback>
-                    </Avatar>
+                    <UserAvatar 
+                      user={event.user}
+                      size="sm"
+                      className="mr-2"
+                    />
                     <span className="text-xs text-neutral-500">{event.user.fullName}</span>
                     <span className="text-xs text-neutral-400 ml-auto">
                       {format(new Date(event.createdAt), 'MMM d, yyyy')}

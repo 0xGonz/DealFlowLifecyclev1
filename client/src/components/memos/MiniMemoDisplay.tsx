@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -8,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { MiniMemo } from '@shared/schema';
-import { AVATAR_COLORS } from '@/lib/constants/ui-constants';
+import { UserAvatar } from '@/components/common/UserAvatar';
 
 // Import due diligence checklist as a constant to be used throughout the app
 export const DUE_DILIGENCE_CHECKLIST = {
@@ -93,17 +92,11 @@ export function MiniMemoDisplay({
     >
       <div className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between gap-2 sm:gap-0 mb-3">
         <div className="flex items-center">
-          <Avatar className="h-7 w-7 sm:h-8 sm:w-8 mr-2">
-            <AvatarFallback 
-              style={{ 
-                backgroundColor: memo.user?.avatarColor || AVATAR_COLORS.DEFAULT,
-                color: '#FFFFFF',
-                fontSize: '12px'
-              }}
-            >
-              {memo.user?.initials || "??"}
-            </AvatarFallback>
-          </Avatar>
+          <UserAvatar 
+            user={memo.user} 
+            size="sm" 
+            className="mr-2"
+          />
           <div>
             <p className="text-sm font-medium">
               {memo.user?.fullName || "Team Member"}
