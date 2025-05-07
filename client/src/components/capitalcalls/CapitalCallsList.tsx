@@ -18,7 +18,8 @@ import {
   CheckCircle,
   XCircle,
   Clock,
-  AlertCircle
+  AlertCircle,
+  Eye
 } from 'lucide-react';
 
 interface CapitalCallsListProps {
@@ -96,7 +97,20 @@ export default function CapitalCallsList({ dealId }: CapitalCallsListProps) {
         <DollarSign className="h-12 w-12 mx-auto text-neutral-300" />
         <div className="space-y-2">
           <p className="text-neutral-500">No capital calls have been created for this deal yet.</p>
-          <p className="text-sm text-neutral-400">Capital calls are created after a deal is allocated to a fund.</p>
+          {allocations.length > 0 ? (
+            <p className="text-sm text-neutral-400">
+              Click the "Create Capital Call" button above to schedule a capital call.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              <p className="text-sm text-neutral-400">
+                This deal must be allocated to a fund before you can create capital calls.
+              </p>
+              <p className="text-xs text-neutral-400">
+                Go to the "Allocations" tab to create a fund allocation.
+              </p>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -112,6 +126,7 @@ export default function CapitalCallsList({ dealId }: CapitalCallsListProps) {
             <TableHead>Call Date</TableHead>
             <TableHead>Due Date</TableHead>
             <TableHead>Status</TableHead>
+            <TableHead className="w-10">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -138,6 +153,18 @@ export default function CapitalCallsList({ dealId }: CapitalCallsListProps) {
                   {getStatusIcon(call.status)}
                   <span className="capitalize">{call.status}</span>
                 </Badge>
+              </TableCell>
+              <TableCell>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-8 w-8"
+                  title="View details"
+                  onClick={() => {/* Future feature: view/edit capital call details */}}
+                  disabled
+                >
+                  <Eye className="h-4 w-4" />
+                </Button>
               </TableCell>
             </TableRow>
           ))}

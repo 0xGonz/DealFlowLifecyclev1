@@ -3,6 +3,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { format, addDays } from 'date-fns';
+import { DollarSign, Calendar, AlertCircle, Info } from 'lucide-react';
 
 import {
   Dialog,
@@ -18,7 +19,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { DollarSign } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface CreateCapitalCallFormProps {
   isOpen: boolean;
@@ -136,13 +137,24 @@ export function CreateCapitalCallForm({ isOpen, onClose, dealId, onSuccess }: Cr
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Create Capital Call</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            <DollarSign className="h-5 w-5" />
+            Create Capital Call
+          </DialogTitle>
           <DialogDescription>
             Schedule a new capital call for this investment
           </DialogDescription>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4 py-2">
+          <Alert className="mb-3">
+            <Info className="h-4 w-4" />
+            <AlertTitle>About Capital Calls</AlertTitle>
+            <AlertDescription>
+              Capital calls request funds from investors for a specific allocation. You can specify either a percentage of the committed amount or a specific dollar amount.
+            </AlertDescription>
+          </Alert>
+          
           <div className="space-y-2">
             <Label htmlFor="allocation">Fund Allocation *</Label>
             <Select
@@ -220,7 +232,10 @@ export function CreateCapitalCallForm({ isOpen, onClose, dealId, onSuccess }: Cr
           
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="callDate">Call Date *</Label>
+              <Label htmlFor="callDate" className="flex items-center gap-1">
+                <Calendar className="h-3.5 w-3.5" />
+                Call Date *
+              </Label>
               <Input
                 id="callDate"
                 type="date"
@@ -235,7 +250,10 @@ export function CreateCapitalCallForm({ isOpen, onClose, dealId, onSuccess }: Cr
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="dueDate">Due Date *</Label>
+              <Label htmlFor="dueDate" className="flex items-center gap-1">
+                <Calendar className="h-3.5 w-3.5" />
+                Due Date *
+              </Label>
               <Input
                 id="dueDate"
                 type="date"
@@ -251,7 +269,10 @@ export function CreateCapitalCallForm({ isOpen, onClose, dealId, onSuccess }: Cr
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="status">Status</Label>
+            <Label htmlFor="status" className="flex items-center gap-1">
+              <AlertCircle className="h-3.5 w-3.5" />
+              Status
+            </Label>
             <Select
               value={formData.status}
               onValueChange={(value) => setFormData({
@@ -265,9 +286,18 @@ export function CreateCapitalCallForm({ isOpen, onClose, dealId, onSuccess }: Cr
               <SelectContent>
                 <SelectItem value="scheduled">Scheduled</SelectItem>
                 <SelectItem value="called">Called</SelectItem>
+                <SelectItem value="partial">Partial Payment</SelectItem>
                 <SelectItem value="paid">Paid</SelectItem>
+                <SelectItem value="defaulted">Defaulted</SelectItem>
               </SelectContent>
             </Select>
+            <p className="text-xs text-muted-foreground mt-1">
+              {formData.status === 'scheduled' && "The capital call is planned but not yet issued to investors."}
+              {formData.status === 'called' && "Official notice has been issued to investors."}
+              {formData.status === 'partial' && "Some funds have been received but not the full amount."}
+              {formData.status === 'paid' && "The capital call has been fully paid by investors."}
+              {formData.status === 'defaulted' && "The investor failed to meet their payment obligation."}
+            </p>
           </div>
           
           <div className="space-y-2">

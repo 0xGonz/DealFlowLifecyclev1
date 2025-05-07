@@ -749,11 +749,13 @@ export default function DealDetail() {
                         Schedule and track capital calls associated with this deal.
                       </div>
                       
-                      {canCreate('fund') && deal?.stage === DEAL_STAGES.INVESTED && (
+                      {canCreate('capital-call') && (
                         <Button 
                           size="sm" 
                           className="ml-auto"
                           onClick={() => setIsCapitalCallFormOpen(true)}
+                          disabled={!deal?.allocations?.length}
+                          title={!deal?.allocations?.length ? "Deal must have fund allocations to create capital calls" : "Create a new capital call"}
                         >
                           <DollarSign className="h-3.5 w-3.5 mr-1.5" />
                           Create Capital Call
