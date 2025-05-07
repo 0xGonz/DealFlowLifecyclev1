@@ -370,62 +370,80 @@ export default function Funds() {
           <CardHeader>
             <CardTitle className="text-base sm:text-lg">Recent Fund Allocations</CardTitle>
           </CardHeader>
-          <CardContent className="p-0 sm:p-6">
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="text-xs sm:text-sm">Deal</TableHead>
-                    <TableHead className="text-xs sm:text-sm">Fund</TableHead>
-                    <TableHead className="text-xs sm:text-sm">Amount</TableHead>
-                    <TableHead className="text-xs sm:text-sm hidden sm:table-cell">Sector</TableHead>
-                    <TableHead className="text-xs sm:text-sm">Date</TableHead>
-                  </TableRow>
-                </TableHeader>
+          <CardContent className="p-0">
+            <div className="rounded-md border bg-white w-full overflow-hidden">
+              <div className="overflow-x-auto w-full scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-b bg-neutral-50 hover:bg-neutral-100">
+                      <TableHead className="py-2 px-2 sm:px-4 font-semibold text-2xs xs:text-xs sm:text-sm text-neutral-600">Deal</TableHead>
+                      <TableHead className="py-2 px-2 sm:px-4 font-semibold text-2xs xs:text-xs sm:text-sm text-neutral-600">Fund</TableHead>
+                      <TableHead className="py-2 px-2 sm:px-4 font-semibold text-2xs xs:text-xs sm:text-sm text-neutral-600 text-right">Amount</TableHead>
+                      <TableHead className="py-2 px-2 sm:px-4 font-semibold text-2xs xs:text-xs sm:text-sm text-neutral-600 hidden sm:table-cell">Sector</TableHead>
+                      <TableHead className="py-2 px-2 sm:px-4 font-semibold text-2xs xs:text-xs sm:text-sm text-neutral-600">Date</TableHead>
+                    </TableRow>
+                  </TableHeader>
                 <TableBody>
                   {isAllocationsLoading ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center py-8 sm:py-10 text-neutral-500">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+                      <TableCell colSpan={5} className="text-center py-8 sm:py-12 text-neutral-500">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-3"></div>
                         <p className="text-sm">Loading recent allocations...</p>
                       </TableCell>
                     </TableRow>
                   ) : recentAllocations.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center py-8 sm:py-10 text-neutral-500">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 mx-auto text-neutral-300 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                        </svg>
-                        <p className="text-sm">No recent allocations to display.</p>
+                      <TableCell colSpan={5} className="text-center py-10 sm:py-14 text-neutral-500">
+                        <div className="flex flex-col items-center justify-center gap-2">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-neutral-300 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                          </svg>
+                          <p className="text-sm font-medium">No recent allocations</p>
+                          <p className="text-xs text-neutral-400">Any new allocations will appear here</p>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ) : (
                     recentAllocations.map((allocation) => (
-                      <TableRow key={allocation.id} className="hover:bg-neutral-50">
-                        <TableCell className="font-medium">
-                          <Link href={`/deals/${allocation.dealId}`} className="hover:text-primary hover:underline">
+                      <TableRow 
+                        key={allocation.id} 
+                        className="group hover:bg-blue-50 hover:shadow-sm transition-all cursor-pointer"
+                        onClick={() => window.location.href = `/deals/${allocation.dealId}`}
+                      >
+                        <TableCell className="py-1.5 sm:py-2.5 px-2 sm:px-4">
+                          <div className="font-medium text-xs sm:text-sm md:text-base text-neutral-900 truncate group-hover:text-blue-700 transition-colors">
                             {allocation.dealName}
-                          </Link>
+                          </div>
                         </TableCell>
-                        <TableCell>
-                          <Link href={`/funds/${allocation.fundId}`} className="hover:text-primary hover:underline">
+                        <TableCell className="py-1.5 sm:py-2.5 px-2 sm:px-4">
+                          <span className="text-2xs xs:text-xs sm:text-sm" onClick={(e) => {
+                            e.stopPropagation();
+                            window.location.href = `/funds/${allocation.fundId}`;
+                          }}>
                             {allocation.fundName}
-                          </Link>
+                          </span>
                         </TableCell>
-                        <TableCell>
-                          {formatCurrency(allocation.amount)}
+                        <TableCell className="py-1.5 sm:py-2.5 px-2 sm:px-4 text-right">
+                          <span className="text-2xs xs:text-xs sm:text-sm">
+                            {formatCurrency(allocation.amount)}
+                          </span>
                         </TableCell>
-                        <TableCell className="hidden sm:table-cell text-neutral-600">
-                          {allocation.dealSector || "N/A"}
+                        <TableCell className="py-1.5 sm:py-2.5 px-2 sm:px-4 hidden sm:table-cell">
+                          <span className="text-2xs xs:text-xs sm:text-sm">
+                            {allocation.dealSector || "N/A"}
+                          </span>
                         </TableCell>
-                        <TableCell className="text-neutral-600">
-                          {format(new Date(allocation.allocationDate), "MMM d, yyyy")}
+                        <TableCell className="py-1.5 sm:py-2.5 px-2 sm:px-4">
+                          <span className="text-2xs xs:text-xs sm:text-sm">
+                            {format(new Date(allocation.allocationDate), "MMM d, yyyy")}
+                          </span>
                         </TableCell>
                       </TableRow>
                     ))
                   )}
                 </TableBody>
               </Table>
+            </div>
             </div>
           </CardContent>
         </Card>
