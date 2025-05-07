@@ -27,7 +27,7 @@ interface MemoUser {
   id: number;
   fullName?: string;
   initials?: string;
-  avatarColor?: string;
+  avatarColor?: string | null;
   role?: string;
   username?: string;
 }

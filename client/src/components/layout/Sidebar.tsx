@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { 
   BarChart3, 
   Building, 
@@ -17,8 +16,9 @@ import { Button } from "@/components/ui/button";
 import ProfileEditModal from "@/components/profile/ProfileEditModal";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LAYOUT, AVATAR_COLORS } from "@/lib/constants/ui-constants";
-import { DEFAULT_AVATAR_TEXT } from "@/lib/constants/display-constants";
+import { LAYOUT } from "@/lib/constants/ui-constants";
+import { UserAvatar } from "@/components/common/UserAvatar";
+
 import { useAuth } from "@/hooks/use-auth";
 
 interface SidebarProps {
@@ -108,9 +108,10 @@ export default function Sidebar({ onCloseMobile }: SidebarProps) {
               </>
             ) : currentUser ? (
               <>
-                <Avatar key="user-avatar" className="h-8 w-8" style={currentUser.avatarColor ? {backgroundColor: currentUser.avatarColor} : {backgroundColor: AVATAR_COLORS.DEFAULT}}>
-                  <AvatarFallback className="bg-primary text-white">{currentUser.initials || DEFAULT_AVATAR_TEXT}</AvatarFallback>
-                </Avatar>
+                <UserAvatar 
+                  user={currentUser} 
+                  size="sm"
+                />
                 <div className="flex flex-col">
                   <span className="text-sm font-medium">{currentUser.fullName}</span>
                   <span className="text-xs text-neutral-500 capitalize">{currentUser.role}</span>
@@ -118,9 +119,10 @@ export default function Sidebar({ onCloseMobile }: SidebarProps) {
               </>
             ) : (
               <>
-                <Avatar key="guest-avatar" className="h-8 w-8" style={{backgroundColor: AVATAR_COLORS.GRAY}}>
-                  <AvatarFallback className="bg-primary text-white">GU</AvatarFallback>
-                </Avatar>
+                <UserAvatar 
+                  user={{ id: 0, fullName: "Guest User", initials: "GU", role: "guest" }}
+                  size="sm"
+                />
                 <div className="flex flex-col">
                   <span className="text-sm font-medium">Guest User</span>
                   <span className="text-xs text-neutral-500">Not signed in</span>

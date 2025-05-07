@@ -9,7 +9,7 @@ interface UserAvatarProps {
     id: number;
     fullName?: string;
     initials?: string;
-    avatarColor?: string;
+    avatarColor?: string | null;
     role?: string;
   } | null | undefined;
   size?: 'xs' | 'sm' | 'md' | 'lg';

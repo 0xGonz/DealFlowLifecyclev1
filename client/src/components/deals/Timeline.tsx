@@ -79,6 +79,7 @@ interface TimelineEvent {
     fullName: string;
     initials: string;
     avatarColor: string | null;
+    role?: string;
   };
 }
 
