@@ -78,12 +78,13 @@ router.post('/', requireAuth, requirePermission('create', 'capital-call'), async
       content: `Capital call ${validatedData.status === 'scheduled' ? 'scheduled' : 'created'} for ${fund?.name || 'a fund'}`,
       createdBy: req.user?.id || 0,
       metadata: {
+        // Using as any to work around TypeScript issues with metadata typing
         capitalCallId: capitalCall.id,
         allocationId: allocation.id,
         fundId: allocation.fundId,
         amount: validatedData.callAmount,
         amountType: validatedData.amountType
-      }
+      } as any
     });
 
     return res.status(201).json(capitalCall);
@@ -125,13 +126,13 @@ router.patch('/:id/status', requireAuth, requirePermission('edit', 'capital-call
         content: `Capital call status updated to ${status}`,
         createdBy: req.user?.id || 0,
         metadata: {
-          capitalCallId: [id],
-          allocationId: [allocation.id],
-          fundId: [allocation.fundId],
-          newStatus: [status],
-          previousStatus: [updatedCapitalCall.status],
-          paidAmount: [paidAmount || 0]
-        }
+          capitalCallId: id,
+          allocationId: allocation.id,
+          fundId: allocation.fundId,
+          newStatus: status,
+          previousStatus: updatedCapitalCall.status,
+          paidAmount: paidAmount || 0
+        } as any
       });
     }
 
@@ -272,10 +273,10 @@ router.patch('/:id', requireAuth, requirePermission('edit', 'capital-call'), asy
         content: `Capital call updated${validatedData.status ? ` (status: ${validatedData.status})` : ''}`,
         createdBy: req.user?.id || 0,
         metadata: {
-          capitalCallId: [id],
-          allocationId: [allocation.id],
-          fundId: [allocation.fundId]
-        }
+          capitalCallId: id,
+          allocationId: allocation.id,
+          fundId: allocation.fundId
+        } as any
       });
     }
     
@@ -322,12 +323,12 @@ router.delete('/:id', requireAuth, requirePermission('delete', 'capital-call'), 
         content: `Capital call deleted`,
         createdBy: req.user?.id || 0,
         metadata: {
-          capitalCallId: [id],
-          allocationId: [allocation.id],
-          fundId: [allocation.fundId],
-          newStatus: ['defaulted'], // Using a valid status
-          previousStatus: [capitalCall.status]
-        }
+          capitalCallId: id,
+          allocationId: allocation.id,
+          fundId: allocation.fundId,
+          newStatus: 'defaulted', // Using a valid status
+          previousStatus: capitalCall.status
+        } as any
       });
     }
     
