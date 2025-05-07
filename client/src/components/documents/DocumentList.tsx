@@ -153,9 +153,10 @@ export default function DocumentList({ dealId }: DocumentListProps) {
   };
   
   const handleViewDocument = (document: Document) => {
+    setSelectedDocument(document);
+    
     if (document.fileType === 'application/pdf' || document.fileName.toLowerCase().endsWith('.pdf')) {
-      setSelectedDocument(document);
-      setIsPdfViewerOpen(true);
+      // For PDFs, we can preview inline
     } else {
       // For non-PDF documents, just download them
       window.open(`/api/documents/${document.id}/download`, '_blank');
@@ -269,11 +270,100 @@ export default function DocumentList({ dealId }: DocumentListProps) {
 
       {documents && documents.length > 0 ? (
         <div>
-          {/* Display latest pitch deck document at the top if it exists */}
-          {documents.some(doc => doc.documentType === 'pitch_deck') && (
-            <div className="mb-8">
-              {/* Get the latest pitch deck document */}
-              {(() => {
+          {/* Document list - compact view */}
+          <div>
+            <h3 className="text-sm font-medium mb-2">All Documents</h3>
+            <div className="grid gap-2 grid-cols-1">
+              {documents.map((document) => (
+                <div 
+                  key={document.id} 
+                  className="flex justify-between items-center p-2 bg-neutral-50 rounded border cursor-pointer"
+                  onClick={() => handleViewDocument(document)}
+                >
+                  <div className="flex items-center flex-1 min-w-0">
+                    <div className="mr-2 flex-shrink-0 flex items-center justify-center bg-neutral-100 p-1.5 rounded">
+                      {getDocumentTypeIcon(document.documentType, 'h-4 w-4')}
+                    </div>
+                    <div className="truncate">
+                      <p className="text-xs font-medium truncate">{document.fileName}</p>
+                      <p className="text-xs text-neutral-500 truncate">
+                        {getDocumentTypeLabel(document.documentType)} • {formatBytes(document.fileSize)}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex space-x-1 ml-2">
+                    <Button variant="ghost" size="sm" asChild className="h-6 w-6 p-0">
+                      <a 
+                        href={`/api/documents/${document.id}/download`} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Download className="h-3.5 w-3.5" />
+                      </a>
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-6 w-6 p-0"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Trash2 className="h-3.5 w-3.5 text-red-500" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This will permanently delete this document and cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => deleteMutation.mutate(document.id)}
+                          >
+                            {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          {/* Display selected document or default to pitch deck */}
+          <div className="mt-8">
+            {selectedDocument ? (
+              <div className="space-y-1">
+                <div className="flex justify-between items-center h-8 px-1">
+                  <div className="text-xs text-neutral-500 truncate flex-1">
+                    {selectedDocument.fileName}
+                  </div>
+                  <Button variant="ghost" size="sm" asChild className="h-6 w-6 p-0">
+                    <a href={`/api/documents/${selectedDocument.id}/download`} target="_blank" rel="noopener noreferrer">
+                      <Download className="h-3.5 w-3.5" />
+                    </a>
+                  </Button>
+                </div>
+                
+                <Card className="p-0 w-full overflow-hidden">
+                  <div className="overflow-hidden h-[650px] bg-neutral-50">
+                    <iframe 
+                      src={`/api/documents/${selectedDocument.id}/download`} 
+                      className="w-full h-full border-0" 
+                      title={selectedDocument.fileName}
+                    />
+                  </div>
+                </Card>
+              </div>
+            ) : (
+              // Default to showing pitch deck if no document is selected
+              (() => {
                 const pitchDecks = documents.filter(doc => doc.documentType === 'pitch_deck');
                 if (pitchDecks.length > 0) {
                   // Sort by date and get the most recent pitch deck
@@ -305,69 +395,16 @@ export default function DocumentList({ dealId }: DocumentListProps) {
                     </div>
                   );
                 }
-                return null;
-              })()}
-            </div>
-          )}
-          
-          {/* Document list - compact view */}
-          <div className="mt-8">
-            <h3 className="text-sm font-medium mb-2">All Documents</h3>
-            <div className="grid gap-2 grid-cols-1">
-              {documents.map((document) => (
-                <div key={document.id} className="flex justify-between items-center p-2 bg-neutral-50 rounded border">
-                  <div className="flex items-center flex-1 min-w-0">
-                    <div className="mr-2 flex-shrink-0 flex items-center justify-center bg-neutral-100 p-1.5 rounded">
-                      {getDocumentTypeIcon(document.documentType, 'h-4 w-4')}
-                    </div>
-                    <div className="truncate">
-                      <p className="text-xs font-medium truncate">{document.fileName}</p>
-                      <p className="text-xs text-neutral-500 truncate">
-                        {getDocumentTypeLabel(document.documentType)} • {formatBytes(document.fileSize)}
-                      </p>
+                return (
+                  <div className="flex items-center justify-center h-[300px] bg-neutral-50 rounded-lg border">
+                    <div className="text-center">
+                      <FileText className="h-12 w-12 mx-auto mb-3 text-neutral-300" />
+                      <p className="text-sm text-neutral-500">Select a document to preview</p>
                     </div>
                   </div>
-                  <div className="flex space-x-1 ml-2">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => handleViewDocument(document)}
-                      className="h-6 w-6 p-0"
-                    >
-                      <Eye className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button variant="ghost" size="sm" asChild className="h-6 w-6 p-0">
-                      <a href={`/api/documents/${document.id}/download`} target="_blank" rel="noopener noreferrer">
-                        <Download className="h-3.5 w-3.5" />
-                      </a>
-                    </Button>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                          <Trash2 className="h-3.5 w-3.5 text-red-500" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            This will permanently delete this document and cannot be undone.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => deleteMutation.mutate(document.id)}
-                          >
-                            {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </div>
-                </div>
-              ))}
-            </div>
+                );
+              })()
+            )}
           </div>
         </div>
       ) : (
@@ -384,7 +421,7 @@ export default function DocumentList({ dealId }: DocumentListProps) {
         </div>
       )}
       
-      {/* PDF Viewer */}
+      {/* Modal PDF Viewer (for detailed view) */}
       {selectedDocument && (
         <EnhancedPDFViewer
           isOpen={isPdfViewerOpen}
