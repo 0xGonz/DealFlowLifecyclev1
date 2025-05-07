@@ -10,7 +10,7 @@ import {
   CardDescription 
 } from "@/components/ui/card";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+
 import { 
   Table, 
   TableHeader, 
@@ -39,6 +39,14 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 // Using HTML label directly instead of Label component to avoid FormContext issues
 // import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -53,7 +61,10 @@ import {
   Trash2, 
   CreditCard,
   FileText,
-  Calendar
+  Calendar,
+  AlertCircle,
+  Eye,
+  CheckCircle
 } from "lucide-react";
 import { format } from "date-fns";
 import { formatCurrency } from "@/lib/utils";
@@ -898,7 +909,15 @@ export default function FundDetail() {
                           return (
                             <TableRow key={allocation.id}>
                               <TableCell className="font-medium">
-                                {deal?.name || "Unknown Deal"}
+                                <Button 
+                                  variant="link" 
+                                  className="p-0 h-auto font-medium text-primary hover:text-primary-dark"
+                                  asChild
+                                >
+                                  <a href={`/deals/${allocation.dealId}`}>
+                                    {deal?.name || "Unknown Deal"}
+                                  </a>
+                                </Button>
                               </TableCell>
                               <TableCell>
                                 {allocation.securityType || "N/A"}
@@ -956,12 +975,38 @@ export default function FundDetail() {
                                       <span className="sr-only">View Deal</span>
                                     </a>
                                   </Button>
-                                  <Button variant="ghost" size="icon">
-                                    <a href={`/capital-calls/allocation/${allocation.id}`}>
-                                      <CreditCard className="h-4 w-4" />
-                                      <span className="sr-only">Capital Calls</span>
-                                    </a>
-                                  </Button>
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button variant="ghost" size="icon">
+                                        <CreditCard className="h-4 w-4" />
+                                        <span className="sr-only">Capital Calls</span>
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                      <DropdownMenuLabel>Capital Calls</DropdownMenuLabel>
+                                      <DropdownMenuSeparator />
+                                      <DropdownMenuItem asChild>
+                                        <a href={`/capital-calls/allocation/${allocation.id}`} className="cursor-pointer flex items-center">
+                                          <Eye className="h-4 w-4 mr-2" />
+                                          View Capital Calls
+                                        </a>
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem asChild>
+                                        <a href={`/deals/${allocation.dealId}?tab=capitalcalls&createFor=${allocation.id}`} className="cursor-pointer flex items-center">
+                                          <Plus className="h-4 w-4 mr-2" />
+                                          Create Capital Call
+                                        </a>
+                                      </DropdownMenuItem>
+                                      <DropdownMenuSeparator />
+                                      <DropdownMenuItem 
+                                        disabled={allocation.status === 'funded'}
+                                        className={allocation.status === 'funded' ? "text-gray-400" : "text-green-600"}
+                                      >
+                                        <CheckCircle className="h-4 w-4 mr-2" />
+                                        {allocation.status === 'funded' ? 'Already Funded' : 'Mark as Funded'}
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
                                   <Button 
                                     variant="ghost" 
                                     size="icon" 
