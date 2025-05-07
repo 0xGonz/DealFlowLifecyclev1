@@ -15,9 +15,9 @@ import { useToast } from "@/hooks/use-toast";
 import { Download, ZoomIn, ZoomOut, RotateCw, File, Printer, ChevronLeft, ChevronRight } from 'lucide-react';
 
 // Import react-pdf - making it a dynamic import to avoid issues with SSR
-import { Document as PDFDocument, Page as PDFPage, pdfjs } from 'react-pdf';
-// Set the worker source URL to the official CDN version to ensure it loads properly
-pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.5.141/pdf.worker.min.js`;
+import { Document as PDFDocument, Page as PDFPage } from 'react-pdf';
+// Import centralized PDF configuration
+import '@/lib/pdf-config';
 
 interface EnhancedPDFViewerProps {
   isOpen: boolean;

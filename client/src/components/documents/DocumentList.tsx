@@ -11,9 +11,9 @@ import { formatBytes } from '@/lib/utils/format';
 import EnhancedPDFViewer from './EnhancedPDFViewer';
 import EmbeddedPDFViewer from './EmbeddedPDFViewer';
 // Import react-pdf components
-import { Document as PDFDocument, Page as PDFPage, pdfjs } from 'react-pdf';
-// Set the worker source URL to the official CDN version to ensure it loads properly
-pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.5.141/pdf.worker.min.js`;
+import { Document as PDFDocument, Page as PDFPage } from 'react-pdf';
+// Import centralized PDF configuration
+import '@/lib/pdf-config';
 import {
   AlertDialog,
   AlertDialogAction,
