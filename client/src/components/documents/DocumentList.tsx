@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient, apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -83,6 +83,33 @@ export default function DocumentList({ dealId }: DocumentListProps) {
       setUploadingFile(e.target.files[0]);
     }
   };
+  
+  // Drag and drop event handlers
+  const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.currentTarget.classList.add('bg-neutral-50', 'border-blue-300');
+  }, []);
+  
+  const handleDragLeave = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.currentTarget.classList.remove('bg-neutral-50', 'border-blue-300');
+  }, []);
+  
+  const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.currentTarget.classList.remove('bg-neutral-50', 'border-blue-300');
+    
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      // Only take the first file if multiple files are dropped
+      setUploadingFile(e.dataTransfer.files[0]);
+      
+      // Log for debugging
+      console.log('File dropped:', e.dataTransfer.files[0].name);
+    }
+  }, []);
 
   const handleUpload = async () => {
     if (!uploadingFile) return;
@@ -156,7 +183,8 @@ export default function DocumentList({ dealId }: DocumentListProps) {
     setSelectedDocument(document);
     
     if (document.fileType === 'application/pdf' || document.fileName.toLowerCase().endsWith('.pdf')) {
-      // For PDFs, we can preview inline
+      // For PDFs, we can preview inline using our enhanced viewer
+      setIsPdfViewerOpen(true);
     } else {
       // For non-PDF documents, just download them
       window.open(`/api/documents/${document.id}/download`, '_blank');
@@ -235,8 +263,12 @@ export default function DocumentList({ dealId }: DocumentListProps) {
                       </Button>
                     </div>
                   ) : (
-                    <div className="flex justify-center p-6 border border-dashed rounded-md cursor-pointer"
-                         onClick={() => fileInputRef.current?.click()}
+                    <div 
+                      className="flex justify-center p-6 border border-dashed rounded-md cursor-pointer transition-colors duration-200"
+                      onClick={() => fileInputRef.current?.click()}
+                      onDragOver={handleDragOver}
+                      onDragLeave={handleDragLeave}
+                      onDrop={handleDrop}
                     >
                       <div className="text-center">
                         <FileUp className="h-10 w-10 text-neutral-400 mx-auto mb-2" />
