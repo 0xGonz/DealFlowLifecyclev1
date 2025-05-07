@@ -308,6 +308,19 @@ export class DatabaseStorage implements IStorage {
     return updatedMemo || undefined;
   }
   
+  async deleteMiniMemo(id: number): Promise<boolean> {
+    if (!db) {
+      throw new Error('Database not initialized');
+    }
+    try {
+      await db.delete(miniMemos).where(eq(miniMemos.id, id));
+      return true;
+    } catch (error) {
+      console.error('Error deleting mini memo:', error);
+      return false;
+    }
+  }
+  
   // Documents
   async createDocument(document: InsertDocument): Promise<Document> {
     const [newDocument] = await db.insert(documents).values(document).returning();

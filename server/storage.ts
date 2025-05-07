@@ -443,6 +443,28 @@ export class MemStorage implements IStorage {
     return updatedMemo;
   }
   
+  async deleteMiniMemo(id: number): Promise<boolean> {
+    const exists = this.miniMemos.has(id);
+    if (exists) {
+      const memo = this.miniMemos.get(id);
+      this.miniMemos.delete(id);
+      
+      // Create timeline event for the deletion
+      if (memo) {
+        await this.createTimelineEvent({
+          dealId: memo.dealId,
+          eventType: 'memo_deleted',
+          content: `Mini-Memo deleted by user ${memo.userId}`,
+          createdBy: memo.userId,
+          metadata: { memoId: id }
+        });
+      }
+      
+      return true;
+    }
+    return false;
+  }
+  
   // Document operations
   async createDocument(document: InsertDocument): Promise<Document> {
     const id = this.documentIdCounter++;

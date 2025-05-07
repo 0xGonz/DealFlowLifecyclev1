@@ -800,6 +800,100 @@ router.post('/:dealId/memos', async (req: Request, res: Response) => {
   }
 });
 
+// Update a mini memo - only allowed for the original creator
+router.patch('/:dealId/memos/:memoId', async (req: Request, res: Response) => {
+  try {
+    const dealId = Number(req.params.dealId);
+    const memoId = Number(req.params.memoId);
+    const user = (req as any).user;
+    
+    // User must be authenticated
+    if (!user) {
+      return res.status(401).json({ message: 'Authentication required to update memos' });
+    }
+    
+    const userId = user.id;
+    
+    const storage = getStorage();
+    // Make sure memo exists
+    const memo = await storage.getMiniMemo(memoId);
+    if (!memo) {
+      return res.status(404).json({ message: 'Memo not found' });
+    }
+    
+    // Security check: Only the original creator can update the memo
+    if (memo.userId !== userId) {
+      return res.status(403).json({ 
+        message: 'You are not authorized to edit this memo. Only the creator can modify it.' 
+      });
+    }
+    
+    // Make sure dealId in route matches memo's dealId
+    if (memo.dealId !== dealId) {
+      return res.status(400).json({ message: 'Deal ID mismatch' });
+    }
+    
+    const memoUpdate = {
+      ...req.body,
+      updatedAt: new Date()
+    };
+    
+    const updatedMemo = await storage.updateMiniMemo(memoId, memoUpdate);
+    res.json(updatedMemo);
+  } catch (error) {
+    console.error('Error updating mini memo:', error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: 'Invalid memo data', errors: error.errors });
+    }
+    res.status(500).json({ message: 'Failed to update mini memo' });
+  }
+});
+
+// Delete a mini memo - only allowed for the original creator
+router.delete('/:dealId/memos/:memoId', async (req: Request, res: Response) => {
+  try {
+    const dealId = Number(req.params.dealId);
+    const memoId = Number(req.params.memoId);
+    const user = (req as any).user;
+    
+    // User must be authenticated
+    if (!user) {
+      return res.status(401).json({ message: 'Authentication required to delete memos' });
+    }
+    
+    const userId = user.id;
+    
+    const storage = getStorage();
+    // Make sure memo exists
+    const memo = await storage.getMiniMemo(memoId);
+    if (!memo) {
+      return res.status(404).json({ message: 'Memo not found' });
+    }
+    
+    // Security check: Only the original creator can delete the memo
+    if (memo.userId !== userId) {
+      return res.status(403).json({ 
+        message: 'You are not authorized to delete this memo. Only the creator can delete it.' 
+      });
+    }
+    
+    // Make sure dealId in route matches memo's dealId
+    if (memo.dealId !== dealId) {
+      return res.status(400).json({ message: 'Deal ID mismatch' });
+    }
+    
+    const success = await storage.deleteMiniMemo(memoId);
+    if (success) {
+      res.status(204).send();
+    } else {
+      res.status(500).json({ message: 'Failed to delete mini memo' });
+    }
+  } catch (error) {
+    console.error('Error deleting mini memo:', error);
+    res.status(500).json({ message: 'Failed to delete mini memo' });
+  }
+});
+
 // Get comments for a memo
 router.get('/:dealId/memos/:memoId/comments', async (req: Request, res: Response) => {
   try {
