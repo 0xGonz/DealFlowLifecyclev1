@@ -920,23 +920,25 @@ export default function FundDetail() {
                       </Button>
                     </div>
                   ) : (
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Investment</TableHead>
-                          <TableHead>Sector</TableHead>
-                          <TableHead>Date</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead className="text-right">Weight</TableHead>
-                          <TableHead className="text-right">Committed</TableHead>
-                          <TableHead className="text-right">Distributions</TableHead>
-                          <TableHead className="text-right">Value</TableHead>
-                          <TableHead className="text-right">MOIC</TableHead>
-                          <TableHead className="text-right">IRR</TableHead>
-                          <TableHead>Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
+                    <div className="rounded-md border bg-white w-full overflow-hidden">
+                      <div className="overflow-x-auto w-full scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+                        <Table>
+                          <TableHeader>
+                            <TableRow className="bg-white border-b">
+                              <TableHead className="font-semibold text-[10px] xs:text-xs sm:text-sm">Investment</TableHead>
+                              <TableHead className="font-semibold text-[10px] xs:text-xs sm:text-sm">Sector</TableHead>
+                              <TableHead className="font-semibold text-[10px] xs:text-xs sm:text-sm">Date</TableHead>
+                              <TableHead className="font-semibold text-[10px] xs:text-xs sm:text-sm">Status</TableHead>
+                              <TableHead className="font-semibold text-[10px] xs:text-xs sm:text-sm text-right">Weight</TableHead>
+                              <TableHead className="font-semibold text-[10px] xs:text-xs sm:text-sm text-right">Committed</TableHead>
+                              <TableHead className="font-semibold text-[10px] xs:text-xs sm:text-sm text-right">Distributions</TableHead>
+                              <TableHead className="font-semibold text-[10px] xs:text-xs sm:text-sm text-right">Value</TableHead>
+                              <TableHead className="font-semibold text-[10px] xs:text-xs sm:text-sm text-right">MOIC</TableHead>
+                              <TableHead className="font-semibold text-[10px] xs:text-xs sm:text-sm text-right">IRR</TableHead>
+                              <TableHead className="font-semibold text-[10px] xs:text-xs sm:text-sm text-center">Actions</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
                         {allocations?.map(allocation => {
                           const deal = deals?.find((d: Deal) => d.id === allocation.dealId);
                           // Calculate totals and metrics
@@ -947,7 +949,7 @@ export default function FundDetail() {
                           }
                           
                           return (
-                            <TableRow key={allocation.id}>
+                            <TableRow key={allocation.id} className="group hover:bg-blue-50 hover:shadow-sm transition-all">
                               <TableCell className="font-medium">
                                 <Button 
                                   variant="link" 
@@ -1071,7 +1073,9 @@ export default function FundDetail() {
                           )
                         })}
                       </TableBody>
-                    </Table>
+                        </Table>
+                      </div>
+                    </div>
                   )}
                 </CardContent>
               </Card>
