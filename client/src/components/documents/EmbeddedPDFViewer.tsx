@@ -11,10 +11,14 @@ interface EmbeddedPDFViewerProps {
 export default function EmbeddedPDFViewer({ documentId, documentName }: EmbeddedPDFViewerProps) {
   // Simplified PDF viewer using iframe
   return (
-    <div className="space-y-1">
-      <div className="flex justify-between items-center h-8 px-1">
-        <div className="text-xs text-neutral-500 truncate flex-1">
-          {documentName}
+    <Card className="w-full overflow-hidden">
+      {/* Small control bar above the document */}
+      <div className="flex justify-between items-center p-2 bg-neutral-50 border-b">
+        <div className="flex items-center">
+          <div className="mr-2 flex-shrink-0 flex items-center justify-center bg-neutral-100 p-1 rounded-lg">
+            <FileText className="h-4 w-4" />
+          </div>
+          <h4 className="text-sm font-medium text-neutral-800 truncate">{documentName}</h4>
         </div>
         <Button variant="ghost" size="sm" asChild className="h-6 w-6 p-0">
           <a href={`/api/documents/${documentId}/download`} target="_blank" rel="noopener noreferrer">
@@ -23,15 +27,14 @@ export default function EmbeddedPDFViewer({ documentId, documentName }: Embedded
         </Button>
       </div>
       
-      <Card className="p-0 w-full overflow-hidden">
-        <div className="overflow-hidden h-[650px] bg-neutral-50">
-          <iframe 
-            src={`/api/documents/${documentId}/download`} 
-            className="w-full h-full border-0" 
-            title={documentName}
-          />
-        </div>
-      </Card>
-    </div>
+      {/* Document display - taller height */}
+      <div className="h-[650px] bg-neutral-50">
+        <iframe 
+          src={`/api/documents/${documentId}/download`} 
+          className="w-full h-full border-0" 
+          title={documentName}
+        />
+      </div>
+    </Card>
   );
 }
