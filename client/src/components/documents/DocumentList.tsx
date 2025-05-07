@@ -352,7 +352,7 @@ export default function DocumentList({ dealId }: DocumentListProps) {
                 </div>
                 
                 <Card className="p-0 w-full overflow-hidden">
-                  <div className="overflow-hidden h-[650px] bg-neutral-50">
+                  <div className="overflow-hidden h-[750px] bg-neutral-50">
                     <iframe 
                       src={`/api/documents/${selectedDocument.id}/download`} 
                       className="w-full h-full border-0" 
@@ -384,7 +384,7 @@ export default function DocumentList({ dealId }: DocumentListProps) {
                       </div>
                       
                       <Card className="p-0 w-full overflow-hidden">
-                        <div className="overflow-hidden h-[650px] bg-neutral-50">
+                        <div className="overflow-hidden h-[750px] bg-neutral-50">
                           <iframe 
                             src={`/api/documents/${latestPitchDeck.id}/download`} 
                             className="w-full h-full border-0" 
