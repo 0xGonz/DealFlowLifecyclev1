@@ -12,6 +12,7 @@ import DocumentList from "@/components/documents/DocumentList";
 import { MiniMemoForm } from "@/components/memos/MiniMemoForm";
 import { MiniMemoDisplay } from "@/components/memos/MiniMemoDisplay";
 import { MemoDetailDialog } from "@/components/memos/MemoDetailDialog";
+import { UserAvatar } from "@/components/common/UserAvatar";
 import { 
   Card, 
   CardHeader, 
@@ -363,15 +364,19 @@ export default function DealDetail() {
               <div className="flex items-center self-end sm:self-start mt-2 sm:mt-0">
                 <div className="flex -space-x-2 mr-2 sm:mr-4">
                   {deal?.assignedUsers ? deal.assignedUsers.map((user: User) => (
-                    <Avatar key={user.id} className="border-2 border-white h-7 w-7 sm:h-8 sm:w-8">
-                      <AvatarFallback style={{ backgroundColor: user.avatarColor }} className="text-xs sm:text-sm">
-                        {user.initials}
-                      </AvatarFallback>
-                    </Avatar>
+                    <div 
+                      key={user.id}
+                      className="border-2 border-white rounded-full overflow-hidden h-7 w-7 sm:h-8 sm:w-8"
+                    >
+                      <UserAvatar 
+                        user={user} 
+                        size="sm"
+                      />
+                    </div>
                   )) : (
-                    <Avatar className="border-2 border-white h-7 w-7 sm:h-8 sm:w-8">
-                      <AvatarFallback className="text-xs sm:text-sm">{DEFAULT_AVATAR_TEXT}</AvatarFallback>
-                    </Avatar>
+                    <div className="border-2 border-white rounded-full overflow-hidden h-7 w-7 sm:h-8 sm:w-8 bg-neutral-300 text-neutral-700 flex items-center justify-center text-xs sm:text-sm">
+                      {DEFAULT_AVATAR_TEXT}
+                    </div>
                   )}
                 </div>
                 {canEdit('deal') && (

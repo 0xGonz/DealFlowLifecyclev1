@@ -18,6 +18,7 @@ import { Deal, User, DealStar as DealStarType } from "@/lib/types";
 import { getDealStageBadgeClass } from "@/lib/utils/format";
 import { enrichDealWithComputedProps } from "@/lib/utils";
 import DealStar from "./DealStar";
+import { UserAvatar } from "@/components/common/UserAvatar";
 
 interface DealCardProps {
   deal: Deal;
@@ -125,27 +126,25 @@ export default function DealCard({ deal: rawDeal, compact = false, onEdit, onAll
                 // Ensure we're dealing with a proper user object
                 if (!user || typeof user !== 'object') return null;
                 
-                const userId = user.id || `unknown-${index}`;
-                const userInitials = user.initials || '??';
-                const avatarColor = user.avatarColor || '#888888';
-                
                 return (
-                  <Avatar 
-                    key={`user-${userId}-${deal.id}`} 
-                    className="w-6 h-6 sm:w-7 sm:h-7 border-2 border-white"
+                  <div 
+                    key={`user-${user.id || `unknown-${index}`}-${deal.id}`}
+                    className="w-6 h-6 sm:w-7 sm:h-7 border-2 border-white rounded-full overflow-hidden"
                   >
-                    <AvatarFallback style={{ backgroundColor: avatarColor }} className="text-[10px] sm:text-xs">
-                      {userInitials}
-                    </AvatarFallback>
-                  </Avatar>
+                    <UserAvatar 
+                      user={user} 
+                      size="xs"
+                    />
+                  </div>
                 );
               })}
               {Array.isArray(assignedUsers) && assignedUsers.length > 3 && (
-                <Avatar key={`more-users-${deal.id}`} className="w-6 h-6 sm:w-7 sm:h-7 border-2 border-white">
-                  <AvatarFallback className="bg-neutral-300 text-neutral-700 text-[10px] sm:text-xs">
-                    +{assignedUsers.length - 3}
-                  </AvatarFallback>
-                </Avatar>
+                <div 
+                  key={`more-users-${deal.id}`} 
+                  className="w-6 h-6 sm:w-7 sm:h-7 border-2 border-white rounded-full overflow-hidden flex items-center justify-center bg-neutral-300 text-neutral-700 text-[10px] sm:text-xs"
+                >
+                  +{assignedUsers.length - 3}
+                </div>
               )}
             </div>
             

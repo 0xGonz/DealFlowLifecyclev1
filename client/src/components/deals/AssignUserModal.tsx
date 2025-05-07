@@ -9,13 +9,13 @@ import {
   DialogTitle
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Search, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { User } from "@/lib/types";
+import { UserAvatar } from "@/components/common/UserAvatar";
 
 interface AssignUserModalProps {
   isOpen: boolean;
@@ -56,7 +56,10 @@ export default function AssignUserModal({ isOpen, onClose, dealId }: AssignUserM
   });
   
   // Fetch current assignments
-  const { data: dealData } = useQuery({
+  const { data: dealData } = useQuery<{
+    id: number;
+    assignedUsers?: Array<{ id: number }>;
+  }>({
     queryKey: [`/api/deals/${dealId}`],
     enabled: isOpen && !!dealId,
   });
@@ -64,7 +67,7 @@ export default function AssignUserModal({ isOpen, onClose, dealId }: AssignUserM
   // Pre-select currently assigned users
   useEffect(() => {
     if (dealData?.assignedUsers) {
-      setSelectedUsers(dealData.assignedUsers.map((user: any) => user.id));
+      setSelectedUsers(dealData.assignedUsers.map(user => user.id));
     }
   }, [dealData]);
   
@@ -196,11 +199,10 @@ export default function AssignUserModal({ isOpen, onClose, dealId }: AssignUserM
                           onCheckedChange={() => toggleUserSelection(user.id)}
                         />
                         <div className="flex items-center space-x-3 flex-1">
-                          <Avatar>
-                            <AvatarFallback style={{ backgroundColor: user.avatarColor }}>
-                              {user.initials}
-                            </AvatarFallback>
-                          </Avatar>
+                          <UserAvatar 
+                            user={user}
+                            size="sm"
+                          />
                           <div>
                             <p className="text-sm font-medium">{user.fullName}</p>
                             <p className="text-xs text-neutral-500">{user.username}</p>
