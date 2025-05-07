@@ -16,8 +16,8 @@ import { Download, ZoomIn, ZoomOut, RotateCw, File, Printer, ChevronLeft, Chevro
 
 // Import react-pdf - making it a dynamic import to avoid issues with SSR
 import { Document as PDFDocument, Page as PDFPage, pdfjs } from 'react-pdf';
-// Set the worker source URL
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
+// Set the worker source URL to our local copy
+pdfjs.GlobalWorkerOptions.workerSrc = `/pdfjs/pdf.worker.min.js`;
 
 interface EnhancedPDFViewerProps {
   isOpen: boolean;

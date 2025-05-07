@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient, apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -53,6 +53,13 @@ export default function DocumentList({ dealId }: DocumentListProps) {
     queryKey: [`/api/documents/deal/${dealId}`],
     enabled: !!dealId,
   });
+  
+  // Set the selected document when documents are loaded and none is selected yet
+  useEffect(() => {
+    if (documents && documents.length > 0 && !selectedDocument) {
+      setSelectedDocument(documents[0]);
+    }
+  }, [documents, selectedDocument]);
 
   // Document uploads use the native fetch API with FormData directly
   // instead of using the query client, since we need to send files
@@ -368,7 +375,7 @@ export default function DocumentList({ dealId }: DocumentListProps) {
             </div>
           </div>
           
-          {/* Display selected document or default to pitch deck */}
+          {/* Display selected document or show "select a document" message */}
           <div className="mt-8">
             {selectedDocument ? (
               <div className="space-y-1">
@@ -394,48 +401,12 @@ export default function DocumentList({ dealId }: DocumentListProps) {
                 </Card>
               </div>
             ) : (
-              // Default to showing pitch deck if no document is selected
-              (() => {
-                const pitchDecks = documents.filter(doc => doc.documentType === 'pitch_deck');
-                if (pitchDecks.length > 0) {
-                  // Sort by date and get the most recent pitch deck
-                  const latestPitchDeck = pitchDecks.sort((a, b) => 
-                    new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()
-                  )[0];
-                  return (
-                    <div className="space-y-1">
-                      <div className="flex justify-between items-center h-8 px-1">
-                        <div className="text-xs text-neutral-500 truncate flex-1">
-                          {latestPitchDeck.fileName}
-                        </div>
-                        <Button variant="ghost" size="sm" asChild className="h-6 w-6 p-0">
-                          <a href={`/api/documents/${latestPitchDeck.id}/download`} target="_blank" rel="noopener noreferrer">
-                            <Download className="h-3.5 w-3.5" />
-                          </a>
-                        </Button>
-                      </div>
-                      
-                      <Card className="p-0 w-full overflow-hidden">
-                        <div className="overflow-hidden h-[750px] bg-neutral-50">
-                          <iframe 
-                            src={`/api/documents/${latestPitchDeck.id}/download`} 
-                            className="w-full h-full border-0" 
-                            title={latestPitchDeck.fileName}
-                          />
-                        </div>
-                      </Card>
-                    </div>
-                  );
-                }
-                return (
-                  <div className="flex items-center justify-center h-[300px] bg-neutral-50 rounded-lg border">
-                    <div className="text-center">
-                      <FileText className="h-12 w-12 mx-auto mb-3 text-neutral-300" />
-                      <p className="text-sm text-neutral-500">Select a document to preview</p>
-                    </div>
-                  </div>
-                );
-              })()
+              <div className="flex items-center justify-center h-[300px] bg-neutral-50 rounded-lg border">
+                <div className="text-center">
+                  <FileText className="h-12 w-12 mx-auto mb-3 text-neutral-300" />
+                  <p className="text-sm text-neutral-500">Select a document to preview</p>
+                </div>
+              </div>
             )}
           </div>
         </div>
