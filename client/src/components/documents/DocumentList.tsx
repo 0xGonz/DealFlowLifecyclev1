@@ -391,7 +391,7 @@ export default function DocumentList({ dealId }: DocumentListProps) {
                 </div>
                 
                 <Card className="p-0 w-full overflow-hidden">
-                  <div className="overflow-hidden h-[750px] bg-neutral-50">
+                  <div className="overflow-hidden h-[900px] bg-neutral-50">
                     <iframe 
                       src={`/api/documents/${selectedDocument.id}/download`} 
                       className="w-full h-full border-0" 
@@ -401,9 +401,9 @@ export default function DocumentList({ dealId }: DocumentListProps) {
                 </Card>
               </div>
             ) : (
-              <div className="flex items-center justify-center h-[300px] bg-neutral-50 rounded-lg border">
+              <div className="flex items-center justify-center h-[900px] bg-neutral-50 rounded-lg border">
                 <div className="text-center">
-                  <FileText className="h-12 w-12 mx-auto mb-3 text-neutral-300" />
+                  <FileText className="h-16 w-16 mx-auto mb-4 text-neutral-300" />
                   <p className="text-sm text-neutral-500">Select a document to preview</p>
                 </div>
               </div>
