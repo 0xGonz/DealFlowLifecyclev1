@@ -76,12 +76,12 @@ export const timelineEvents = pgTable("timeline_events", {
   id: serial("id").primaryKey(),
   dealId: integer("deal_id").notNull(),
   eventType: text("event_type", { 
-    enum: ["note", "stage_change", "document_upload", "memo_added", "star_added", "ai_analysis", "deal_creation", "closing_scheduled"]
+    enum: ["note", "stage_change", "document_upload", "memo_added", "star_added", "ai_analysis", "deal_creation", "closing_scheduled", "capital_call", "capital_call_update"]
   }).notNull(),
   content: text("content"),
   createdBy: integer("created_by").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
-  metadata: jsonb("metadata").$type<{ previousStage?: string[]; newStage?: string[]; assignedUserId?: number[]; unassignedUserId?: number[]; closingEventId?: number[]; closingEventType?: string[]; closingEventStatus?: string[]; [key: string]: any; }>().default({}),
+  metadata: jsonb("metadata").$type<{ previousStage?: string[]; newStage?: string[]; assignedUserId?: number[]; unassignedUserId?: number[]; closingEventId?: number[]; closingEventType?: string[]; closingEventStatus?: string[]; capitalCallId?: number; allocationId?: number; fundId?: number; amount?: number; amountType?: string; newStatus?: string; previousStatus?: string; paidAmount?: number; [key: string]: any; }>().default({}),
 });
 
 export const insertTimelineEventSchema = createInsertSchema(timelineEvents).omit({

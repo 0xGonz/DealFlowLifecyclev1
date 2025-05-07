@@ -12,6 +12,8 @@ import DocumentList from "@/components/documents/DocumentList";
 import { MiniMemoForm } from "@/components/memos/MiniMemoForm";
 import { MiniMemoDisplay } from "@/components/memos/MiniMemoDisplay";
 import { MemoDetailDialog } from "@/components/memos/MemoDetailDialog";
+import { CreateCapitalCallForm } from "@/components/capitalcalls/CreateCapitalCallForm";
+import CapitalCallsList from "@/components/capitalcalls/CapitalCallsList";
 import { UserAvatar } from "@/components/common/UserAvatar";
 import { 
   Card, 
@@ -86,6 +88,7 @@ export default function DealDetail() {
   const [selectedMemo, setSelectedMemo] = useState<MiniMemo | null>(null);
   const [isMemoDetailOpen, setIsMemoDetailOpen] = useState(false);
   const [isAllocateModalOpen, setIsAllocateModalOpen] = useState(false);
+  const [isCapitalCallFormOpen, setIsCapitalCallFormOpen] = useState(false);
   
   // Get the active tab from URL query parameter
   const getActiveTab = () => {
@@ -306,6 +309,19 @@ export default function DealDetail() {
             onClose={() => setIsAllocateModalOpen(false)}
             dealId={Number(dealId)}
             dealName={deal.name}
+          />
+        )}
+        
+        {/* Capital Call Form */}
+        {deal && (
+          <CreateCapitalCallForm
+            isOpen={isCapitalCallFormOpen}
+            onClose={() => setIsCapitalCallFormOpen(false)}
+            dealId={Number(dealId)}
+            onSuccess={() => {
+              // Refresh capital calls data
+              queryClient.invalidateQueries({ queryKey: [`/api/capital-calls/deal/${dealId}`] });
+            }}
           />
         )}
         
@@ -733,27 +749,20 @@ export default function DealDetail() {
                         Schedule and track capital calls associated with this deal.
                       </div>
                       
-                      <Button size="sm" className="ml-auto">
-                        <DollarSign className="h-3.5 w-3.5 mr-1.5" />
-                        Create Capital Call
-                      </Button>
+                      {canCreate('fund') && deal?.stage === DEAL_STAGES.INVESTED && (
+                        <Button 
+                          size="sm" 
+                          className="ml-auto"
+                          onClick={() => setIsCapitalCallFormOpen(true)}
+                        >
+                          <DollarSign className="h-3.5 w-3.5 mr-1.5" />
+                          Create Capital Call
+                        </Button>
+                      )}
                     </div>
                     
                     {/* Display capital calls */}
-                    <div className="border rounded-md">
-                      <div className="bg-muted p-3 rounded-t-md font-medium flex items-center text-sm">
-                        <div className="w-1/5">Status</div>
-                        <div className="w-1/5">Call Date</div>
-                        <div className="w-1/5">Due Date</div>
-                        <div className="w-1/5">Amount</div>
-                        <div className="w-1/5">Actions</div>
-                      </div>
-                      
-                      <div className="text-center py-10 text-muted-foreground">
-                        <DollarSign className="h-10 w-10 mx-auto mb-2 opacity-30" />
-                        <p className="text-sm">No capital calls have been scheduled for this deal yet.</p>
-                      </div>
-                    </div>
+                    <CapitalCallsList dealId={Number(dealId)} />
                   </div>
                 ) : (
                   <div className="text-center py-8 text-neutral-500">
