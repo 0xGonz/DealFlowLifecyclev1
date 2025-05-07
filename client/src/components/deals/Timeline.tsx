@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow, format } from "date-fns";
+import { AVATAR_COLORS } from "@/lib/constants/ui-constants";
 import { 
   CheckCircle, 
   FileEdit,
@@ -635,7 +636,7 @@ export default function Timeline({ dealId }: TimelineProps) {
                 {event.user && (
                   <div className="flex items-center mt-2">
                     <Avatar className="h-6 w-6 mr-2">
-                      <AvatarFallback style={{ backgroundColor: event.user.avatarColor || '#0E4DA4' }}>
+                      <AvatarFallback style={{ backgroundColor: event.user.avatarColor || AVATAR_COLORS.DEFAULT }}>
                         {event.user.initials}
                       </AvatarFallback>
                     </Avatar>

@@ -13,7 +13,7 @@ import {
   Plus,
   CirclePlus
 } from "lucide-react";
-import { ICON_SIZES } from "@/lib/constants/ui-constants";
+import { ICON_SIZES, AVATAR_COLORS } from "@/lib/constants/ui-constants";
 
 interface ActivityItem {
   id: number;
@@ -139,7 +139,7 @@ export default function ActivityFeed() {
                   {activity.user && (
                     <div className="flex items-center mt-2">
                       <Avatar key={`avatar-${activity.id}`} className="h-4 w-4 sm:h-5 sm:w-5 mr-1">
-                        <AvatarFallback style={{ backgroundColor: activity.user.avatarColor, fontSize: '9px' }}>
+                        <AvatarFallback style={{ backgroundColor: activity.user.avatarColor || AVATAR_COLORS.DEFAULT, fontSize: '9px' }}>
                           {activity.user.initials}
                         </AvatarFallback>
                       </Avatar>
