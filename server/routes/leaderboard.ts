@@ -53,7 +53,12 @@ function calculateWeightedScore(params: {
 router.get('/', async (req: Request, res: Response) => {
   try {
     const storage = StorageFactory.getStorage();
-    const deals = await storage.getDeals();
+    const allDeals = await storage.getDeals();
+    
+    // Filter out deals in the "invested" stage as they're no longer part of the evaluation process
+    const deals = allDeals.filter(deal => deal.stage !== 'invested');
+    
+    console.log(`Leaderboard: Found ${allDeals.length} total deals, ${deals.length} in active evaluation`);
     
     // For each deal, get stars and memos to calculate rankings
     const leaderboardItems = await Promise.all(deals.map(async (deal) => {
