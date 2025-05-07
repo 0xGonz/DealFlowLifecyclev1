@@ -281,14 +281,10 @@ export default function DocumentList({ dealId }: DocumentListProps) {
                     new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()
                   )[0];
                   return (
-                    <Card className="w-full">
-                      <CardContent className="p-6">
-                        <EmbeddedPDFViewer 
-                          documentId={latestPitchDeck.id} 
-                          documentName={latestPitchDeck.fileName} 
-                        />
-                      </CardContent>
-                    </Card>
+                    <EmbeddedPDFViewer 
+                      documentId={latestPitchDeck.id} 
+                      documentName={latestPitchDeck.fileName} 
+                    />
                   );
                 }
                 return null;
@@ -299,37 +295,21 @@ export default function DocumentList({ dealId }: DocumentListProps) {
           {/* Document list */}
           <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
             {documents.map((document) => (
-              <Card className="flex flex-col" key={document.id}>
-                <div className="p-3 bg-neutral-50 border-b flex justify-between items-center">
-                  <div className="flex items-center">
-                    <div className="mr-3 flex-shrink-0 flex items-center justify-center bg-neutral-100 p-2 rounded-lg">
-                      {getDocumentTypeIcon(document.documentType, 'h-6 w-6')}
-                    </div>
-                    <div className="flex-grow overflow-hidden">
-                      <h4 className="font-medium text-neutral-800 truncate">{document.fileName}</h4>
-                      <p className="text-xs text-neutral-500">
-                        {getDocumentTypeLabel(document.documentType)} • {formatBytes(document.fileSize)}
-                      </p>
-                    </div>
+              <div key={document.id} className="space-y-1">
+                <div className="flex justify-between items-center h-8 px-1">
+                  <div className="text-xs text-neutral-500 truncate flex-1">
+                    {document.fileName} <span className="hidden sm:inline">• {formatBytes(document.fileSize)}</span>
                   </div>
                   <div className="flex space-x-1">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => handleViewDocument(document)}
-                      className="h-8 px-2"
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="sm" asChild className="h-8 px-2">
+                    <Button variant="ghost" size="sm" asChild className="h-6 w-6 p-0">
                       <a href={`/api/documents/${document.id}/download`} target="_blank" rel="noopener noreferrer">
-                        <Download className="h-4 w-4" />
+                        <Download className="h-3.5 w-3.5" />
                       </a>
                     </Button>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-8 px-2">
-                          <Trash2 className="h-4 w-4 text-red-500" />
+                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                          <Trash2 className="h-3.5 w-3.5 text-red-500" />
                         </Button>
                       </AlertDialogTrigger>
                       <AlertDialogContent>
@@ -351,12 +331,9 @@ export default function DocumentList({ dealId }: DocumentListProps) {
                     </AlertDialog>
                   </div>
                 </div>
-                <div className="p-4">
-                  {document.description && (
-                    <p className="text-sm text-neutral-600 mb-3 line-clamp-2">{document.description}</p>
-                  )}
+                <Card className="p-0 overflow-hidden">
                   {document.fileType === 'application/pdf' || document.fileName.toLowerCase().endsWith('.pdf') ? (
-                    <div className="border rounded-lg overflow-hidden h-[250px] bg-neutral-50 relative">
+                    <div className="overflow-hidden h-[300px] bg-neutral-50">
                       <iframe 
                         src={`/api/documents/${document.id}/download`} 
                         className="w-full h-full border-0" 
@@ -364,7 +341,7 @@ export default function DocumentList({ dealId }: DocumentListProps) {
                       />
                     </div>
                   ) : (
-                    <div className="flex items-center justify-center h-[250px] bg-neutral-50 rounded-lg border">
+                    <div className="flex items-center justify-center h-[300px] bg-neutral-50">
                       <div className="text-center">
                         <FileText className="h-12 w-12 mx-auto mb-3 text-neutral-300" />
                         <p className="text-sm text-neutral-500">Preview not available</p>
@@ -377,11 +354,8 @@ export default function DocumentList({ dealId }: DocumentListProps) {
                       </div>
                     </div>
                   )}
-                  <p className="text-xs text-neutral-400 mt-3">
-                    Uploaded {formatDistanceToNow(new Date(document.uploadedAt), { addSuffix: true })}
-                  </p>
-                </div>
-              </Card>
+                </Card>
+              </div>
             ))}
           </div>
         </div>

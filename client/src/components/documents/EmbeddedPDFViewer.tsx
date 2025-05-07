@@ -11,29 +11,27 @@ interface EmbeddedPDFViewerProps {
 export default function EmbeddedPDFViewer({ documentId, documentName }: EmbeddedPDFViewerProps) {
   // Simplified PDF viewer using iframe
   return (
-    <Card className="w-full">
-      <div className="p-3 bg-neutral-50 border-b flex justify-between items-center">
-        <div className="flex-1">
-          <h3 className="text-base font-medium truncate">{documentName}</h3>
+    <div className="space-y-1">
+      <div className="flex justify-between items-center h-8 px-1">
+        <div className="text-xs text-neutral-500 truncate flex-1">
+          {documentName}
         </div>
-        <div className="flex space-x-1">
-          <Button variant="ghost" size="sm" asChild className="h-8 px-2">
-            <a href={`/api/documents/${documentId}/download`} target="_blank" rel="noopener noreferrer">
-              <Download className="h-4 w-4" />
-            </a>
-          </Button>
-        </div>
+        <Button variant="ghost" size="sm" asChild className="h-6 w-6 p-0">
+          <a href={`/api/documents/${documentId}/download`} target="_blank" rel="noopener noreferrer">
+            <Download className="h-3.5 w-3.5" />
+          </a>
+        </Button>
       </div>
       
-      <CardContent className="p-4">
-        <div className="border rounded-lg overflow-hidden h-[650px] bg-neutral-50 relative">
+      <Card className="p-0 w-full overflow-hidden">
+        <div className="overflow-hidden h-[650px] bg-neutral-50">
           <iframe 
             src={`/api/documents/${documentId}/download`} 
             className="w-full h-full border-0" 
             title={documentName}
           />
         </div>
-      </CardContent>
-    </Card>
+      </Card>
+    </div>
   );
 }
