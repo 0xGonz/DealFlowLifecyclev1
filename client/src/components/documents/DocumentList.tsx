@@ -174,7 +174,7 @@ export default function DocumentList({ dealId }: DocumentListProps) {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h3 className="text-lg font-medium">All Documents</h3>
+        <h3 className="text-lg font-medium">Documents</h3>
         <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
           <DialogTrigger asChild>
             <Button>
@@ -268,7 +268,7 @@ export default function DocumentList({ dealId }: DocumentListProps) {
       </div>
 
       {documents && documents.length > 0 ? (
-        <div className="space-y-8">
+        <div>
           {/* Display latest pitch deck document at the top if it exists */}
           {documents.some(doc => doc.documentType === 'pitch_deck') && (
             <div className="mb-8">
@@ -281,10 +281,28 @@ export default function DocumentList({ dealId }: DocumentListProps) {
                     new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()
                   )[0];
                   return (
-                    <EmbeddedPDFViewer 
-                      documentId={latestPitchDeck.id} 
-                      documentName={latestPitchDeck.fileName} 
-                    />
+                    <div className="space-y-1">
+                      <div className="flex justify-between items-center h-8 px-1">
+                        <div className="text-xs text-neutral-500 truncate flex-1">
+                          {latestPitchDeck.fileName}
+                        </div>
+                        <Button variant="ghost" size="sm" asChild className="h-6 w-6 p-0">
+                          <a href={`/api/documents/${latestPitchDeck.id}/download`} target="_blank" rel="noopener noreferrer">
+                            <Download className="h-3.5 w-3.5" />
+                          </a>
+                        </Button>
+                      </div>
+                      
+                      <Card className="p-0 w-full overflow-hidden">
+                        <div className="overflow-hidden h-[650px] bg-neutral-50">
+                          <iframe 
+                            src={`/api/documents/${latestPitchDeck.id}/download`} 
+                            className="w-full h-full border-0" 
+                            title={latestPitchDeck.fileName}
+                          />
+                        </div>
+                      </Card>
+                    </div>
                   );
                 }
                 return null;
@@ -292,15 +310,32 @@ export default function DocumentList({ dealId }: DocumentListProps) {
             </div>
           )}
           
-          {/* Document list */}
-          <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
-            {documents.map((document) => (
-              <div key={document.id} className="space-y-1">
-                <div className="flex justify-between items-center h-8 px-1">
-                  <div className="text-xs text-neutral-500 truncate flex-1">
-                    {document.fileName} <span className="hidden sm:inline">• {formatBytes(document.fileSize)}</span>
+          {/* Document list - compact view */}
+          <div className="mt-8">
+            <h3 className="text-sm font-medium mb-2">All Documents</h3>
+            <div className="grid gap-2 grid-cols-1">
+              {documents.map((document) => (
+                <div key={document.id} className="flex justify-between items-center p-2 bg-neutral-50 rounded border">
+                  <div className="flex items-center flex-1 min-w-0">
+                    <div className="mr-2 flex-shrink-0 flex items-center justify-center bg-neutral-100 p-1.5 rounded">
+                      {getDocumentTypeIcon(document.documentType, 'h-4 w-4')}
+                    </div>
+                    <div className="truncate">
+                      <p className="text-xs font-medium truncate">{document.fileName}</p>
+                      <p className="text-xs text-neutral-500 truncate">
+                        {getDocumentTypeLabel(document.documentType)} • {formatBytes(document.fileSize)}
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex space-x-1">
+                  <div className="flex space-x-1 ml-2">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => handleViewDocument(document)}
+                      className="h-6 w-6 p-0"
+                    >
+                      <Eye className="h-3.5 w-3.5" />
+                    </Button>
                     <Button variant="ghost" size="sm" asChild className="h-6 w-6 p-0">
                       <a href={`/api/documents/${document.id}/download`} target="_blank" rel="noopener noreferrer">
                         <Download className="h-3.5 w-3.5" />
@@ -331,32 +366,8 @@ export default function DocumentList({ dealId }: DocumentListProps) {
                     </AlertDialog>
                   </div>
                 </div>
-                <Card className="p-0 overflow-hidden">
-                  {document.fileType === 'application/pdf' || document.fileName.toLowerCase().endsWith('.pdf') ? (
-                    <div className="overflow-hidden h-[300px] bg-neutral-50">
-                      <iframe 
-                        src={`/api/documents/${document.id}/download`} 
-                        className="w-full h-full border-0" 
-                        title={document.fileName}
-                      />
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-center h-[300px] bg-neutral-50">
-                      <div className="text-center">
-                        <FileText className="h-12 w-12 mx-auto mb-3 text-neutral-300" />
-                        <p className="text-sm text-neutral-500">Preview not available</p>
-                        <Button variant="outline" size="sm" className="mt-3" asChild>
-                          <a href={`/api/documents/${document.id}/download`} target="_blank" rel="noopener noreferrer">
-                            <Download className="h-4 w-4 mr-1" />
-                            Download to view
-                          </a>
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </Card>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       ) : (
