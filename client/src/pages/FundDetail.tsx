@@ -949,17 +949,13 @@ export default function FundDetail() {
                           }
                           
                           return (
-                            <TableRow key={allocation.id} className="group hover:bg-blue-50 hover:shadow-sm transition-all">
+                            <TableRow 
+                              key={allocation.id} 
+                              className="group hover:bg-blue-50 hover:shadow-sm transition-all cursor-pointer"
+                              onClick={() => window.location.href = `/deals/${allocation.dealId}`}
+                            >
                               <TableCell className="font-medium">
-                                <Button 
-                                  variant="link" 
-                                  className="p-0 h-auto font-medium text-primary hover:text-primary-dark"
-                                  asChild
-                                >
-                                  <a href={`/deals/${allocation.dealId}`}>
-                                    {deal?.name || "Unknown Deal"}
-                                  </a>
-                                </Button>
+                                {deal?.name || "Unknown Deal"}
                               </TableCell>
                               <TableCell>
                                 {allocation.securityType || "N/A"}
@@ -1000,25 +996,22 @@ export default function FundDetail() {
                               <TableCell className="text-right">
                                 {allocation.irr ? `${allocation.irr.toFixed(2)}%` : "0.00%"}
                               </TableCell>
-                              <TableCell>
-                                <div className="flex justify-end gap-2">
+                              <TableCell className="text-center">
+                                <div className="flex justify-center gap-1">
                                   <Button 
                                     variant="ghost" 
                                     size="icon" 
-                                    onClick={() => handleEditAllocation(allocation)}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleEditAllocation(allocation);
+                                    }}
                                     className="text-blue-600 hover:text-blue-800"
                                   >
                                     <FilePenLine className="h-4 w-4" />
                                     <span className="sr-only">Edit Allocation</span>
                                   </Button>
-                                  <Button variant="ghost" size="icon">
-                                    <a href={`/deals/${allocation.dealId}`}>
-                                      <FileText className="h-4 w-4" />
-                                      <span className="sr-only">View Deal</span>
-                                    </a>
-                                  </Button>
                                   <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
+                                    <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                                       <Button variant="ghost" size="icon">
                                         <CreditCard className="h-4 w-4" />
                                         <span className="sr-only">Capital Calls</span>
@@ -1028,13 +1021,13 @@ export default function FundDetail() {
                                       <DropdownMenuLabel>Capital Calls</DropdownMenuLabel>
                                       <DropdownMenuSeparator />
                                       <DropdownMenuItem asChild>
-                                        <a href={`/capital-calls/allocation/${allocation.id}`} className="cursor-pointer flex items-center">
+                                        <a href={`/capital-calls/allocation/${allocation.id}`} className="cursor-pointer flex items-center" onClick={(e) => e.stopPropagation()}>
                                           <Eye className="h-4 w-4 mr-2" />
                                           View Capital Calls
                                         </a>
                                       </DropdownMenuItem>
                                       <DropdownMenuItem asChild>
-                                        <a href={`/deals/${allocation.dealId}?tab=capitalcalls&createFor=${allocation.id}`} className="cursor-pointer flex items-center">
+                                        <a href={`/deals/${allocation.dealId}?tab=capitalcalls&createFor=${allocation.id}`} className="cursor-pointer flex items-center" onClick={(e) => e.stopPropagation()}>
                                           <Plus className="h-4 w-4 mr-2" />
                                           Create Capital Call
                                         </a>
@@ -1043,7 +1036,10 @@ export default function FundDetail() {
                                       <DropdownMenuItem 
                                         disabled={allocation.status === 'funded'}
                                         className={allocation.status === 'funded' ? "text-gray-400" : "text-green-600"}
-                                        onClick={() => allocation.status !== 'funded' && handleMarkAsFunded(allocation)}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          allocation.status !== 'funded' && handleMarkAsFunded(allocation);
+                                        }}
                                       >
                                         <CheckCircle className="h-4 w-4 mr-2" />
                                         {allocation.status === 'funded' ? 'Already Funded' : 'Mark as Funded'}
@@ -1051,7 +1047,10 @@ export default function FundDetail() {
                                       <DropdownMenuItem 
                                         disabled={allocation.status === 'unfunded'}
                                         className={allocation.status === 'unfunded' ? "text-gray-400" : "text-amber-600"}
-                                        onClick={() => allocation.status !== 'unfunded' && handleMarkAsUnfunded(allocation)}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          allocation.status !== 'unfunded' && handleMarkAsUnfunded(allocation);
+                                        }}
                                       >
                                         <AlertCircle className="h-4 w-4 mr-2" />
                                         {allocation.status === 'unfunded' ? 'Already Unfunded' : 'Mark as Unfunded'}
@@ -1061,7 +1060,10 @@ export default function FundDetail() {
                                   <Button 
                                     variant="ghost" 
                                     size="icon" 
-                                    onClick={() => handleOpenDeleteDialog(allocation)}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleOpenDeleteDialog(allocation);
+                                    }}
                                     className="text-red-600 hover:text-red-800 hover:bg-red-50"
                                   >
                                     <Trash2 className="h-4 w-4" />
