@@ -1,26 +1,26 @@
 /**
- * Available sectors for deals
+ * Available sectors for deals - alphabetically sorted
  */
 export const DEAL_SECTORS = [
-  "Private Credit",
-  "Buyout",
-  "Crypto",
-  "GP Stakes",
-  "Energy",
-  "Venture",
-  "Technology",
-  "SaaS",
-  "Fintech",
   "AI/ML",
-  "Cybersecurity",
-  "Healthcare", 
   "Biotech",
-  "Renewable Energy",
+  "Buyout",
   "Clean Tech",
   "Consumer Goods",
+  "Crypto",
+  "Cybersecurity",
   "E-commerce",
-  "Retail",
+  "Energy",
+  "Fintech",
+  "GP Stakes",
+  "Healthcare", 
+  "Private Credit",
   "Real Estate",
+  "Renewable Energy",
+  "Retail",
+  "SaaS",
+  "Technology",
+  "Venture",
   "Other"
 ] as const;
 

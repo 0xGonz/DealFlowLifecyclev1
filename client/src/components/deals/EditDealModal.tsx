@@ -212,7 +212,20 @@ export default function EditDealModal({ isOpen, onClose, dealId }: EditDealModal
                             <SelectValue placeholder="Select sector" />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent>
+                        <SelectContent className="max-h-[300px]">
+                          <div className="px-2 py-1.5">
+                            <Input
+                              placeholder="Search sectors..."
+                              className="mb-2 mt-1"
+                              onChange={(e) => {
+                                const searchField = e.currentTarget.parentElement?.parentElement?.querySelector('input[name="radix-:r1:"]');
+                                if (searchField) {
+                                  (searchField as HTMLInputElement).value = e.target.value;
+                                  (searchField as HTMLInputElement).dispatchEvent(new Event('input', { bubbles: true }));
+                                }
+                              }}
+                            />
+                          </div>
                           {DEAL_SECTORS.map((sector) => (
                             <SelectItem key={sector} value={sector}>{sector}</SelectItem>
                           ))}
@@ -272,7 +285,18 @@ export default function EditDealModal({ isOpen, onClose, dealId }: EditDealModal
                       <FormControl>
                         <Input 
                           placeholder="e.g., 20%" 
-                          {...field} 
+                          value={field.value}
+                          onChange={(e) => {
+                            let value = e.target.value;
+                            // Remove any existing % symbol
+                            value = value.replace(/%/g, '');
+                            // If it's a valid number, add the % symbol
+                            if (value && !isNaN(parseFloat(value))) {
+                              field.onChange(`${value}%`);
+                            } else {
+                              field.onChange(value);
+                            }
+                          }}
                         />
                       </FormControl>
                       <FormMessage />
