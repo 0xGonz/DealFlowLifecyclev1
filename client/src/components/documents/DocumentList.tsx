@@ -10,6 +10,10 @@ import { formatDistanceToNow } from 'date-fns';
 import { formatBytes } from '@/lib/utils/format';
 import EnhancedPDFViewer from './EnhancedPDFViewer';
 import EmbeddedPDFViewer from './EmbeddedPDFViewer';
+// Import react-pdf components
+import { Document as PDFDocument, Page as PDFPage, pdfjs } from 'react-pdf';
+// Set the worker source URL
+pdfjs.GlobalWorkerOptions.workerSrc = `/pdfjs/pdf.worker.min.js`;
 import {
   AlertDialog,
   AlertDialogAction,
@@ -391,12 +395,36 @@ export default function DocumentList({ dealId }: DocumentListProps) {
                 </div>
                 
                 <Card className="p-0 w-full overflow-hidden">
-                  <div className="overflow-hidden h-[900px] bg-neutral-50">
-                    <iframe 
-                      src={`/api/documents/${selectedDocument.id}/download`} 
-                      className="w-full h-full border-0" 
-                      title={selectedDocument.fileName}
-                    />
+                  <div className="overflow-hidden h-[900px] bg-neutral-50 flex justify-center">
+                    {selectedDocument.fileType === 'application/pdf' || 
+                     selectedDocument.fileName.toLowerCase().endsWith('.pdf') ? (
+                      <PDFDocument
+                        file={`/api/documents/${selectedDocument.id}/download`}
+                        onLoadError={(error) => {
+                          console.error('Error loading PDF:', error);
+                          toast({
+                            title: 'Error loading document',
+                            description: 'The document could not be displayed properly.',
+                            variant: 'destructive',
+                          });
+                        }}
+                        className="pdf-document w-full h-full"
+                      >
+                        <PDFPage
+                          pageNumber={1}
+                          renderAnnotationLayer={true}
+                          renderTextLayer={true}
+                          className="shadow-md"
+                          width={800}
+                        />
+                      </PDFDocument>
+                    ) : (
+                      <iframe 
+                        src={`/api/documents/${selectedDocument.id}/download`} 
+                        className="w-full h-full border-0" 
+                        title={selectedDocument.fileName}
+                      />
+                    )}
                   </div>
                 </Card>
               </div>

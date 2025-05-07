@@ -351,7 +351,7 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent>
+      <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Allocate Investment</DialogTitle>
           <DialogDescription>

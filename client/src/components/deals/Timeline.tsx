@@ -125,39 +125,42 @@ export default function Timeline({ dealId }: TimelineProps) {
   });
 
   // Filter and process timeline data
-  const filteredTimelineData = timelineData.filter(event => {
-    // Filter by event type
-    if (!filters.eventTypes.includes(event.eventType)) return false;
-    
-    // Filter by user if specified
-    if (filters.userFilter && event.createdBy !== filters.userFilter) return false;
-    
-    // Filter by date range
-    const eventDate = new Date(event.createdAt);
-    const today = new Date();
-    const todayStart = new Date(today.setHours(0, 0, 0, 0));
-    
-    if (filters.dateRange === 'today' && eventDate < todayStart) return false;
-    
-    if (filters.dateRange === 'week') {
-      const weekStart = new Date(today);
-      weekStart.setDate(weekStart.getDate() - 7);
-      if (eventDate < weekStart) return false;
-    }
-    
-    if (filters.dateRange === 'month') {
-      const monthStart = new Date(today);
-      monthStart.setMonth(monthStart.getMonth() - 1);
-      if (eventDate < monthStart) return false;
-    }
-    
-    // Apply tab filtering
-    if (activeTab === 'notes' && event.eventType !== 'note') return false;
-    if (activeTab === 'documents' && event.eventType !== 'document_upload') return false;
-    if (activeTab === 'stages' && event.eventType !== 'stage_change') return false;
-    
-    return true;
-  });
+  const filteredTimelineData = timelineData
+    .filter(event => {
+      // Filter by event type
+      if (!filters.eventTypes.includes(event.eventType)) return false;
+      
+      // Filter by user if specified
+      if (filters.userFilter && event.createdBy !== filters.userFilter) return false;
+      
+      // Filter by date range
+      const eventDate = new Date(event.createdAt);
+      const today = new Date();
+      const todayStart = new Date(today.setHours(0, 0, 0, 0));
+      
+      if (filters.dateRange === 'today' && eventDate < todayStart) return false;
+      
+      if (filters.dateRange === 'week') {
+        const weekStart = new Date(today);
+        weekStart.setDate(weekStart.getDate() - 7);
+        if (eventDate < weekStart) return false;
+      }
+      
+      if (filters.dateRange === 'month') {
+        const monthStart = new Date(today);
+        monthStart.setMonth(monthStart.getMonth() - 1);
+        if (eventDate < monthStart) return false;
+      }
+      
+      // Apply tab filtering
+      if (activeTab === 'notes' && event.eventType !== 'note') return false;
+      if (activeTab === 'documents' && event.eventType !== 'document_upload') return false;
+      if (activeTab === 'stages' && event.eventType !== 'stage_change') return false;
+      
+      return true;
+    })
+    // Sort by date descending (newest first)
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   
   // Function to toggle event type filter
   const toggleEventTypeFilter = (eventType: EventType) => {

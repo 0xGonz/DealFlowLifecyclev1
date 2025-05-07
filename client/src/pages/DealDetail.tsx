@@ -21,6 +21,14 @@ import {
   CardContent,
   CardFooter
 } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { 
   Tabs, 
   TabsList, 
@@ -47,6 +55,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { 
   ChevronLeft, 
+  ChevronDown,
   Star, 
   Edit, 
   Share2, 
@@ -82,7 +91,7 @@ export default function DealDetail() {
   const getActiveTab = () => {
     const searchParams = new URLSearchParams(window.location.search);
     const tab = searchParams.get('tab');
-    return tab === 'timeline' || tab === 'memos' || tab === 'documents'
+    return tab === 'timeline' || tab === 'memos' || tab === 'documents' || tab === 'capitalcalls'
       ? tab 
       : 'documents'; // Default tab
   };
@@ -187,6 +196,31 @@ export default function DealDetail() {
     starDealMutation.mutate();
   };
   
+  const updateDealMutation = useMutation({
+    mutationFn: async (dealUpdate: { id: number, [key: string]: any }) => {
+      return apiRequest("PATCH", `/api/deals/${dealUpdate.id}`, dealUpdate);
+    },
+    onSuccess: async () => {
+      toast({
+        title: "Deal updated",
+        description: "The deal has been successfully updated."
+      });
+      
+      // Invalidate relevant queries
+      await queryClient.invalidateQueries({ queryKey: [`/api/deals/${dealId}`] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/deals"] });
+      await queryClient.invalidateQueries({ queryKey: [`/api/deals/${dealId}/timeline`] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update deal. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
   const deleteDealMutation = useMutation({
     mutationFn: async () => {
       return apiRequest("DELETE", `/api/deals/${dealId}`, {});
@@ -355,9 +389,44 @@ export default function DealDetail() {
           <CardHeader>
             <div className="flex flex-col sm:flex-row justify-between items-start gap-4 sm:gap-0">
               <div>
-                <Badge className={`${getDealStageBadgeClass(deal?.stage || '')} mb-2 text-xs sm:text-sm px-2 py-0.5`}>
-                  {deal?.stageLabel}
-                </Badge>
+                <div className="flex items-center gap-2 mb-2">
+                  <Badge className={`${getDealStageBadgeClass(deal?.stage || '')} text-xs sm:text-sm px-2 py-0.5`}>
+                    {deal?.stageLabel}
+                  </Badge>
+                  {canEdit('deal') && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-6 px-2 text-xs">
+                          Change Stage <ChevronDown className="ml-1 h-3 w-3" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start" className="w-44">
+                        <DropdownMenuLabel className="text-xs">Change stage to:</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        {Object.entries(DEAL_STAGES).map(([key, value]) => (
+                          <DropdownMenuItem 
+                            key={key}
+                            disabled={deal?.stage === value}
+                            onClick={() => {
+                              if (dealId && deal?.stage !== value) {
+                                updateDealMutation.mutate({ 
+                                  id: Number(dealId), 
+                                  stage: value 
+                                });
+                              }
+                            }}
+                            className="text-xs"
+                          >
+                            <Badge className={`${getDealStageBadgeClass(value)} text-xs mr-2 px-1.5 py-0`}>
+                              {key.replace(/_/g, ' ')}
+                            </Badge>
+                            <span>{key.replace(/_/g, ' ')}</span>
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
+                </div>
                 <CardTitle className="text-lg sm:text-xl">{deal?.name}</CardTitle>
                 <CardDescription className="text-sm leading-normal mt-1">{deal?.description}</CardDescription>
               </div>
@@ -516,6 +585,9 @@ export default function DealDetail() {
               <TabsTrigger value="memos" className="text-xs sm:text-sm h-8 sm:h-10 px-2 sm:px-4 flex-1">
                 Mini-Memos
               </TabsTrigger>
+              <TabsTrigger value="capitalcalls" className="text-xs sm:text-sm h-8 sm:h-10 px-2 sm:px-4 flex-1">
+                Capital Calls
+              </TabsTrigger>
             </TabsList>
           </div>
           
@@ -644,6 +716,54 @@ export default function DealDetail() {
             </Card>
           </TabsContent>
           
+          <TabsContent value="capitalcalls">
+            <Card>
+              <CardHeader className="pb-2 sm:pb-4">
+                <CardTitle className="text-base sm:text-xl">Capital Calls</CardTitle>
+                <CardDescription className="text-xs sm:text-sm">
+                  Manage capital calls for this investment
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {deal?.id ? (
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <div className="text-sm text-muted-foreground p-2 rounded bg-muted/50">
+                        <InfoIcon className="h-4 w-4 inline-block mr-2" />
+                        Schedule and track capital calls associated with this deal.
+                      </div>
+                      
+                      <Button size="sm" className="ml-auto">
+                        <DollarSign className="h-3.5 w-3.5 mr-1.5" />
+                        Create Capital Call
+                      </Button>
+                    </div>
+                    
+                    {/* Display capital calls */}
+                    <div className="border rounded-md">
+                      <div className="bg-muted p-3 rounded-t-md font-medium flex items-center text-sm">
+                        <div className="w-1/5">Status</div>
+                        <div className="w-1/5">Call Date</div>
+                        <div className="w-1/5">Due Date</div>
+                        <div className="w-1/5">Amount</div>
+                        <div className="w-1/5">Actions</div>
+                      </div>
+                      
+                      <div className="text-center py-10 text-muted-foreground">
+                        <DollarSign className="h-10 w-10 mx-auto mb-2 opacity-30" />
+                        <p className="text-sm">No capital calls have been scheduled for this deal yet.</p>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-neutral-500">
+                    <div className="animate-spin h-8 w-8 border-2 border-primary border-opacity-50 border-t-primary rounded-full mx-auto mb-4"></div>
+                    <p>Loading capital calls...</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
 
         </Tabs>
       </div>
