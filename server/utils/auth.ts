@@ -221,36 +221,56 @@ export async function registerUser(req: Request, userData: any) {
       password: hashedPassword,
     });
     
-    // Clean out any existing session data
-    for (const key in req.session) {
-      if (key !== 'cookie' && key !== 'id') {
-        delete (req.session as any)[key];
-      }
-    }
-    
-    // Directly set session data
-    console.log(`Setting session data for new user ${userData.username}:`, { id: newUser.id, role: newUser.role });
-    req.session.userId = newUser.id;
-    req.session.username = newUser.username;
-    req.session.role = newUser.role;
-    
-    // Save the session synchronously to avoid race conditions
-    console.log(`Saving session for new user ${userData.username}`);
-    await new Promise<void>((resolve, reject) => {
-      req.session.save((err) => {
-        if (err) {
-          console.error('Error saving session during registration:', err);
-          return reject(err);
+    // Use a more reliable approach for handling sessions
+    try {
+      // Clean out any existing session data
+      for (const key in req.session) {
+        if (key !== 'cookie' && key !== 'id') {
+          delete (req.session as any)[key];
         }
-        console.log(`Session saved successfully for new user ${userData.username} with ID ${req.sessionID}`);
-        resolve();
+      }
+      
+      // Regenerate the session to avoid session fixation attacks
+      // This creates a new session ID and maintains the data
+      await new Promise<void>((resolve, reject) => {
+        req.session.regenerate((err) => {
+          if (err) {
+            console.error('Error regenerating session during registration:', err);
+            return reject(err);
+          }
+          resolve();
+        });
       });
-    });
-    
-    // Verify the session was properly saved
-    console.log('Session verification - userId in session:', req.session.userId);
-    if (!req.session.userId) {
-      throw new Error('Session data not properly saved during registration');
+      
+      // Set session data after regeneration
+      console.log(`Setting session data for new user ${userData.username}:`, { id: newUser.id, role: newUser.role });
+      req.session.userId = newUser.id;
+      req.session.username = newUser.username;
+      req.session.role = newUser.role;
+      
+      // Save the session synchronously to avoid race conditions
+      console.log(`Saving session for new user ${userData.username}`);
+      await new Promise<void>((resolve, reject) => {
+        req.session.save((err) => {
+          if (err) {
+            console.error('Error saving session during registration:', err);
+            return reject(err);
+          }
+          console.log(`Session saved successfully for new user ${userData.username} with ID ${req.sessionID}`);
+          resolve();
+        });
+      });
+      
+      // Verify the session was properly saved
+      console.log('Session verification - userId in session:', req.session.userId);
+      console.log('Session ID:', req.sessionID);
+      
+      if (!req.session.userId) {
+        throw new Error('Session data not properly saved during registration');
+      }
+    } catch (error) {
+      console.error('Session handling error during registration:', error);
+      throw new AppError('Failed to establish user session', 500);
     }
     
     return newUser;

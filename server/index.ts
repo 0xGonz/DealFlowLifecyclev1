@@ -45,7 +45,13 @@ try {
   });
   
   // Increase max listeners to prevent warnings
-  activeSessionStore.setMaxListeners(100);
+  // Using higher limit to avoid MaxListenersExceededWarning
+  activeSessionStore.setMaxListeners(150);
+  
+  // Also increase PgStore emit listeners to avoid warnings
+  if (activeSessionStore.pool && typeof activeSessionStore.pool.setMaxListeners === 'function') {
+    activeSessionStore.pool.setMaxListeners(150);
+  }
   
   console.log('Using PostgreSQL session store');
 } catch (error) {
