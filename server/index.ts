@@ -22,7 +22,7 @@ const memoryStore = new MemoryStore({
 
 // Increase max listeners to prevent warnings
 // This is needed because we're adding listeners in multiple places
-memoryStore.setMaxListeners(100);
+memoryStore.setMaxListeners(1000); // Significantly increase to prevent MaxListenersExceededWarning
 
 // Configure PostgreSQL session store
 const PgSession = connectPgSimple(session);
@@ -46,11 +46,11 @@ try {
   
   // Increase max listeners to prevent warnings
   // Using higher limit to avoid MaxListenersExceededWarning
-  activeSessionStore.setMaxListeners(200);
+  activeSessionStore.setMaxListeners(1000);
   
   // Also increase PgStore emit listeners to avoid warnings
   if (activeSessionStore.pool && typeof activeSessionStore.pool.setMaxListeners === 'function') {
-    activeSessionStore.pool.setMaxListeners(200);
+    activeSessionStore.pool.setMaxListeners(1000);
   }
   
   // Check session table exists and is accessible
@@ -80,6 +80,10 @@ try {
   console.error('Failed to initialize PostgreSQL session store:', error);
   console.log('Falling back to memory session store');
   activeSessionStore = memoryStore;
+  
+  // Set higher max listeners when falling back to memory store
+  // to prevent MaxListenersExceededWarning
+  memoryStore.setMaxListeners(1000);
 }
 
 // Create a function to get the appropriate session store with automatic fallback
@@ -98,6 +102,9 @@ const getSessionStore = () => {
       .catch(err => {
         console.error('PostgreSQL connection failed, switching to memory session store:', err);
         activeSessionStore = memoryStore;
+        
+        // Ensure memory store has enough event listeners
+        memoryStore.setMaxListeners(1000);
       });
   }
   return activeSessionStore;
@@ -144,6 +151,9 @@ app.use((req, res, next) => {
       if (err.message && (err.message.includes('termina') || err.message.includes('conn'))) {
         console.log('Switching to memory store due to database connection error');
         activeSessionStore = memoryStore;
+        
+        // Ensure memory store has enough event listeners when used as fallback
+        memoryStore.setMaxListeners(1000);
         
         // Try again with memory store
         session({
