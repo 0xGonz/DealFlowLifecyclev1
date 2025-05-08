@@ -261,4 +261,48 @@ router.post('/:id/change-password', async (req: Request, res: Response) => {
   }
 });
 
+// Delete user endpoint - ADMIN ONLY
+router.delete('/:id', async (req: Request, res: Response) => {
+  try {
+    // Check if the current user is authenticated and an admin
+    if (!req.session.userId) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    if (!req.session.role || req.session.role !== 'admin') {
+      return res.status(403).json({ message: 'Only administrators can delete users' });
+    }
+    
+    const targetUserId = Number(req.params.id);
+    const currentUserId = req.session.userId;
+    
+    // Prevent admins from deleting themselves
+    if (targetUserId === currentUserId) {
+      return res.status(400).json({ message: 'You cannot delete your own account' });
+    }
+    
+    console.log(`Admin user (ID: ${currentUserId}) attempting to delete user ID: ${targetUserId}`);
+    
+    const storage = StorageFactory.getStorage();
+    
+    // Make sure target user exists
+    const userToDelete = await storage.getUser(targetUserId);
+    if (!userToDelete) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    // Delete the user
+    const success = await storage.deleteUser(targetUserId);
+    if (!success) {
+      return res.status(500).json({ message: 'Failed to delete user' });
+    }
+    
+    console.log(`User ID ${targetUserId} (${userToDelete.username}) deleted by admin (ID: ${currentUserId})`);
+    res.json({ message: 'User deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    res.status(500).json({ message: 'Failed to delete user' });
+  }
+});
+
 export default router;

@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 // Using standard HTML label instead of FormLabel to avoid form context errors
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Pencil, UserPlus, Search, Mail, Eye, EyeOff } from "lucide-react";
+import { Trash2, Pencil, UserPlus, Search, Mail, Eye, EyeOff } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -19,6 +19,16 @@ import { queryClient } from "@/lib/queryClient";
 import { AVATAR_COLORS } from "@/lib/constants/ui-constants";
 import { apiRequest } from "@/lib/queryClient";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 // Define User type
 type User = {
@@ -72,6 +82,7 @@ export default function UsersPage() {
   const { toast } = useToast();
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
   const [isEditUserOpen, setIsEditUserOpen] = useState(false);
+  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<EditableUser | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -138,12 +149,50 @@ export default function UsersPage() {
     }
   });
   
+  // Delete user mutation
+  const deleteUserMutation = useMutation({
+    mutationFn: async (userId: number) => {
+      const res = await apiRequest("DELETE", `/api/users/${userId}`);
+      return await res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "User deleted successfully",
+        description: "The user account has been permanently removed",
+      });
+      setIsDeleteAlertOpen(false);
+      setSelectedUser(null);
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to delete user",
+        description: error.message,
+        variant: "destructive"
+      });
+      setIsDeleteAlertOpen(false);
+    }
+  });
+  
   // Handle edit user button click
   const handleEditUser = (user: User) => {
     // Convert User to EditableUser by spreading its properties
     const editableUser: EditableUser = { ...user };
     setSelectedUser(editableUser);
     setIsEditUserOpen(true);
+  };
+  
+  // Handle delete user button click
+  const handleDeleteUser = (user: User) => {
+    setSelectedUser(user);
+    setIsDeleteAlertOpen(true);
+  };
+  
+  // Confirm delete user
+  const confirmDeleteUser = () => {
+    if (selectedUser) {
+      deleteUserMutation.mutate(selectedUser.id);
+    }
   };
   
   // Form
@@ -230,7 +279,7 @@ export default function UsersPage() {
                     <div className="col-span-3 text-sm text-muted-foreground">
                       {new Date(user.lastActive).toLocaleDateString()} at {new Date(user.lastActive).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </div>
-                    <div className="col-span-1">
+                    <div className="col-span-1 flex">
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -244,6 +293,24 @@ export default function UsersPage() {
                           </TooltipTrigger>
                           <TooltipContent>
                             <p>Edit User</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                      
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              onClick={() => handleDeleteUser(user)}
+                              className="text-red-500 hover:text-red-700 hover:bg-red-100"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Delete User</p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
@@ -488,6 +555,42 @@ export default function UsersPage() {
             )}
           </DialogContent>
         </Dialog>
+        
+        {/* Delete User Alert Dialog */}
+        <AlertDialog open={isDeleteAlertOpen} onOpenChange={setIsDeleteAlertOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure you want to delete this user?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently remove the user account
+                and all associated data from the system.
+                {selectedUser && (
+                  <div className="mt-4 p-4 bg-muted rounded-md">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-9 w-9" style={{ backgroundColor: selectedUser.avatarColor }}>
+                        <AvatarFallback className="text-white">{selectedUser.initials}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="font-medium">{selectedUser.fullName}</div>
+                        <div className="text-sm text-muted-foreground">@{selectedUser.username}</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-red-600 hover:bg-red-700"
+                onClick={confirmDeleteUser}
+                disabled={deleteUserMutation.isPending}
+              >
+                {deleteUserMutation.isPending ? "Deleting..." : "Delete User"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </AppLayout>
   );

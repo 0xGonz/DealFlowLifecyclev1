@@ -74,6 +74,20 @@ export class DatabaseStorage implements IStorage {
     }
   }
   
+  async deleteUser(id: number): Promise<boolean> {
+    if (!db) {
+      throw new Error('Database not initialized');
+    }
+    
+    try {
+      const result = await db.delete(users).where(eq(users.id, id));
+      return !!result;
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      return false;
+    }
+  }
+  
   // Deal operations
   async createDeal(deal: InsertDeal): Promise<Deal> {
     if (!db) {
