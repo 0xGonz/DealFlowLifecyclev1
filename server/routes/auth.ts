@@ -1,9 +1,15 @@
-import express, { Request, Response } from 'express';
-import { asyncHandler } from '../utils/errorHandlers';
+import express, { Request, Response, NextFunction } from 'express';
+import { asyncHandler, AppError } from '../utils/errorHandlers';
 import { login, logout, getCurrentUser, hashPassword, registerUser } from '../utils/auth';
-import { z } from 'zod';
+import { z, ZodError } from 'zod';
 import { StorageFactory } from '../storage-factory';
 import { insertUserSchema } from '@shared/schema';
+import { AUTH_ERRORS } from '../constants/auth-constants';
+
+// Helper to format Zod error messages
+function formatErrors(error: ZodError): string {
+  return error.errors.map(err => `${err.path.join('.')}: ${err.message}`).join(', ');
+}
 
 const router = express.Router();
 
@@ -38,9 +44,22 @@ router.post('/login', asyncHandler(async (req: Request, res: Response) => {
     
     // Return user directly, not wrapped in an object
     return res.json(userWithoutPassword);
-  } catch (error) {
+  } catch (err) {
+    // Use type assertion for better error handling
+    const error = err as Error;
     console.error('Login route error:', error);
-    throw error; // Let the error handler middleware handle it
+    
+    if (error.message === AUTH_ERRORS.INVALID_CREDENTIALS) {
+      return res.status(401).json({ message: 'Invalid username or password' });
+    } else if (error instanceof ZodError) {
+      return res.status(400).json({ message: formatErrors(error) });
+    } else if (error instanceof AppError) {
+      return res.status(error.statusCode || 500).json({ message: error.message });
+    } else {
+      // For unknown errors, provide a generic message but log the details
+      console.error('Unknown error during login:', error);
+      return res.status(500).json({ message: 'Login failed due to an internal error' });
+    }
   }
 }));
 
@@ -76,12 +95,40 @@ const registrationSchema = insertUserSchema.extend({
 });
 
 // Register route - public registration always creates analyst users
-router.post('/register', asyncHandler(async (req: Request, res: Response) => {
+router.post('/register', asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
   try {
-    console.log('Handling public registration request');
+    console.log('Handling public registration request', {
+      body: {
+        ...req.body,
+        password: req.body?.password ? '******' : undefined,
+        passwordConfirm: req.body?.passwordConfirm ? '******' : undefined
+      }
+    });
     
-    // Validate request body
-    const validatedData = registrationSchema.parse(req.body);
+    // Check if passwords match before validation schema
+    if (req.body.password !== req.body.passwordConfirm) {
+      console.error('Password mismatch in request');
+      return res.status(400).json({ 
+        message: 'Passwords do not match',
+        path: ['passwordConfirm']
+      });
+    }
+    
+    // Validate request body against schema
+    let validatedData;
+    try {
+      validatedData = registrationSchema.parse(req.body);
+      console.log('Registration data passed schema validation');
+    } catch (validationError) {
+      if (validationError instanceof ZodError) {
+        console.error('Zod validation error:', validationError.errors);
+        return res.status(400).json({ 
+          message: formatErrors(validationError),
+          errors: validationError.errors 
+        });
+      }
+      throw validationError; // Re-throw unexpected errors
+    }
     
     // Remove passwordConfirm (it's just for validation)
     const { passwordConfirm, ...userData } = validatedData;
@@ -100,6 +147,7 @@ router.post('/register', asyncHandler(async (req: Request, res: Response) => {
         .join('')
         .slice(0, 3)
         .toUpperCase();
+      console.log(`Generated initials ${userData.initials} from fullName ${userData.fullName}`);
     }
     
     // Generate a random avatar color if not provided
@@ -112,13 +160,40 @@ router.post('/register', asyncHandler(async (req: Request, res: Response) => {
     
     // Register the new user
     const user = await registerUser(req, userData);
+    console.log(`User registered successfully: ${user.username}, ID: ${user.id}`);
+    
+    // Check if session was properly established
+    if (!req.session.userId) {
+      console.error('Session not established after registration');
+      return res.status(500).json({ 
+        message: 'Registration successful but session not established. Please try logging in.' 
+      });
+    }
     
     // Return user info (without password)
     const { password: _, ...userWithoutPassword } = user;
     return res.status(201).json(userWithoutPassword);
-  } catch (error) {
-    console.error('Error in /register endpoint:', error);
-    throw error;
+  } catch (err) {
+    // Use type assertion for better error handling
+    const error = err as Error;
+    console.error('Registration route error:', error);
+    
+    // Handle specific error types
+    if (error instanceof AppError) {
+      if (error.message === AUTH_ERRORS.USERNAME_EXISTS) {
+        return res.status(400).json({ message: 'Username already exists' });
+      } else if (error.message === AUTH_ERRORS.EMAIL_EXISTS) {
+        return res.status(400).json({ message: 'Email already exists' });
+      } else {
+        return res.status(error.statusCode || 500).json({ message: error.message });
+      }
+    } else if (error instanceof ZodError) {
+      return res.status(400).json({ message: formatErrors(error) });
+    } else {
+      // For unknown errors, provide a generic message but log the details
+      console.error('Unknown error during registration:', error);
+      return res.status(500).json({ message: 'Registration failed due to an internal error' });
+    }
   }
 }));
 

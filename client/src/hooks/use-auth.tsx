@@ -29,6 +29,7 @@ type RegisterData = {
   fullName: string;
   email: string;
   password: string;
+  passwordConfirm: string; // Add the passwordConfirm field
   role?: string;
   initials?: string;
   avatarColor?: string;
@@ -162,13 +163,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const register = useMutation({
     mutationFn: async (userData: RegisterData) => {
       try {
+        console.log('Starting registration with data:', { 
+          ...userData, 
+          password: '******', 
+          passwordConfirm: '******' 
+        });
+        
+        // Validate passwords match client-side as well
+        if (userData.password !== userData.passwordConfirm) {
+          console.error('Client-side password validation failed: passwords do not match');
+          throw new Error('Passwords do not match');
+        }
+        
+        // Make the API request
+        console.log('Sending registration API request');
         const res = await apiRequest("POST", "/api/auth/register", userData);
+        
+        // Handle non-2xx responses
         if (!res.ok) {
-          const errorText = await res.text().catch(() => 'Unknown error');
-          console.error('Registration API error response:', res.status, errorText);
+          let errorText;
+          try {
+            // Try to get structured error JSON first
+            const errorData = await res.json();
+            console.error('Registration API error JSON response:', res.status, errorData);
+            errorText = errorData.message || JSON.stringify(errorData);
+          } catch {
+            // Fall back to plain text
+            errorText = await res.text().catch(() => 'Unknown error');
+            console.error('Registration API error text response:', res.status, errorText);
+          }
           throw new Error(errorText || `Registration failed with status ${res.status}`);
         }
         
+        // Parse successful response
         const userResponse = await res.json();
         if (!userResponse || !userResponse.id) {
           console.error('Invalid user data received from registration:', userResponse);

@@ -163,6 +163,7 @@ export default function AuthPage() {
                       fullName: data.fullName,
                       email: data.email,
                       password: data.password,
+                      passwordConfirm: data.passwordConfirm, // Add the passwordConfirm field
                       // Default role for self-registration is analyst
                       role: 'analyst'
                     });
