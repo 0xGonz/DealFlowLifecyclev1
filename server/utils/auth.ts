@@ -126,11 +126,21 @@ export async function login(req: Request, username: string, password: string) {
       throw new AppError(AUTH_ERRORS.INVALID_CREDENTIALS, 401);
     }
     
-    // Clean out any existing session data
-    for (const key in req.session) {
-      if (key !== 'cookie' && key !== 'id') {
-        delete (req.session as any)[key];
-      }
+    // Regenerate session for better security
+    try {
+      // Regenerate the session to avoid session fixation attacks
+      await new Promise<void>((resolve, reject) => {
+        req.session.regenerate((err) => {
+          if (err) {
+            console.error('Error regenerating session during login:', err);
+            return reject(new AppError('Session error during login', 500));
+          }
+          resolve();
+        });
+      });
+    } catch (error) {
+      console.error('Failed to regenerate session:', error);
+      // Continue anyway, don't fail the login process for this
     }
     
     // Directly set session data
@@ -145,9 +155,15 @@ export async function login(req: Request, username: string, password: string) {
       req.session.save((err) => {
         if (err) {
           console.error('Error saving session:', err);
-          return reject(err);
+          return reject(new AppError('Failed to save session', 500));
         }
         console.log(`Session saved successfully for ${username} with ID ${req.sessionID}`);
+        
+        // Double check the session was properly saved
+        if (!req.session.userId) {
+          console.error('Session userId not set after save!');
+          return reject(new AppError('Session data not properly saved', 500));
+        }
         resolve();
       });
     });
@@ -165,7 +181,7 @@ export async function login(req: Request, username: string, password: string) {
   }
 }
 
-// Logout helper
+// Logout helper with enhanced error handling
 export function logout(req: Request) {
   console.log('Logout helper called');
   
@@ -174,15 +190,24 @@ export function logout(req: Request) {
     return Promise.resolve();
   }
   
-  console.log(`Destroying session for user: ${req.session.username}, ID: ${req.session.userId}`);
+  const username = req.session.username;
+  const userId = req.session.userId;
+  console.log(`Destroying session for user: ${username}, ID: ${userId}`);
   
   return new Promise<void>((resolve, reject) => {
     req.session.destroy((err) => {
       if (err) {
         console.error('Error destroying session:', err);
-        return reject(err);
+        return reject(new AppError('Failed to destroy session', 500));
       }
-      console.log('Session successfully destroyed');
+      
+      // Clear the cookie as well
+      if (req.res) {
+        req.res.clearCookie('investment_tracker.sid');
+        console.log('Session cookie cleared');
+      }
+      
+      console.log(`Session successfully destroyed for user: ${username}, ID: ${userId}`);
       resolve();
     });
   });

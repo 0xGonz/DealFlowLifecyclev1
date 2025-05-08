@@ -41,17 +41,39 @@ try {
     errorLog: console.error, // Log session storage errors
     schemaName: 'public', // Explicitly set schema name
     disableTouch: false, // Enable touch to update the last access time
-    ttl: 86400, // Session lifetime in seconds (1 day)
+    ttl: 86400 * 7, // Session lifetime in seconds (7 days, same as cookie)
   });
   
   // Increase max listeners to prevent warnings
   // Using higher limit to avoid MaxListenersExceededWarning
-  activeSessionStore.setMaxListeners(150);
+  activeSessionStore.setMaxListeners(200);
   
   // Also increase PgStore emit listeners to avoid warnings
   if (activeSessionStore.pool && typeof activeSessionStore.pool.setMaxListeners === 'function') {
-    activeSessionStore.pool.setMaxListeners(150);
+    activeSessionStore.pool.setMaxListeners(200);
   }
+  
+  // Check session table exists and is accessible
+  pool.query('SELECT 1 FROM session LIMIT 1')
+    .then(() => {
+      console.log('Session table verified and accessible');
+    })
+    .catch((err) => {
+      console.log('Creating session table if it doesn\'t exist...');
+      // The createTableIfMissing option should handle this, but we'll verify manually
+      pool.query(`
+        CREATE TABLE IF NOT EXISTS "session" (
+          "sid" varchar NOT NULL COLLATE "default",
+          "sess" json NOT NULL,
+          "expire" timestamp(6) NOT NULL,
+          CONSTRAINT "session_pkey" PRIMARY KEY ("sid")
+        )
+      `).then(() => {
+        console.log('Session table created successfully');
+      }).catch((createErr) => {
+        console.error('Error creating session table:', createErr);
+      });
+    });
   
   console.log('Using PostgreSQL session store');
 } catch (error) {
