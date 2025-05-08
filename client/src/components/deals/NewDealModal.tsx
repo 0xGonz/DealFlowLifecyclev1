@@ -34,10 +34,11 @@ import { Label } from "@/components/ui/label";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { generateDealNotification } from "@/lib/utils/notification-utils";
-import { FileUp, File } from "lucide-react";
+import { FileUp, File, Plus, X } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { DEAL_SECTORS } from "@/lib/constants/sectors";
 import { DEAL_STAGES, DealStage, DealStageLabels } from "@/lib/constants/deal-stages";
+import { Badge } from "@/components/ui/badge";
 
 // Form schema with validation rules
 const dealFormSchema = z.object({
@@ -60,9 +61,29 @@ interface NewDealModalProps {
   onClose: () => void;
 }
 
+// Document types and labels
+const DOCUMENT_TYPES = {
+  pitch_deck: 'Pitch Deck',
+  financial_model: 'Financial Model',
+  legal_document: 'Legal Document',
+  diligence_report: 'Diligence Report',
+  investor_update: 'Investor Update',
+  other: 'Other'
+};
+
+// Interface for document upload entry
+interface DocumentUpload {
+  file: File;
+  type: keyof typeof DOCUMENT_TYPES;
+  description: string;
+}
+
 export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
   const { toast } = useToast();
-  const [pitchDeck, setPitchDeck] = useState<File | null>(null);
+  const [documentUploads, setDocumentUploads] = useState<DocumentUpload[]>([]);
+  const [currentDocType, setCurrentDocType] = useState<keyof typeof DOCUMENT_TYPES>('pitch_deck');
+  const [currentDocDescription, setCurrentDocDescription] = useState('');
+  const [showDocUploadForm, setShowDocUploadForm] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Initialize form with default values
@@ -83,37 +104,64 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
   
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setPitchDeck(e.target.files[0]);
-    }
-  };
-
-  const uploadDocumentMutation = useMutation({
-    mutationFn: async (formData: FormData) => {
-      // Using standard fetch for FormData upload
-      const response = await fetch('/api/documents/upload', {
-        method: 'POST',
-        body: formData
-      });
-      if (!response.ok) {
-        throw new Error('Failed to upload document');
-      }
-      return response.json();
-    },
-    onSuccess: (_, variables) => {
-      toast({
-        title: 'Pitch deck uploaded',
-        description: 'The pitch deck was successfully uploaded.',
-      });
-      setPitchDeck(null);
-      // File input needs to be cleared manually
+      // Add the new document to the list
+      const newDoc: DocumentUpload = {
+        file: e.target.files[0],
+        type: currentDocType,
+        description: currentDocDescription || `${DOCUMENT_TYPES[currentDocType]} for deal`
+      };
+      
+      setDocumentUploads([...documentUploads, newDoc]);
+      
+      // Reset the form
+      setCurrentDocDescription('');
+      setShowDocUploadForm(false);
+      
+      // Clear the file input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
+    }
+  };
+
+  const removeDocument = (index: number) => {
+    const updatedDocs = [...documentUploads];
+    updatedDocs.splice(index, 1);
+    setDocumentUploads(updatedDocs);
+  };
+
+  const uploadDocumentMutation = useMutation({
+    mutationFn: async (params: { formData: FormData, type: string }) => {
+      console.log(`Uploading document of type: ${params.type}`);
+      
+      // Using standard fetch for FormData upload
+      const response = await fetch('/api/documents/upload', {
+        method: 'POST',
+        body: params.formData,
+        credentials: 'include' // Ensure cookies are sent for authentication
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to upload document: ${errorText}`);
+      }
+      
+      return response.json();
     },
-    onError: () => {
+    onSuccess: (result, variables) => {
+      console.log(`Successfully uploaded document of type: ${variables.type}`, result);
+      
+      toast({
+        title: 'Document uploaded',
+        description: `The ${DOCUMENT_TYPES[variables.type as keyof typeof DOCUMENT_TYPES]} was successfully uploaded.`,
+      });
+    },
+    onError: (error, variables) => {
+      console.error(`Error uploading ${variables.type} document:`, error);
+      
       toast({
         title: 'Upload failed',
-        description: 'There was an error uploading the pitch deck. Please try again.',
+        description: `There was an error uploading the ${DOCUMENT_TYPES[variables.type as keyof typeof DOCUMENT_TYPES]}. Please try again.`,
         variant: 'destructive',
       });
     },
@@ -135,21 +183,25 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
         description: "New deal has been successfully created."
       });
       
-      // Upload pitch deck if available
-      if (pitchDeck && dealId) {
-        const formData = new FormData();
-        formData.append('file', pitchDeck);
-        formData.append('fileName', pitchDeck.name);
-        formData.append('fileType', pitchDeck.type);
-        formData.append('dealId', dealId.toString());
-        formData.append('documentType', 'pitch_deck');
-        formData.append('uploadedBy', '1'); // Admin user ID
-        formData.append('description', 'Initial pitch deck');
-        
-        try {
-          await uploadDocumentMutation.mutateAsync(formData);
-        } catch (err) {
-          console.error('Failed to upload pitch deck:', err);
+      // Upload all documents if available
+      if (documentUploads.length > 0 && dealId) {
+        for (const doc of documentUploads) {
+          const formData = new FormData();
+          formData.append('file', doc.file);
+          formData.append('fileName', doc.file.name);
+          formData.append('fileType', doc.file.type);
+          formData.append('dealId', dealId.toString());
+          formData.append('documentType', doc.type);
+          formData.append('description', doc.description);
+          
+          try {
+            await uploadDocumentMutation.mutateAsync({ 
+              formData: formData,
+              type: doc.type
+            });
+          } catch (err) {
+            console.error(`Failed to upload ${doc.type}:`, err);
+          }
         }
       }
       
@@ -167,10 +219,14 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
       }
       
       form.reset(); // Reset form
-      setPitchDeck(null); // Reset pitch deck
+      setDocumentUploads([]); // Reset document uploads
+      setCurrentDocDescription('');
+      setCurrentDocType('pitch_deck');
+      setShowDocUploadForm(false);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
+      
       queryClient.invalidateQueries({ queryKey: ['/api/deals'] }); // Refresh deals data
       onClose(); // Close modal
     },
@@ -189,7 +245,7 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[625px]">
+      <DialogContent className="sm:max-w-[625px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add New Deal</DialogTitle>
           <DialogDescription>
@@ -258,8 +314,6 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
                 </FormItem>
               )}
             />
-
-
 
             <FormField
               control={form.control}
@@ -360,48 +414,118 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
             />
             
             <div className="space-y-2">
-              <Label>Pitch Deck (Optional)</Label>
-              <div className="flex flex-col gap-2">
-                {pitchDeck ? (
-                  <Card className="p-3 flex items-center justify-between">
-                    <div className="flex items-center">
-                      <File className="h-5 w-5 mr-2 text-neutral-500" />
-                      <div>
-                        <p className="font-medium text-sm">{pitchDeck.name}</p>
-                        <p className="text-xs text-neutral-500">{(pitchDeck.size / 1024).toFixed(1)} KB</p>
+              <div className="flex justify-between items-center">
+                <Label>Documents</Label>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setShowDocUploadForm(true)}
+                  className="text-xs h-7 px-2"
+                >
+                  <Plus className="h-3.5 w-3.5 mr-1" />
+                  Add Document
+                </Button>
+              </div>
+              
+              {/* Document list */}
+              {documentUploads.length > 0 ? (
+                <div className="space-y-2">
+                  {documentUploads.map((doc, index) => (
+                    <Card key={index} className="p-3 flex items-center justify-between">
+                      <div className="flex items-center">
+                        <File className="h-5 w-5 mr-2 text-neutral-500" />
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium text-sm">{doc.file.name}</p>
+                            <Badge variant="outline" className="text-[10px] h-5">
+                              {DOCUMENT_TYPES[doc.type]}
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-neutral-500">{(doc.file.size / 1024).toFixed(1)} KB</p>
+                        </div>
                       </div>
-                    </div>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => removeDocument(index)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-4 text-neutral-500 bg-neutral-50 rounded-md">
+                  <p className="text-sm">No documents added yet.</p>
+                </div>
+              )}
+              
+              {/* Document upload form */}
+              {showDocUploadForm && (
+                <Card className="p-4 space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h4 className="font-medium text-sm">Add Document</h4>
                     <Button 
                       variant="ghost" 
                       size="sm" 
-                      onClick={() => {
-                        setPitchDeck(null);
-                        if (fileInputRef.current) {
-                          fileInputRef.current.value = '';
-                        }
-                      }}
+                      className="h-7 w-7 p-0" 
+                      onClick={() => setShowDocUploadForm(false)}
                     >
-                      Remove
+                      <X className="h-4 w-4" />
                     </Button>
-                  </Card>
-                ) : (
-                  <div 
-                    className="border border-dashed rounded-md p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-neutral-50 transition-colors"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <FileUp className="h-8 w-8 mb-2 text-neutral-400" />
-                    <p className="text-sm font-medium">Click to upload a pitch deck</p>
-                    <p className="text-xs text-neutral-500">PDF, PPT, or PPTX (max 10MB)</p>
                   </div>
-                )}
-                <input 
-                  type="file" 
-                  ref={fileInputRef} 
-                  className="hidden" 
-                  onChange={handleFileChange}
-                  accept=".pdf,.ppt,.pptx,application/pdf,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
-                />
-              </div>
+                  
+                  <div className="space-y-3">
+                    <div>
+                      <Label htmlFor="docType">Document Type</Label>
+                      <Select 
+                        value={currentDocType} 
+                        onValueChange={(value: keyof typeof DOCUMENT_TYPES) => setCurrentDocType(value)}
+                      >
+                        <SelectTrigger id="docType" className="mt-1">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.entries(DOCUMENT_TYPES).map(([key, label]) => (
+                            <SelectItem key={key} value={key}>{label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="docDescription">Description (optional)</Label>
+                      <Input
+                        id="docDescription"
+                        value={currentDocDescription}
+                        onChange={(e) => setCurrentDocDescription(e.target.value)}
+                        placeholder="Brief description of this document"
+                        className="mt-1"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label>File</Label>
+                      <div 
+                        className="mt-1 border border-dashed rounded-md p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-neutral-50 transition-colors"
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        <FileUp className="h-6 w-6 mb-2 text-neutral-400" />
+                        <p className="text-sm font-medium">Click to select a file</p>
+                        <p className="text-xs text-neutral-500">PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, etc.</p>
+                      </div>
+                      <input 
+                        type="file" 
+                        ref={fileInputRef} 
+                        className="hidden" 
+                        onChange={handleFileChange}
+                        accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+                      />
+                    </div>
+                  </div>
+                </Card>
+              )}
             </div>
 
             <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-0">
