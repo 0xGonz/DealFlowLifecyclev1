@@ -47,6 +47,18 @@ pool.query('SELECT 1 AS test')
   .catch(err => {
     console.error('Database connection test failed:', err);
     console.error('Continuing with memory storage');
+    
+    // Attempt to reconnect after a delay
+    setTimeout(() => {
+      console.log('Attempting to reconnect to database...');
+      pool.query('SELECT 1 AS test')
+        .then(() => {
+          console.log('Database reconnection successful');
+        })
+        .catch(reconnectErr => {
+          console.error('Database reconnection failed:', reconnectErr);
+        });
+    }, 5000); // Try again after 5 seconds
   });
 
 // Create a function to check pool health periodically
