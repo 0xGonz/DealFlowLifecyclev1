@@ -1,6 +1,6 @@
 import { IStorage, MemStorage } from './storage';
 import { DatabaseStorage } from './database-storage';
-import { db } from './db';
+import { db, pool } from './db';
 
 /**
  * StorageFactory provides a way to easily switch between different storage implementations
@@ -13,8 +13,12 @@ export class StorageFactory {
   // Cache to track consecutive database failures
   private static dbFailures = 0;
   private static lastDbCheck = 0;
-  private static dbCheckInterval = 60000; // 1 minute between checks
+  private static dbCheckInterval = 30000; // 30 seconds between checks (more frequent)
   private static maxDbFailures = 3; // Number of failures before switching to memory storage
+  private static recoveryAttempts = 0;
+  private static maxRecoveryAttempts = 20; // Try to recover for a while before giving up
+  private static recoveryBackoffFactor = 1.5; // Exponential backoff factor
+  private static baseRecoveryInterval = 5000; // Start with 5 seconds between recovery attempts
 
   /**
    * Get the appropriate storage implementation based on environment
@@ -44,23 +48,70 @@ export class StorageFactory {
     } else {
       // Periodically check if we should attempt to reconnect to the database if we're using memory storage
       const now = Date.now();
+      // Calculate backoff interval based on recovery attempts
+      const currentInterval = this.recoveryAttempts === 0 
+        ? this.dbCheckInterval 
+        : Math.min(
+            this.baseRecoveryInterval * Math.pow(this.recoveryBackoffFactor, this.recoveryAttempts),
+            60000 // Cap at 1 minute max
+          );
+          
       if (this.instance instanceof MemStorage && 
-          now - this.lastDbCheck > this.dbCheckInterval) {
+          now - this.lastDbCheck > currentInterval &&
+          this.recoveryAttempts < this.maxRecoveryAttempts) {
         this.lastDbCheck = now;
+        this.recoveryAttempts++;
         
-        // Try to verify database connection
+        // Try to verify database connection with exponential backoff
         try {
+          console.log(`Storage factory: Recovery attempt ${this.recoveryAttempts}/${this.maxRecoveryAttempts} after ${Math.round(currentInterval/1000)}s`);
+          
+          // Use a test query to validate the database is really available
           const testDb = db;
           if (testDb) {
-            console.log('Storage factory: Database now available, attempting to switch back');
-            // Try a simple query to verify connection
-            const testStorage = new DatabaseStorage();
-            // We'll set the instance after a successful test operation
-            this.instance = testStorage;
-            this.dbFailures = 0;
+            // Attempting an actual query to verify connection is live
+            pool.query('SELECT 1 AS test')
+              .then(() => {
+                console.log('Storage factory: Database now confirmed available, switching back to DatabaseStorage');
+                // Create a new database storage instance
+                const testStorage = new DatabaseStorage();
+                // We'll set the instance after a successful test operation
+                this.instance = testStorage;
+                this.dbFailures = 0;
+                this.recoveryAttempts = 0; // Reset recovery attempts on success
+                console.log('Successfully switched back to database storage');
+              })
+              .catch(error => {
+                console.error('Storage factory: Database query test failed:', error);
+              });
           }
         } catch (error) {
-          console.error('Storage factory: Database still unavailable:', error);
+          console.error('Storage factory: Database still unavailable (recovery attempt failed):', error);
+        }
+      } else if (this.recoveryAttempts >= this.maxRecoveryAttempts && this.instance instanceof MemStorage) {
+        // If we've reached max recovery attempts, only check occasionally
+        if (now - this.lastDbCheck > 5 * 60 * 1000) { // Check every 5 minutes after max attempts
+          this.lastDbCheck = now;
+          console.log('Storage factory: Max recovery attempts reached, checking database less frequently');
+          
+          // Still try occasionally
+          try {
+            const testDb = db;
+            if (testDb) {
+              pool.query('SELECT 1 AS test')
+                .then(() => {
+                  console.log('Storage factory: Database available again after extended outage');
+                  this.instance = new DatabaseStorage();
+                  this.dbFailures = 0;
+                  this.recoveryAttempts = 0;
+                })
+                .catch(() => {
+                  console.log('Storage factory: Database still unavailable after extended outage');
+                });
+            }
+          } catch (error) {
+            console.error('Storage factory: Database still unavailable after extended outage:', error);
+          }
         }
       }
       
