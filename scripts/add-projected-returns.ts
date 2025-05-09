@@ -1,51 +1,40 @@
 import { db } from '../server/db';
 import { sql } from 'drizzle-orm';
 
-/**
- * This script adds the projected_irr and projected_multiple columns to the deals table
- * if they don't already exist.
- */
 async function main() {
-  console.log('Adding projected return columns to deals table...');
-
   try {
-    // Check if the columns already exist
-    const columns = await db.execute(sql`
+    console.log('Adding projected returns and multiples columns to deals table...');
+    
+    // Check if columns exist
+    const checkColumns = await db.execute(sql`
       SELECT column_name 
       FROM information_schema.columns 
-      WHERE table_name = 'deals' AND (column_name = 'projected_irr' OR column_name = 'projected_multiple')
+      WHERE table_name = 'deals' 
+      AND (column_name = 'projected_irr' OR column_name = 'projected_multiple')
     `);
-
-    const existingColumns = columns.rows.map((row: any) => row.column_name);
-    console.log('Existing columns:', existingColumns);
-
-    // Add projected_irr column if it doesn't exist
+    
+    const existingColumns = checkColumns.rows.map((row: any) => row.column_name);
+    
     if (!existingColumns.includes('projected_irr')) {
       console.log('Adding projected_irr column...');
-      await db.execute(sql`ALTER TABLE deals ADD COLUMN projected_irr TEXT`);
-      console.log('Added projected_irr column successfully');
+      await db.execute(sql`ALTER TABLE deals ADD COLUMN IF NOT EXISTS projected_irr TEXT`);
     } else {
-      console.log('projected_irr column already exists');
+      console.log('projected_irr column already exists, skipping...');
     }
-
-    // Add projected_multiple column if it doesn't exist
+    
     if (!existingColumns.includes('projected_multiple')) {
       console.log('Adding projected_multiple column...');
-      await db.execute(sql`ALTER TABLE deals ADD COLUMN projected_multiple TEXT`);
-      console.log('Added projected_multiple column successfully');
+      await db.execute(sql`ALTER TABLE deals ADD COLUMN IF NOT EXISTS projected_multiple TEXT`);
     } else {
-      console.log('projected_multiple column already exists');
+      console.log('projected_multiple column already exists, skipping...');
     }
-
-    console.log('Finished adding columns');
+    
+    console.log('Successfully added projected returns and multiples columns!');
     process.exit(0);
   } catch (error) {
-    console.error('Error adding columns:', error);
+    console.error('Error adding projected returns columns:', error);
     process.exit(1);
   }
 }
 
-main().catch(error => {
-  console.error('Unhandled error running script:', error);
-  process.exit(1);
-});
+main();
