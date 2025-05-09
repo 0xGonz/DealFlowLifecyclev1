@@ -24,11 +24,13 @@ export default function PDFViewer({ isOpen, onClose, documentId, documentName }:
   // Get file URL for enhanced PDF viewer
   const pdfFileUrl = `/api/documents/${documentId}/download`;
   
-  // Handler for file not found errors
+  // Handler for various PDF errors - not just 404
   const handleError = (error: Error) => {
     console.error('PDF viewer error:', error);
     // Check if it's a 404 error - backend will have already logged the details
-    if (error.message?.includes('404') || error.message?.includes('not found')) {
+    if (error.message?.includes('404') || 
+        error.message?.toLowerCase().includes('not found') ||
+        error.message?.toLowerCase().includes('failed to fetch')) {
       setNotFound(true);
     }
   };

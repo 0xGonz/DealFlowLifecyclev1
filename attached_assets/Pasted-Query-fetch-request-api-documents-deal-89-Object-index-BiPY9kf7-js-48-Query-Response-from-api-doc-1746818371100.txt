@@ -1,0 +1,18 @@
+Query fetch request: /api/documents/deal/89 Object
+index-BiPY9kf7.js:48 Query Response from /api/documents/deal/89: Object
+index-BiPY9kf7.js:48 Query data received from /api/documents/deal/89: Array(1)
+pdf.worker.mjs:1 Failed to load module script: The server responded with a non-JavaScript MIME type of "text/html". Strict MIME type checking is enforced for module scripts per HTML spec.Understand this error
+index-BiPY9kf7.js:513 Warning: Setting up fake worker.
+index-BiPY9kf7.js:524 Error loading PDF: Error: Setting up fake worker failed: "Failed to resolve module specifier 'pdf.worker.mjs'".
+    at index-BiPY9kf7.js:514:185445
+onLoadError @ index-BiPY9kf7.js:524Understand this error
+download:1 
+            
+            
+           Failed to load resource: the server responded with a status of 404 ()Understand this error
+89:1 The resource https://deal-flow-lifecyclev-1-bgonzalez9.replit.app/pdfjs/pdf.worker.min.js was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally.Understand this warning
+89:1 The resource https://deal-flow-lifecyclev-1-bgonzalez9.replit.app/pdfjs/pdf.worker.min.js was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally.Understand this warning
+index-BiPY9kf7.js:48 Query fetch request: /api/system/health {queryKey: Array(1), unauthorizedBehavior: 'returnNull'}
+index-BiPY9kf7.js:48 Query Response from /api/system/health: {status: 200, statusText: '', ok: true}
+index-BiPY9kf7.js:48 Query data received from /api/system/health: {status: 'ok', timestamp: '2025-05-09T19:19:10.445Z', storage: 'database', databaseConnected: true, environment: 'production'}
+89:1 The resource https://deal-flow-lifecyclev-1-bgonzalez9.replit.app/pdfjs/pdf.worker.min.js was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally.Understand this warning

@@ -100,12 +100,30 @@ const EnhancedPDFViewer: React.FC<PDFViewerProps> = ({ file, title }) => {
 
   // If there's an error and we've tried the fallback (or can't use it), show error
   if (error && (!fileUrl || (useFallback && error))) {
+    // Check for specific error types to give better messages
+    let errorTitle = 'Error loading PDF';
+    let errorMessage = error.message || 'The document could not be loaded. Please try again later.';
+    
+    // Handle 404 errors (file not found)
+    if (error.message?.includes('404') || 
+        error.message?.toLowerCase().includes('not found') ||
+        error.message?.toLowerCase().includes('failed to fetch')) {
+      errorTitle = 'Document not found';
+      errorMessage = 'The file could not be found on the server. It may have been deleted or moved.';
+    } 
+    // Handle PDF.js worker errors
+    else if (error.message?.includes('worker') || 
+             error.message?.includes('pdf.worker')) {
+      errorTitle = 'PDF viewer issue';
+      errorMessage = 'There was a problem initializing the PDF viewer. The document may still be available for download.';
+    }
+    
     return (
       <Alert variant="destructive" className="my-4">
         <FileWarning className="h-4 w-4" />
-        <AlertTitle>Error loading PDF</AlertTitle>
+        <AlertTitle>{errorTitle}</AlertTitle>
         <AlertDescription>
-          {error.message || 'The document could not be loaded. Please try again later.'}
+          {errorMessage}
         </AlertDescription>
       </Alert>
     );

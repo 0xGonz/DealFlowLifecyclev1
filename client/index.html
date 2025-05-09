@@ -8,15 +8,24 @@
     
     <!-- Pre-load the PDF.js worker script to ensure it's available when needed -->
     <script>
-      window.pdfjsWorkerSrc = '/pdfjs/pdf.worker.min.js';
+      // Use CDN worker source for increased reliability
+      window.pdfjsWorkerSrc = 'https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+      window.__pdfjsWorkerPreloaded = true;
       
       // Create a dynamic script element to load the worker
       const preloadWorker = () => {
+        // Add both preload and actual script
         const link = document.createElement('link');
         link.rel = 'preload';
         link.href = window.pdfjsWorkerSrc;
         link.as = 'script';
         document.head.appendChild(link);
+        
+        // Actually load the worker script
+        const script = document.createElement('script');
+        script.src = window.pdfjsWorkerSrc;
+        script.async = true;
+        document.head.appendChild(script);
         
         console.log('PDF.js worker preloaded in HTML');
       };
