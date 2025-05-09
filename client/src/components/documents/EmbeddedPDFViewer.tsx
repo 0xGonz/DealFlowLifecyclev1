@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Download, FileText, AlertCircle } from 'lucide-react';
+import { Download, FileText, AlertCircle, X } from 'lucide-react';
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Document as PDFDocument, Page as PDFPage } from 'react-pdf';
@@ -16,19 +16,12 @@ interface EmbeddedPDFViewerProps {
 export default function EmbeddedPDFViewer({ documentId, documentName }: EmbeddedPDFViewerProps) {
   const [pdfFailed, setPdfFailed] = useState(false);
   const [errorType, setErrorType] = useState<'auth' | 'not_found' | 'unknown' | null>(null);
+  const [showIframeMode, setShowIframeMode] = useState(false);
   const { toast } = useToast();
   const documentUrl = `/api/documents/${documentId}/download`;
   
-  // Initialize the PDF worker when component mounts
-  useEffect(() => {
-    // Ensure PDF.js worker is configured
-    try {
-      configurePdfWorker();
-      console.log('PDF worker configured in EmbeddedPDFViewer');
-    } catch (err) {
-      console.error('Failed to configure PDF worker:', err);
-    }
-  }, []);
+  // PDF worker is already configured in main.tsx
+  // No need to initialize it again here
   
   // Check if file is likely a PDF
   const isPdfFile = documentName.toLowerCase().endsWith('.pdf') || 
@@ -116,27 +109,49 @@ export default function EmbeddedPDFViewer({ documentId, documentName }: Embedded
   // Error handler for PDF viewer 
   const handlePdfError = (error: Error) => {
     console.error('PDF viewer error:', error);
-    setPdfFailed(true);
     
     // Determine error type based on error message
+    let errorTypeValue: 'auth' | 'not_found' | 'unknown' = 'unknown';
+    
     if (error.message && (
         error.message.includes('401') || 
         error.message.toLowerCase().includes('unauthorized') || 
         error.message.toLowerCase().includes('authentication'))) {
-      setErrorType('auth');
+      errorTypeValue = 'auth';
     } else if (error.message && error.message.includes('404')) {
-      setErrorType('not_found');
-    } else {
-      setErrorType('unknown');
+      errorTypeValue = 'not_found';
     }
     
-    toast({
-      title: 'Document Viewer Issue',
-      description: errorType === 'auth' 
-        ? 'Authentication error. Please make sure you have permission to view this document.'
-        : 'PDF could not be loaded. This might be because the file is missing or corrupted.',
-      variant: 'destructive',
-    });
+    // If it's not an authentication error, we can try the iframe fallback
+    if (errorTypeValue !== 'auth' && isPdfFile) {
+      console.log('Attempting to use iframe fallback for PDF');
+      setShowIframeMode(true);
+      // Only set PDF as failed if iframe also fails or isn't an option
+      if (!documentUrl || errorTypeValue === 'not_found') {
+        setPdfFailed(true);
+        setErrorType(errorTypeValue);
+        
+        // Show a toast for complete failure
+        toast({
+          title: 'Document Viewer Issue',
+          description: 'PDF could not be loaded. This might be because the file is missing or corrupted.',
+          variant: 'destructive',
+        });
+      }
+    } else {
+      // For auth errors or non-PDFs, we'll show the error state directly
+      setPdfFailed(true);
+      setErrorType(errorTypeValue);
+      
+      // Use the determined error type directly in toast
+      toast({
+        title: 'Document Viewer Issue',
+        description: errorTypeValue === 'auth' 
+          ? 'Authentication error. Please make sure you have permission to view this document.'
+          : 'PDF could not be loaded. This might be because the file is missing or corrupted.',
+        variant: 'destructive',
+      });
+    }
   };
 
   return (
@@ -163,27 +178,7 @@ export default function EmbeddedPDFViewer({ documentId, documentName }: Embedded
                   onLoadError={(error) => {
                     console.error('PDF loading error:', error);
                     handlePdfError(error);
-                    
-                    // Try to switch to iframe fallback
-                    setTimeout(() => {
-                      const container = document.getElementById(`pdf-container-${documentId}`);
-                      const parent = container?.parentElement;
-                      
-                      if (parent) {
-                        // Hide the failed container
-                        if (container) container.style.display = 'none';
-                        
-                        // Create and add iframe fallback
-                        const iframe = document.createElement('iframe');
-                        iframe.src = documentUrl;
-                        iframe.className = 'w-full h-full border-0';
-                        iframe.title = documentName;
-                        
-                        parent.appendChild(iframe);
-                        
-                        console.log('Switched to iframe fallback for PDF view');
-                      }
-                    }, 100);
+                    // No need for DOM manipulation, we'll use React to handle the fallback
                   }}
                   className="pdf-document w-full h-full"
                 >
@@ -196,6 +191,39 @@ export default function EmbeddedPDFViewer({ documentId, documentName }: Embedded
                   />
                 </PDFDocument>
               </div>
+            </div>
+          ) : showIframeMode ? (
+            // React-based iframe fallback
+            <div className="w-full h-full relative">
+              <div className="absolute top-0 left-0 right-0 bg-amber-50 text-amber-700 px-3 py-2 text-xs flex items-center">
+                <AlertCircle className="h-3 w-3 mr-1" />
+                <span>Using alternative viewer. Some features may be limited.</span>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="ml-auto h-6 px-2 py-0 text-xs"
+                  onClick={() => {
+                    setPdfFailed(true);
+                    setShowIframeMode(false);
+                    setErrorType('unknown');
+                  }}
+                >
+                  <X className="h-3 w-3 mr-1" />
+                  Close
+                </Button>
+              </div>
+              <iframe
+                src={documentUrl}
+                className="w-full h-full border-0 pt-9"
+                title={documentName}
+                sandbox="allow-same-origin allow-scripts allow-forms"
+                onError={() => {
+                  console.error('Iframe fallback also failed');
+                  setPdfFailed(true);
+                  setShowIframeMode(false);
+                  setErrorType('unknown');
+                }}
+              />
             </div>
           ) : (
             <div className="w-full h-full flex flex-col items-center justify-center p-8 bg-neutral-50">

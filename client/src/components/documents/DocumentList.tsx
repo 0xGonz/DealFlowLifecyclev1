@@ -49,15 +49,8 @@ export default function DocumentList({ dealId }: DocumentListProps) {
   const [documentType, setDocumentType] = useState('pitch_deck');
   const [description, setDescription] = useState('');
   
-  // Initialize PDF worker when component mounts
-  useEffect(() => {
-    try {
-      configurePdfWorker();
-      console.log('PDF worker initialized in DocumentList');
-    } catch (err) {
-      console.error('Failed to initialize PDF worker in DocumentList:', err);
-    }
-  }, []);
+  // PDF worker is already configured in main.tsx
+  // No need for initialization here
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
   const [isPdfViewerOpen, setIsPdfViewerOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
