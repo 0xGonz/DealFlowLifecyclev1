@@ -27,15 +27,69 @@ export default function EmbeddedPDFViewer({ documentId, documentName }: Embedded
     // Verify file exists with a HEAD request before trying to render
     const checkFile = async () => {
       try {
-        const response = await fetch(documentUrl, { method: 'HEAD' });
+        const response = await fetch(documentUrl, { 
+          method: 'HEAD',
+          headers: {
+            'Accept': 'application/json' // Request JSON response for errors
+          }
+        });
+        
         if (!response.ok) {
           setPdfFailed(true);
-          if (response.status === 401 || response.status === 403) {
-            setErrorType('auth');
-          } else if (response.status === 404) {
-            setErrorType('not_found');
+          
+          // Try to get detailed error information
+          if (response.headers.get('content-type')?.includes('application/json')) {
+            try {
+              // For HEAD requests, we can't read the body, so make another request
+              const detailResponse = await fetch(documentUrl, { 
+                method: 'GET',
+                headers: { 'Accept': 'application/json' }
+              });
+              
+              if (detailResponse.headers.get('content-type')?.includes('application/json')) {
+                const errorDetails = await detailResponse.json();
+                console.log('Error details:', errorDetails);
+                
+                if (errorDetails.error === 'file_not_found') {
+                  setErrorType('not_found');
+                } else if (errorDetails.error === 'unauthorized' || 
+                           response.status === 401 || 
+                           response.status === 403) {
+                  setErrorType('auth');
+                } else {
+                  setErrorType('unknown');
+                }
+              } else {
+                // Fallback to status code-based detection
+                if (response.status === 401 || response.status === 403) {
+                  setErrorType('auth');
+                } else if (response.status === 404) {
+                  setErrorType('not_found');
+                } else {
+                  setErrorType('unknown');
+                }
+              }
+            } catch (detailErr) {
+              console.error('Error fetching error details:', detailErr);
+              
+              // Fallback to status code-based detection
+              if (response.status === 401 || response.status === 403) {
+                setErrorType('auth');
+              } else if (response.status === 404) {
+                setErrorType('not_found');
+              } else {
+                setErrorType('unknown');
+              }
+            }
           } else {
-            setErrorType('unknown');
+            // Fallback to status code-based detection
+            if (response.status === 401 || response.status === 403) {
+              setErrorType('auth');
+            } else if (response.status === 404) {
+              setErrorType('not_found');
+            } else {
+              setErrorType('unknown');
+            }
           }
         }
       } catch (err) {
