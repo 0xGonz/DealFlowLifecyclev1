@@ -5,6 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
     <title>Doliver Advisors - Investment Lifecycle Tracking</title>
     <link rel="icon" type="image/svg+xml" href="/src/assets/doliver-logo.png" />
+    
+    <!-- Pre-load the PDF.js worker script to ensure it's available when needed -->
+    <script>
+      window.pdfjsWorkerSrc = '/pdfjs/pdf.worker.min.js';
+      
+      // Create a dynamic script element to load the worker
+      const preloadWorker = () => {
+        const link = document.createElement('link');
+        link.rel = 'preload';
+        link.href = window.pdfjsWorkerSrc;
+        link.as = 'script';
+        document.head.appendChild(link);
+        
+        console.log('PDF.js worker preloaded in HTML');
+      };
+      
+      // Call immediately
+      preloadWorker();
+    </script>
   </head>
   <body>
     <div id="root"></div>

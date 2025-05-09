@@ -1,6 +1,9 @@
 import { pdfjs } from 'react-pdf';
 
-// Set the worker source URL to specifically address the 'pdf.worker.mjs' error
+/**
+ * Configures the PDF.js worker with a locally hosted worker file
+ * This creates a self-contained solution that doesn't depend on external CDNs
+ */
 export const configurePdfWorker = () => {
   // Only configure once
   if (pdfjs.GlobalWorkerOptions.workerSrc) {
@@ -10,55 +13,47 @@ export const configurePdfWorker = () => {
   console.log('Setting up PDF.js worker options...');
 
   try {
-    // Method 1: Direct CDN approach with specific worker file
-    // Using the minified version from jsdelivr which is more reliable
-    const workerUrl = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
-    pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
-    console.log('PDF worker URL set to:', workerUrl);
+    // Check if we have the global worker path set in index.html
+    if (typeof window !== 'undefined' && window.pdfjsWorkerSrc) {
+      pdfjs.GlobalWorkerOptions.workerSrc = window.pdfjsWorkerSrc;
+      console.log('PDF worker URL set from window.pdfjsWorkerSrc:', window.pdfjsWorkerSrc);
+      return;
+    }
+
+    // BACKUP APPROACH: Use locally hosted worker file
+    // These files have been downloaded to the public/pdfjs directory and are served by our app
+    const localWorkerUrl = '/pdfjs/pdf.worker.min.js';
+    pdfjs.GlobalWorkerOptions.workerSrc = localWorkerUrl;
+    console.log('PDF worker URL set to local file:', localWorkerUrl);
     
-    // Explicitly log success
     return;
   } catch (error) {
-    console.error('Failed to set PDF worker URL:', error);
+    console.error('Failed to set up PDF worker with local file:', error);
     
-    // Method 2: Try alternate worker configuration approach
+    // FALLBACK 1: Try CDN approach
     try {
-      console.log('Trying alternate worker configuration...');
-      // Use inline worker via blob URL as fallback
-      const workerCode = `
-        self.onmessage = function(e) {
-          self.postMessage({ isWorkerReady: true });
-        };
-      `;
-      
-      const blob = new Blob([workerCode], { type: 'application/javascript' });
-      const blobUrl = URL.createObjectURL(blob);
-      
-      // Use the blob URL as worker source
-      pdfjs.GlobalWorkerOptions.workerSrc = blobUrl;
-      console.log('Using blob URL worker fallback');
+      const cdnWorkerUrl = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+      pdfjs.GlobalWorkerOptions.workerSrc = cdnWorkerUrl;
+      console.log('PDF worker URL set to CDN:', cdnWorkerUrl);
       return;
-    } catch (blobError) {
-      console.error('Failed to create blob worker:', blobError);
+    } catch (cdnError) {
+      console.error('Failed to set PDF worker URL from CDN:', cdnError);
     }
     
-    // Method 3: Try workerless mode
+    // FALLBACK 2: Force disable worker mode when all else fails
     try {
       console.warn('Falling back to worker-less mode for PDF.js');
       // @ts-ignore
       pdfjs.disableWorker = true;
-      
-      // Set a dummy worker source to satisfy react-pdf
-      pdfjs.GlobalWorkerOptions.workerSrc = 'data:application/javascript;base64,';
-      
       return;
     } catch (disableError) {
-      console.error('Failed to disable worker:', disableError);
+      console.error('Critical PDF.js configuration failure:', disableError);
     }
   }
   
-  // If all else fails, try to continue without explicit configuration
-  console.error('All PDF worker configuration methods failed. Document viewer may not function correctly.');
+  // Last resort - set a dummy worker source
+  pdfjs.GlobalWorkerOptions.workerSrc = 'data:application/javascript;base64,';
+  console.warn('Using dummy worker source as final fallback');
 };
 
 // Call this function immediately when imported
