@@ -14,6 +14,7 @@ import documentsRoutes from './routes/documents';
 import allocationsRoutes from './routes/allocations';
 import capitalCallsRoutes from './routes/capital-calls';
 import closingSchedulesRoutes from './routes/closing-schedules';
+import { systemRouter } from './routes/system';
 
 // Utils
 import { errorHandler, notFoundHandler, AppError } from './utils/errorHandlers';
@@ -30,10 +31,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     next();
   });
   
-  // Authentication middleware for all API routes except auth endpoints
+  // Authentication middleware for all API routes except auth endpoints and system endpoints
   app.use('/api', (req: Request, res: Response, next: NextFunction) => {
-    // Skip auth check for auth endpoints and OPTIONS requests
-    if (req.path.startsWith('/auth') || req.method === 'OPTIONS') {
+    // Skip auth check for auth/system endpoints and OPTIONS requests
+    if (req.path.startsWith('/auth') || 
+        req.path.startsWith('/system') || 
+        req.method === 'OPTIONS') {
       return next();
     }
     
@@ -55,6 +58,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/activity', activityRoutes);
   app.use('/api/notifications', notificationsRoutes);
   app.use('/api/documents', documentsRoutes);
+  app.use('/api/system', systemRouter);
   
   // Catch-all route for 404s
   app.use('/api/*', notFoundHandler);
