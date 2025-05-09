@@ -3,30 +3,23 @@ import App from "./App";
 import { ThemeProvider } from "@/components/theme-provider";
 import "./index.css";
 
-// Import and configure PDF.js worker globally at app startup
+// Import PDF.js for configuration
 import { pdfjs } from 'react-pdf';
-import { configurePdfWorker } from '@/lib/pdf-config';
 
-// First add a global hint that we're using the PDF.js worker
-// This helps browsers understand the PDF.js worker is coming
+// Configure PDF.js worker at app startup
+// The most reliable approach is to use the path defined in HTML
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('PDF.js worker preloaded in HTML');
+  // If the path was defined in HTML, use it directly - no multiple imports
+  if (window.pdfjsWorkerSrc) {
+    console.log('Using PDF.js worker path from HTML:', window.pdfjsWorkerSrc);
+    pdfjs.GlobalWorkerOptions.workerSrc = window.pdfjsWorkerSrc;
+  } else {
+    // Fallback to a direct local file reference
+    const localWorkerPath = '/pdfjs/pdf.worker.min.js';
+    console.log('Setting PDF.js worker to local path:', localWorkerPath);
+    pdfjs.GlobalWorkerOptions.workerSrc = localWorkerPath;
+  }
 });
-
-// Set fallback empty worker source for maximum compatibility
-pdfjs.GlobalWorkerOptions.workerSrc = '';
-
-// Initialize PDF worker configuration as early as possible
-try {
-  // Also try to explicitly disable the worker
-  // @ts-ignore - TypeScript doesn't know about this property
-  pdfjs.disableWorker = true;
-  
-  configurePdfWorker();
-  console.log('PDF worker configured at application startup');
-} catch (error) {
-  console.error('Failed to configure PDF worker at startup:', error);
-}
 
 createRoot(document.getElementById("root")!).render(
   <ThemeProvider defaultTheme="light" storageKey="doliver-theme">

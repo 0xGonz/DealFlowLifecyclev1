@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Document, Page, pdfjs } from 'react-pdf';
+import { Document, Page } from 'react-pdf';
 import { Loader2, AlertCircle, FileWarning, Download } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { checkFileExists } from '@/lib/pdf-config';
 
-// PDF.js worker configuration is handled globally in pdf-config.ts
+// Worker configuration is now handled in main.tsx and index.html
 // This component focuses on rendering and error handling
 
 interface PDFViewerProps {
@@ -20,26 +21,48 @@ const EnhancedPDFViewer: React.FC<PDFViewerProps> = ({ file, title }) => {
   const [error, setError] = useState<Error | null>(null);
   const [useFallback, setUseFallback] = useState<boolean>(false);
   const [fileUrl, setFileUrl] = useState<string>('');
+  const [fileExists, setFileExists] = useState<boolean>(true);
 
-  // Convert file to URL if it's an ArrayBuffer
+  // Check if the file exists and convert it to a URL if needed
   useEffect(() => {
-    if (typeof file === 'string') {
-      setFileUrl(file);
-    } else if (file && 'data' in file) {
-      try {
-        const blob = new Blob([file.data], { type: 'application/pdf' });
-        const url = URL.createObjectURL(blob);
-        setFileUrl(url);
+    const setupFile = async () => {
+      // For string URLs, check if the file exists on the server
+      if (typeof file === 'string') {
+        setFileUrl(file);
         
-        // Clean up the URL when component unmounts
-        return () => {
-          URL.revokeObjectURL(url);
-        };
-      } catch (err) {
-        console.error('Error creating object URL from ArrayBuffer:', err);
-        setError(err instanceof Error ? err : new Error('Failed to process PDF data'));
+        try {
+          const exists = await checkFileExists(file);
+          setFileExists(exists);
+          
+          if (!exists) {
+            setError(new Error('File not found on server (404)'));
+            setLoading(false);
+          }
+        } catch (err) {
+          console.error('Error checking file existence:', err);
+        }
+      } 
+      // For ArrayBuffer data, create an object URL
+      else if (file && 'data' in file) {
+        try {
+          const blob = new Blob([file.data], { type: 'application/pdf' });
+          const url = URL.createObjectURL(blob);
+          setFileUrl(url);
+          setFileExists(true);
+          
+          // Clean up the URL when component unmounts
+          return () => {
+            URL.revokeObjectURL(url);
+          };
+        } catch (err) {
+          console.error('Error creating object URL from ArrayBuffer:', err);
+          setError(err instanceof Error ? err : new Error('Failed to process PDF data'));
+          setLoading(false);
+        }
       }
-    }
+    };
+    
+    setupFile();
   }, [file]);
 
   // Function to handle successful document loading
@@ -78,6 +101,33 @@ const EnhancedPDFViewer: React.FC<PDFViewerProps> = ({ file, title }) => {
   const prevDisabled = pageNumber <= 1;
   const nextDisabled = numPages !== null && pageNumber >= numPages;
 
+  // If the file doesn't exist, show the "not found" error
+  if (!fileExists) {
+    return (
+      <div className="space-y-4">
+        <Alert variant="destructive" className="my-4">
+          <FileWarning className="h-4 w-4" />
+          <AlertTitle>Document not found</AlertTitle>
+          <AlertDescription>
+            The file could not be found on the server. It may have been deleted or moved.
+          </AlertDescription>
+        </Alert>
+        
+        {/* Always show download option, even if the file might not exist */}
+        {typeof file === 'string' && (
+          <div className="flex justify-end">
+            <Button asChild variant="outline" size="sm">
+              <a href={file} target="_blank" rel="noopener noreferrer" download>
+                <Download className="h-4 w-4 mr-1" />
+                Download PDF
+              </a>
+            </Button>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   // If there's an error and we're using the fallback, render iframe
   if (error && useFallback && fileUrl) {
     return (
@@ -89,11 +139,24 @@ const EnhancedPDFViewer: React.FC<PDFViewerProps> = ({ file, title }) => {
             The advanced PDF viewer couldn't be loaded. Using browser's built-in viewer instead.
           </AlertDescription>
         </Alert>
+        
         <iframe 
           src={fileUrl}
           className="w-full flex-grow rounded-md border shadow-sm min-h-[600px]"
           title={title || "PDF Document"}
         />
+        
+        {/* Download option in fallback mode */}
+        {typeof file === 'string' && (
+          <div className="flex justify-end">
+            <Button asChild variant="outline" size="sm">
+              <a href={file} target="_blank" rel="noopener noreferrer" download>
+                <Download className="h-4 w-4 mr-1" />
+                Download PDF
+              </a>
+            </Button>
+          </div>
+        )}
       </div>
     );
   }
@@ -155,7 +218,7 @@ const EnhancedPDFViewer: React.FC<PDFViewerProps> = ({ file, title }) => {
         
         {/* The Document component renders the PDF */}
         <Document
-          file={file}
+          file={fileUrl || file}
           onLoadSuccess={onDocumentLoadSuccess}
           onLoadError={onDocumentLoadError}
           loading={
@@ -198,6 +261,18 @@ const EnhancedPDFViewer: React.FC<PDFViewerProps> = ({ file, title }) => {
               Next
             </Button>
           </div>
+        </div>
+      )}
+      
+      {/* Always show download option at the bottom */}
+      {typeof file === 'string' && !loading && (
+        <div className="flex justify-end">
+          <Button asChild variant="outline" size="sm">
+            <a href={file} target="_blank" rel="noopener noreferrer" download>
+              <Download className="h-4 w-4 mr-1" />
+              Download PDF
+            </a>
+          </Button>
         </div>
       )}
     </div>

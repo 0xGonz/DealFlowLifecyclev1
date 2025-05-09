@@ -8,13 +8,12 @@
     
     <!-- Local file approach for PDF.js worker script to work in Replit environment -->
     <script>
-      // Use local worker file that's already in the public folder
+      // Define the path to the worker file but don't load it yet
+      // This will be used by the PDF.js library when it initializes
       window.pdfjsWorkerSrc = '/pdfjs/pdf.worker.min.js';
       window.__pdfjsWorkerPreloaded = true;
       
-      // Simple direct script loading to avoid complications
-      document.write(`<script src="${window.pdfjsWorkerSrc}"><\/script>`);
-      console.log('PDF.js worker preloaded in HTML using local file approach');
+      console.log('PDF.js worker path defined for later use');
     </script>
   </head>
   <body>

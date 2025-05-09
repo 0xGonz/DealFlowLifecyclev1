@@ -4,8 +4,8 @@ import { Download, FileText, AlertCircle, X } from 'lucide-react';
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Document as PDFDocument, Page as PDFPage } from 'react-pdf';
-// Import and initialize PDF worker configuration
-import { configurePdfWorker } from '@/lib/pdf-config';
+// Import PDF utilities
+import { checkFileExists } from '@/lib/pdf-config';
 import { useAuth } from "@/hooks/use-auth";
 
 interface EmbeddedPDFViewerProps {

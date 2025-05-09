@@ -12,8 +12,8 @@ import PDFViewer from './PDFViewer'; // Import our updated PDFViewer component
 import EmbeddedPDFViewer from './EmbeddedPDFViewer';
 // Import react-pdf components
 import { Document as PDFDocument, Page as PDFPage } from 'react-pdf';
-// Import and explicitly configure PDF worker
-import { configurePdfWorker } from '@/lib/pdf-config';
+// Import PDF utilities
+import { checkFileExists } from '@/lib/pdf-config';
 import {
   AlertDialog,
   AlertDialogAction,

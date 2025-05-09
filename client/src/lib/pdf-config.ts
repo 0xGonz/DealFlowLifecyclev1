@@ -1,56 +1,38 @@
 import { pdfjs } from 'react-pdf';
 
 /**
- * Configures PDF.js worker for optimal compatibility across different environments.
- * Using a local file approach instead of CDN for reliability in Replit environment.
+ * Checks if a file exists by making a HEAD request
+ * This is used to detect missing files before attempting to load them in the PDF viewer
  */
-export const configurePdfWorker = () => {
-  // Check if already configured
-  if (pdfjs.GlobalWorkerOptions.workerSrc && pdfjs.GlobalWorkerOptions.workerSrc !== '') {
-    console.log('PDF.js worker already configured:', pdfjs.GlobalWorkerOptions.workerSrc);
-    return;
-  }
-  
-  console.log('Setting up PDF.js worker using local file approach...');
+export const checkFileExists = async (url: string): Promise<boolean> => {
+  if (!url || typeof url !== 'string') return false;
   
   try {
-    // APPROACH 1: Use the worker that was preloaded in HTML
-    if (window.pdfjsWorkerSrc) {
-      pdfjs.GlobalWorkerOptions.workerSrc = window.pdfjsWorkerSrc;
-      console.log('PDF.js worker set to preloaded source:', window.pdfjsWorkerSrc);
-      
-      // Extra check for specific worker loading modes
-      if (window.__pdfjsWorkerPreloaded) {
-        console.log('Using preloaded worker - should be most reliable');
-      }
-      return;
-    }
-    
-    // APPROACH 2: Local file with specific version matching the one in react-pdf
-    // This file is served directly from public/pdfjs directory
-    const localWorkerUrl = '/pdfjs/pdf.worker.min.js';
-    pdfjs.GlobalWorkerOptions.workerSrc = localWorkerUrl;
-    console.log('PDF.js worker set to local file source:', localWorkerUrl);
-    
+    const response = await fetch(url, { method: 'HEAD' });
+    return response.ok;
   } catch (error) {
-    console.warn('Failed to set worker, using baseline mode:', error);
-    
-    // APPROACH 3: Force worker-less operation as a last resort
-    try {
-      // @ts-ignore - These are internal properties that exist but aren't in the types
-      pdfjs.disableWorker = true;
-      pdfjs.GlobalWorkerOptions.workerSrc = '';
-      console.log('PDF.js worker disabled - using main thread for PDF operations (fallback mode)');
-    } catch (e) {
-      console.error('Critical PDF.js configuration failure:', e);
-    }
+    console.error('Error checking file existence:', error);
+    return false;
   }
 };
 
-// Call this function immediately when imported
-configurePdfWorker();
+/**
+ * Helper function to extract document name from path
+ */
+export const getDocumentNameFromPath = (path: string): string => {
+  if (!path) return 'Document';
+  
+  try {
+    // Extract just the filename without path or extension
+    const filename = path.split('/').pop() || 'Document';
+    return decodeURIComponent(filename.replace(/\.[^/.]+$/, ""));
+  } catch (e) {
+    return 'Document';
+  }
+};
 
-// Export other PDF-related configuration and utility functions as needed
+// Export a utility object with PDF-related functions
 export default {
-  configurePdfWorker,
+  checkFileExists,
+  getDocumentNameFromPath
 };
