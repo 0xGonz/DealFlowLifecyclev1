@@ -26,9 +26,9 @@ export const configurePdfWorker = () => {
       return;
     }
     
-    // APPROACH 2: Direct CDN with specific version
-    // Using jsdelivr as primary and unpkg as backup
-    const cdnWorkerUrl = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+    // APPROACH 2: Direct CDN with specific version matching the one in HTML
+    // Using jsdelivr as primary and exact version from react-pdf
+    const cdnWorkerUrl = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.8.69/build/pdf.worker.min.js';
     pdfjs.GlobalWorkerOptions.workerSrc = cdnWorkerUrl;
     console.log('PDF.js worker set to explicit CDN source:', cdnWorkerUrl);
     

@@ -8,8 +8,8 @@
     
     <!-- Direct CDN approach for PDF.js worker script -->
     <script>
-      // Use exact version CDN worker source for maximum reliability
-      window.pdfjsWorkerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+      // Use exact version CDN worker source for maximum reliability, matching the version used in react-pdf
+      window.pdfjsWorkerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.8.69/build/pdf.worker.min.js';
       window.__pdfjsWorkerPreloaded = true;
       
       // Simple direct script loading to avoid complications
