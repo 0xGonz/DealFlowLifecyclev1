@@ -1,4 +1,6 @@
 import { pdfjs } from 'react-pdf';
+// Import the worker directly - this resolves the 'pdf.worker.mjs' import issue
+import workerModule from './pdf.worker.mjs';
 
 /**
  * Configures the PDF.js worker with a locally hosted worker file
@@ -10,18 +12,25 @@ export const configurePdfWorker = () => {
     return;
   }
 
-  console.log('Setting up PDF.js worker options...');
+  console.log('Setting up PDF.js worker options directly...');
 
   try {
-    // Check if we have the global worker path set in index.html
+    // BEST APPROACH: Import the worker as a direct module
+    // This is the most reliable method because it directly addresses the import error
+    if (workerModule && workerModule.workerPath) {
+      pdfjs.GlobalWorkerOptions.workerSrc = workerModule.workerPath;
+      console.log('PDF worker URL set from direct module import:', workerModule.workerPath);
+      return;
+    }
+
+    // FALLBACK 1: Check if we have the global worker path set in index.html
     if (typeof window !== 'undefined' && window.pdfjsWorkerSrc) {
       pdfjs.GlobalWorkerOptions.workerSrc = window.pdfjsWorkerSrc;
       console.log('PDF worker URL set from window.pdfjsWorkerSrc:', window.pdfjsWorkerSrc);
       return;
     }
 
-    // BACKUP APPROACH: Use locally hosted worker file
-    // These files have been downloaded to the public/pdfjs directory and are served by our app
+    // FALLBACK 2: Use locally hosted worker file
     const localWorkerUrl = '/pdfjs/pdf.worker.min.js';
     pdfjs.GlobalWorkerOptions.workerSrc = localWorkerUrl;
     console.log('PDF worker URL set to local file:', localWorkerUrl);
@@ -30,7 +39,7 @@ export const configurePdfWorker = () => {
   } catch (error) {
     console.error('Failed to set up PDF worker with local file:', error);
     
-    // FALLBACK 1: Try CDN approach
+    // FALLBACK 3: Try CDN approach
     try {
       const cdnWorkerUrl = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
       pdfjs.GlobalWorkerOptions.workerSrc = cdnWorkerUrl;
@@ -40,7 +49,7 @@ export const configurePdfWorker = () => {
       console.error('Failed to set PDF worker URL from CDN:', cdnError);
     }
     
-    // FALLBACK 2: Force disable worker mode when all else fails
+    // FALLBACK 4: Force disable worker mode when all else fails
     try {
       console.warn('Falling back to worker-less mode for PDF.js');
       // @ts-ignore
