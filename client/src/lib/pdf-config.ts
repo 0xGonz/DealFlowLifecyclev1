@@ -2,7 +2,7 @@ import { pdfjs } from 'react-pdf';
 
 /**
  * Configures PDF.js worker for optimal compatibility across different environments.
- * Using a CDN approach for maximum reliability.
+ * Using a local file approach instead of CDN for reliability in Replit environment.
  */
 export const configurePdfWorker = () => {
   // Check if already configured
@@ -11,26 +11,26 @@ export const configurePdfWorker = () => {
     return;
   }
   
-  console.log('Setting up PDF.js worker using CDN approach...');
+  console.log('Setting up PDF.js worker using local file approach...');
   
   try {
     // APPROACH 1: Use the worker that was preloaded in HTML
     if (window.pdfjsWorkerSrc) {
       pdfjs.GlobalWorkerOptions.workerSrc = window.pdfjsWorkerSrc;
-      console.log('PDF.js worker set to preloaded CDN source:', window.pdfjsWorkerSrc);
+      console.log('PDF.js worker set to preloaded source:', window.pdfjsWorkerSrc);
       
       // Extra check for specific worker loading modes
       if (window.__pdfjsWorkerPreloaded) {
-        console.log('Using preloaded worker from CDN - should be most reliable');
+        console.log('Using preloaded worker - should be most reliable');
       }
       return;
     }
     
-    // APPROACH 2: Direct CDN with specific version matching the one in HTML
-    // Using jsdelivr as primary and exact version from react-pdf
-    const cdnWorkerUrl = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.8.69/build/pdf.worker.min.js';
-    pdfjs.GlobalWorkerOptions.workerSrc = cdnWorkerUrl;
-    console.log('PDF.js worker set to explicit CDN source:', cdnWorkerUrl);
+    // APPROACH 2: Local file with specific version matching the one in react-pdf
+    // This file is served directly from public/pdfjs directory
+    const localWorkerUrl = '/pdfjs/pdf.worker.min.js';
+    pdfjs.GlobalWorkerOptions.workerSrc = localWorkerUrl;
+    console.log('PDF.js worker set to local file source:', localWorkerUrl);
     
   } catch (error) {
     console.warn('Failed to set worker, using baseline mode:', error);

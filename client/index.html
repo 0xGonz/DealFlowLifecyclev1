@@ -6,15 +6,15 @@
     <title>Doliver Advisors - Investment Lifecycle Tracking</title>
     <link rel="icon" type="image/svg+xml" href="/src/assets/doliver-logo.png" />
     
-    <!-- Direct CDN approach for PDF.js worker script -->
+    <!-- Local file approach for PDF.js worker script to work in Replit environment -->
     <script>
-      // Use exact version CDN worker source for maximum reliability, matching the version used in react-pdf
-      window.pdfjsWorkerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.8.69/build/pdf.worker.min.js';
+      // Use local worker file that's already in the public folder
+      window.pdfjsWorkerSrc = '/pdfjs/pdf.worker.min.js';
       window.__pdfjsWorkerPreloaded = true;
       
       // Simple direct script loading to avoid complications
-      document.write(`<script src="${window.pdfjsWorkerSrc}" crossorigin="anonymous"><\/script>`);
-      console.log('PDF.js worker preloaded in HTML using direct CDN approach');
+      document.write(`<script src="${window.pdfjsWorkerSrc}"><\/script>`);
+      console.log('PDF.js worker preloaded in HTML using local file approach');
     </script>
   </head>
   <body>
