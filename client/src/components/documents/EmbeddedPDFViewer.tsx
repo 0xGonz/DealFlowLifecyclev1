@@ -27,8 +27,9 @@ export default function EmbeddedPDFViewer({ documentId, documentName }: Embedded
     setPdfFailed(true);
     
     toast({
-      title: 'Using simple document viewer',
-      description: 'PDF viewer could not be initialized. Using simple document viewer instead.',
+      title: 'Document Viewer Issue',
+      description: 'PDF could not be loaded. This might be because the file is missing or corrupted. Trying alternative viewer.',
+      variant: 'destructive',
     });
   };
 
@@ -67,18 +68,34 @@ export default function EmbeddedPDFViewer({ documentId, documentName }: Embedded
               </div>
             </div>
           ) : (
-            <iframe 
-              src={documentUrl} 
-              className="w-full h-full border-0" 
-              title={documentName}
-              onError={() => {
-                toast({
-                  title: 'Document preview error',
-                  description: 'Unable to preview this document. You can download it to view locally.',
-                  variant: 'destructive',
-                });
-              }}
-            />
+            <div className="w-full h-full flex flex-col items-center justify-center p-8 bg-neutral-50">
+              <div className="max-w-md text-center">
+                <FileText className="h-12 w-12 text-neutral-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-neutral-900 mb-2">Document Preview Failed</h3>
+                <p className="text-sm text-neutral-600 mb-4">
+                  The document "{documentName}" could not be loaded. This could be because:
+                </p>
+                <ul className="text-left text-sm text-neutral-600 mb-4 space-y-1">
+                  <li>• The file has been deleted from the server</li>
+                  <li>• The file was not properly saved during upload</li>
+                  <li>• The file might be corrupted</li>
+                </ul>
+                <p className="text-sm text-neutral-600 mb-6">
+                  Please try uploading the document again.
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  asChild
+                  className="mx-auto"
+                >
+                  <a href={documentUrl} target="_blank" rel="noopener noreferrer" download>
+                    <Download className="h-4 w-4 mr-2" />
+                    Try Downloading
+                  </a>
+                </Button>
+              </div>
+            </div>
           )}
         </div>
       </Card>
