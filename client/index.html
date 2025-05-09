@@ -6,32 +6,15 @@
     <title>Doliver Advisors - Investment Lifecycle Tracking</title>
     <link rel="icon" type="image/svg+xml" href="/src/assets/doliver-logo.png" />
     
-    <!-- Pre-load the PDF.js worker script to ensure it's available when needed -->
+    <!-- Direct CDN approach for PDF.js worker script -->
     <script>
-      // Use CDN worker source for increased reliability
-      window.pdfjsWorkerSrc = 'https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+      // Use exact version CDN worker source for maximum reliability
+      window.pdfjsWorkerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
       window.__pdfjsWorkerPreloaded = true;
       
-      // Create a dynamic script element to load the worker
-      const preloadWorker = () => {
-        // Add both preload and actual script
-        const link = document.createElement('link');
-        link.rel = 'preload';
-        link.href = window.pdfjsWorkerSrc;
-        link.as = 'script';
-        document.head.appendChild(link);
-        
-        // Actually load the worker script
-        const script = document.createElement('script');
-        script.src = window.pdfjsWorkerSrc;
-        script.async = true;
-        document.head.appendChild(script);
-        
-        console.log('PDF.js worker preloaded in HTML');
-      };
-      
-      // Call immediately
-      preloadWorker();
+      // Simple direct script loading to avoid complications
+      document.write(`<script src="${window.pdfjsWorkerSrc}" crossorigin="anonymous"><\/script>`);
+      console.log('PDF.js worker preloaded in HTML using direct CDN approach');
     </script>
   </head>
   <body>

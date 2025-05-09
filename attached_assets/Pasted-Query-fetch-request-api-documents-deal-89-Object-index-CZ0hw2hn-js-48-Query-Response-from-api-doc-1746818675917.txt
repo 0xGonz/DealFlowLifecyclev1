@@ -1,0 +1,41 @@
+Query fetch request: /api/documents/deal/89 Object
+index-CZ0hw2hn.js:48 Query Response from /api/documents/deal/89: Object
+index-CZ0hw2hn.js:48 Query data received from /api/documents/deal/89: Array(1)
+index-CZ0hw2hn.js:40  Error: No "GlobalWorkerOptions.workerSrc" specified.
+    at get workerSrc (index-CZ0hw2hn.js:499:186168)
+    at bn._initialize (index-CZ0hw2hn.js:499:184238)
+    at new bn (index-CZ0hw2hn.js:499:183797)
+    at IUe (index-CZ0hw2hn.js:499:168871)
+    at index-CZ0hw2hn.js:509:83949
+    at x_ (index-CZ0hw2hn.js:40:24296)
+    at Zp (index-CZ0hw2hn.js:40:42451)
+    at index-CZ0hw2hn.js:40:40763
+    at j (index-CZ0hw2hn.js:25:1554)
+    at MessagePort.P (index-CZ0hw2hn.js:25:1919)
+kT @ index-CZ0hw2hn.js:40
+index-CZ0hw2hn.js:514  Error caught by ErrorBoundary: Error: No "GlobalWorkerOptions.workerSrc" specified.
+    at get workerSrc (index-CZ0hw2hn.js:499:186168)
+    at bn._initialize (index-CZ0hw2hn.js:499:184238)
+    at new bn (index-CZ0hw2hn.js:499:183797)
+    at IUe (index-CZ0hw2hn.js:499:168871)
+    at index-CZ0hw2hn.js:509:83949
+    at x_ (index-CZ0hw2hn.js:40:24296)
+    at Zp (index-CZ0hw2hn.js:40:42451)
+    at index-CZ0hw2hn.js:40:40763
+    at j (index-CZ0hw2hn.js:25:1554)
+    at MessagePort.P (index-CZ0hw2hn.js:25:1919) Object
+componentDidCatch @ index-CZ0hw2hn.js:514
+index-CZ0hw2hn.js:514  Global error caught by ErrorBoundary: Error: No "GlobalWorkerOptions.workerSrc" specified.
+    at get workerSrc (index-CZ0hw2hn.js:499:186168)
+    at bn._initialize (index-CZ0hw2hn.js:499:184238)
+    at new bn (index-CZ0hw2hn.js:499:183797)
+    at IUe (index-CZ0hw2hn.js:499:168871)
+    at index-CZ0hw2hn.js:509:83949
+    at x_ (index-CZ0hw2hn.js:40:24296)
+    at Zp (index-CZ0hw2hn.js:40:42451)
+    at index-CZ0hw2hn.js:40:40763
+    at j (index-CZ0hw2hn.js:25:1554)
+    at MessagePort.P (index-CZ0hw2hn.js:25:1919) Object
+onError @ index-CZ0hw2hn.js:514
+89:1  The resource https://deal-flow-lifecyclev-1-bgonzalez9.replit.app/pdfjs/pdf.worker.min.js was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally.
+89:1  The resource https://deal-flow-lifecyclev-1-bgonzalez9.replit.app/pdfjs/pdf.worker.min.js was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally.

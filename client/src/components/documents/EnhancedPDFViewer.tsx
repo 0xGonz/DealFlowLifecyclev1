@@ -115,17 +115,31 @@ const EnhancedPDFViewer: React.FC<PDFViewerProps> = ({ file, title }) => {
     else if (error.message?.includes('worker') || 
              error.message?.includes('pdf.worker')) {
       errorTitle = 'PDF viewer issue';
-      errorMessage = 'There was a problem initializing the PDF viewer. The document may still be available for download.';
+      errorMessage = 'There was a problem initializing the PDF viewer. Try downloading the document instead.';
     }
     
     return (
-      <Alert variant="destructive" className="my-4">
-        <FileWarning className="h-4 w-4" />
-        <AlertTitle>{errorTitle}</AlertTitle>
-        <AlertDescription>
-          {errorMessage}
-        </AlertDescription>
-      </Alert>
+      <div className="space-y-4">
+        <Alert variant="destructive" className="my-4">
+          <FileWarning className="h-4 w-4" />
+          <AlertTitle>{errorTitle}</AlertTitle>
+          <AlertDescription>
+            {errorMessage}
+          </AlertDescription>
+        </Alert>
+        
+        {/* Always show download option, even on error */}
+        {typeof file === 'string' && (
+          <div className="flex justify-end">
+            <Button asChild variant="outline" size="sm">
+              <a href={file} target="_blank" rel="noopener noreferrer" download>
+                <Download className="h-4 w-4 mr-1" />
+                Download PDF
+              </a>
+            </Button>
+          </div>
+        )}
+      </div>
     );
   }
 
