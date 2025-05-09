@@ -30,22 +30,37 @@ const PgSession = connectPgSimple(session);
 // Session store instance that will be used by the app
 let activeSessionStore: any;
 
-// Try to initialize the PostgreSQL session store
+// Try to initialize the PostgreSQL session store with improved error handling
 try {
-  // More resilient PostgreSQL session store configuration
+  // More resilient PostgreSQL session store configuration with recovery options
   activeSessionStore = new PgSession({
     pool,
     tableName: 'session', // Use this specific table name for compatibility
     createTableIfMissing: true, // Create the session table if it doesn't exist
-    pruneSessionInterval: 600, // Reduced prune frequency to every 10 minutes to decrease DB load
-    errorLog: console.error, // Log session storage errors
+    pruneSessionInterval: 1800, // Reduced prune frequency to every 30 minutes to further decrease DB load
+    errorLog: (error) => {
+      console.error('PostgreSQL session store error:', error);
+      // If we get connection errors, switch to memory store automatically
+      if (error.message && (
+        error.message.includes('termina') || 
+        error.message.includes('conn') || 
+        error.message.includes('timeout')
+      )) {
+        console.log('PgSession error detected - switching to memory store');
+        activeSessionStore = memoryStore;
+      }
+    },
     schemaName: 'public', // Explicitly set schema name
     disableTouch: false, // Enable touch to update the last access time
     ttl: 86400 * 7, // Session lifetime in seconds (7 days, same as cookie)
+    // Increased timeouts for better tolerance to connection issues
+    conObject: {
+      connectionTimeoutMillis: 15000,
+      query_timeout: 10000
+    }
   });
   
   // Increase max listeners to prevent warnings
-  // Using higher limit to avoid MaxListenersExceededWarning
   activeSessionStore.setMaxListeners(1000);
   
   // Also increase PgStore emit listeners to avoid warnings
@@ -72,6 +87,8 @@ try {
         console.log('Session table created successfully');
       }).catch((createErr) => {
         console.error('Error creating session table:', createErr);
+        console.log('Continuing with memory storage due to table creation failure');
+        activeSessionStore = memoryStore;
       });
     });
   
@@ -82,7 +99,6 @@ try {
   activeSessionStore = memoryStore;
   
   // Set higher max listeners when falling back to memory store
-  // to prevent MaxListenersExceededWarning
   memoryStore.setMaxListeners(1000);
 }
 

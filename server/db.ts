@@ -17,14 +17,14 @@ console.log('Initializing database connection...');
 // Configure the pool with more detailed options for better reliability
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  max: 10, // Reduced max connections to avoid overloading
-  idleTimeoutMillis: 60000, // Close idle connections after 60 seconds
-  connectionTimeoutMillis: 10000, // Increased timeout to 10 seconds
+  max: 5, // Reduced max connections to avoid overloading
+  idleTimeoutMillis: 30000, // Close idle connections sooner (30 seconds)
+  connectionTimeoutMillis: 15000, // Increased timeout to 15 seconds
   allowExitOnIdle: false, // Don't exit if all connections end
   ssl: { rejectUnauthorized: false }, // Required for some PostgreSQL services
   // Add error handling at the pool level
-  query_timeout: 10000, // 10 second timeout on queries
-  statement_timeout: 10000 // 10 second timeout on statements
+  query_timeout: 15000, // 15 second timeout on queries
+  statement_timeout: 15000 // 15 second timeout on statements
 });
 
 // Set up event handlers for the pool
@@ -68,6 +68,44 @@ const checkPoolHealth = async () => {
     console.log('Database health check passed at:', result.rows[0].now);
   } catch (err) {
     console.error('Database health check failed:', err);
+    
+    // Attempt reconnection logic
+    console.log('Health check failed - attempting to reconnect database pool...');
+    
+    // Close any existing connections in the pool
+    try {
+      await pool.end();
+      console.log('Successfully closed existing connection pool');
+    } catch (endErr) {
+      console.error('Error closing connection pool:', endErr);
+      // Continue anyway, don't return here
+    }
+    
+    // Create a new pool instance with the same configuration
+    try {
+      // We can't recreate and reassign the pool here because it's exported
+      // But we can try a new connection to test if the database is back
+      const testPool = new Pool({
+        connectionString: process.env.DATABASE_URL,
+        max: 1,
+        connectionTimeoutMillis: 10000,
+        ssl: { rejectUnauthorized: false }
+      });
+      
+      await testPool.query('SELECT 1');
+      console.log('Test connection successful - database is accessible again');
+      await testPool.end();
+      
+      // Refresh a connection in the main pool
+      pool.connect().then(client => {
+        console.log('Successfully reconnected a client to the main pool');
+        client.release();
+      }).catch(connErr => {
+        console.error('Failed to connect client to main pool:', connErr);
+      });
+    } catch (testErr) {
+      console.error('Test connection failed - database still unavailable:', testErr);
+    }
   }
 };
 

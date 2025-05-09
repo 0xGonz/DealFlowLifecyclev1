@@ -1,5 +1,6 @@
 import { db } from './db';
 import { IStorage } from './storage';
+import { StorageFactory } from './storage-factory';
 import { eq, and, sql, inArray, asc } from 'drizzle-orm';
 import {
   User, InsertUser,
@@ -24,12 +25,41 @@ import {
  */
 export class DatabaseStorage implements IStorage {
   // User operations
+  // Track database errors
+  private dbErrors = 0;
+  private static MAX_DB_ERRORS = 5;
+
+  // Helper method to track errors
+  private handleDbError(error: Error, operation: string): void {
+    console.error(`Database error during ${operation}:`, error);
+    this.dbErrors++;
+    
+    // If we've hit the max errors, emit a global error event
+    if (this.dbErrors >= DatabaseStorage.MAX_DB_ERRORS) {
+      console.log(`DatabaseStorage: Max errors (${this.dbErrors}) reached, database might be unavailable`);
+      // We'll just log the error here rather than attempting to access StorageFactory
+      // to avoid circular dependencies
+      console.error(`DATABASE_CONNECTION_CRITICAL_FAILURE: ${error.message}`);
+      this.dbErrors = 0; // Reset our counter
+    }
+    
+    throw error;
+  }
+
   async getUser(id: number): Promise<User | undefined> {
     if (!db) {
       throw new Error('Database not initialized');
     }
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user || undefined;
+    
+    try {
+      const [user] = await db.select().from(users).where(eq(users.id, id));
+      // Reset error count on successful operations
+      this.dbErrors = 0;
+      return user || undefined;
+    } catch (error) {
+      this.handleDbError(error as Error, 'getUser');
+      return undefined;
+    }
   }
   
   async getUserByUsername(username: string): Promise<User | undefined> {
