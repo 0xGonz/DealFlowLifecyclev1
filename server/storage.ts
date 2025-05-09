@@ -39,6 +39,7 @@ export interface IStorage {
   // Timeline events
   createTimelineEvent(event: InsertTimelineEvent): Promise<TimelineEvent>;
   getTimelineEventsByDeal(dealId: number): Promise<TimelineEvent[]>;
+  getTimelineEventsByUser(userId: number): Promise<TimelineEvent[]>;
   updateTimelineEvent(id: number, update: Partial<InsertTimelineEvent>): Promise<TimelineEvent | undefined>;
   deleteTimelineEvent(id: number): Promise<boolean>;
   
@@ -52,6 +53,7 @@ export interface IStorage {
   createMiniMemo(memo: InsertMiniMemo): Promise<MiniMemo>;
   getMiniMemo(id: number): Promise<MiniMemo | undefined>;
   getMiniMemosByDeal(dealId: number): Promise<MiniMemo[]>;
+  getMemosByUser(userId: number): Promise<MiniMemo[]>;
   updateMiniMemo(id: number, memo: Partial<InsertMiniMemo>): Promise<MiniMemo | undefined>;
   deleteMiniMemo(id: number): Promise<boolean>;
   
@@ -60,6 +62,7 @@ export interface IStorage {
   getDocument(id: number): Promise<Document | undefined>;
   getDocumentsByDeal(dealId: number): Promise<Document[]>;
   getDocumentsByType(dealId: number, documentType: string): Promise<Document[]>;
+  getDocumentsByUploader(userId: number): Promise<Document[]>;
   deleteDocument(id: number): Promise<boolean>;
   
   // Funds
@@ -103,6 +106,7 @@ export interface IStorage {
   createMemoComment(comment: InsertMemoComment): Promise<MemoComment>;
   getMemoComments(memoId: number): Promise<MemoComment[]>;
   getMemoCommentsByDeal(dealId: number): Promise<MemoComment[]>;
+  getMemoCommentsByUser(userId: number): Promise<MemoComment[]>;
   
   // Closing Schedule Events
   createClosingScheduleEvent(event: InsertClosingScheduleEvent): Promise<ClosingScheduleEvent>;
@@ -334,6 +338,12 @@ export class MemStorage implements IStorage {
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   }
   
+  async getTimelineEventsByUser(userId: number): Promise<TimelineEvent[]> {
+    return Array.from(this.timelineEvents.values())
+      .filter(event => event.createdBy === userId)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }
+  
   async updateTimelineEvent(id: number, update: Partial<InsertTimelineEvent>): Promise<TimelineEvent | undefined> {
     const event = this.timelineEvents.get(id);
     if (!event) return undefined;
@@ -435,6 +445,10 @@ export class MemStorage implements IStorage {
     return Array.from(this.miniMemos.values()).filter(memo => memo.dealId === dealId);
   }
   
+  async getMemosByUser(userId: number): Promise<MiniMemo[]> {
+    return Array.from(this.miniMemos.values()).filter(memo => memo.userId === userId);
+  }
+  
   async updateMiniMemo(id: number, memoUpdate: Partial<InsertMiniMemo>): Promise<MiniMemo | undefined> {
     const memo = this.miniMemos.get(id);
     if (!memo) return undefined;
@@ -510,6 +524,12 @@ export class MemStorage implements IStorage {
   async getDocumentsByType(dealId: number, documentType: string): Promise<Document[]> {
     return Array.from(this.documents.values())
       .filter(doc => doc.dealId === dealId && doc.documentType === documentType)
+      .sort((a, b) => b.uploadedAt.getTime() - a.uploadedAt.getTime());
+  }
+  
+  async getDocumentsByUploader(userId: number): Promise<Document[]> {
+    return Array.from(this.documents.values())
+      .filter(doc => doc.uploadedBy === userId)
       .sort((a, b) => b.uploadedAt.getTime() - a.uploadedAt.getTime());
   }
   
@@ -725,6 +745,12 @@ export class MemStorage implements IStorage {
     return Array.from(this.memoComments.values())
       .filter(comment => comment.dealId === dealId)
       .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+  }
+  
+  async getMemoCommentsByUser(userId: number): Promise<MemoComment[]> {
+    return Array.from(this.memoComments.values())
+      .filter(comment => comment.userId === userId)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }
 
   // Capital Calls implementation

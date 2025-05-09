@@ -245,6 +245,13 @@ export class DatabaseStorage implements IStorage {
       .from(timelineEvents)
       .where(eq(timelineEvents.dealId, dealId));
   }
+  
+  async getTimelineEventsByUser(userId: number): Promise<TimelineEvent[]> {
+    return await db
+      .select()
+      .from(timelineEvents)
+      .where(eq(timelineEvents.createdBy, userId));
+  }
 
   async updateTimelineEvent(id: number, update: Partial<InsertTimelineEvent>): Promise<TimelineEvent | undefined> {
     if (!db) {
@@ -343,6 +350,13 @@ export class DatabaseStorage implements IStorage {
       .where(eq(miniMemos.dealId, dealId));
   }
   
+  async getMemosByUser(userId: number): Promise<MiniMemo[]> {
+    return await db
+      .select()
+      .from(miniMemos)
+      .where(eq(miniMemos.userId, userId));
+  }
+  
   async updateMiniMemo(id: number, memoUpdate: Partial<InsertMiniMemo>): Promise<MiniMemo | undefined> {
     const [updatedMemo] = await db
       .update(miniMemos)
@@ -393,6 +407,13 @@ export class DatabaseStorage implements IStorage {
           eq(documents.documentType, documentType)
         )
       );
+  }
+  
+  async getDocumentsByUploader(userId: number): Promise<Document[]> {
+    return await db
+      .select()
+      .from(documents)
+      .where(eq(documents.uploadedBy, userId));
   }
   
   async deleteDocument(id: number): Promise<boolean> {
@@ -583,6 +604,13 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(memoComments)
       .where(eq(memoComments.dealId, dealId));
+  }
+  
+  async getMemoCommentsByUser(userId: number): Promise<MemoComment[]> {
+    return await db
+      .select()
+      .from(memoComments)
+      .where(eq(memoComments.userId, userId));
   }
   
   // Capital Calls
