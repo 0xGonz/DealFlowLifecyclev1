@@ -9,7 +9,6 @@ import {
   DealAssignment, InsertDealAssignment,
   Notification, InsertNotification,
   Document, InsertDocument,
-  DocumentAnnotation, InsertDocumentAnnotation,
   MemoComment, InsertMemoComment,
   CapitalCall, InsertCapitalCall,
   ClosingScheduleEvent, InsertClosingScheduleEvent
@@ -62,10 +61,6 @@ export interface IStorage {
   getDocumentsByDeal(dealId: number): Promise<Document[]>;
   getDocumentsByType(dealId: number, documentType: string): Promise<Document[]>;
   deleteDocument(id: number): Promise<boolean>;
-  
-  // Document annotations
-  saveDocumentAnnotations(documentId: number, userId: number, annotationData: any): Promise<DocumentAnnotation>;
-  getDocumentAnnotations(documentId: number, userId: number): Promise<DocumentAnnotation | undefined>;
   
   // Funds
   createFund(fund: InsertFund): Promise<Fund>;
@@ -127,7 +122,6 @@ export class MemStorage implements IStorage {
   private dealStars: Map<number, DealStar>;
   private miniMemos: Map<number, MiniMemo>;
   private documents: Map<number, Document>;
-  private documentAnnotations: Map<string, DocumentAnnotation>;
   private funds: Map<number, Fund>;
   private fundAllocations: Map<number, FundAllocation>;
   private dealAssignments: Map<number, DealAssignment>;
@@ -157,7 +151,6 @@ export class MemStorage implements IStorage {
     this.dealStars = new Map();
     this.miniMemos = new Map();
     this.documents = new Map();
-    this.documentAnnotations = new Map();
     this.funds = new Map();
     this.fundAllocations = new Map();
     this.dealAssignments = new Map();
@@ -522,43 +515,6 @@ export class MemStorage implements IStorage {
   
   async deleteDocument(id: number): Promise<boolean> {
     return this.documents.delete(id);
-  }
-  
-  // Document annotations
-  async saveDocumentAnnotations(documentId: number, userId: number, annotationData: any): Promise<DocumentAnnotation> {
-    const key = `${documentId}-${userId}`;
-    const now = new Date();
-    
-    // Check if annotations already exist for this document and user
-    const existing = this.documentAnnotations.get(key);
-    
-    if (existing) {
-      // Update existing annotations
-      const updatedAnnotation: DocumentAnnotation = {
-        ...existing,
-        annotationData,
-        updatedAt: now
-      };
-      this.documentAnnotations.set(key, updatedAnnotation);
-      return updatedAnnotation;
-    } else {
-      // Create new annotations
-      const newAnnotation: DocumentAnnotation = {
-        id: key,
-        documentId,
-        userId,
-        annotationData,
-        createdAt: now,
-        updatedAt: now
-      };
-      this.documentAnnotations.set(key, newAnnotation);
-      return newAnnotation;
-    }
-  }
-  
-  async getDocumentAnnotations(documentId: number, userId: number): Promise<DocumentAnnotation | undefined> {
-    const key = `${documentId}-${userId}`;
-    return this.documentAnnotations.get(key);
   }
   
   // Funds

@@ -13,7 +13,6 @@ import { StorageFactory } from '../storage-factory';
 import { z } from 'zod';
 import { createInsertSchema } from 'drizzle-zod';
 import * as schema from '@shared/schema';
-import { DocumentAnnotation, insertDocumentAnnotationSchema } from '@shared/schema';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as crypto from 'crypto';
@@ -296,84 +295,6 @@ router.delete('/:id', requireAuth, async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error deleting document:', error);
     return res.status(500).json({ message: 'Failed to delete document' });
-  }
-});
-
-// Get document annotations - requires authentication
-router.get('/:id/annotations', requireAuth, async (req: Request, res: Response) => {
-  try {
-    const documentId = parseInt(req.params.id);
-    if (isNaN(documentId)) {
-      return res.status(400).json({ message: 'Invalid document ID' });
-    }
-    
-    const user = req.user;
-    if (!user) {
-      return res.status(401).json({ message: 'You must be logged in to view document annotations' });
-    }
-    
-    const userId = user.id;
-    const storage = StorageFactory.getStorage();
-    
-    // First check if document exists
-    const document = await storage.getDocument(documentId);
-    if (!document) {
-      return res.status(404).json({ message: 'Document not found' });
-    }
-    
-    const annotations = await storage.getDocumentAnnotations(documentId, userId);
-    
-    // Return empty object if no annotations found
-    if (!annotations) {
-      return res.status(200).json({ annotationData: {}, documentId, userId });
-    }
-    
-    return res.status(200).json(annotations);
-  } catch (error) {
-    console.error('Error getting document annotations:', error);
-    return res.status(500).json({ message: 'Failed to get document annotations' });
-  }
-});
-
-// Save document annotations - requires authentication
-router.post('/:id/annotations', requireAuth, async (req: Request, res: Response) => {
-  try {
-    const documentId = parseInt(req.params.id);
-    if (isNaN(documentId)) {
-      return res.status(400).json({ message: 'Invalid document ID' });
-    }
-    
-    const user = req.user;
-    if (!user) {
-      return res.status(401).json({ message: 'You must be logged in to save document annotations' });
-    }
-    
-    const userId = user.id;
-    const { annotationData } = req.body;
-    
-    if (!annotationData) {
-      return res.status(400).json({ message: 'Missing annotation data' });
-    }
-    
-    const storage = StorageFactory.getStorage();
-    
-    // First check if document exists
-    const document = await storage.getDocument(documentId);
-    if (!document) {
-      return res.status(404).json({ message: 'Document not found' });
-    }
-    
-    // Save the annotations
-    const savedAnnotations = await storage.saveDocumentAnnotations(
-      documentId,
-      userId,
-      annotationData
-    );
-    
-    return res.status(200).json(savedAnnotations);
-  } catch (error) {
-    console.error('Error saving document annotations:', error);
-    return res.status(500).json({ message: 'Failed to save document annotations' });
   }
 });
 

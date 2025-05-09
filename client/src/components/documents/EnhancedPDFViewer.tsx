@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -12,9 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { Download, ZoomIn, ZoomOut, RotateCw, File, Printer, ChevronLeft, ChevronRight, Save } from 'lucide-react';
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { Download, ZoomIn, ZoomOut, RotateCw, File, Printer, ChevronLeft, ChevronRight } from 'lucide-react';
 
 // Import react-pdf - making it a dynamic import to avoid issues with SSR
 import { Document as PDFDocument, Page as PDFPage } from 'react-pdf';
@@ -31,7 +29,6 @@ interface EnhancedPDFViewerProps {
 export default function EnhancedPDFViewer({ isOpen, onClose, documentId, documentName }: EnhancedPDFViewerProps) {
   const { toast } = useToast();
   const documentUrl = `/api/documents/${documentId}/download`;
-  const containerRef = useRef<HTMLDivElement>(null);
   
   // Initialize PDF worker configuration
   useEffect(() => {
@@ -63,71 +60,6 @@ export default function EnhancedPDFViewer({ isOpen, onClose, documentId, documen
   const [isLoading, setIsLoading] = useState(true);
   const [isFailed, setIsFailed] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  const [annotations, setAnnotations] = useState<any>(null);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-
-  // Fetch any existing annotations for this document
-  const { data: annotationsData, isLoading: isLoadingAnnotations } = useQuery({
-    queryKey: [`/api/documents/${documentId}/annotations`],
-    queryFn: async () => {
-      try {
-        const response = await apiRequest('GET', `/api/documents/${documentId}/annotations`);
-        return await response.json();
-      } catch (error) {
-        console.error('Error fetching annotations:', error);
-        return { annotationData: {} };
-      }
-    },
-    // Only fetch annotations when the dialog is open
-    enabled: isOpen && !!documentId,
-  });
-
-  // Save annotations mutation
-  const saveAnnotationsMutation = useMutation({
-    mutationFn: async (annotationData: any) => {
-      const response = await apiRequest('POST', `/api/documents/${documentId}/annotations`, { annotationData });
-      return await response.json();
-    },
-    onSuccess: () => {
-      setHasUnsavedChanges(false);
-      toast({
-        title: 'Annotations saved',
-        description: 'Your document annotations have been saved successfully',
-      });
-    },
-    onError: (error) => {
-      console.error('Error saving annotations:', error);
-      toast({
-        title: 'Failed to save annotations',
-        description: 'There was an error saving your annotations. Please try again.',
-        variant: 'destructive',
-      });
-    },
-  });
-
-  // Apply annotations when they are loaded from the API
-  useEffect(() => {
-    if (annotationsData && annotationsData.annotationData && containerRef.current) {
-      console.log('Applying loaded annotations:', annotationsData.annotationData);
-      setAnnotations(annotationsData.annotationData);
-      
-      // We'll apply the annotations to the DOM in a real implementation
-      // For now, we're just storing them
-    }
-  }, [annotationsData, containerRef.current]);
-
-  // Track annotation changes
-  const onAnnotationChange = (newAnnotations: any) => {
-    setAnnotations(newAnnotations);
-    setHasUnsavedChanges(true);
-  };
-
-  // Save annotations
-  const saveAnnotations = () => {
-    if (annotations) {
-      saveAnnotationsMutation.mutate(annotations);
-    }
-  };
 
   // Reset state when document changes
   useEffect(() => {
@@ -138,7 +70,6 @@ export default function EnhancedPDFViewer({ isOpen, onClose, documentId, documen
       setIsLoading(true);
       setIsFailed(false);
       setError(null); // Reset any previous errors
-      setHasUnsavedChanges(false);
     }
   }, [isOpen, documentId]);
 
@@ -299,16 +230,6 @@ export default function EnhancedPDFViewer({ isOpen, onClose, documentId, documen
                 <Download className="h-4 w-4" />
               </a>
             </Button>
-            {/* Save Annotations Button */}
-            <Button 
-              variant={hasUnsavedChanges ? "default" : "outline"}
-              size="sm" 
-              onClick={saveAnnotations}
-              disabled={isLoading || isFailed || !hasUnsavedChanges}
-            >
-              <Save className="h-4 w-4 mr-1" />
-              Save
-            </Button>
           </div>
         </div>
         
@@ -347,52 +268,7 @@ export default function EnhancedPDFViewer({ isOpen, onClose, documentId, documen
           ) : (
             <div>
               {/* Main PDF viewer with rotation */}
-              <div ref={containerRef} id="enhanced-pdf-viewer" style={{ transform: `rotate(${rotation}deg)` }} className="transition-transform duration-300 relative">
-                {/* Annotation overlay */}
-                <div className="absolute inset-0 pointer-events-none z-20">
-                  {annotations && annotations[pageNumber] && 
-                    annotations[pageNumber].map((annotation: any, index: number) => {
-                      if (annotation.type === 'highlight') {
-                        return (
-                          <div 
-                            key={`annotation-${pageNumber}-${index}`}
-                            className="absolute bg-yellow-200 opacity-40"
-                            style={{
-                              left: annotation.rect?.x || 0,
-                              top: annotation.rect?.y || 0,
-                              width: annotation.rect?.width || 0,
-                              height: annotation.rect?.height || 0,
-                            }}
-                            title={annotation.content}
-                          />
-                        );
-                      } else if (annotation.type === 'comment') {
-                        return (
-                          <div 
-                            key={`annotation-${pageNumber}-${index}`}
-                            className="absolute flex items-center justify-center"
-                            style={{
-                              left: annotation.rect?.x || 0,
-                              top: annotation.rect?.y || 0,
-                              width: annotation.rect?.width || 0,
-                              height: annotation.rect?.height || 0,
-                            }}
-                          >
-                            <div 
-                              className="rounded-full bg-blue-500 text-white flex items-center justify-center text-sm"
-                              style={{ width: '20px', height: '20px' }}
-                              title={annotation.content}
-                            >
-                              {index + 1}
-                            </div>
-                          </div>
-                        );
-                      }
-                      return null;
-                    })
-                  }
-                </div>
-              
+              <div id="enhanced-pdf-viewer" style={{ transform: `rotate(${rotation}deg)` }} className="transition-transform duration-300">
                 <PDFDocument
                   file={documentUrl}
                   onLoadSuccess={onDocumentLoadSuccess}
@@ -416,87 +292,6 @@ export default function EnhancedPDFViewer({ isOpen, onClose, documentId, documen
                   }}
                   className="pdf-document"
                   loading={<div className="opacity-0">Loading document...</div>}
-                  onItemClick={(e) => {
-                    // Handle clicks on PDF elements
-                    // Store this as part of annotation data
-                    if (e) {
-                      // PDF.js doesn't provide the target element in the type definition
-                      // Use a more generic approach with the mouse event
-                      const mouseEvent = e as unknown as React.MouseEvent;
-                      const targetElement = mouseEvent.target as HTMLElement;
-                      
-                      // Get bounding client rect of the element
-                      const clientRect = targetElement ? targetElement.getBoundingClientRect() : null;
-                      
-                      // Convert client rect to container-relative coordinates
-                      if (clientRect && containerRef.current) {
-                        const containerRect = containerRef.current.getBoundingClientRect();
-                        
-                        const relativeRect = {
-                          x: clientRect.left - containerRect.left,
-                          y: clientRect.top - containerRect.top,
-                          width: clientRect.width,
-                          height: clientRect.height
-                        };
-                        
-                        const newAnnotations = annotations ? { ...annotations } : {};
-                        const pageAnnotations = newAnnotations[pageNumber] || [];
-                        
-                        // Simplistic implementation - in a real app, we'd have more sophisticated annotation handling
-                        pageAnnotations.push({
-                          type: 'highlight',
-                          rect: relativeRect,
-                          content: targetElement.textContent || 'Highlighted text',
-                          timestamp: new Date().toISOString(),
-                        });
-                        
-                        newAnnotations[pageNumber] = pageAnnotations;
-                        onAnnotationChange(newAnnotations);
-                        
-                        // Show success toast
-                        toast({
-                          title: 'Text highlighted',
-                          description: 'Click "Save" to permanently store your annotations',
-                        });
-                      }
-                    }
-                  }}
-                  onContextMenu={(e) => {
-                    // Can be used to add right-click annotation menu
-                    e.preventDefault();
-                    
-                    // Get container-relative coordinates
-                    if (containerRef.current) {
-                      const containerRect = containerRef.current.getBoundingClientRect();
-                      
-                      const rect = {
-                        x: e.nativeEvent.clientX - containerRect.left,
-                        y: e.nativeEvent.clientY - containerRect.top,
-                        width: 20,
-                        height: 20
-                      };
-                      
-                      const newAnnotations = annotations ? { ...annotations } : {};
-                      const pageAnnotations = newAnnotations[pageNumber] || [];
-                      
-                      // Create a comment annotation
-                      pageAnnotations.push({
-                        type: 'comment',
-                        rect,
-                        content: 'Comment annotation',
-                        timestamp: new Date().toISOString(),
-                      });
-                      
-                      newAnnotations[pageNumber] = pageAnnotations;
-                      onAnnotationChange(newAnnotations);
-                      
-                      // Show success toast
-                      toast({
-                        title: 'Comment added',
-                        description: 'Click "Save" to permanently store your annotations',
-                      });
-                    }
-                  }}
                 >
                   <PDFPage
                     key={`page_${pageNumber}`}
@@ -505,16 +300,6 @@ export default function EnhancedPDFViewer({ isOpen, onClose, documentId, documen
                     renderAnnotationLayer={true}
                     renderTextLayer={true}
                     className="shadow-md"
-                    // We're using our overlay for rendering annotations, so we don't need custom text renderer
-                    // customTextRenderer is commented out because it expects a string return value, not null
-                    /* customTextRenderer would go here if needed */
-                    onRenderSuccess={() => {
-                      // Apply annotations from our store after the page renders
-                      if (annotations && annotations[pageNumber] && containerRef.current) {
-                        console.log(`Rendering ${annotations[pageNumber].length} annotations for page ${pageNumber}`);
-                        // Our custom overlay handles visual rendering of annotations
-                      }
-                    }}
                   />
                 </PDFDocument>
               </div>
@@ -527,41 +312,6 @@ export default function EnhancedPDFViewer({ isOpen, onClose, documentId, documen
                   title={documentName}
                 />
               </div>
-              
-              {/* Annotations List - render below the PDF if there are annotations */}
-              {annotations && Object.keys(annotations).length > 0 && (
-                <div className="mt-4 border-t pt-4">
-                  <h3 className="text-lg font-medium mb-2">Annotations</h3>
-                  <div className="bg-white rounded-md p-3 max-h-40 overflow-y-auto text-sm">
-                    {Object.keys(annotations).map((pageNum) => {
-                      // Safely convert page annotations to array type
-                      const pageAnnotations = annotations[pageNum];
-                      if (!Array.isArray(pageAnnotations)) return null;
-                      
-                      return (
-                        <div key={`page-${pageNum}-annotations`} className="mb-2">
-                          <div className="font-medium">Page {pageNum}</div>
-                          {pageAnnotations.map((annotation, index) => (
-                            <div key={`annotation-summary-${pageNum}-${index}`} className="pl-4 py-1 border-l-2 border-gray-200 mb-1">
-                              <div className="flex items-center">
-                                <span className="inline-block rounded-full bg-blue-500 text-white w-5 h-5 flex items-center justify-center mr-2 text-xs">
-                                  {index + 1}
-                                </span>
-                                <span>
-                                  {annotation.type === 'highlight' ? 'Highlight: ' : 'Comment: '}
-                                  {annotation.content && typeof annotation.content === 'string' && annotation.content.length > 50 
-                                    ? `${annotation.content.substring(0, 50)}...` 
-                                    : annotation.content || 'No content'}
-                                </span>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
             </div>
           )}
         </div>

@@ -325,25 +325,6 @@ export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export type Document = typeof documents.$inferSelect;
 export type InsertDocument = z.infer<typeof insertDocumentSchema>;
 
-// Document annotations
-export const documentAnnotations = pgTable("document_annotations", {
-  id: serial("id").primaryKey(),
-  documentId: integer("document_id").notNull().references(() => documents.id, { onDelete: "cascade" }),
-  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  annotationData: jsonb("annotation_data").notNull(),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
-});
-
-export const insertDocumentAnnotationSchema = createInsertSchema(documentAnnotations).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export type DocumentAnnotation = typeof documentAnnotations.$inferSelect;
-export type InsertDocumentAnnotation = z.infer<typeof insertDocumentAnnotationSchema>;
-
 export type MemoComment = typeof memoComments.$inferSelect;
 export type InsertMemoComment = z.infer<typeof insertMemoCommentSchema>;
 
