@@ -32,7 +32,18 @@ export default function EnhancedPDFViewer({ isOpen, onClose, documentId, documen
   
   // Initialize PDF worker configuration
   useEffect(() => {
-    configurePdfWorker();
+    try {
+      configurePdfWorker();
+      console.log('PDF worker configured in EnhancedPDFViewer');
+    } catch (err) {
+      console.error('Failed to configure PDF worker in EnhancedPDFViewer:', err);
+      // If worker configuration fails, show a toast to the user
+      toast({
+        title: 'PDF Viewer Issue',
+        description: 'There was a problem setting up the PDF viewer. You may experience limited functionality.',
+        variant: 'destructive',
+      });
+    }
   }, []);
   
   // Function to handle authentication errors
