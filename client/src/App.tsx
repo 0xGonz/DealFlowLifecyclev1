@@ -20,6 +20,7 @@ import CapitalCallsByAllocation from "@/pages/CapitalCallsByAllocation";
 import { AuthProvider } from "@/hooks/use-auth";
 import ErrorBoundary from "@/components/common/ErrorBoundary";
 import { ProtectedRoute } from "@/components/common/ProtectedRoute";
+import { DatabaseStatusAlert } from "@/components/system/DatabaseStatusAlert";
 
 function Router() {
   return (
@@ -54,6 +55,7 @@ function App() {
         <AuthProvider>
           <TooltipProvider>
             <Toaster />
+            <DatabaseStatusAlert />
             <Router />
           </TooltipProvider>
         </AuthProvider>
