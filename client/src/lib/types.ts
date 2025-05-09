@@ -157,7 +157,7 @@ export interface DashboardStats {
   aumTrend: number;
 }
 
-// Leaderboard item
+// Deal Leaderboard item
 export interface LeaderboardItem {
   id: number;
   name: string;
@@ -167,6 +167,42 @@ export interface LeaderboardItem {
   starCount: number;
   change: number;
   recentActivity?: number; // Number of recent timeline events (last 14 days)
+}
+
+// User Leaderboard item
+export interface UserLeaderboardItem {
+  id: number;
+  userId: number;
+  fullName: string;
+  role: string;
+  avatarColor: string;
+  initials: string;
+  totalPoints: number;
+  previousPoints: number;
+  trend: number; // Positive or negative change
+  pointsBreakdown: {
+    starsGiven: number;
+    assignmentsCompleted: number;
+    documentsUploaded: number;
+    memosWritten: number;
+    timelineUpdates: number;
+    commentsAdded: number;
+  };
+  topCategories: string[]; // Categories where this user leads
+  lastActiveDate: string;
+}
+
+// Category leader
+export interface CategoryLeader {
+  categoryName: string;
+  categoryId: string;
+  user: {
+    id: number;
+    fullName: string;
+    initials: string;
+    avatarColor: string;
+  };
+  count: number;
 }
 
 // Document types
