@@ -12,8 +12,8 @@ import EnhancedPDFViewer from './EnhancedPDFViewer';
 import EmbeddedPDFViewer from './EmbeddedPDFViewer';
 // Import react-pdf components
 import { Document as PDFDocument, Page as PDFPage } from 'react-pdf';
-// Import centralized PDF configuration
-import '@/lib/pdf-config';
+// Import and explicitly configure PDF worker
+import { configurePdfWorker } from '@/lib/pdf-config';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -48,6 +48,16 @@ export default function DocumentList({ dealId }: DocumentListProps) {
   const [uploadingFile, setUploadingFile] = useState<File | null>(null);
   const [documentType, setDocumentType] = useState('pitch_deck');
   const [description, setDescription] = useState('');
+  
+  // Initialize PDF worker when component mounts
+  useEffect(() => {
+    try {
+      configurePdfWorker();
+      console.log('PDF worker initialized in DocumentList');
+    } catch (err) {
+      console.error('Failed to initialize PDF worker in DocumentList:', err);
+    }
+  }, []);
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
   const [isPdfViewerOpen, setIsPdfViewerOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);

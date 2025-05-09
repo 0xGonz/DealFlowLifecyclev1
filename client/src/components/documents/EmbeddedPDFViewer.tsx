@@ -4,8 +4,8 @@ import { Download, FileText, AlertCircle } from 'lucide-react';
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Document as PDFDocument, Page as PDFPage } from 'react-pdf';
-// Import centralized PDF configuration
-import '@/lib/pdf-config';
+// Import and initialize PDF worker configuration
+import { configurePdfWorker } from '@/lib/pdf-config';
 import { useAuth } from "@/hooks/use-auth";
 
 interface EmbeddedPDFViewerProps {
@@ -18,6 +18,17 @@ export default function EmbeddedPDFViewer({ documentId, documentName }: Embedded
   const [errorType, setErrorType] = useState<'auth' | 'not_found' | 'unknown' | null>(null);
   const { toast } = useToast();
   const documentUrl = `/api/documents/${documentId}/download`;
+  
+  // Initialize the PDF worker when component mounts
+  useEffect(() => {
+    // Ensure PDF.js worker is configured
+    try {
+      configurePdfWorker();
+      console.log('PDF worker configured in EmbeddedPDFViewer');
+    } catch (err) {
+      console.error('Failed to configure PDF worker:', err);
+    }
+  }, []);
   
   // Check if file is likely a PDF
   const isPdfFile = documentName.toLowerCase().endsWith('.pdf') || 
