@@ -8,7 +8,7 @@ import { FileText, Download, Trash2, FileUp, File, Eye } from 'lucide-react';
 import { Document } from '@/lib/types';
 import { formatDistanceToNow } from 'date-fns';
 import { formatBytes } from '@/lib/utils/format';
-import EnhancedPDFViewer from './EnhancedPDFViewer';
+import PDFViewer from './PDFViewer'; // Import our updated PDFViewer component
 import EmbeddedPDFViewer from './EmbeddedPDFViewer';
 // Import react-pdf components
 import { Document as PDFDocument, Page as PDFPage } from 'react-pdf';
@@ -512,7 +512,7 @@ export default function DocumentList({ dealId }: DocumentListProps) {
       
       {/* Modal PDF Viewer (for detailed view) */}
       {selectedDocument && (
-        <EnhancedPDFViewer
+        <PDFViewer
           isOpen={isPdfViewerOpen}
           onClose={() => setIsPdfViewerOpen(false)}
           documentId={selectedDocument.id}

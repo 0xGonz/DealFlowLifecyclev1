@@ -1,8 +1,8 @@
 import { pdfjs } from 'react-pdf';
 
 /**
- * Force disables the worker and uses the main thread for PDF operations.
- * This approach is simpler and more reliable, though less performant.
+ * Configures PDF.js worker for optimal compatibility across different environments.
+ * This uses a multi-stage fallback approach to ensure PDFs can be displayed.
  */
 export const configurePdfWorker = () => {
   // Only configure once
@@ -12,33 +12,24 @@ export const configurePdfWorker = () => {
 
   console.log('Setting up PDF.js worker options in most compatible mode...');
 
-  // SIMPLEST APPROACH: Disable worker mode completely
-  // This is the most compatible solution, though less performant
+  // MOST COMPATIBLE APPROACH: Explicitly use no worker - inline operation
   try {
-    // @ts-ignore - We know these properties exist
+    // Option 1: Set to empty string to use "fake worker"
+    pdfjs.GlobalWorkerOptions.workerSrc = '';
+    
+    // Option 2: Explicitly disable worker (legacy method, but sometimes works better)
+    // @ts-ignore - We know these properties exist even if TypeScript doesn't
     pdfjs.disableWorker = true;
-    console.log('PDF worker disabled - using main thread for PDF operations');
+    
+    // Option 3: Use a dummy data URL as worker source
+    if (!pdfjs.GlobalWorkerOptions.workerSrc) {
+      pdfjs.GlobalWorkerOptions.workerSrc = 'data:application/javascript;base64,';
+    }
+    
+    console.log('PDF.js worker disabled - using main thread for PDF operations');
     return;
   } catch (error) {
-    console.error('Failed to disable PDF worker:', error);
-  }
-  
-  // FALLBACK: If we can't disable the worker, try to set a worker URL
-  try {
-    const localWorkerUrl = '/pdfjs/pdf.worker.min.js';
-    pdfjs.GlobalWorkerOptions.workerSrc = localWorkerUrl;
-    console.log('PDF worker URL set to local file:', localWorkerUrl);
-    return;
-  } catch (error) {
-    console.error('Failed to set up PDF worker with local file:', error);
-  }
-  
-  // Last resort - set a dummy worker source
-  try {
-    pdfjs.GlobalWorkerOptions.workerSrc = 'data:application/javascript;base64,';
-    console.warn('Using dummy worker source as final fallback');
-  } catch (error) {
-    console.error('Critical PDF.js configuration failure:', error);
+    console.error('Failed to configure PDF.js worker:', error);
   }
 };
 
