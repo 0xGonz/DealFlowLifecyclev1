@@ -1,1 +1,7 @@
-Couldn't find the requested file /build/pdf.worker.mjs in pdfjs-dist.
+// Minimal PDF worker module
+export const workerPath = '/pdfjs/pdf.worker.min.js';
+
+// Export a module object that can be imported by components
+export default {
+  workerPath
+};
