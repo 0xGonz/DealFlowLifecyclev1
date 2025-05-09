@@ -160,13 +160,37 @@ export default function EmbeddedPDFViewer({ documentId, documentName }: Embedded
               <div id={`pdf-container-${documentId}`} className="w-full h-full">
                 <PDFDocument
                   file={documentUrl}
-                  onLoadError={handlePdfError}
+                  onLoadError={(error) => {
+                    console.error('PDF loading error:', error);
+                    handlePdfError(error);
+                    
+                    // Try to switch to iframe fallback
+                    setTimeout(() => {
+                      const container = document.getElementById(`pdf-container-${documentId}`);
+                      const parent = container?.parentElement;
+                      
+                      if (parent) {
+                        // Hide the failed container
+                        if (container) container.style.display = 'none';
+                        
+                        // Create and add iframe fallback
+                        const iframe = document.createElement('iframe');
+                        iframe.src = documentUrl;
+                        iframe.className = 'w-full h-full border-0';
+                        iframe.title = documentName;
+                        
+                        parent.appendChild(iframe);
+                        
+                        console.log('Switched to iframe fallback for PDF view');
+                      }
+                    }, 100);
+                  }}
                   className="pdf-document w-full h-full"
                 >
                   <PDFPage
                     pageNumber={1}
-                    renderAnnotationLayer={true}
-                    renderTextLayer={true}
+                    renderAnnotationLayer={false} // Simplify to reduce errors
+                    renderTextLayer={false} // Simplify to reduce errors 
                     className="shadow-md"
                     width={800}
                   />
