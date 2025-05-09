@@ -166,9 +166,8 @@ router.get('/:id/download', requireAuth, async (req: Request, res: Response) => 
       // Try without encodeURIComponent in the filename
       path.join(process.cwd(), 'public/uploads', path.basename(document.filePath)),
       // Just the filename without the UUID prefix
-      path.join(process.cwd(), 'public/uploads', document.fileName),
-      // Sample file for demo purposes
-      path.join(process.cwd(), 'public/uploads/sample-upload.pdf')
+      path.join(process.cwd(), 'public/uploads', document.fileName)
+      // Removed the sample fallback PDF to avoid confusion
     ];
     
     // Try each alternative path
@@ -191,9 +190,19 @@ router.get('/:id/download', requireAuth, async (req: Request, res: Response) => 
       }
     }
     
-    // Still no file found, create a basic PDF error message
-    console.log(`No file found for: ${document.fileName}. Showing error message.`);
-    res.status(404).send(`<html><body><h1>Document Not Found</h1><p>The document "${document.fileName}" could not be found on the server.</p><p>Please upload the document again.</p></body></html>`);
+    // Still no file found, create a clear error message
+    console.log(`No file found for: ${document.fileName} at ${document.filePath}. Showing error message.`);
+    res.status(404).send(`<html><body style="font-family: Arial, sans-serif; text-align: center; margin: 50px;">
+      <h1 style="color: #d32f2f;">Document Not Found</h1>
+      <p>The document "${document.fileName}" could not be found on the server.</p>
+      <p>This may happen when:</p>
+      <ul style="text-align: left; width: 400px; margin: 0 auto;">
+        <li>The file has been deleted from the server</li>
+        <li>The file was uploaded but not properly saved</li>
+        <li>The file path in the database is incorrect</li>
+      </ul>
+      <p style="margin-top: 20px;">Please upload the document again or contact support if this issue persists.</p>
+    </body></html>`);
 
   } catch (error) {
     console.error('Error downloading document:', error);
