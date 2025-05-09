@@ -1,38 +1,26 @@
 import { pdfjs } from 'react-pdf';
 
-/**
- * Checks if a file exists by making a HEAD request
- * This is used to detect missing files before attempting to load them in the PDF viewer
- */
-export const checkFileExists = async (url: string): Promise<boolean> => {
-  if (!url || typeof url !== 'string') return false;
-  
+// Set the worker source URL to match the react-pdf version being used
+// For react-pdf 9.2.1, the PDFjs version is 4.8.69
+// This ensures the API and worker versions match
+export const configurePdfWorker = () => {
   try {
-    const response = await fetch(url, { method: 'HEAD' });
-    return response.ok;
+    // Ensure we only set the worker src once
+    if (!pdfjs.GlobalWorkerOptions.workerSrc) {
+      // Using CDN-hosted worker for better reliability
+      const workerUrl = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.8.69/pdf.worker.min.js`;
+      console.log('Setting PDF worker URL:', workerUrl);
+      pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
+    }
   } catch (error) {
-    console.error('Error checking file existence:', error);
-    return false;
+    console.error('Failed to set PDF.js worker:', error);
   }
 };
 
-/**
- * Helper function to extract document name from path
- */
-export const getDocumentNameFromPath = (path: string): string => {
-  if (!path) return 'Document';
-  
-  try {
-    // Extract just the filename without path or extension
-    const filename = path.split('/').pop() || 'Document';
-    return decodeURIComponent(filename.replace(/\.[^/.]+$/, ""));
-  } catch (e) {
-    return 'Document';
-  }
-};
+// Call this function immediately when imported
+configurePdfWorker();
 
-// Export a utility object with PDF-related functions
+// Export other PDF-related configuration and utility functions as needed
 export default {
-  checkFileExists,
-  getDocumentNameFromPath
+  configurePdfWorker,
 };

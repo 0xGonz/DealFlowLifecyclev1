@@ -8,12 +8,12 @@ import { FileText, Download, Trash2, FileUp, File, Eye } from 'lucide-react';
 import { Document } from '@/lib/types';
 import { formatDistanceToNow } from 'date-fns';
 import { formatBytes } from '@/lib/utils/format';
-import PDFViewer from './PDFViewer'; // Import our updated PDFViewer component
+import EnhancedPDFViewer from './EnhancedPDFViewer';
 import EmbeddedPDFViewer from './EmbeddedPDFViewer';
 // Import react-pdf components
 import { Document as PDFDocument, Page as PDFPage } from 'react-pdf';
-// Import PDF utilities
-import { checkFileExists } from '@/lib/pdf-config';
+// Import centralized PDF configuration
+import '@/lib/pdf-config';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -48,9 +48,6 @@ export default function DocumentList({ dealId }: DocumentListProps) {
   const [uploadingFile, setUploadingFile] = useState<File | null>(null);
   const [documentType, setDocumentType] = useState('pitch_deck');
   const [description, setDescription] = useState('');
-  
-  // PDF worker is already configured in main.tsx
-  // No need for initialization here
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
   const [isPdfViewerOpen, setIsPdfViewerOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -206,42 +203,6 @@ export default function DocumentList({ dealId }: DocumentListProps) {
       <div className="animate-pulse">
         <div className="h-40 w-full bg-neutral-100 rounded-lg mb-4"></div>
         <div className="h-40 w-full bg-neutral-100 rounded-lg"></div>
-      </div>
-    );
-  }
-  
-  // Better handling of no documents case
-  if (!documents || documents.length === 0) {
-    return (
-      <div className="space-y-4">
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="text-lg font-medium">Documents</h3>
-          <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <FileUp className="h-4 w-4 mr-2" />
-                Upload Document
-              </Button>
-            </DialogTrigger>
-            {/* Upload Dialog content - same as in the main return statement */}
-            {/* This is duplicated for simplicity */}
-            <DialogContent>{/* Dialog content here */}</DialogContent>
-          </Dialog>
-        </div>
-        
-        <div className="flex flex-col items-center justify-center p-8 bg-neutral-50 rounded-lg border border-dashed border-neutral-200">
-          <FileText className="h-16 w-16 text-neutral-300 mb-4" />
-          <h3 className="text-lg font-medium text-neutral-900 mb-2">No Documents</h3>
-          <p className="text-sm text-neutral-500 text-center mb-4 max-w-md">
-            There are no documents associated with this deal yet. 
-            Upload documents like pitch decks, financial models, 
-            or legal documents to keep everything organized.
-          </p>
-          <Button onClick={() => setIsUploadDialogOpen(true)}>
-            <FileUp className="h-4 w-4 mr-2" />
-            Upload First Document
-          </Button>
-        </div>
       </div>
     );
   }
@@ -512,7 +473,7 @@ export default function DocumentList({ dealId }: DocumentListProps) {
       
       {/* Modal PDF Viewer (for detailed view) */}
       {selectedDocument && (
-        <PDFViewer
+        <EnhancedPDFViewer
           isOpen={isPdfViewerOpen}
           onClose={() => setIsPdfViewerOpen(false)}
           documentId={selectedDocument.id}
