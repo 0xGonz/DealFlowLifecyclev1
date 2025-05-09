@@ -209,15 +209,29 @@ export default function Timeline({ dealId }: TimelineProps) {
     }
   });
 
+  const [selectedQuestionIndex, setSelectedQuestionIndex] = useState<number | null>(null);
+  const [answerText, setAnswerText] = useState("");
+  
   const updateNoteMutation = useMutation({
-    mutationFn: async ({ eventId, content }: { eventId: number, content: string }) => {
+    mutationFn: async ({ 
+      eventId, 
+      content, 
+      metadata 
+    }: { 
+      eventId: number, 
+      content: string, 
+      metadata?: Record<string, any> 
+    }) => {
       return apiRequest("PUT", `/api/deals/${dealId}/timeline/${eventId}`, {
-        content
+        content,
+        metadata
       });
     },
     onSuccess: async () => {
       setEditingEventId(null);
       setEditContent("");
+      setSelectedQuestionIndex(null);
+      setAnswerText("");
       toast({
         title: "Note updated",
         description: "Your note has been updated successfully."
@@ -262,19 +276,57 @@ export default function Timeline({ dealId }: TimelineProps) {
     });
   };
 
-  const handleEditNote = (event: any) => {
+  const handleEditNote = (event: TimelineEvent) => {
     setEditingEventId(event.id);
-    setEditContent(event.content);
+    setEditContent(event.content || '');
   };
 
   const handleCancelEdit = () => {
     setEditingEventId(null);
     setEditContent("");
+    setSelectedQuestionIndex(null);
+    setAnswerText("");
   };
 
   const handleSaveEdit = () => {
     if (!editContent.trim() || !editingEventId) return;
-    updateNoteMutation.mutate({ eventId: editingEventId, content: editContent });
+    
+    // Get the current event being edited
+    const event = timelineData.find(e => e.id === editingEventId);
+    if (!event) return;
+    
+    // If we're editing a regular note
+    if (selectedQuestionIndex === null) {
+      updateNoteMutation.mutate({ 
+        eventId: editingEventId, 
+        content: editContent,
+        metadata: event.metadata || undefined
+      });
+    } 
+    // If we're answering a specific question
+    else {
+      // Create a copy of the existing metadata, or initialize empty object
+      const metadata = { ...(event.metadata || {}) };
+      
+      // Initialize answers object if it doesn't exist
+      metadata.answers = metadata.answers || {};
+      
+      // Update the specific answer
+      metadata.answers[selectedQuestionIndex] = answerText;
+      
+      // Update the note with the new metadata
+      updateNoteMutation.mutate({ 
+        eventId: editingEventId, 
+        content: event.content || '',
+        metadata 
+      });
+    }
+  };
+  
+  const handleAddAnswer = (event: TimelineEvent, questionIndex: number) => {
+    setEditingEventId(event.id);
+    setSelectedQuestionIndex(questionIndex);
+    setAnswerText('');
   };
 
   const handleDeleteNote = (eventId: number) => {
@@ -288,7 +340,7 @@ export default function Timeline({ dealId }: TimelineProps) {
   };
   
   // Check if the current user can edit/delete a note
-  const canModifyNote = (event: any) => {
+  const canModifyNote = (event: TimelineEvent) => {
     if (!user) return false;
     if (user.role === 'admin') return true;
     return event.createdBy === user.id;
@@ -601,29 +653,63 @@ export default function Timeline({ dealId }: TimelineProps) {
                 
                 {editingEventId === event.id ? (
                   <div className="mt-1">
-                    <Textarea
-                      value={editContent}
-                      onChange={(e) => setEditContent(e.target.value)}
-                      className="resize-none text-sm min-h-[60px] mb-2"
-                    />
-                    <div className="flex justify-end space-x-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={handleCancelEdit}
-                        className="h-7 px-2 text-xs"
-                      >
-                        <X size={12} className="mr-1" /> Cancel
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        onClick={handleSaveEdit}
-                        disabled={updateNoteMutation.isPending || !editContent.trim()}
-                        className="h-7 px-2 text-xs"
-                      >
-                        <Check size={12} className="mr-1" /> Save
-                      </Button>
-                    </div>
+                    {selectedQuestionIndex !== null ? (
+                      <div className="bg-amber-50 p-3 rounded-md">
+                        <div className="text-sm font-medium text-amber-800 mb-2">
+                          Adding answer to question #{selectedQuestionIndex + 1}
+                        </div>
+                        <Textarea 
+                          value={answerText}
+                          onChange={(e) => setAnswerText(e.target.value)}
+                          className="resize-none text-sm min-h-[60px] mb-2"
+                          placeholder="Type your answer here..."
+                        />
+                        <div className="flex justify-end space-x-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={handleCancelEdit}
+                            className="h-7 px-2 text-xs"
+                          >
+                            <X size={12} className="mr-1" /> Cancel
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            onClick={handleSaveEdit}
+                            disabled={updateNoteMutation.isPending || !answerText.trim()}
+                            className="h-7 px-2 text-xs"
+                          >
+                            <Check size={12} className="mr-1" /> Save Answer
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <Textarea
+                          value={editContent}
+                          onChange={(e) => setEditContent(e.target.value)}
+                          className="resize-none text-sm min-h-[60px] mb-2"
+                        />
+                        <div className="flex justify-end space-x-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={handleCancelEdit}
+                            className="h-7 px-2 text-xs"
+                          >
+                            <X size={12} className="mr-1" /> Cancel
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            onClick={handleSaveEdit}
+                            disabled={updateNoteMutation.isPending || !editContent.trim()}
+                            className="h-7 px-2 text-xs"
+                          >
+                            <Check size={12} className="mr-1" /> Save
+                          </Button>
+                        </div>
+                      </>
+                    )}
                   </div>
                 ) : (
                   <div className={`text-sm text-neutral-800 mt-1 p-2 rounded-md ${
@@ -632,7 +718,38 @@ export default function Timeline({ dealId }: TimelineProps) {
                     event.eventType === 'note' && event.metadata?.noteType === 'concern' ? 'bg-red-50' :
                     'bg-gray-50'
                   }`}>
-                    {event.content}
+                    {event.eventType === 'note' && event.metadata?.noteType === 'question' && event.content
+                      ? event.content.split(/\n|(?:\d+[\.\)]?\s*)/g)
+                          .map((line, index) => line.trim())
+                          .filter(line => line.length > 0)
+                          .map((line, index) => (
+                            <div key={index} className="mb-2 last:mb-0">
+                              <div className="flex items-start gap-2">
+                                <div className="flex-shrink-0 bg-amber-200 text-amber-800 w-5 h-5 rounded-full flex items-center justify-center text-xs font-medium">
+                                  {index + 1}
+                                </div>
+                                <div className="flex-grow">
+                                  <p>{line}</p>
+                                  {event.metadata?.answers && event.metadata.answers[index] ? (
+                                    <div className="mt-1 ml-2 pl-2 border-l-2 border-amber-200 text-neutral-600">
+                                      {event.metadata.answers[index]}
+                                    </div>
+                                  ) : canModifyNote(event) && (
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm" 
+                                      className="mt-1 text-xs text-amber-600 hover:text-amber-800 hover:bg-amber-50 h-auto py-1"
+                                      onClick={() => handleAddAnswer(event, index)}
+                                    >
+                                      + Add Answer
+                                    </Button>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          ))
+                      : (event.content || '')
+                    }
                   </div>
                 )}
                 

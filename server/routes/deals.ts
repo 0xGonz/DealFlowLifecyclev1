@@ -357,9 +357,17 @@ router.put('/:dealId/timeline/:eventId', async (req: Request, res: Response) => 
       return res.status(400).json({ message: 'Only note events can be edited' });
     }
     
-    const updatedEvent = await storage.updateTimelineEvent(eventId, {
+    // Prepare update data
+    const updateData: any = {
       content: req.body.content
-    });
+    };
+    
+    // If metadata is provided in the request, include it in the update
+    if (req.body.metadata) {
+      updateData.metadata = req.body.metadata;
+    }
+    
+    const updatedEvent = await storage.updateTimelineEvent(eventId, updateData);
     
     // Return with user info
     const userInfo = await storage.getUser(event.createdBy);
