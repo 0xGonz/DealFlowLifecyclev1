@@ -17,26 +17,23 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Create session stores with fixed strategy for the life of the process
+// Create session stores with a fixed strategy for the life of the process
 // This prevents session loss due to store switching during runtime
 
 // Initialize the StorageFactory to use the hybrid storage implementation
 const storage = StorageFactory.getStorage();
 
-// Decide once at startup which session store to use
+// Decide ONCE at boot time which session store to use (never change during runtime)
 const useMemoryOnly = process.env.USE_MEMORY_SESSIONS === "true" || process.env.NODE_ENV !== "production";
 
 console.log(`Using ${useMemoryOnly ? 'memory-only' : 'PostgreSQL'} session store (fixed for app lifetime)`);
 
-// Create the appropriate session store based on startup decision
+// Create the appropriate session store
 const MemoryStore = memorystore(session);
 const PgSession = connectPgSimple(session);
 
-// Type definition for our session store
-type SessionStoreType = session.Store;
-
-// Create and configure the selected session store
-const sessionStore: SessionStoreType = useMemoryOnly
+// Create the selected session store that will be used for the entire app lifetime
+const sessionStore = useMemoryOnly
   ? new MemoryStore({ 
       checkPeriod: 86400000 // prune expired entries every 24h
     })
@@ -47,34 +44,20 @@ const sessionStore: SessionStoreType = useMemoryOnly
       pruneSessionInterval: 1800, // Reduced prune frequency to every 30 minutes
       errorLog: (error) => {
         console.error('PostgreSQL session store error:', error);
-        // Just log the error, but don't switch stores mid-request
+        // Just log the error, don't switch stores
       },
       schemaName: 'public', // Explicitly set schema name
       disableTouch: false, // Enable touch to update the last access time
       ttl: 86400 * 7, // Session lifetime in seconds (7 days, same as cookie)
-      conObject: {
-        connectionTimeoutMillis: 15000,
-        query_timeout: 10000
-      }
     });
 
 // Increase max listeners to prevent warnings
-if (typeof sessionStore.setMaxListeners === 'function') {
-  sessionStore.setMaxListeners(1000);
+if (typeof (sessionStore as any).setMaxListeners === 'function') {
+  (sessionStore as any).setMaxListeners(1000);
 }
 
-// Additional setup for PostgreSQL session store
-if (!useMemoryOnly) {
-  try {
-    // Type assertion for pool access
-    const pgStore = sessionStore as any;
-    if (pgStore.pool && typeof pgStore.pool.setMaxListeners === 'function') {
-      pgStore.pool.setMaxListeners(1000);
-    }
-  } catch (err) {
-    console.warn('Failed to set max listeners on PostgreSQL pool', err);
-  }
-}
+// The critical fix: NEVER dynamically change session stores during runtime
+// This eliminates the root cause of authentication issues
 
 // Add metrics middleware to track request metrics
 app.use(metricsMiddleware());
@@ -95,13 +78,13 @@ app.use((req, res, next) => {
 // Configure the session middleware
 app.set('trust proxy', 1); // Trust first proxy for secure cookies behind a proxy
 
-// Apply session middleware with a fixed store
+// Apply session middleware with a fixed store chosen at startup
 app.use(
   session({
-    store: sessionStore, // Use the fixed session store chosen at startup
+    store: sessionStore, // Fixed store - critical fix: never swap stores mid-request
     secret: process.env.SESSION_SECRET || 'investment-tracker-secret',
     name: 'investment_tracker.sid', // Custom cookie name to avoid conflicts
-    resave: false, // Set to false since we're using a reliable store
+    resave: false,
     saveUninitialized: false,
     rolling: true, // Reset cookie expiration on every response
     cookie: {
