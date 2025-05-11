@@ -17,7 +17,8 @@ export class StorageFactory {
     if (!this.instance) {
       try {
         // Choose storage based on environment variables
-        const useMemory = process.env.USE_MEMORY_SESSIONS === "true" || process.env.NODE_ENV !== "production";
+        // Default to database unless explicitly told to use memory
+        const useMemory = process.env.USE_MEMORY_SESSIONS === "true";
         
         if (useMemory) {
           console.log('Using MemStorage for data persistence');

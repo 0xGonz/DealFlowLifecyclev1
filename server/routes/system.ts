@@ -102,7 +102,11 @@ systemRouter.get('/health', async (req: Request, res: Response) => {
   const isMemoryStorage = StorageFactory.storage instanceof MemStorage;
   const isDatabaseStorage = StorageFactory.storage instanceof DatabaseStorage;
   
-  const storageType = isMemoryStorage ? 'memory' : 'database';
+  // Check session store type from environment variable
+  const useMemorySessions = process.env.USE_MEMORY_SESSIONS === "true";
+  
+  // Return 'pg' as storage type when using PostgreSQL, as required by the documentation
+  const storageType = isMemoryStorage ? 'memory' : (useMemorySessions ? 'memory' : 'pg');
   
   console.log('✅ Using fixed session and data store type:', storageType);
   

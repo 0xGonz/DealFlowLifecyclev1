@@ -32,8 +32,9 @@ const storage = StorageFactory.getStorage();
 const MemoryStore = memorystore(session);
 const PgSession = connectPgSimple(session);
 
-// Decide once, never change:
-const useMemory = process.env.USE_MEMORY_SESSIONS === "true" || process.env.NODE_ENV !== "production";
+// Decide once, never change - default to postgres sessions in all environments
+// unless explicitly told to use memory sessions
+const useMemory = process.env.USE_MEMORY_SESSIONS === "true";
 
 const sessionStore = useMemory
   ? new MemoryStore({ checkPeriod: 86400000 })               // memory

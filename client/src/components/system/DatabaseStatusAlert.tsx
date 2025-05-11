@@ -16,7 +16,7 @@ type HybridStatus = {
 type SystemHealthResponse = {
   status: string;
   timestamp: string;
-  storage: 'database' | 'memory' | 'hybrid' | 'unknown';
+  storage: 'database' | 'memory' | 'hybrid' | 'pg' | 'unknown';
   databaseConnected: boolean;
   environment: string;
   hybridStatus: HybridStatus | null;
@@ -49,8 +49,9 @@ export function DatabaseStatusAlert() {
     return null;
   }
   
-  // Using regular database mode and it's connected - no alert needed
-  if (healthData.storage === 'database' && healthData.databaseConnected) {
+  // Using regular database mode or pg mode and it's connected - no alert needed
+  if ((healthData.storage === 'database' || healthData.storage === 'pg') && 
+       healthData.databaseConnected) {
     return null;
   }
 
@@ -73,6 +74,7 @@ export function DatabaseStatusAlert() {
       <AlertTitle>
         {healthData.storage === 'memory' ? "Database Disconnected" : 
          healthData.storage === 'hybrid' && !healthData.hybridStatus?.hybridInfo?.usingDatabase ? "Operating in Hybrid Fallback Mode" :
+         (healthData.storage === 'database' || healthData.storage === 'pg') ? "Database Status Warning" :
          "Database Status Warning"}
       </AlertTitle>
       <AlertDescription>
@@ -122,6 +124,12 @@ export function DatabaseStatusAlert() {
                 ) : null}
               </>
             )}
+          </>
+        ) : healthData.storage === 'database' || healthData.storage === 'pg' ? (
+          <>
+            <p>
+              Database connection issues detected. Some features may be temporarily unavailable.
+            </p>
           </>
         ) : (
           <>
