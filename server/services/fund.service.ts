@@ -97,6 +97,8 @@ export class FundService {
     // Set default values if not provided
     const completeData = {
       ...fundData,
+      // Always initialize with aum=0 - this will only be calculated based on actual allocations
+      aum: 0,
       vintage: fundData.vintage || new Date().getFullYear(),
       distributionRate: fundData.distributionRate || 0.3,
       appreciationRate: fundData.appreciationRate || 0.88,

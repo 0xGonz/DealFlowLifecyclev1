@@ -40,6 +40,8 @@ router.get('/', async (req: Request, res: Response) => {
       // Total fund size is the sum of called + committed capital
       const totalFundSize = calledCapital + committedCapital;
       
+      // Make sure we explicitly set the AUM to 0 when there are no valid allocations
+      // This ensures we don't have funds with misleading AUM values
       return {
         ...fund,
         aum: calledCapital, // Update to use called capital instead of AUM
@@ -120,12 +122,17 @@ router.get('/:id', async (req: Request, res: Response) => {
         };
       });
     } else {
-      allocationsWithWeights = allocationsWithDealInfo;
+      // For funds with no called capital, all weights should be zero
+      allocationsWithWeights = allocationsWithDealInfo.map(allocation => ({
+        ...allocation,
+        portfolioWeight: 0
+      }));
     }
     
     res.json({
       ...fund,
-      aum: calledCapital, // Now represents called capital instead of AUM
+      // Always use dynamically calculated values based on actual allocations
+      aum: calledCapital,
       calculatedAum: calledCapital,
       committedCapital,
       totalFundSize,
