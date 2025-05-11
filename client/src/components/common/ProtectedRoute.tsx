@@ -9,16 +9,14 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ path, component: Component }: ProtectedRouteProps) {
-  const { data, isLoading, refreshAuth } = useAuth();
+  const { data, isLoading } = useAuth();
 
   // Add debugging logs
   console.log(`ProtectedRoute for ${path}: isLoading=${isLoading}, user=${data?.username}`);
 
-  // Refresh auth on mount to ensure we have fresh authentication data
-  useEffect(() => {
-    console.log(`ProtectedRoute ${path} mounted, refreshing auth`);
-    refreshAuth();
-  }, [path, refreshAuth]);
+  // We no longer need to call refreshAuth() here as it creates a race condition
+  // with the refreshAuth() call in AuthProvider's useEffect
+  // This was causing authentication issues, especially on the Calendar page
 
   // Show a loading state while checking authentication
   if (isLoading) {
