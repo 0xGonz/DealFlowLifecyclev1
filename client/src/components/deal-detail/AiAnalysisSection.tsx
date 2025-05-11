@@ -4,7 +4,7 @@ import { usePermissions } from '@/hooks/use-permissions';
 import AiAnalysisPanel from '@/components/analysis/AiAnalysisPanel';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertTriangle } from 'lucide-react';
-import { Deal } from '@/lib/types';
+import { Deal } from '@shared/schema';
 
 interface AiAnalysisSectionProps {
   dealId: number;
@@ -29,6 +29,10 @@ const AiAnalysisSection = ({ dealId }: AiAnalysisSectionProps) => {
       deal.stage === 'closing' || 
       deal.stage === 'invested'
     );
+    
+  // Check if the deal stage exists in the schema
+  const validStages = ['initial_review', 'screening', 'diligence', 'ai_review', 
+                      'ic_review', 'closing', 'closed', 'invested', 'rejected'];
 
   if (!canViewAiAnalysis) {
     return (
@@ -62,7 +66,9 @@ const AiAnalysisSection = ({ dealId }: AiAnalysisSectionProps) => {
             AI analysis is available once a deal reaches the diligence stage or later.
           </p>
           <p className="text-sm text-muted-foreground mt-2">
-            Current stage: {deal && deal.stageLabel ? deal.stageLabel : 'Unknown'}
+            Current stage: {deal && deal.stage ? 
+              deal.stage.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') 
+              : 'Unknown'}
           </p>
         </CardContent>
       </Card>
