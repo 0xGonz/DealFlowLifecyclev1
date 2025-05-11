@@ -273,7 +273,7 @@ const CalendarPage = () => {
             <Button 
               onClick={() => setIsEventFormOpen(true)}
               size="sm"
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              className="bg-green-600 hover:bg-green-700 text-white"
             >
               <Plus className="h-4 w-4 mr-1" />
               Add Event
@@ -294,7 +294,7 @@ const CalendarPage = () => {
         
         <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-6 h-full">
           {/* Calendar */}
-          <Card className="h-full flex flex-col">
+          <Card className="h-full min-h-[800px] flex flex-col">
             <CardContent className="p-0 flex flex-col flex-grow h-full">
               <Calendar
                 mode="single"
@@ -310,7 +310,7 @@ const CalendarPage = () => {
                           // Handle the click event manually
                           setSelectedDate(props.date);
                         }} 
-                        className="w-full h-full p-0 my-0.5 font-normal text-base rounded-md flex items-center justify-center transition-colors hover:bg-neutral-100"
+                        className="w-full h-full p-0 my-0.5 min-h-[60px] font-normal text-base rounded-md flex items-center justify-center transition-colors hover:bg-neutral-100"
                       >
                         {renderDay(props.date)}
                       </button>

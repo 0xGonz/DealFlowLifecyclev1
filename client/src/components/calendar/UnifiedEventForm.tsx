@@ -121,7 +121,7 @@ const UnifiedEventForm: React.FC<UnifiedEventFormProps> = ({ isOpen, onClose, se
   
   // Fetch allocations for the selected deal if it's a capital call
   const { data: allocations = [], isLoading: isLoadingAllocations } = useQuery<FundAllocation[]>({
-    queryKey: ['/api/allocations/deal', selectedDealId],
+    queryKey: ['/api/allocations', { dealId: selectedDealId }],
     enabled: !!selectedDealId && selectedEventType === EventType.CAPITAL_CALL,
   });
   
