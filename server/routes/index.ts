@@ -1,15 +1,9 @@
 import { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
-import dealsRoutes from './deals';
-import fundsRoutes from './funds';
-import usersRoutes from './users';
-import authRoutes from './auth';
-import allocationsRoutes from './allocations';
-import activityRoutes from './activity';
-import dashboardRoutes from './dashboard';
-import leaderboardRoutes from './leaderboard';
-import notificationsRoutes from './notifications';
-import documentsRoutes from './documents';
+import { versioningMiddleware } from "../middleware/versioning";
+import { standardRateLimiter, authRateLimiter, apiRateLimiter } from "../middleware/rateLimit";
+import v1Routes from './v1';
+import { systemRouter } from './system';
 
 // Create a simple auth middleware
 const authenticate = (req: Request, res: Response, next: NextFunction) => {
@@ -30,20 +24,34 @@ const errorHandler = (err: any, _req: Request, res: Response, _next: NextFunctio
 };
 
 export function registerRoutes(app: Express): Server {
+  // Apply versioning middleware to all API routes
+  app.use('/api', versioningMiddleware(1));
+  
   // Apply authentication middleware to all API routes
   app.use('/api', authenticate);
   
-  // Register route modules
-  app.use('/api/deals', dealsRoutes);
-  app.use('/api/funds', fundsRoutes);
-  app.use('/api/users', usersRoutes);
-  app.use('/api/auth', authRoutes);
-  app.use('/api/allocations', allocationsRoutes);
-  app.use('/api/activity', activityRoutes);
-  app.use('/api/dashboard', dashboardRoutes);
-  app.use('/api/leaderboard', leaderboardRoutes);
-  app.use('/api/notifications', notificationsRoutes);
-  app.use('/api/documents', documentsRoutes);
+  // Apply stricter rate limits to authentication-related endpoints
+  app.use('/api/v1/auth', authRateLimiter);
+  app.use('/api/auth', authRateLimiter);
+  
+  // Apply API rate limiting to versioned routes
+  app.use('/api/v1', apiRateLimiter, v1Routes);
+  
+  // For backwards compatibility, also route the base /api/* to current version with rate limiting
+  app.use('/api', apiRateLimiter, v1Routes);
+  
+  // System routes with standard rate limiting
+  app.use('/api/system', standardRateLimiter, systemRouter);
+  
+  // API Documentation route with standard rate limiting
+  app.get('/api', standardRateLimiter, (req, res) => {
+    res.json({
+      name: 'Investment Lifecycle Tracking API',
+      versions: ['1'],
+      currentVersion: '1',
+      documentation: 'To specify API version, use /api/v1/* or pass version=1 in Accept header'
+    });
+  });
   
   // Catch-all route for 404s
   app.use('/api/*', (req, res) => {

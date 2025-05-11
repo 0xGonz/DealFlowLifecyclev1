@@ -9,6 +9,9 @@ import * as path from 'path';
 import connectPgSimple from 'connect-pg-simple';
 import memorystore from 'memorystore';
 import { StorageFactory } from "./storage-factory";
+import { initJobQueues } from "./jobs";
+import { metricsMiddleware } from "./middleware/metrics";
+import { loggingService } from "./services";
 
 const app = express();
 app.use(express.json());
@@ -140,6 +143,9 @@ const getSessionStore = () => {
   return activeSessionStore;
 };
 
+// Add metrics middleware to track request metrics
+app.use(metricsMiddleware());
+
 // Configure CORS to allow cross-origin requests for development/embedding
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
@@ -259,6 +265,15 @@ if (!fs.existsSync(uploadDir)) {
 (async () => {
   console.log('Initializing database connection...');
   // Database is already initialized, and we're using it for session storage
+  
+  // Initialize background job queues
+  try {
+    initJobQueues();
+    console.log('Background job processing system initialized');
+  } catch (error) {
+    console.error('Failed to initialize background jobs:', error);
+    console.log('Continuing without background processing');
+  }
   
   const server = await registerRoutes(app);
 

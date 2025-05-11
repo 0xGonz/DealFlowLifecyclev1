@@ -1,5 +1,4 @@
 import { Router, Request, Response } from "express";
-import { StorageFactory } from "../storage-factory";
 import { 
   insertDealSchema, 
   insertTimelineEventSchema, 
@@ -11,6 +10,8 @@ import {
 import { z } from "zod";
 import { IStorage } from "../storage";
 import { requirePermission } from "../utils/permissions";
+import { dealService } from "../services";
+import { StorageFactory } from "../storage-factory";
 
 const router = Router();
 
@@ -26,10 +27,11 @@ router.get('/', async (req: Request, res: Response) => {
     let deals;
     
     if (req.query.stage) {
-      // Cast to the correct type for stage
-      deals = await storage.getDealsByStage(req.query.stage as any);
+      // Use the service to get deals by stage
+      deals = await dealService.getDealsByStage(req.query.stage as any);
     } else {
-      deals = await storage.getDeals();
+      // Use the service to get all deals
+      deals = await dealService.getAllDeals();
     }
     
     // For each deal, get the assignments and stars
