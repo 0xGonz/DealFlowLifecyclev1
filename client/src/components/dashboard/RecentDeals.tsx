@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import DealCard from "@/components/deals/DealCard";
+import { formatDistanceToNow } from "date-fns";
+import { Edit, Tag } from "lucide-react";
 import EditDealModal from "@/components/deals/EditDealModal";
 import AllocateFundModal from "@/components/deals/AllocateFundModal";
 import { 
@@ -13,6 +14,9 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Deal } from "@/lib/types";
+import { getDealStageBadgeClass } from "@/lib/utils/format";
+import { usePermissions } from "@/hooks/use-permissions";
+import { enrichDealWithComputedProps } from "@/lib/utils";
 
 export default function RecentDeals() {
   const [, navigate] = useLocation();
@@ -20,6 +24,7 @@ export default function RecentDeals() {
   const [dateFilter, setDateFilter] = useState("30days");
   const [editDealId, setEditDealId] = useState<number | null>(null);
   const [allocateDealId, setAllocateDealId] = useState<number | null>(null);
+  const { canEdit } = usePermissions();
 
   const { data: deals = [], isLoading } = useQuery<Deal[]>({
     queryKey: ["/api/deals"],
@@ -118,16 +123,53 @@ export default function RecentDeals() {
               <p className="text-sm sm:text-base text-neutral-500">No deals found matching your filters.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-              {filteredDeals.map(deal => (
-                <DealCard 
-                  key={deal.id} 
-                  deal={deal} 
-                  compact={false} 
-                  onEdit={() => setEditDealId(deal.id)}
-                  onAllocate={() => setAllocateDealId(deal.id)}
-                />
-              ))}
+            <div className="rounded-md overflow-hidden border border-neutral-200">
+              <ul className="divide-y divide-neutral-200">
+                {filteredDeals.map(rawDeal => {
+                  // Enrich deal with computed properties
+                  const deal = enrichDealWithComputedProps(rawDeal);
+                  const stageBadgeClass = getDealStageBadgeClass(deal.stage);
+                  return (
+                    <li 
+                      key={deal.id} 
+                      className="px-3 py-2.5 hover:bg-neutral-50 transition-colors cursor-pointer"
+                      onClick={() => navigate(`/deals/${deal.id}`)}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-medium text-neutral-800 truncate">{deal.name}</h3>
+                          <span className={`deal-stage-badge text-xs px-2 py-0.5 leading-none whitespace-nowrap ${stageBadgeClass}`}>
+                            {deal.stageLabel}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {canEdit('deal') && (
+                            <button 
+                              className="text-neutral-500 hover:text-primary"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditDealId(deal.id);
+                              }}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                      <p className="text-xs text-neutral-600 mb-1.5 line-clamp-1">{deal.description || 'No description'}</p>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1">
+                          <Tag className="h-3.5 w-3.5 text-primary-600" />
+                          <span className="text-xs text-primary-700">{deal.sector}</span>
+                        </div>
+                        <span className="text-xs text-neutral-500">
+                          Updated {formatDistanceToNow(new Date(deal.updatedAt), { addSuffix: true })}
+                        </span>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
             </div>
           )}
         </CardContent>
