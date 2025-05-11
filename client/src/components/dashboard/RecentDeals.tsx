@@ -124,7 +124,7 @@ export default function RecentDeals() {
             </div>
           ) : (
             <div className="rounded-md overflow-hidden border border-neutral-200 w-full mx-0">
-              <ul className="divide-y divide-neutral-200 w-full border-t-0 border-r-0 border-l-0 p-0 [&>li:not(:last-child)]:border-b-[1.5px]">
+              <ul className="divide-y divide-neutral-200 w-full border-t-0 border-r-0 border-l-0 p-0">
                 {filteredDeals.map(rawDeal => {
                   // Enrich deal with computed properties
                   const deal = enrichDealWithComputedProps(rawDeal);
