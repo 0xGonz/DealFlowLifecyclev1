@@ -58,6 +58,11 @@ export default function ProfileEditModal({
       setAvatarColor(AVATAR_COLORS.DEFAULT);
     }
   }, [currentName, currentRole, currentUser]);
+  
+  // Debug logs to track state changes
+  useEffect(() => {
+    console.log('Avatar color changed to:', avatarColor);
+  }, [avatarColor]);
 
   const handleSubmit = async () => {
     if (!name?.trim() || name.length < FORM_CONSTRAINTS.USERNAME.MIN_LENGTH) {
@@ -159,13 +164,17 @@ export default function ProfileEditModal({
         <div className="flex justify-center mb-4">
           {currentUser && (
             <div className="flex flex-col items-center">
-              <UserAvatar 
-                user={{
-                  ...currentUser,
-                  avatarColor: avatarColor
-                }} 
-                size="lg"
-              />
+              <div 
+                className="rounded-full flex items-center justify-center text-white font-semibold"
+                style={{ 
+                  backgroundColor: avatarColor || AVATAR_COLORS.DEFAULT,
+                  width: "5rem",
+                  height: "5rem",
+                  fontSize: "1.5rem"
+                }}
+              >
+                {currentUser.initials}
+              </div>
               <span className="text-sm text-muted-foreground mt-2">Avatar Preview</span>
             </div>
           )}
@@ -218,84 +227,27 @@ export default function ProfileEditModal({
               Avatar Color
             </Label>
             <div className="col-span-3">
-              <RadioGroup
-                value={avatarColor || AVATAR_COLORS.DEFAULT}
-                onValueChange={setAvatarColor}
-                className="grid grid-cols-4 gap-2"
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem 
-                    value={AVATAR_COLORS.BLUE} 
-                    id="color-blue" 
-                    className="border-2"
-                    style={{ backgroundColor: AVATAR_COLORS.BLUE }}
-                  />
-                  <Label htmlFor="color-blue">Blue</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem 
-                    value={AVATAR_COLORS.RED} 
-                    id="color-red" 
-                    className="border-2"
-                    style={{ backgroundColor: AVATAR_COLORS.RED }}
-                  />
-                  <Label htmlFor="color-red">Red</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem 
-                    value={AVATAR_COLORS.GREEN} 
-                    id="color-green" 
-                    className="border-2"
-                    style={{ backgroundColor: AVATAR_COLORS.GREEN }}
-                  />
-                  <Label htmlFor="color-green">Green</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem 
-                    value={AVATAR_COLORS.PURPLE} 
-                    id="color-purple" 
-                    className="border-2"
-                    style={{ backgroundColor: AVATAR_COLORS.PURPLE }}
-                  />
-                  <Label htmlFor="color-purple">Purple</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem 
-                    value={AVATAR_COLORS.ORANGE} 
-                    id="color-orange" 
-                    className="border-2"
-                    style={{ backgroundColor: AVATAR_COLORS.ORANGE }}
-                  />
-                  <Label htmlFor="color-orange">Orange</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem 
-                    value={AVATAR_COLORS.TEAL} 
-                    id="color-teal" 
-                    className="border-2"
-                    style={{ backgroundColor: AVATAR_COLORS.TEAL }}
-                  />
-                  <Label htmlFor="color-teal">Teal</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem 
-                    value={AVATAR_COLORS.PINK} 
-                    id="color-pink" 
-                    className="border-2"
-                    style={{ backgroundColor: AVATAR_COLORS.PINK }}
-                  />
-                  <Label htmlFor="color-pink">Pink</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem 
-                    value={AVATAR_COLORS.INDIGO} 
-                    id="color-indigo" 
-                    className="border-2"
-                    style={{ backgroundColor: AVATAR_COLORS.INDIGO }}
-                  />
-                  <Label htmlFor="color-indigo">Indigo</Label>
-                </div>
-              </RadioGroup>
+              <div className="grid grid-cols-4 gap-2">
+                {Object.entries(AVATAR_COLORS).map(([colorName, colorValue]) => (
+                  // Skip DEFAULT as it's not a real color option
+                  colorName !== 'DEFAULT' && (
+                    <div 
+                      key={colorName}
+                      className={`cursor-pointer flex flex-col items-center`}
+                      onClick={() => {
+                        console.log(`Setting color to ${colorName}: ${colorValue}`);
+                        setAvatarColor(colorValue);
+                      }}
+                    >
+                      <div 
+                        className={`w-8 h-8 rounded-full border-2 ${avatarColor === colorValue ? 'border-primary ring-2 ring-primary/30' : 'border-gray-200'}`}
+                        style={{ backgroundColor: colorValue }}
+                      />
+                      <span className="text-xs mt-1 capitalize">{colorName.toLowerCase()}</span>
+                    </div>
+                  )
+                ))}
+              </div>
             </div>
           </div>
           
