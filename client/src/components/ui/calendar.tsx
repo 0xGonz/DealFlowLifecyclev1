@@ -16,6 +16,12 @@ function Calendar({
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
+      formatters={{
+        formatWeekdayName: (weekday) => {
+          const date = new Date(2021, 1, weekday + 1);  // +1 because weekday is 0-indexed
+          return date.toLocaleDateString('en-US', { weekday: 'long' });
+        }
+      }}
       className={cn("p-3", className)}
       classNames={{
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0 w-full",
