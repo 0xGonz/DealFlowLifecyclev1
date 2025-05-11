@@ -21,7 +21,7 @@ import { enrichDealWithComputedProps } from "@/lib/utils";
 export default function RecentDeals() {
   const [, navigate] = useLocation();
   const [stageFilter, setStageFilter] = useState("all");
-  const [dateFilter, setDateFilter] = useState("30days");
+  const [dateFilter, setDateFilter] = useState("7days");
   const [editDealId, setEditDealId] = useState<number | null>(null);
   const [allocateDealId, setAllocateDealId] = useState<number | null>(null);
   const { canEdit } = usePermissions();
@@ -43,13 +43,10 @@ export default function RecentDeals() {
       const currentDate = new Date().getTime();
       const dayInMs = 24 * 60 * 60 * 1000;
       
-      if (dateFilter === "30days") {
+      if (dateFilter === "7days") {
+        return currentDate - dealDate <= 7 * dayInMs;
+      } else if (dateFilter === "30days") {
         return currentDate - dealDate <= 30 * dayInMs;
-      } else if (dateFilter === "quarter") {
-        return currentDate - dealDate <= 90 * dayInMs;
-      } else if (dateFilter === "ytd") {
-        const startOfYear = new Date(new Date().getFullYear(), 0, 1).getTime();
-        return dealDate >= startOfYear;
       }
       
       return true;
@@ -87,12 +84,11 @@ export default function RecentDeals() {
               
               <Select value={dateFilter} onValueChange={setDateFilter}>
                 <SelectTrigger className="h-8 sm:h-9 text-xs sm:text-sm w-full xs:w-[48%] sm:w-[120px] md:w-[150px]">
-                  <SelectValue placeholder="Last 30 Days" />
+                  <SelectValue placeholder="Last Week" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="7days">Last Week</SelectItem>
                   <SelectItem value="30days">Last 30 Days</SelectItem>
-                  <SelectItem value="quarter">Last Quarter</SelectItem>
-                  <SelectItem value="ytd">Year to Date</SelectItem>
                   <SelectItem value="all">All Time</SelectItem>
                 </SelectContent>
               </Select>
@@ -163,8 +159,8 @@ export default function RecentDeals() {
                         </div>
                         <span className="text-xs text-neutral-500 text-right flex-shrink-0">
                           {new Date(deal.updatedAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) 
-                            ? `Last week` 
-                            : `Updated ${formatDistanceToNow(new Date(deal.updatedAt), { addSuffix: true })}`}
+                            ? `Updated ${formatDistanceToNow(new Date(deal.updatedAt), { addSuffix: true })}` 
+                            : `Last week`}
                         </span>
                       </div>
                     </li>
