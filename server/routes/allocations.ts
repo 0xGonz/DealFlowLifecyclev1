@@ -368,8 +368,25 @@ router.delete('/:id', async (req: Request, res: Response) => {
     // Check if the deal still has any other allocations
     const remainingAllocations = await storage.getAllocationsByDeal(allocation.dealId);
     
-    // If no allocations remain and deal is in 'invested' stage, we could optionally change its stage
-    // but we'll leave it as 'invested' to maintain history of it being invested
+    // If no allocations remain and deal is in 'invested' stage, move it back to "closing" stage
+    if (remainingAllocations.length === 0 && deal && deal.stage === 'invested') {
+      await storage.updateDeal(deal.id, { 
+        stage: 'closing',  // Move back to the previous stage in the pipeline
+        createdBy: (req as any).user.id
+      });
+      
+      // Create a timeline event for this stage change
+      await storage.createTimelineEvent({
+        dealId: deal.id,
+        eventType: 'stage_change',
+        content: `Deal moved from Invested to Closing after last fund allocation was removed`,
+        createdBy: (req as any).user.id,
+        metadata: {
+          previousStage: ['invested'],
+          newStage: ['closing']
+        }
+      });
+    }
     
     // Get all deals to validate allocations
     const deals = await storage.getDeals();
