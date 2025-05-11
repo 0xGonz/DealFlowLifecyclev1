@@ -71,7 +71,9 @@ import {
   Calendar, 
   Mail,
   BarChart4,
-  Trash2
+  Trash2,
+  Loader2,
+  Plus
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { getDealStageBadgeClass } from "@/lib/utils/format";

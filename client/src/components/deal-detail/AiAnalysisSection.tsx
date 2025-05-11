@@ -4,6 +4,7 @@ import { usePermissions } from '@/hooks/use-permissions';
 import AiAnalysisPanel from '@/components/analysis/AiAnalysisPanel';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertTriangle } from 'lucide-react';
+import { Deal } from '@/lib/types';
 
 interface AiAnalysisSectionProps {
   dealId: number;
@@ -14,17 +15,20 @@ const AiAnalysisSection = ({ dealId }: AiAnalysisSectionProps) => {
   const canViewAiAnalysis = canView('aiAnalysis');
 
   // Check if deal is in the correct stage for AI analysis
-  const { data: deal } = useQuery({
+  const { data: deal } = useQuery<Deal>({
     queryKey: [`/api/deals/${dealId}`],
     enabled: !!dealId,
   });
 
   // Only certain stages should have AI analysis
-  const isEligibleForAnalysis = deal?.stage === 'diligence' || 
-                               deal?.stage === 'ai_review' || 
-                               deal?.stage === 'ic_review' ||
-                               deal?.stage === 'closing' || 
-                               deal?.stage === 'invested';
+  const isEligibleForAnalysis = 
+    deal && (
+      deal.stage === 'diligence' || 
+      deal.stage === 'ai_review' || 
+      deal.stage === 'ic_review' ||
+      deal.stage === 'closing' || 
+      deal.stage === 'invested'
+    );
 
   if (!canViewAiAnalysis) {
     return (
@@ -58,7 +62,7 @@ const AiAnalysisSection = ({ dealId }: AiAnalysisSectionProps) => {
             AI analysis is available once a deal reaches the diligence stage or later.
           </p>
           <p className="text-sm text-muted-foreground mt-2">
-            Current stage: {deal?.stageLabel || 'Unknown'}
+            Current stage: {deal && deal.stageLabel ? deal.stageLabel : 'Unknown'}
           </p>
         </CardContent>
       </Card>
