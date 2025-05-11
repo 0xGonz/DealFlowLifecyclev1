@@ -22,52 +22,23 @@ import ErrorBoundary from "@/components/common/ErrorBoundary";
 import { ProtectedRoute } from "@/components/common/ProtectedRoute";
 import { DatabaseStatusAlert } from "@/components/system/DatabaseStatusAlert";
 
-/**
- * Wraps a component with an ErrorBoundary for route-level error handling
- */
-const withErrorBoundary = (Component: React.ComponentType<any>, pageName: string) => (props: any) => (
-  <ErrorBoundary
-    onError={(error, info) => {
-      console.error(`Error in ${pageName} page:`, error, info);
-      // Could send to an error reporting service here
-    }}
-    fallback={
-      <div className="flex flex-col items-center justify-center min-h-screen p-4">
-        <h2 className="text-xl font-semibold text-red-600 mb-2">Something went wrong</h2>
-        <p className="text-gray-600 mb-4">We encountered an error loading this page.</p>
-        <a 
-          href="/"
-          className="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark transition-colors"
-        >
-          Return to Dashboard
-        </a>
-      </div>
-    }
-  >
-    <Component {...props} />
-  </ErrorBoundary>
-);
-
 function Router() {
   return (
     <Switch>
-      <ProtectedRoute path="/" component={withErrorBoundary(Dashboard, 'Dashboard')} />
-      <ProtectedRoute path="/pipeline" component={withErrorBoundary(Pipeline, 'Pipeline')} />
-      <ProtectedRoute path="/leaderboard" component={withErrorBoundary(Leaderboard, 'Leaderboard')} />
-      <ProtectedRoute path="/funds" component={withErrorBoundary(Funds, 'Funds')} />
-      <ProtectedRoute path="/funds/:id" component={withErrorBoundary(FundDetail, 'FundDetail')} />
-      <ProtectedRoute path="/deals/:id" component={withErrorBoundary(DealDetail, 'DealDetail')} />
-      <ProtectedRoute path="/calendar" component={withErrorBoundary(Calendar, 'Calendar')} />
-      <ProtectedRoute path="/capital-calls" component={withErrorBoundary(CapitalCalls, 'CapitalCalls')} />
-      <ProtectedRoute 
-        path="/capital-calls/allocation/:id" 
-        component={withErrorBoundary(CapitalCallsByAllocation, 'CapitalCallsByAllocation')} 
-      />
-      <ProtectedRoute path="/settings" component={withErrorBoundary(Settings, 'Settings')} />
-      <ProtectedRoute path="/users" component={withErrorBoundary(Users, 'Users')} />
-      <Route path="/auth" component={withErrorBoundary(AuthPage, 'AuthPage')} />
-      <Route path="/startest" component={withErrorBoundary(StarTest, 'StarTest')} />
-      <Route component={withErrorBoundary(NotFound, 'NotFound')} />
+      <ProtectedRoute path="/" component={Dashboard} />
+      <ProtectedRoute path="/pipeline" component={Pipeline} />
+      <ProtectedRoute path="/leaderboard" component={Leaderboard} />
+      <ProtectedRoute path="/funds" component={Funds} />
+      <ProtectedRoute path="/funds/:id" component={FundDetail} />
+      <ProtectedRoute path="/deals/:id" component={DealDetail} />
+      <ProtectedRoute path="/calendar" component={Calendar} />
+      <ProtectedRoute path="/capital-calls" component={CapitalCalls} />
+      <ProtectedRoute path="/capital-calls/allocation/:id" component={CapitalCallsByAllocation} />
+      <ProtectedRoute path="/settings" component={Settings} />
+      <ProtectedRoute path="/users" component={Users} />
+      <Route path="/auth" component={AuthPage} />
+      <Route path="/startest" component={StarTest} />
+      <Route component={NotFound} />
     </Switch>
   );
 }
