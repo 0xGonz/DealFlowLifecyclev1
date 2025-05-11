@@ -115,6 +115,17 @@ let lastDbCheck = 0;
 const DB_CHECK_INTERVAL = 60000; // 1 minute between DB checks
 
 const getSessionStore = () => {
+  // In production, we should never use MemoryStore as it leads to memory leaks
+  // and doesn't scale across multiple instances
+  if (process.env.NODE_ENV === 'production' && Object.is(activeSessionStore, memoryStore)) {
+    console.error('ERROR: MemoryStore detected in production environment!');
+    console.error('This will lead to memory leaks and session loss on server restart.');
+    console.error('Please configure PostgreSQL session store properly for production.');
+    
+    // We don't switch automatically - this is a critical error that should be addressed
+    // But we continue with MemoryStore to prevent total app failure, logging the issue
+  }
+  
   const now = Date.now();
   
   // Only perform DB check once per minute to reduce strain and prevent excessive event listeners
@@ -128,6 +139,12 @@ const getSessionStore = () => {
       if (!Object.is(activeSessionStore, memoryStore)) {
         console.log('Hybrid storage in memory mode - switching session store to memory');
         activeSessionStore = memoryStore;
+        
+        // In production, this is a critical issue that should be addressed
+        if (process.env.NODE_ENV === 'production') {
+          console.error('CRITICAL: Production environment falling back to MemoryStore!');
+          console.error('This will lead to memory leaks and session loss on server restart.');
+        }
       }
     } else {
       // Double-check database connectivity
@@ -138,9 +155,16 @@ const getSessionStore = () => {
           
           // Ensure memory store has enough event listeners
           memoryStore.setMaxListeners(1000);
+          
+          // In production, this is a critical issue that should be addressed
+          if (process.env.NODE_ENV === 'production') {
+            console.error('CRITICAL: Production environment falling back to MemoryStore!');
+            console.error('This will lead to memory leaks and session loss on server restart.');
+          }
         });
     }
   }
+  
   return activeSessionStore;
 };
 
@@ -165,7 +189,7 @@ app.set('trust proxy', 1); // Trust first proxy for secure cookies behind a prox
 
 // Add error handling for session store
 app.use((req, res, next) => {
-  // Apply session middleware with error handling
+  // Apply session middleware with error handling and hardened security
   session({
     store: getSessionStore(), // Get the appropriate session store with fallback capability
     secret: process.env.SESSION_SECRET || 'investment-tracker-secret',
@@ -174,11 +198,12 @@ app.use((req, res, next) => {
     saveUninitialized: false,
     rolling: true, // Reset cookie expiration on every response
     cookie: {
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // Extended to 7 days for better persistence
-      httpOnly: true,
-      sameSite: 'lax',
-      path: '/' // Ensure cookie is available for all paths
+      secure: process.env.NODE_ENV === 'production', // Force HTTPS in production
+      maxAge: 24 * 60 * 60 * 1000, // 24 hour TTL as recommended for security (86400000ms)
+      httpOnly: true, // Prevent JavaScript access to cookie
+      sameSite: 'lax', // Protect against CSRF while allowing normal navigation
+      path: '/', // Ensure cookie is available for all paths
+      domain: undefined // Will use the current domain automatically
     }
   })(req, res, (err) => {
     if (err) {
@@ -192,7 +217,7 @@ app.use((req, res, next) => {
         // Ensure memory store has enough event listeners when used as fallback
         memoryStore.setMaxListeners(1000);
         
-        // Try again with memory store
+        // Try again with memory store using same hardened settings
         session({
           store: memoryStore,
           secret: process.env.SESSION_SECRET || 'investment-tracker-secret',
@@ -201,11 +226,12 @@ app.use((req, res, next) => {
           saveUninitialized: false,
           rolling: true,
           cookie: {
-            secure: process.env.NODE_ENV === 'production',
-            maxAge: 7 * 24 * 60 * 60 * 1000,
-            httpOnly: true,
-            sameSite: 'lax',
-            path: '/'
+            secure: process.env.NODE_ENV === 'production', // Force HTTPS in production
+            maxAge: 24 * 60 * 60 * 1000, // 24 hour TTL as recommended for security (86400000ms)
+            httpOnly: true, // Prevent JavaScript access to cookie
+            sameSite: 'lax', // Protect against CSRF while allowing normal navigation
+            path: '/', // Ensure cookie is available for all paths
+            domain: undefined // Will use the current domain automatically
           }
         })(req, res, next);
       } else {

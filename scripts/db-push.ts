@@ -6,7 +6,7 @@ async function main() {
   
   try {
     // This will create tables if they don't exist or update them if they do
-    await migrate(db, { migrationsFolder: './drizzle' });
+    await migrate(db, { migrationsFolder: './migrations' });
     console.log('Schema pushed successfully!');
   } catch (error) {
     console.error('Error pushing schema:', error);
