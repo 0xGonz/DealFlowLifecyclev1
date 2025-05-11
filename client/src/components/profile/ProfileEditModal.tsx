@@ -103,6 +103,7 @@ export default function ProfileEditModal({
       await apiRequest("PATCH", `/api/users/${userId}`, updatePayload);
       
       // Refresh user data and timeline events
+      // Force a refetch to ensure the avatar in the sidebar updates
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] }),
         queryClient.invalidateQueries({ queryKey: ["/api/users"] }),
@@ -111,6 +112,10 @@ export default function ProfileEditModal({
         // Invalidate all timeline data for all deals
         queryClient.invalidateQueries({ queryKey: ["/api/deals"] }),
       ]);
+      
+      // Force immediate refetch of user data
+      await queryClient.refetchQueries({ queryKey: ["/api/auth/me"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/users"] });
       
       toast({
         title: "Success",
@@ -153,8 +158,15 @@ export default function ProfileEditModal({
     }
   };
   
+  const handleClose = () => {
+    // Refresh data when closing
+    queryClient.refetchQueries({ queryKey: ["/api/auth/me"] });
+    queryClient.refetchQueries({ queryKey: ["/api/users"] });
+    onClose();
+  };
+  
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Edit Profile</DialogTitle>

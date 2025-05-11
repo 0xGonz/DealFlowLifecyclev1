@@ -22,13 +22,33 @@ interface UserAvatarProps {
  */
 export function UserAvatar({ user, size = 'md', className = '' }: UserAvatarProps) {
   // Use a query to get the most recent user data
-  const { data: users } = useQuery<any[]>({
+  const { data: users, isSuccess: usersLoaded } = useQuery<any[]>({
     queryKey: ['/api/users'],
     enabled: !!user?.id, // Only fetch if we have a user ID
+    refetchOnWindowFocus: true, // Refetch when window gains focus
+    staleTime: 0, // Consider data stale immediately
   });
   
-  // Find the most up-to-date user data
-  const currentUserData = users?.find(u => u.id === user?.id);
+  // Get current user data again from the auth endpoint for the currently logged-in user
+  const { data: currentUserMe } = useQuery<any>({
+    queryKey: ['/api/auth/me'],
+    enabled: !!user?.id,
+    refetchOnWindowFocus: true,
+    staleTime: 0,
+  });
+  
+  // Use the data from /api/auth/me if this avatar is for the current user
+  // Otherwise fall back to the users list
+  const currentUserData = (currentUserMe && currentUserMe.id === user?.id) 
+    ? currentUserMe 
+    : users?.find(u => u.id === user?.id);
+    
+  // Debug log for avatar color changes
+  useEffect(() => {
+    if (currentUserData?.avatarColor) {
+      console.log(`UserAvatar: User ${currentUserData.id} has color ${currentUserData.avatarColor}`);
+    }
+  }, [currentUserData?.avatarColor]);
   
   // Size classes mapping
   const sizeClasses = {

@@ -42,8 +42,10 @@ export default function Sidebar({ onCloseMobile }: SidebarProps) {
   // Fetch current user
   const { data: currentUser, isLoading } = useQuery<User>({
     queryKey: ["/api/auth/me"],
-    retry: false,
-    refetchOnWindowFocus: false,
+    retry: 2,
+    refetchOnWindowFocus: true,
+    staleTime: 0, // Always consider data stale so it refreshes
+    refetchInterval: 30000, // Refresh every 30 seconds
   });
 
   // Navigation items
