@@ -132,13 +132,13 @@ export default function RecentDeals() {
                   return (
                     <li 
                       key={deal.id} 
-                      className="px-3 py-2.5 hover:bg-neutral-50 transition-colors cursor-pointer"
+                      className="px-3 py-1.5 hover:bg-neutral-50 transition-colors cursor-pointer"
                       onClick={() => navigate(`/deals/${deal.id}`)}
                     >
-                      <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <h3 className="font-medium text-neutral-800 truncate">{deal.name}</h3>
-                          <span className={`deal-stage-badge text-xs px-2 py-0.5 leading-none whitespace-nowrap ${stageBadgeClass}`}>
+                          <span className={`deal-stage-badge text-xs px-1.5 py-0.5 leading-none whitespace-nowrap ${stageBadgeClass}`}>
                             {deal.stageLabel}
                           </span>
                         </div>
@@ -151,15 +151,14 @@ export default function RecentDeals() {
                                 setEditDealId(deal.id);
                               }}
                             >
-                              <Edit className="h-4 w-4" />
+                              <Edit className="h-3.5 w-3.5" />
                             </button>
                           )}
                         </div>
                       </div>
-                      <p className="text-xs text-neutral-600 mb-1.5 line-clamp-1">{deal.description || 'No description'}</p>
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between mt-0.5">
                         <div className="flex items-center gap-1">
-                          <Tag className="h-3.5 w-3.5 text-primary-600" />
+                          <Tag className="h-3 w-3 text-primary-600" />
                           <span className="text-xs text-primary-700">{deal.sector}</span>
                         </div>
                         <span className="text-xs text-neutral-500">
