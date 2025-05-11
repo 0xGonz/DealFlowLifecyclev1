@@ -18,8 +18,13 @@ function Calendar({
       showOutsideDays={showOutsideDays}
       formatters={{
         formatWeekdayName: (weekday) => {
-          const date = new Date(2021, 1, weekday + 1);  // +1 because weekday is 0-indexed
-          return date.toLocaleDateString('en-US', { weekday: 'long' });
+          // Create a date for Sunday (first day of week)
+          const sunday = new Date(2023, 0, 1); // Jan 1, 2023 was a Sunday
+          // Add the weekday offset to get the correct day
+          const date = new Date(sunday);
+          date.setDate(sunday.getDate() + weekday);
+          // Return the abbreviated weekday name
+          return date.toLocaleDateString('en-US', { weekday: 'short' });
         }
       }}
       className={cn("p-3", className)}

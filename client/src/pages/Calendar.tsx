@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { format, isPast, addDays, isToday } from 'date-fns';
+import { format, isPast, addDays, isToday, startOfWeek, addWeeks, subWeeks } from 'date-fns';
 import { DATE_FORMATS } from '@/lib/constants/time-constants';
 import { formatCurrency, formatDate } from '@/lib/utils/formatters';
 import { formatAmountByType } from '@/lib/utils/format';
@@ -284,24 +284,31 @@ const CalendarPage = () => {
           {format(date, 'd')}
         </span>
         {highlight && (
-          <div className="absolute bottom-1 flex gap-1 justify-center w-full">
-            {/* Limit the number of indicators to avoid overflow */}
-            {Array.from(highlight.types).slice(0, 3).map((type, index) => {
-              let color = '';
-              if (type === 'call') color = CALENDAR_INDICATOR_COLORS.CALL;
-              if (type === 'due') color = CALENDAR_INDICATOR_COLORS.DUE;
-              if (type === 'paid') color = CALENDAR_INDICATOR_COLORS.PAID;
-              if (type === 'closing') color = CALENDAR_INDICATOR_COLORS.CLOSING;
-              if (type === 'completed') color = CALENDAR_INDICATOR_COLORS.ACTUAL_CLOSING;
-              if (type === 'meeting') color = CALENDAR_INDICATOR_COLORS.MEETING;
-              
+          <div className="absolute bottom-1 flex gap-1 justify-center w-full px-1">
+            {/* Show at most 3 indicators with a +X indicator if there are more */}
+            {(() => {
+              const types = Array.from(highlight.types).slice(0, 3);
               return (
-                <div key={`${type}-${index}`} className={`h-2 w-2 rounded-full ${color}`}></div>
+                <div className="flex gap-0.5 mx-auto items-center">
+                  {types.map((type, index) => {
+                    let color = '';
+                    if (type === 'call') color = CALENDAR_INDICATOR_COLORS.CALL;
+                    if (type === 'due') color = CALENDAR_INDICATOR_COLORS.DUE;
+                    if (type === 'paid') color = CALENDAR_INDICATOR_COLORS.PAID;
+                    if (type === 'closing') color = CALENDAR_INDICATOR_COLORS.CLOSING;
+                    if (type === 'completed') color = CALENDAR_INDICATOR_COLORS.ACTUAL_CLOSING;
+                    if (type === 'meeting') color = CALENDAR_INDICATOR_COLORS.MEETING;
+                    
+                    return (
+                      <div key={`${type}-${index}`} className={`h-1.5 w-1.5 rounded-full ${color}`}></div>
+                    );
+                  })}
+                  {highlight.types.size > 3 && (
+                    <div className="text-[8px] text-muted-foreground ml-0.5">+{highlight.types.size - 3}</div>
+                  )}
+                </div>
               );
-            })}
-            {highlight.types.size > 3 && (
-              <div className="h-2 w-2 rounded-full bg-gray-400" title="More events"></div>
-            )}
+            })()}
           </div>
         )}
       </div>
