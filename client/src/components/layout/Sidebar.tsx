@@ -84,9 +84,9 @@ export default function Sidebar({ onCloseMobile }: SidebarProps) {
         
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto scrollbar-thin py-2">
-          {/* DealFlow Title */}
+          {/* V1.0 Title */}
           <div className="mb-4 px-4">
-            <h2 className="text-lg font-bold text-primary-dark">DealFlow V1.0</h2>
+            <h2 className="text-2xl font-extrabold tracking-tight text-primary-dark">V1.0</h2>
           </div>
           
           <ul>
