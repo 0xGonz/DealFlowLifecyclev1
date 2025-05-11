@@ -124,7 +124,7 @@ export default function RecentDeals() {
             </div>
           ) : (
             <div className="rounded-md overflow-hidden border border-neutral-200 w-full mx-0">
-              <ul className="divide-y divide-neutral-200 w-full border-t-0 border-r-0 border-l-0 p-0">
+              <ul className="divide-y divide-neutral-200 w-full border-t-0 border-r-0 border-l-0 p-0 [&>li:not(:last-child)]:border-b-[1.5px]">
                 {filteredDeals.map(rawDeal => {
                   // Enrich deal with computed properties
                   const deal = enrichDealWithComputedProps(rawDeal);
@@ -132,12 +132,12 @@ export default function RecentDeals() {
                   return (
                     <li 
                       key={deal.id} 
-                      className="px-4 py-1 hover:bg-neutral-50 transition-colors cursor-pointer"
+                      className="px-4 py-1.5 hover:bg-neutral-50 transition-colors cursor-pointer"
                       onClick={() => navigate(`/deals/${deal.id}`)}
                     >
                       <div className="flex items-center justify-between w-full">
                         <div className="flex items-center gap-2 min-w-0 flex-1">
-                          <h3 className="font-medium text-neutral-800 truncate max-w-[60%]">{deal.name}</h3>
+                          <h3 className="font-medium text-neutral-800 truncate max-w-[60%] text-sm">{deal.name}</h3>
                           <span className={`deal-stage-badge text-xs px-1.5 py-0.5 leading-none whitespace-nowrap ${stageBadgeClass}`}>
                             {deal.stageLabel}
                           </span>
@@ -156,7 +156,7 @@ export default function RecentDeals() {
                           )}
                         </div>
                       </div>
-                      <div className="flex items-center justify-between mt-0.5 w-full">
+                      <div className="flex items-center justify-between mt-1 w-full">
                         <div className="flex items-center gap-1 min-w-0 flex-shrink-0 w-24">
                           <Tag className="h-3 w-3 text-primary-600 flex-shrink-0" />
                           <span className="text-xs text-primary-700 truncate">{deal.sector}</span>
