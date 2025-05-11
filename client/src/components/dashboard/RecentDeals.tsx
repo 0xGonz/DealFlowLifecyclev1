@@ -62,13 +62,13 @@ export default function RecentDeals() {
     deals.find(d => d.id === allocateDealId)?.name || "Selected Deal" : "";
 
   return (
-    <div>
-      <Card className="h-full flex flex-col">
+    <div className="w-full">
+      <Card className="h-full flex flex-col w-full">
         <CardHeader className="pb-2 px-5 pt-5">
           <CardTitle>Recent Deals</CardTitle>
         </CardHeader>
         
-        <CardContent className="flex-1 p-5 pt-2">
+        <CardContent className="flex-1 p-5 pt-2 w-full">
           <div className="flex flex-col justify-between items-stretch gap-3 mb-4">
             <div className="flex flex-wrap gap-2 w-full space-y-2 sm:space-y-0">
               <Select value={stageFilter} onValueChange={setStageFilter}>
@@ -123,8 +123,8 @@ export default function RecentDeals() {
               <p className="text-sm sm:text-base text-neutral-500">No deals found matching your filters.</p>
             </div>
           ) : (
-            <div className="rounded-md overflow-hidden border border-neutral-200 w-full">
-              <ul className="divide-y divide-neutral-200 w-full border-t-0 border-r-0 border-l-0">
+            <div className="rounded-md overflow-hidden border border-neutral-200 w-full mx-0">
+              <ul className="divide-y divide-neutral-200 w-full border-t-0 border-r-0 border-l-0 p-0">
                 {filteredDeals.map(rawDeal => {
                   // Enrich deal with computed properties
                   const deal = enrichDealWithComputedProps(rawDeal);
