@@ -55,7 +55,7 @@ export default function RecentDeals() {
       return true;
     })
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    .slice(0, 5); // Show the most recent 5 deals
+    .slice(0, 6); // Show the most recent 6 deals
 
   // Find selected deal name for allocate modal
   const selectedDealName = allocateDealId ? 
@@ -132,7 +132,7 @@ export default function RecentDeals() {
                   return (
                     <li 
                       key={deal.id} 
-                      className="px-4 py-1.5 hover:bg-neutral-50 transition-colors cursor-pointer"
+                      className="px-4 py-1 hover:bg-neutral-50 transition-colors cursor-pointer"
                       onClick={() => navigate(`/deals/${deal.id}`)}
                     >
                       <div className="flex items-center justify-between w-full">
