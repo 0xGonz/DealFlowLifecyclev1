@@ -47,6 +47,54 @@ enum EventType {
   MEETING = 'meeting'
 }
 
+// Define interfaces for event data coming from the API
+interface CapitalCallData {
+  id: number;
+  dealId: number;
+  allocationId: number;
+  callAmount: number;
+  amountType: 'percentage' | 'dollar';
+  callDate: string;
+  dueDate: string;
+  status: string;
+  notes?: string;
+  createdBy: number;
+  createdAt: string;
+  updatedAt: string;
+  dealName?: string;
+}
+
+interface ClosingScheduleData {
+  id: number;
+  dealId: number;
+  eventType: string;
+  eventName: string;
+  scheduledDate: string;
+  targetAmount?: number;
+  amountType: 'percentage' | 'dollar';
+  status: string;
+  notes?: string;
+  createdBy: number;
+  createdAt: string;
+  updatedAt: string;
+  actualDate?: string | null;
+  actualAmount?: number | null;
+  dealName?: string;
+}
+
+interface MeetingData {
+  id: number;
+  dealId: number;
+  title: string;
+  date: string;
+  attendees?: string;
+  notes?: string;
+  createdBy: number;
+  createdAt: string;
+  updatedAt: string;
+  dealName?: string;
+}
+
 // Base form schema for common fields across all event types
 const baseFormSchema = z.object({
   eventType: z.nativeEnum(EventType),
@@ -58,21 +106,28 @@ const baseFormSchema = z.object({
 // Form schema for capital calls
 const capitalCallFormSchema = baseFormSchema.extend({
   eventType: z.literal(EventType.CAPITAL_CALL),
-  percentage: z.coerce.number().min(0, 'Amount must be 0 or greater'),
-  amountType: z.enum(['percentage', 'dollar']).default('percentage'),
+  percentage: z.coerce.number().min(0, 'Amount must be 0 or greater').optional(),
+  callAmount: z.coerce.number().min(0, 'Amount must be 0 or greater').optional(),
+  allocationId: z.coerce.number().min(1, 'Allocation is required').optional(),
+  callDate: z.string().min(1, 'Call date is required').optional(),
   dueDate: z.string().min(1, 'Due date is required'),
+  amountType: z.enum(['percentage', 'dollar']).default('percentage'),
+  capitalCallStatus: z.string().optional(),
 });
 
 // Form schema for closing events
 const closingEventFormSchema = baseFormSchema.extend({
   eventType: z.literal(EventType.CLOSING_EVENT),
   eventName: z.string().min(1, 'Event name is required').max(100, 'Event name is too long'),
-  closingEventType: z.enum([
-    CLOSING_EVENT_TYPES.FIRST_CLOSE,
-    CLOSING_EVENT_TYPES.SECOND_CLOSE,
-    CLOSING_EVENT_TYPES.FINAL_CLOSE,
-    CLOSING_EVENT_TYPES.EXTENSION,
-    CLOSING_EVENT_TYPES.CUSTOM
+  closingEventType: z.union([
+    z.enum([
+      CLOSING_EVENT_TYPES.FIRST_CLOSE,
+      CLOSING_EVENT_TYPES.SECOND_CLOSE,
+      CLOSING_EVENT_TYPES.FINAL_CLOSE,
+      CLOSING_EVENT_TYPES.EXTENSION,
+      CLOSING_EVENT_TYPES.CUSTOM
+    ]),
+    z.string()
   ]),
   scheduledDate: z.string().min(1, 'Scheduled date is required'),
   targetAmount: z.union([
@@ -81,6 +136,9 @@ const closingEventFormSchema = baseFormSchema.extend({
     z.undefined()
   ]).optional(),
   amountType: z.enum(['percentage', 'dollar']).default('percentage'),
+  closingStatus: z.string().optional(),
+  actualDate: z.union([z.string(), z.null(), z.undefined()]),
+  actualAmount: z.union([z.number(), z.null(), z.undefined()]),
 });
 
 // Form schema for meetings
@@ -89,6 +147,8 @@ const meetingFormSchema = baseFormSchema.extend({
   meetingTitle: z.string().min(1, 'Meeting title is required'),
   meetingDate: z.string().min(1, 'Meeting date is required'),
   attendees: z.string().optional(),
+  title: z.string().optional(), // For edit mode compatibility
+  date: z.string().optional(), // For edit mode compatibility
 });
 
 // Combined form schema
@@ -134,19 +194,19 @@ const UnifiedEventForm: React.FC<UnifiedEventFormProps> = ({ isOpen, onClose, se
   const dealHasAllocations = allocations.length > 0;
   
   // Fetch capital call details if editing
-  const { data: capitalCallToEdit, isLoading: isLoadingCapitalCallEdit } = useQuery({
+  const { data: capitalCallToEdit, isLoading: isLoadingCapitalCallEdit } = useQuery<CapitalCallData>({
     queryKey: ['/api/capital-calls', eventToEdit?.id],
     enabled: isEditMode && eventToEdit?.type === 'capital-call',
   });
   
   // Fetch closing event details if editing
-  const { data: closingEventToEdit, isLoading: isLoadingClosingEventEdit } = useQuery({
+  const { data: closingEventToEdit, isLoading: isLoadingClosingEventEdit } = useQuery<ClosingScheduleData>({
     queryKey: ['/api/closing-schedules', eventToEdit?.id],
     enabled: isEditMode && eventToEdit?.type === 'closing-event',
   });
   
   // Fetch meeting details if editing
-  const { data: meetingToEdit, isLoading: isLoadingMeetingEdit } = useQuery({
+  const { data: meetingToEdit, isLoading: isLoadingMeetingEdit } = useQuery<MeetingData>({
     queryKey: ['/api/meetings', eventToEdit?.id],
     enabled: isEditMode && eventToEdit?.type === 'meeting',
   });
@@ -289,6 +349,8 @@ const UnifiedEventForm: React.FC<UnifiedEventFormProps> = ({ isOpen, onClose, se
       let payload: any = { ...data };
       let method = isEditMode ? 'PATCH' : 'POST';
       
+      console.log(`Preparing ${isEditMode ? 'edit' : 'create'} request for ${data.eventType}`);
+      
       // Prepare the data based on event type
       if (data.eventType === EventType.CAPITAL_CALL) {
         endpoint = '/api/capital-calls';
@@ -296,63 +358,83 @@ const UnifiedEventForm: React.FC<UnifiedEventFormProps> = ({ isOpen, onClose, se
           endpoint = `${endpoint}/${eventToEdit.id}`;
         }
         // Transform capital call data
-        payload = {
+        const capitalCallPayload: any = {
           dealId: data.dealId,
-          allocationId: data.allocationId,
-          callAmount: data.callAmount,
-          amountType: data.amountType,
-          callDate: data.callDate,
-          dueDate: data.dueDate,
-          status: data.capitalCallStatus,
           notes: data.notes,
           createdBy: data.createdBy || user?.id,
+          amountType: data.amountType,
         };
+        
+        // Add optional fields based on what is provided
+        if (data.allocationId) capitalCallPayload.allocationId = data.allocationId;
+        if (data.callAmount) capitalCallPayload.callAmount = data.callAmount;
+        if (data.percentage) capitalCallPayload.callAmount = data.percentage; // Use percentage as callAmount if provided
+        if (data.callDate) capitalCallPayload.callDate = data.callDate;
+        if (data.dueDate) capitalCallPayload.dueDate = data.dueDate;
+        if (data.capitalCallStatus) capitalCallPayload.status = data.capitalCallStatus;
+        
+        payload = capitalCallPayload;
+        console.log('Capital call payload:', payload);
       } else if (data.eventType === EventType.CLOSING_EVENT) {
         endpoint = '/api/closing-schedules';
+        if (isEditMode && eventToEdit?.id) {
+          endpoint = `${endpoint}/${eventToEdit.id}`;
+        }
         // Transform closing event data
-        payload = {
+        const closingEventPayload: any = {
           dealId: data.dealId,
           eventName: data.eventName,
-          eventType: data.closingEventType,
+          eventType: typeof data.closingEventType === 'string' ? data.closingEventType : undefined,
           scheduledDate: data.scheduledDate,
-          targetAmount: data.targetAmount,
           amountType: data.amountType,
           notes: data.notes,
           createdBy: data.createdBy || user?.id,
         };
+        
+        // Add optional fields
+        if (data.targetAmount) closingEventPayload.targetAmount = data.targetAmount;
+        if (data.closingStatus) closingEventPayload.status = data.closingStatus;
+        if (data.actualDate) closingEventPayload.actualDate = data.actualDate;
+        if (data.actualAmount) closingEventPayload.actualAmount = data.actualAmount;
+        
+        payload = closingEventPayload;
+        console.log('Closing event payload:', payload);
       } else if (data.eventType === EventType.MEETING) {
         endpoint = '/api/meetings';
+        if (isEditMode && eventToEdit?.id) {
+          endpoint = `${endpoint}/${eventToEdit.id}`;
+        }
         // Transform meeting data
         payload = {
           dealId: data.dealId,
-          title: data.meetingTitle,
-          date: data.meetingDate,
+          title: data.title || data.meetingTitle, // Support both property names
+          date: data.date || data.meetingDate, // Support both property names
           attendees: data.attendees,
           notes: data.notes,
           createdBy: data.createdBy || user?.id,
         };
+        console.log('Meeting payload:', payload);
       }
+      
+      console.log(`${method} request to ${endpoint}:`, payload);
       
       const response = await apiRequest(method, endpoint, payload);
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.details || errorData.error || `Failed to create ${data.eventType}`);
+        throw new Error(errorData.details || errorData.error || `Failed to ${isEditMode ? 'update' : 'create'} ${data.eventType}`);
       }
-      return response.json();
+      
+      return await response.json();
     },
     onSuccess: (_, variables) => {
-      // Invalidate the appropriate query to refresh the data
-      if (variables.eventType === EventType.CAPITAL_CALL) {
-        queryClient.invalidateQueries({ queryKey: ['/api/capital-calls'] });
-      } else if (variables.eventType === EventType.CLOSING_EVENT) {
-        queryClient.invalidateQueries({ queryKey: ['/api/closing-schedules'] });
-      } else if (variables.eventType === EventType.MEETING) {
-        queryClient.invalidateQueries({ queryKey: ['/api/meetings'] });
-      }
+      // Invalidate all event queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ['/api/capital-calls'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/closing-schedules'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/meetings'] });
       
       toast({
         title: 'Success',
-        description: `${getEventTypeLabel(variables.eventType)} created successfully`,
+        description: `${getEventTypeLabel(variables.eventType)} ${isEditMode ? 'updated' : 'created'} successfully`,
         variant: 'default',
       });
       
@@ -360,14 +442,66 @@ const UnifiedEventForm: React.FC<UnifiedEventFormProps> = ({ isOpen, onClose, se
       onClose();
     },
     onError: (error: Error) => {
-      console.error('Error creating event:', error);
+      console.error(`Error ${isEditMode ? 'updating' : 'creating'} event:`, error);
       setErrorMessage(error.message);
       toast({
         title: 'Error',
-        description: error.message || 'Failed to create event',
+        description: error.message || `Failed to ${isEditMode ? 'update' : 'create'} event`,
         variant: 'destructive',
       });
     }
+  });
+  
+  // Delete event mutation
+  const deleteEventMutation = useMutation({
+    mutationFn: async () => {
+      if (!eventToEdit?.id || !eventToEdit?.type) {
+        throw new Error('No event selected for deletion');
+      }
+      
+      let endpoint = '';
+      
+      // Determine the correct endpoint based on event type
+      if (eventToEdit.type === 'capital-call') {
+        endpoint = `/api/capital-calls/${eventToEdit.id}`;
+      } else if (eventToEdit.type === 'closing-event') {
+        endpoint = `/api/closing-schedules/${eventToEdit.id}`;
+      } else if (eventToEdit.type === 'meeting') {
+        endpoint = `/api/meetings/${eventToEdit.id}`;
+      }
+      
+      console.log(`DELETE request to ${endpoint}`);
+      
+      const response = await apiRequest('DELETE', endpoint);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.details || errorData.error || `Failed to delete ${eventToEdit.type}`);
+      }
+      
+      return true;
+    },
+    onSuccess: () => {
+      // Invalidate all event queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ['/api/capital-calls'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/closing-schedules'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/meetings'] });
+      
+      toast({
+        title: "Event deleted successfully",
+        description: `The event has been permanently removed.`,
+      });
+      
+      // Close the dialog
+      onClose();
+    },
+    onError: (error: Error) => {
+      console.error('Error deleting event:', error);
+      toast({
+        variant: 'destructive',
+        title: "Failed to delete event",
+        description: error.message,
+      });
+    },
   });
   
   const onSubmit = (data: FormValues) => {
@@ -785,19 +919,35 @@ const UnifiedEventForm: React.FC<UnifiedEventFormProps> = ({ isOpen, onClose, se
               </Alert>
             )}
             
-            <DialogFooter>
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={onClose}
-                disabled={eventMutation.isPending}
-              >
-                Cancel
-              </Button>
+            <DialogFooter className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                {isEditMode && (
+                  <Button 
+                    type="button" 
+                    variant="destructive" 
+                    onClick={() => deleteEventMutation.mutate()}
+                    disabled={eventMutation.isPending || deleteEventMutation.isPending}
+                  >
+                    {deleteEventMutation.isPending && (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    )}
+                    Delete
+                  </Button>
+                )}
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={onClose}
+                  disabled={eventMutation.isPending || deleteEventMutation.isPending}
+                >
+                  Cancel
+                </Button>
+              </div>
               <Button 
                 type="submit" 
                 disabled={
                   eventMutation.isPending || 
+                  deleteEventMutation.isPending ||
                   (selectedEventType === EventType.CAPITAL_CALL && 
                    Boolean(selectedDealId && !isLoadingAllocations && !dealHasAllocations))
                 }
