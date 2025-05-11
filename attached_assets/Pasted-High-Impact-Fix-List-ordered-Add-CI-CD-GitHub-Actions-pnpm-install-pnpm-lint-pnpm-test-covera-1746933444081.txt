@@ -1,0 +1,72 @@
+High‑Impact Fix List (ordered)
+Add CI/CD
+GitHub Actions: pnpm install, pnpm lint, pnpm test --coverage, then (optionally) deploy to Railway/Render.
+
+Migrations Path Bug
+Align drizzle.config.ts out: path with scripts/db-push.ts.
+
+Session‑Store Hardening
+Reject MemoryStore in production. Add cookie: { secure: true, sameSite: "lax" } and 24 h TTL.
+
+Introduce ESLint + Prettier
+Use @typescript-eslint/recommended + plugin:react/recommended; run on pre‑commit with Husky.
+
+Break Up Mega‑Components
+Slice any file >400 LoC: UI should be dumb presentational; data/logic in hooks (useFund, useDealTimeline, etc.).
+
+Error Boundary Coverage
+You already have a generic <ErrorBoundary/>; wrap every route‑level page.
+
+Delete Duplicate Code
+Consolidate ProtectedRoute.tsx; audit for other dupes.
+
+Test Harness
+Start with unit tests for utilities and routes (supertest). Snapshot‑test three critical UI components with Testing‑Library.
+
+Add .env.example & README
+List all required env vars: DATABASE_URL, SESSION_SECRET, NEON_API_KEY, etc. Provide pnpm dev instructions.
+
+Logging
+Replace console.log with pino, use child‑loggers per module; redact passwords from logs automatically.
+
+4. Suggested Folder Restructure
+bash
+Copy
+Edit
+/
+├── apps/
+│   ├── api/                 # Express server
+│   └── web/                 # React client
+├── packages/
+│   ├── db/                  # Drizzle schema + migrations
+│   ├── shared-types/        # DTOs, Zod schemas
+│   └── ui/                  # Re‑export shadcn components with theme
+└── .github/workflows/
+A monorepo (Nx, Turborepo, or npm workspaces) keeps client & server independent but shares schema.
+
+5. Longer‑Term Improvements
+Theme	Idea
+Advanced Auth	Switch to Clerk or Auth.js for plug‑and‑play SSO, 2FA, magic links.
+Data‑intensive views	Offload heavy analytics (industry distribution, leaderboards) to Postgres materialized views, refresh nightly.
+File Storage	Your document endpoints serve raw binary from DB—use S3/Cloudflare R2 presigned URLs instead.
+Feature Flags	Introduce Unleash or GrowthBook so you can ship incremental UI refactors safely.
+Accessibility	Radix is mostly accessible, but custom Tailwind classes sometimes override focus rings—audit with Lighthouse.
+
+6. “Cheat Sheet” for New Contributors
+bash
+Copy
+Edit
+# 1. Bootstrap
+pnpm install
+cp .env.example .env  # fill vars
+pnpm db:push          # or `pnpm migrate:dev`
+
+# 2. Dev
+pnpm dev              # runs express + vite w/ HMR
+
+# 3. Test
+pnpm test             # once Jest is configured
+Final Thoughts
+You already have a strong foundation—the code compiles, schema is type‑safe, UI looks modern. The biggest wins now are operational hardening (tests, CI, lint) and maintainability (smaller components, unified helpers). Tackle the checklist in order; once High‑Impact items are closed you’ll have a production‑grade, easily extensible platform.
+
+Let me know when you knock a few of these off or if you want a deeper dive into any specific file or pattern—I’m happy to pair‑review or prototype refactors.

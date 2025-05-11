@@ -266,9 +266,29 @@ if (!fs.existsSync(uploadDir)) {
 // Simplified server startup to ensure quick port binding
 const startServer = async () => {
   try {
-    // Add a simple health check route before anything else
+    // Add health check and debug routes
     app.get('/health', (req, res) => {
       res.status(200).json({ status: 'ok', time: new Date().toISOString() });
+    });
+    
+    app.get('/debug', (req, res) => {
+      res.status(200).json({
+        status: 'running',
+        time: new Date().toISOString(),
+        env: {
+          NODE_ENV: process.env.NODE_ENV,
+          PORT: process.env.PORT,
+          REPLIT_DOMAINS: process.env.REPLIT_DOMAINS,
+          REPL_SLUG: process.env.REPL_SLUG,
+          REPL_OWNER: process.env.REPL_OWNER,
+          REPLIT_DB_URL: process.env.REPLIT_DB_URL ? '[redacted]' : undefined
+        },
+        server: {
+          uptime: process.uptime(),
+          memory: process.memoryUsage(),
+          pid: process.pid
+        }
+      });
     });
     
     // Add a simple root route that returns a basic response
@@ -276,21 +296,79 @@ const startServer = async () => {
       res.send(`
         <!DOCTYPE html>
         <html>
-          <head><title>Investment Lifecycle Tracker</title></head>
+          <head>
+            <title>Investment Lifecycle Tracker</title>
+            <meta charset="UTF-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+            <style>
+              body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 20px; color: #333; }
+              h1 { color: #2563eb; margin-bottom: 10px; }
+              .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+              .nav { margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee; }
+              a { color: #2563eb; text-decoration: none; }
+              a:hover { text-decoration: underline; }
+              .button { display: inline-block; background: #2563eb; color: white; padding: 10px 16px; border-radius: 4px; margin-right: 10px; margin-top: 10px; }
+              .button:hover { background: #1d4ed8; text-decoration: none; }
+              ul { padding-left: 20px; }
+              li { margin-bottom: 8px; }
+              .status { background: #f3f4f6; padding: 15px; border-radius: 4px; margin: 15px 0; }
+              .status-item { display: flex; margin-bottom: 5px; }
+              .label { font-weight: bold; width: 150px; }
+            </style>
+          </head>
           <body>
-            <h1>Investment Lifecycle Tracker</h1>
-            <p>Server is running. Try navigating to <a href="/auth">/auth</a> to log in.</p>
+            <div class="container">
+              <h1>Investment Lifecycle Tracker</h1>
+              <p>Server is running. You can access the application from here.</p>
+              
+              <div class="status">
+                <div class="status-item">
+                  <span class="label">Server Status:</span>
+                  <span>Running on port 5000</span>
+                </div>
+                <div class="status-item">
+                  <span class="label">Database:</span>
+                  <span>Connected</span>
+                </div>
+                <div class="status-item">
+                  <span class="label">Redis:</span>
+                  <span>Not available (using local processing)</span>
+                </div>
+                <div class="status-item">
+                  <span class="label">Environment:</span>
+                  <span>${process.env.NODE_ENV || 'development'}</span>
+                </div>
+              </div>
+              
+              <p>This is a direct static route. The Vite-powered React application is also available.</p>
+              
+              <div class="nav">
+                <h3>Quick Navigation</h3>
+                <a href="/auth" class="button">Go to Login Page</a>
+                <a href="/api/health" class="button">Check API Health</a>
+                
+                <h3>Available API Endpoints</h3>
+                <ul>
+                  <li><a href="/api/health">/api/health</a> - Server health check</li>
+                  <li><a href="/api/user">/api/user</a> - Current user information (requires authentication)</li>
+                </ul>
+              </div>
+            </div>
           </body>
         </html>
       `);
     });
     
-    // Create and start the server immediately
-    const port = 5000;
+    // Create and start the server immediately with explicit port binding for Replit
+    const port = 5000; // Hardcode to 5000 for Replit
     const server = createServer(app);
     
-    // Bind to port as quickly as possible
+    // Bind to port as quickly as possible with more explicit config for Replit
     server.listen(port, '0.0.0.0', () => {
+      console.log(`Server is running on port ${port}`);
+      console.log(`REPLIT_DOMAINS: ${process.env.REPLIT_DOMAINS}`);
+      console.log(`REPL_SLUG: ${process.env.REPL_SLUG}`);
+      console.log(`REPL_OWNER: ${process.env.REPL_OWNER}`);
       log(`Server running on port ${port}`);
     });
     
@@ -347,8 +425,10 @@ const startServer = async () => {
     });
     
     // Bind to port 5000 to satisfy Replit's port-opening requirement
-    emergencyServer.listen(5000, '0.0.0.0', () => {
-      console.log('Emergency server running on port 5000');
+    const emergencyPort = 5000; // Hardcode to 5000 for Replit
+    emergencyServer.listen(emergencyPort, '0.0.0.0', () => {
+      console.log(`Emergency server running on port ${emergencyPort}`);
+      console.log(`REPLIT_DOMAINS: ${process.env.REPLIT_DOMAINS}`);
     });
     
     return emergencyServer;
