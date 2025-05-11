@@ -162,7 +162,9 @@ export default function RecentDeals() {
                           <span className="text-xs text-primary-700 truncate">{deal.sector}</span>
                         </div>
                         <span className="text-xs text-neutral-500 text-right flex-shrink-0">
-                          Updated {formatDistanceToNow(new Date(deal.updatedAt), { addSuffix: true })}
+                          {new Date(deal.updatedAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) 
+                            ? `Updated ${formatDistanceToNow(new Date(deal.updatedAt), { addSuffix: true })}`
+                            : `Last week`}
                         </span>
                       </div>
                     </li>
