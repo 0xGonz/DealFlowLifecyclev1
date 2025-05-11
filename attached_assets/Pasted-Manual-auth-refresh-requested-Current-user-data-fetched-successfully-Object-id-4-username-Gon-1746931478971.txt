@@ -1,0 +1,65 @@
+Manual auth refresh requested
+Current user data fetched successfully: 
+Object {id: 4, username: "Gonz", fullName: "Brett Gonzalez", initials: "BG", email: "bgonzalez@doliveradvisors.com", …}
+ProtectedRoute for /calendar: isLoading=false, user=Gonz
+ProtectedRoute /calendar: Rendering component for user Gonz
+Calendar page auth state: 
+Object {isAuthenticated: true, username: "Gonz"}
+Query fetch request: /api/notifications 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Query fetch request: /api/notifications/unread-count 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+UserAvatar: User 4 has color #D32F2F
+Avatar color changed to: null
+Query fetch request: /api/auth/me 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Query fetch request: /api/deals 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Query fetch request: /api/funds 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Query fetch request: /api/capital-calls 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Query fetch request: /api/closing-schedules 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+ProtectedRoute for /calendar: isLoading=false, user=Gonz
+ProtectedRoute /calendar: Rendering component for user Gonz
+Calendar page auth state: 
+Object {isAuthenticated: true, username: "Gonz"}
+Avatar color changed to: #D32F2F
+Query Response from /api/notifications: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/notifications: 
+Array []
+Query Response from /api/system/health: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/system/health: 
+Object {status: "ok", timestamp: "2025-05-11T02:44:16.803Z", storage: "hybrid", databaseConnected: true, environment: "development", …}
+Query Response from /api/notifications/unread-count: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/notifications/unread-count: 
+Object {count: 0}
+Using /me endpoint data for avatar 
+Object {id: 4, username: "Gonz", fullName: "Brett Gonzalez", initials: "BG", email: "bgonzalez@doliveradvisors.com", …}
+Query Response from /api/capital-calls: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/capital-calls: 
+Array []
+Calendar page auth state: 
+Object {isAuthenticated: true, username: "Gonz"}
+Query Response from /api/funds: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/funds: 
+(2) [{…}, {…}]
+Query Response from /api/auth/me: 
+Object {status: 401, statusText: "Unauthorized", ok: false}
+Returning null for 401 response from /api/auth/me as configured
+ProtectedRoute for /calendar: isLoading=false, user=undefined
+ProtectedRoute /calendar: User not authenticated, redirecting to /auth
+Query Response from /api/closing-schedules: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/closing-schedules: 
+Array []
+Query Response from /api/deals: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/deals: 
+(75) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]

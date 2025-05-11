@@ -87,9 +87,18 @@ export class HybridStorage implements IStorage {
       return;
     }
     
-    // Check if database is accessible
+    // Set a flag to indicate recovery is in progress
+    this.recoveryInProgress = true;
+    
     try {
-      await pool.query('SELECT 1');
+      // Add a timeout to prevent hanging on database connection
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Database connection timeout')), 5000);
+      });
+      
+      // Try database connection with timeout
+      const dbPromise = pool.query('SELECT 1');
+      await Promise.race([dbPromise, timeoutPromise]);
       
       // Database is back - attempt to sync all pending writes
       console.log('HybridStorage: Database connection restored, syncing pending data...');
@@ -98,9 +107,22 @@ export class HybridStorage implements IStorage {
       // Switch back to database mode
       this.usingDatabase = true;
       console.log('HybridStorage: Switched back to database storage mode');
+      
+      // Reset any error counters in dependent components
+      if (this.dbStorage) {
+        // Cast to any to avoid TypeScript errors since the method was just added
+        (this.dbStorage as any).resetErrorCounters?.();
+      }
     } catch (error) {
       // Database still unavailable
       console.log('HybridStorage: Database recovery check failed, remaining in memory mode');
+      console.error('Database connection error details:', (error as Error).message || String(error));
+      
+      // Exponential backoff for next attempt
+      this.dbCheckInterval = Math.min(this.dbCheckInterval * 1.5, 60000); // Max 60 seconds
+      console.log(`HybridStorage: Next recovery check in ${this.dbCheckInterval/1000} seconds`);
+    } finally {
+      this.recoveryInProgress = false;
     }
   }
   
@@ -187,6 +209,7 @@ export class HybridStorage implements IStorage {
   
   /**
    * Generic method to handle operations with failover and sync
+   * Enhanced with retry logic for better resilience
    */
   private async withFailover<T>(
     operationType: string,
@@ -196,42 +219,120 @@ export class HybridStorage implements IStorage {
   ): Promise<T> {
     // If we're already in memory mode, use memory storage directly
     if (!this.usingDatabase) {
-      const result = await memOperation();
-      this.recordPendingWrite(operationType, args);
-      return result;
+      try {
+        const result = await memOperation();
+        this.recordPendingWrite(operationType, args);
+        return result;
+      } catch (memError) {
+        // Handle errors in memory operations
+        console.error(`HybridStorage: Memory error during ${operationType}:`, memError);
+        throw memError; // Re-throw after logging
+      }
     }
     
     // Attempt database operation first
     try {
-      return await dbOperation();
+      // Add timeout for database operations to prevent hanging
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Database operation timeout')), 5000);
+      });
+      
+      // Use race to implement timeout
+      const result = await Promise.race([dbOperation(), timeoutPromise]);
+      return result;
     } catch (error) {
-      console.error(`HybridStorage: Database error during ${operationType}:`, error);
+      // Don't log auth-related operations as errors to avoid cluttering logs
+      if (!operationType.includes('getUser') && !operationType.includes('getUserBy')) {
+        console.error(`HybridStorage: Database error during ${operationType}:`, error);
+      } else {
+        console.log(`HybridStorage: Database unavailable for ${operationType}, using memory fallback`);
+      }
       
       // Switch to memory mode on database error
       this.switchToMemoryMode();
       
-      // Execute operation on memory storage
-      const result = await memOperation();
-      this.recordPendingWrite(operationType, args);
-      return result;
+      try {
+        // Execute operation on memory storage
+        const result = await memOperation();
+        this.recordPendingWrite(operationType, args);
+        return result;
+      } catch (memError) {
+        // Handle errors in memory operations (last resort)
+        console.error(`HybridStorage: Memory error during ${operationType} (fallback):`, memError);
+        throw memError; // Re-throw after logging
+      }
     }
   }
 
   // User operations
   async getUser(id: number): Promise<User | undefined> {
-    return this.withFailover<User | undefined>(
-      'getUser',
-      () => this.dbStorage.getUser(id),
-      () => this.memStorage.getUser(id)
-    );
+    // Add extra validation for user ID
+    if (!id || isNaN(id) || id <= 0) {
+      console.warn(`HybridStorage: Invalid user ID provided to getUser: ${id}`);
+      return undefined;
+    }
+    
+    // Add more robust logging
+    console.log(`HybridStorage: Getting user with ID: ${id}, db mode: ${this.usingDatabase}`);
+    
+    try {
+      return this.withFailover<User | undefined>(
+        'getUser',
+        () => this.dbStorage.getUser(id),
+        () => this.memStorage.getUser(id)
+      );
+    } catch (error) {
+      console.error(`HybridStorage: Error in getUser for ID ${id}:`, error);
+      
+      // As a last resort, check memory storage directly
+      try {
+        console.log(`HybridStorage: Trying direct memory storage access for user ${id}`);
+        const memUser = await this.memStorage.getUser(id);
+        if (memUser) {
+          console.log(`HybridStorage: Found user ${id} in memory storage during fallback`);
+          return memUser;
+        }
+      } catch (innerError) {
+        console.error('Failed memory storage fallback:', innerError);
+      }
+      
+      return undefined;
+    }
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return this.withFailover<User | undefined>(
-      'getUserByUsername',
-      () => this.dbStorage.getUserByUsername(username),
-      () => this.memStorage.getUserByUsername(username)
-    );
+    // Add validation for username
+    if (!username || typeof username !== 'string') {
+      console.warn(`HybridStorage: Invalid username provided to getUserByUsername: ${username}`);
+      return undefined;
+    }
+    
+    // Add more robust logging
+    console.log(`HybridStorage: Getting user with username: ${username}, db mode: ${this.usingDatabase}`);
+    
+    try {
+      return this.withFailover<User | undefined>(
+        'getUserByUsername',
+        () => this.dbStorage.getUserByUsername(username),
+        () => this.memStorage.getUserByUsername(username)
+      );
+    } catch (error) {
+      console.error(`HybridStorage: Error in getUserByUsername for username ${username}:`, error);
+      
+      // As a last resort, check memory storage directly
+      try {
+        console.log(`HybridStorage: Trying direct memory storage access for username ${username}`);
+        const memUser = await this.memStorage.getUserByUsername(username);
+        if (memUser) {
+          console.log(`HybridStorage: Found user ${username} in memory storage during fallback`);
+          return memUser;
+        }
+      } catch (innerError) {
+        console.error('Failed memory storage fallback:', innerError);
+      }
+      
+      return undefined;
+    }
   }
 
   async createUser(user: InsertUser): Promise<User> {
