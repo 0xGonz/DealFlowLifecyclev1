@@ -18,8 +18,13 @@ function Calendar({
       showOutsideDays={showOutsideDays}
       formatters={{
         formatWeekdayName: (weekday) => {
-          const date = new Date(2021, 1, weekday + 1);  // +1 because weekday is 0-indexed
-          return date.toLocaleDateString('en-US', { weekday: 'long' });
+          // Get day names programmatically without relying on hardcoded dates
+          const weekdays = [
+            'Sunday', 'Monday', 'Tuesday', 'Wednesday', 
+            'Thursday', 'Friday', 'Saturday'
+          ];
+          // weekday is 0-indexed (0 = Sunday, 6 = Saturday)
+          return weekdays[weekday];
         }
       }}
       className={cn("p-3", className)}
