@@ -16,8 +16,9 @@ import {
   CapitalCall, InsertCapitalCall,
   MemoComment, InsertMemoComment,
   ClosingScheduleEvent, InsertClosingScheduleEvent,
+  AiAnalysis, InsertAiAnalysis,
   users, deals, timelineEvents, dealStars, miniMemos, documents,
-  funds, fundAllocations, dealAssignments, notifications, capitalCalls, memoComments, closingScheduleEvents
+  funds, fundAllocations, dealAssignments, notifications, capitalCalls, memoComments, closingScheduleEvents, aiAnalysis
 } from '@shared/schema';
 
 /**
@@ -800,5 +801,77 @@ export class DatabaseStorage implements IStorage {
       .where(eq(closingScheduleEvents.id, id));
       
     return result.rowCount > 0;
+  }
+
+  // AI Analysis methods
+  async createAiAnalysis(analysis: InsertAiAnalysis): Promise<AiAnalysis> {
+    try {
+      if (!db) {
+        throw new Error('Database not initialized');
+      }
+    
+      const [result] = await db
+        .insert(aiAnalysis)
+        .values(analysis)
+        .returning();
+      
+      return result;
+    } catch (error) {
+      this.handleDbError(error, 'createAiAnalysis');
+      throw error;
+    }
+  }
+  
+  async getAiAnalysis(id: number): Promise<AiAnalysis | undefined> {
+    try {
+      if (!db) {
+        throw new Error('Database not initialized');
+      }
+    
+      const [result] = await db
+        .select()
+        .from(aiAnalysis)
+        .where(eq(aiAnalysis.id, id));
+      
+      return result;
+    } catch (error) {
+      this.handleDbError(error, 'getAiAnalysis');
+      throw error;
+    }
+  }
+  
+  async getAiAnalysisByDeal(dealId: number): Promise<AiAnalysis | undefined> {
+    try {
+      if (!db) {
+        throw new Error('Database not initialized');
+      }
+    
+      const [result] = await db
+        .select()
+        .from(aiAnalysis)
+        .where(eq(aiAnalysis.dealId, dealId));
+      
+      return result;
+    } catch (error) {
+      this.handleDbError(error, 'getAiAnalysisByDeal');
+      throw error;
+    }
+  }
+  
+  async deleteAiAnalysis(id: number): Promise<boolean> {
+    try {
+      if (!db) {
+        throw new Error('Database not initialized');
+      }
+    
+      const result = await db
+        .delete(aiAnalysis)
+        .where(eq(aiAnalysis.id, id));
+      
+      return result.rowCount > 0;
+    } catch (error) {
+      this.handleDbError(error, 'deleteAiAnalysis');
+      throw error;
+    }
   }
 }
