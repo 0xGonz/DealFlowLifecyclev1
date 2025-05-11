@@ -2,8 +2,8 @@ import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 
 // Route imports
-import dealsRoutes from './routes/deals';
-import fundsRoutes from './routes/funds';
+import dealsRoutes from './routes/new-deals'; // Using refactored modular structure
+import fundsRoutes from './routes/new-funds'; // Using refactored modular structure
 import usersRoutes from './routes/users';
 import authRoutes from './routes/auth';
 import dashboardRoutes from './routes/dashboard';
