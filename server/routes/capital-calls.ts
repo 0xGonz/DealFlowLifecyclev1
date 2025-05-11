@@ -9,6 +9,18 @@ import { eq } from 'drizzle-orm';
 const router = express.Router();
 const storage = StorageFactory.getStorage();
 
+// Get all capital calls
+router.get('/', requireAuth, async (req, res) => {
+  try {
+    // Get all capital calls from database
+    const result = await storage.getAllCapitalCalls();
+    return res.json(result);
+  } catch (error: any) {
+    console.error('Error fetching all capital calls:', error);
+    return res.status(500).json({ message: error.message || 'Internal server error' });
+  }
+});
+
 // Schema for validation with additional validation rules
 const createCapitalCallSchema = insertCapitalCallSchema.extend({
   callAmount: z.number().positive("Call amount must be greater than 0"),
