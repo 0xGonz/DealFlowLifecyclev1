@@ -19,21 +19,16 @@ import {
 import {
   CALENDAR_HIGHLIGHT_COLORS,
   CALENDAR_INDICATOR_COLORS,
-  CALENDAR_VIEWS,
-  CALENDAR_LAYOUT,
-  CALENDAR_EVENT_TYPES,
-  type CalendarView
+  CALENDAR_EVENT_TYPES
 } from '@/lib/constants/calendar-constants';
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Loader2, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import AppLayout from '@/components/layout/AppLayout';
-import ClosingEventForm from '@/components/calendar/ClosingEventForm';
-import CapitalCallForm from '@/components/calendar/CapitalCallForm';
+import UnifiedEventForm from '@/components/calendar/UnifiedEventForm';
 import { useAuth } from '@/hooks/use-auth';
 
 interface CapitalCall {
@@ -69,20 +64,15 @@ interface ClosingScheduleEvent {
 
 const CalendarPage = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [selectedView, setSelectedView] = useState<CalendarView>(CALENDAR_VIEWS.CALENDAR);
   const [activeTab, setActiveTab] = useState<string>(CALENDAR_EVENT_TYPES.ALL);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [eventTypeFilter, setEventTypeFilter] = useState<string>('all');
   
-  // State for forms
-  const [isClosingEventFormOpen, setIsClosingEventFormOpen] = useState(false);
-  const [isCapitalCallFormOpen, setIsCapitalCallFormOpen] = useState(false);
+  // State for unified event form
+  const [isEventFormOpen, setIsEventFormOpen] = useState(false);
   
   // Ensure authentication is valid on this page
   const { data: currentUser } = useAuth();
-  
-  // We don't need to call refreshAuth here anymore - ProtectedRoute already does it
-  // and it causes a race condition
   
   // Fetch capital calls - no need to add auth check since ProtectedRoute handles it
   const { data: capitalCalls = [], isLoading: isLoadingCalls } = useQuery<CapitalCall[]>({
@@ -102,15 +92,6 @@ const CalendarPage = () => {
     username: currentUser?.username
   });
   
-  // Safely handle authentication
-  useEffect(() => {
-    if (!currentUser) {
-      // This page should only be reached through ProtectedRoute, 
-      // but add additional safety check
-      console.log('No current user in Calendar, authentication check should happen in ProtectedRoute');
-    }
-  }, [currentUser]);
-
   // Filter events based on selected date, tab and status filters
   const filteredCalls = React.useMemo(() => {
     if (!selectedDate) return [];
@@ -289,34 +270,14 @@ const CalendarPage = () => {
           <h1 className="text-3xl font-bold">Calendar</h1>
           
           <div className="flex gap-2 items-center">
-            <div className="flex space-x-2 mr-2">
-              <Button 
-                onClick={() => setIsClosingEventFormOpen(true)}
-                size="sm"
-              >
-                <Plus className="h-4 w-4 mr-1" />
-                New Closing Event
-              </Button>
-              <Button 
-                onClick={() => setIsCapitalCallFormOpen(true)}
-                size="sm"
-                className="bg-green-600 hover:bg-green-700 text-white"
-              >
-                <Plus className="h-4 w-4 mr-1" />
-                New Capital Call
-              </Button>
-            </div>
-            
-            <Tabs 
-              value={selectedView} 
-              onValueChange={(value) => setSelectedView(value as CalendarView)}
-              className="w-[340px]"
+            <Button 
+              onClick={() => setIsEventFormOpen(true)}
+              size="sm"
+              className="bg-blue-600 hover:bg-blue-700 text-white"
             >
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value={CALENDAR_VIEWS.CALENDAR}>Calendar View</TabsTrigger>
-                <TabsTrigger value={CALENDAR_VIEWS.LIST}>List View</TabsTrigger>
-              </TabsList>
-            </Tabs>
+              <Plus className="h-4 w-4 mr-1" />
+              Add Event
+            </Button>
             
             <Select value={activeTab} onValueChange={setActiveTab}>
               <SelectTrigger className="w-[180px]">
@@ -331,9 +292,9 @@ const CalendarPage = () => {
           </div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr] gap-6 h-full">
+        <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-6 h-full">
           {/* Calendar */}
-          <Card className={`h-full flex flex-col ${selectedView === CALENDAR_VIEWS.LIST ? 'hidden md:block' : ''}`}>
+          <Card className="h-full flex flex-col">
             <CardContent className="p-0 flex flex-col flex-grow h-full">
               <Calendar
                 mode="single"
@@ -382,7 +343,7 @@ const CalendarPage = () => {
           
           {/* Events for selected date */}
           <div>
-            {selectedView === CALENDAR_VIEWS.CALENDAR && selectedDate && (
+            {selectedDate && (
               <div className="flex items-center justify-between mb-4">
                 <Button variant="outline" size="icon" onClick={prevDate}>
                   <ChevronLeft className="h-4 w-4" />
@@ -405,29 +366,32 @@ const CalendarPage = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Statuses</SelectItem>
-                    <SelectItem value={CAPITAL_CALL_STATUS.SCHEDULED}>Scheduled</SelectItem>
-                    <SelectItem value={CAPITAL_CALL_STATUS.CALLED}>Called</SelectItem>
-                    <SelectItem value={CAPITAL_CALL_STATUS.PARTIAL}>Partially Paid</SelectItem>
-                    <SelectItem value={CAPITAL_CALL_STATUS.PAID}>Paid</SelectItem>
-                    <SelectItem value={CAPITAL_CALL_STATUS.DEFAULTED}>Defaulted</SelectItem>
+                    {Object.entries(CAPITAL_CALL_STATUS_LABELS).map(([value, label]) => (
+                      <SelectItem key={value} value={value}>
+                        {label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               )}
               
               {activeTab === CALENDAR_EVENT_TYPES.CLOSING_EVENTS && (
-                <div className="flex gap-2">
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Filter by status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Statuses</SelectItem>
-                      <SelectItem value={CLOSING_EVENT_STATUS.SCHEDULED}>Scheduled</SelectItem>
-                      <SelectItem value={CLOSING_EVENT_STATUS.COMPLETED}>Completed</SelectItem>
-                      <SelectItem value={CLOSING_EVENT_STATUS.DELAYED}>Delayed</SelectItem>
-                      <SelectItem value={CLOSING_EVENT_STATUS.CANCELLED}>Cancelled</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <>
+                  <div className="flex gap-2 mb-2">
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Filter by status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Statuses</SelectItem>
+                        {Object.entries(CLOSING_EVENT_STATUS_LABELS).map(([value, label]) => (
+                          <SelectItem key={value} value={value}>
+                            {label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                   
                   <Select value={eventTypeFilter} onValueChange={setEventTypeFilter}>
                     <SelectTrigger className="w-[180px]">
@@ -435,174 +399,144 @@ const CalendarPage = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Types</SelectItem>
-                      <SelectItem value={CLOSING_EVENT_TYPES.FIRST_CLOSE}>First Close</SelectItem>
-                      <SelectItem value={CLOSING_EVENT_TYPES.SECOND_CLOSE}>Second Close</SelectItem>
-                      <SelectItem value={CLOSING_EVENT_TYPES.FINAL_CLOSE}>Final Close</SelectItem>
-                      <SelectItem value={CLOSING_EVENT_TYPES.EXTENSION}>Extension</SelectItem>
-                      <SelectItem value={CLOSING_EVENT_TYPES.CUSTOM}>Custom</SelectItem>
+                      {Object.entries(CLOSING_EVENT_TYPE_LABELS).map(([value, label]) => (
+                        <SelectItem key={value} value={value}>
+                          {label}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
-                </div>
+                </>
               )}
             </div>
             
-            {isLoading ? (
-              <div className="flex items-center justify-center p-12">
-                <Loader2 className="h-8 w-8 animate-spin text-neutral-400" />
-              </div>
-            ) : (
-              <div>
-                {/* Conditional rendering based on active tab */}
-                {(activeTab === CALENDAR_EVENT_TYPES.ALL || activeTab === CALENDAR_EVENT_TYPES.CAPITAL_CALLS) && (
-                  <div className="mb-6">
-                    {activeTab === CALENDAR_EVENT_TYPES.ALL && (
-                      <h3 className="text-lg font-semibold mb-3">Capital Calls</h3>
-                    )}
-                    
-                    {filteredCalls.length === 0 ? (
-                      <Card>
-                        <CardContent className="p-6">
-                          <div className="text-center text-neutral-500">
-                            {selectedDate 
-                              ? `No capital calls for ${format(selectedDate, DATE_FORMATS.FULL)}` 
-                              : 'Select a date to view capital calls'}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ) : (
-                      <div className="grid gap-4">
-                        {filteredCalls.map((call) => (
-                          <Card key={call.id}>
-                            <CardHeader className="pb-2">
-                              <div className="flex justify-between items-start">
-                                <div>
-                                  <CardTitle>{call.dealName}</CardTitle>
-                                  <CardDescription>{call.fundName}</CardDescription>
-                                </div>
-                                <Badge className={CAPITAL_CALL_STATUS_COLORS[call.status]}>
-                                  {CAPITAL_CALL_STATUS_LABELS[call.status]}
-                                </Badge>
-                              </div>
-                            </CardHeader>
-                            <CardContent className="pt-0">
-                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                <div>
-                                  <div className="text-sm font-medium">Amount</div>
-                                  <div className="text-lg">{formatAmountByType(call.callAmount, call.amountType)}</div>
-                                  {call.paidAmount > 0 && (
-                                    <div className="text-xs text-neutral-500">
-                                      Paid: {formatAmountByType(call.paidAmount, call.amountType)}
+            <div className="space-y-4">
+              {isLoading ? (
+                <div className="flex justify-center my-8">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              ) : (
+                <>
+                  {/* Capital Calls */}
+                  {(activeTab === CALENDAR_EVENT_TYPES.ALL || activeTab === CALENDAR_EVENT_TYPES.CAPITAL_CALLS) && (
+                    <>
+                      {filteredCalls.length > 0 && (
+                        <div>
+                          <h3 className="text-lg font-semibold mb-2">Capital Calls</h3>
+                          <div className="space-y-2">
+                            {filteredCalls.map(call => (
+                              <Card key={call.id} className="overflow-hidden">
+                                <CardContent className="p-4">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <div className="font-semibold">{call.dealName}</div>
+                                    <Badge className={CAPITAL_CALL_STATUS_COLORS[call.status]}>
+                                      {CAPITAL_CALL_STATUS_LABELS[call.status]}
+                                    </Badge>
+                                  </div>
+                                  <div className="text-sm text-muted-foreground">Fund: {call.fundName}</div>
+                                  <div className="flex justify-between mt-2">
+                                    <div className="text-sm">
+                                      <span className="font-medium">Amount:</span> {formatAmountByType(call.callAmount, call.amountType)}
+                                    </div>
+                                    
+                                    <div className="text-xs text-muted-foreground flex gap-2">
+                                      <span>Due: {formatDate(call.dueDate)}</span>
+                                      {call.paidDate && (
+                                        <span>Paid: {formatDate(call.paidDate)}</span>
+                                      )}
+                                    </div>
+                                  </div>
+                                  {call.notes && (
+                                    <div className="mt-2 text-sm border-t pt-2 text-muted-foreground">
+                                      {call.notes}
                                     </div>
                                   )}
-                                </div>
-                                <div>
-                                  <div className="text-sm font-medium">Call Date</div>
-                                  <div className="text-base">{formatDate(call.callDate)}</div>
-                                </div>
-                                <div>
-                                  <div className="text-sm font-medium">Due Date</div>
-                                  <div className="text-base">{formatDate(call.dueDate)}</div>
-                                </div>
-                              </div>
-                              {call.notes && (
-                                <div className="mt-3 text-sm text-neutral-600 border-t pt-2">
-                                  {call.notes}
-                                </div>
-                              )}
-                            </CardContent>
-                          </Card>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-                
-                {(activeTab === CALENDAR_EVENT_TYPES.ALL || activeTab === CALENDAR_EVENT_TYPES.CLOSING_EVENTS) && (
-                  <div>
-                    {activeTab === CALENDAR_EVENT_TYPES.ALL && (
-                      <h3 className="text-lg font-semibold mb-3">Closing Events</h3>
-                    )}
-                    
-                    {filteredClosingEvents.length === 0 ? (
-                      <Card>
-                        <CardContent className="p-6">
-                          <div className="text-center text-neutral-500">
-                            {selectedDate 
-                              ? `No closing events for ${format(selectedDate, DATE_FORMATS.FULL)}` 
-                              : 'Select a date to view closing events'}
+                                </CardContent>
+                              </Card>
+                            ))}
                           </div>
-                        </CardContent>
-                      </Card>
-                    ) : (
-                      <div className="grid gap-4">
-                        {filteredClosingEvents.map((event) => (
-                          <Card key={event.id}>
-                            <CardHeader className="pb-2">
-                              <div className="flex justify-between items-start">
-                                <div>
-                                  <CardTitle>{event.eventName}</CardTitle>
-                                  <CardDescription>{event.dealName}</CardDescription>
-                                </div>
-                                <div className="flex flex-col gap-1 items-end">
-                                  <Badge className={CLOSING_EVENT_STATUS_COLORS[event.status]}>
-                                    {CLOSING_EVENT_STATUS_LABELS[event.status]}
-                                  </Badge>
-                                  <Badge variant="outline">
-                                    {CLOSING_EVENT_TYPE_LABELS[event.eventType]}
-                                  </Badge>
-                                </div>
-                              </div>
-                            </CardHeader>
-                            <CardContent className="pt-0">
-                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                {event.targetAmount && (
-                                  <div>
-                                    <div className="text-sm font-medium">Target Amount</div>
-                                    <div className="text-lg">{formatAmountByType(event.targetAmount, event.amountType)}</div>
-                                    {event.actualAmount && (
-                                      <div className="text-xs text-neutral-500">
-                                        Actual: {formatAmountByType(event.actualAmount, event.amountType)}
+                        </div>
+                      )}
+                    </>
+                  )}
+                  
+                  {/* Closing Events */}
+                  {(activeTab === CALENDAR_EVENT_TYPES.ALL || activeTab === CALENDAR_EVENT_TYPES.CLOSING_EVENTS) && (
+                    <>
+                      {filteredClosingEvents.length > 0 && (
+                        <div className="mt-4">
+                          <h3 className="text-lg font-semibold mb-2">Closing Events</h3>
+                          <div className="space-y-2">
+                            {filteredClosingEvents.map(event => (
+                              <Card key={event.id} className="overflow-hidden">
+                                <CardContent className="p-4">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <div className="font-semibold">{event.eventName}</div>
+                                    <Badge className={CLOSING_EVENT_STATUS_COLORS[event.status]}>
+                                      {CLOSING_EVENT_STATUS_LABELS[event.status]}
+                                    </Badge>
+                                  </div>
+                                  <div className="text-sm text-muted-foreground">Deal: {event.dealName}</div>
+                                  <div className="text-sm text-muted-foreground">Type: {CLOSING_EVENT_TYPE_LABELS[event.eventType]}</div>
+                                  
+                                  <div className="flex justify-between mt-2 text-sm">
+                                    {event.targetAmount && (
+                                      <div>
+                                        <span className="font-medium">Target:</span> {formatAmountByType(event.targetAmount, event.amountType)}
                                       </div>
                                     )}
+                                    
+                                    <div className="text-xs text-muted-foreground">
+                                      <span>Scheduled: {formatDate(event.scheduledDate)}</span>
+                                      {event.actualDate && (
+                                        <div>Actual: {formatDate(event.actualDate)}</div>
+                                      )}
+                                    </div>
                                   </div>
-                                )}
-                                <div>
-                                  <div className="text-sm font-medium">Scheduled Date</div>
-                                  <div className="text-base">{formatDate(event.scheduledDate)}</div>
-                                </div>
-                                {event.actualDate && (
-                                  <div>
-                                    <div className="text-sm font-medium">Actual Date</div>
-                                    <div className="text-base">{formatDate(event.actualDate)}</div>
-                                  </div>
-                                )}
-                              </div>
-                              {event.notes && (
-                                <div className="mt-3 text-sm text-neutral-600 border-t pt-2">
-                                  {event.notes}
-                                </div>
-                              )}
-                            </CardContent>
-                          </Card>
-                        ))}
+                                  
+                                  {event.notes && (
+                                    <div className="mt-2 text-sm border-t pt-2 text-muted-foreground">
+                                      {event.notes}
+                                    </div>
+                                  )}
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
+                  
+                  {/* Show message when no events are found */}
+                  {((activeTab === CALENDAR_EVENT_TYPES.CAPITAL_CALLS && filteredCalls.length === 0) ||
+                    (activeTab === CALENDAR_EVENT_TYPES.CLOSING_EVENTS && filteredClosingEvents.length === 0) ||
+                    (activeTab === CALENDAR_EVENT_TYPES.ALL && filteredCalls.length === 0 && filteredClosingEvents.length === 0)) && (
+                    <div className="text-center py-8 text-muted-foreground">
+                      No events found for this date.
+                      <div className="mt-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => setIsEventFormOpen(true)}
+                        >
+                          <Plus className="h-4 w-4 mr-1" />
+                          Add Event
+                        </Button>
                       </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
           </div>
         </div>
       </div>
-      {/* Forms */}
-      <ClosingEventForm
-        isOpen={isClosingEventFormOpen}
-        onClose={() => setIsClosingEventFormOpen(false)}
-        selectedDate={selectedDate}
-      />
-      <CapitalCallForm
-        isOpen={isCapitalCallFormOpen}
-        onClose={() => setIsCapitalCallFormOpen(false)}
+      
+      {/* Render the unified event form */}
+      <UnifiedEventForm
+        isOpen={isEventFormOpen}
+        onClose={() => setIsEventFormOpen(false)}
         selectedDate={selectedDate}
       />
     </AppLayout>
