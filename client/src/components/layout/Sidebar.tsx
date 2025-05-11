@@ -110,7 +110,9 @@ export default function Sidebar({ onCloseMobile }: SidebarProps) {
               </>
             ) : currentUser ? (
               <>
+                {/* Force a new component instance with a unique key based on the avatar color */}
                 <UserAvatar 
+                  key={`avatar-${currentUser.id}-${currentUser.avatarColor}`}
                   user={currentUser} 
                   size="sm"
                 />

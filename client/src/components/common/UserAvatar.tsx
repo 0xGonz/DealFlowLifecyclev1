@@ -21,28 +21,46 @@ interface UserAvatarProps {
  * This will pull the most up-to-date user data from the cache
  */
 export function UserAvatar({ user, size = 'md', className = '' }: UserAvatarProps) {
-  // Use a query to get the most recent user data
-  const { data: users, isSuccess: usersLoaded } = useQuery<any[]>({
-    queryKey: ['/api/users'],
+  // Get data for this specific user directly - this will guarantee fresh data
+  const { data: userData } = useQuery<any>({
+    queryKey: ['/api/users', user?.id],
+    queryFn: async () => {
+      // If this is the current user, use /api/auth/me for most accurate data
+      try {
+        const res = await fetch('/api/auth/me');
+        const meData = await res.json();
+        if (meData && meData.id === user?.id) {
+          console.log('Using /me endpoint data for avatar', meData);
+          return meData;
+        }
+      } catch (e) {
+        console.error('Error fetching from /me endpoint', e);
+      }
+      
+      // Otherwise try to get user by ID
+      if (user?.id) {
+        try {
+          const res = await fetch(`/api/users/${user.id}`);
+          const userById = await res.json();
+          console.log(`Direct user fetch for avatar ID ${user.id}:`, userById);
+          return userById;
+        } catch (e) {
+          console.error(`Error fetching user ${user.id}`, e);
+        }
+      }
+      
+      // Fallback to the user data passed in props
+      return user;
+    },
     enabled: !!user?.id, // Only fetch if we have a user ID
-    refetchOnWindowFocus: true, // Refetch when window gains focus
-    staleTime: 0, // Consider data stale immediately
-  });
-  
-  // Get current user data again from the auth endpoint for the currently logged-in user
-  const { data: currentUserMe } = useQuery<any>({
-    queryKey: ['/api/auth/me'],
-    enabled: !!user?.id,
     refetchOnWindowFocus: true,
-    staleTime: 0,
+    staleTime: 0, // Always refetch
+    refetchInterval: 10000, // Refresh every 10 seconds
   });
   
-  // Use the data from /api/auth/me if this avatar is for the current user
-  // Otherwise fall back to the users list
-  const currentUserData = (currentUserMe && currentUserMe.id === user?.id) 
-    ? currentUserMe 
-    : users?.find(u => u.id === user?.id);
-    
+  // Use the directly fetched data or fall back to the passed user data
+  const currentUserData = userData || user;
+  
   // Debug log for avatar color changes
   useEffect(() => {
     if (currentUserData?.avatarColor) {
