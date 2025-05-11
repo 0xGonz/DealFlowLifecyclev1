@@ -294,13 +294,19 @@ const CalendarPage = () => {
         
         <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-6 h-full">
           {/* Calendar */}
-          <Card className="h-full min-h-[800px] flex flex-col">
-            <CardContent className="p-0 flex flex-col flex-grow h-full">
+          <Card className="h-full w-full flex flex-col">
+            <CardContent className="p-0 flex flex-col flex-grow">
               <Calendar
                 mode="single"
                 selected={selectedDate}
                 onSelect={setSelectedDate}
-                className="rounded-md w-full h-full flex-grow"
+                className="rounded-md w-full flex-1"
+                weekStartsOn={0}
+                formatters={{
+                  day: (date) => format(date, 'd'),
+                  month: (date) => format(date, 'MMMM yyyy'),
+                  weekday: (date) => format(date, 'EEE')
+                }}
                 components={{
                   Day: (props) => {
                     // Using a custom Day component to show events
@@ -310,7 +316,7 @@ const CalendarPage = () => {
                           // Handle the click event manually
                           setSelectedDate(props.date);
                         }} 
-                        className="w-full h-full p-0 my-0.5 min-h-[60px] font-normal text-base rounded-md flex items-center justify-center transition-colors hover:bg-neutral-100"
+                        className="w-full h-full p-2 my-0.5 aspect-square font-normal text-base rounded-md flex items-center justify-center transition-colors hover:bg-neutral-100"
                       >
                         {renderDay(props.date)}
                       </button>
