@@ -315,7 +315,7 @@ const UnifiedEventForm: React.FC<UnifiedEventFormProps> = ({ isOpen, onClose, se
         
         {/* Event Type Selector */}
         <div className="mb-4">
-          <FormLabel>Event Type</FormLabel>
+          <label className="text-sm font-medium">Event Type</label>
           <Select
             value={selectedEventType}
             onValueChange={(value) => setSelectedEventType(value as EventType)}
