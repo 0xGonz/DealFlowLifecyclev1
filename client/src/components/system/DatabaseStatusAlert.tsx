@@ -35,6 +35,13 @@ export function DatabaseStatusAlert() {
     return null;
   }
   
+  // No alert in development environment when using memory storage intentionally
+  if (healthData.environment === 'development' && 
+      healthData.storage === 'memory' && 
+      healthData.databaseConnected) {
+    return null;
+  }
+  
   // Using hybrid storage with database mode - no alert needed
   if (healthData.storage === 'hybrid' && 
       healthData.hybridStatus?.hybridInfo?.usingDatabase && 
