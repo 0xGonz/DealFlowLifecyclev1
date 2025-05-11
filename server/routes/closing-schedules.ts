@@ -17,6 +17,9 @@ interface AuthRequest extends Request {
 // Get all closing schedule events
 router.get('/', async (req: AuthRequest, res: Response) => {
   try {
+    // Debug session data
+    console.log(`Closing schedules GET request with session userId: ${req.session?.userId}`);
+    
     // Get raw closing schedule events
     const closingEvents = await storage.getAllClosingScheduleEvents();
     
@@ -25,21 +28,28 @@ router.get('/', async (req: AuthRequest, res: Response) => {
     const dealMap = new Map<number, Deal>();
     deals.forEach(deal => dealMap.set(deal.id, deal));
     
-    // Filter and enhance closing events
+    // Filter and enhance closing events - ensure all fields have default values to prevent null errors
     const enhancedEvents = closingEvents
       .filter(event => dealMap.has(event.dealId))
       .map(event => {
         const deal = dealMap.get(event.dealId);
         return {
           ...event,
-          dealName: deal?.name || 'Unknown Deal'
+          dealName: deal?.name || 'Unknown Deal',
+          scheduledDate: event.scheduledDate ?? null,
+          targetAmount: event.targetAmount ?? 0,
+          actualAmount: event.actualAmount ?? null,
+          actualDate: event.actualDate ?? null
         };
       });
     
     res.json(enhancedEvents);
   } catch (error) {
     console.error('Error fetching closing schedule events:', error);
-    res.status(500).json({ error: 'Failed to fetch closing schedule events' });
+    res.status(500).json({ 
+      error: 'Failed to fetch closing schedule events',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 });
 

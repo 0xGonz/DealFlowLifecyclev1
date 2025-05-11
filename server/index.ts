@@ -1,3 +1,10 @@
+// Add debug print to confirm this is the actual boot file
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+const moduleUrl = import.meta.url;
+const modulePath = fileURLToPath(moduleUrl);
+console.log("🐞  Boot file:", modulePath);
+
 import express, { type Request, Response, NextFunction } from "express";
 import session from "express-session";
 import { registerRoutes } from "./routes";

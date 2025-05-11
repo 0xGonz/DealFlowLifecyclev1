@@ -1,7 +1,6 @@
 import { Request, Response, Router } from 'express';
 import { StorageFactory } from '../storage-factory';
 import { DatabaseStorage } from '../database-storage';
-import { HybridStorage } from '../hybrid-storage';
 import { MemStorage } from '../storage';
 import { pool } from '../db';
 import { metricsHandler } from '../middleware/metrics';
@@ -30,34 +29,14 @@ systemRouter.post('/database/test-connection', async (req: Request, res: Respons
 
 // Endpoint to force synchronization of pending operations
 systemRouter.post('/database/sync-pending', async (req: Request, res: Response) => {
-  const currentStorage = StorageFactory.storage;
+  // We no longer use hybrid storage, but keep endpoint for compatibility
+  console.log('Received sync-pending request - operation now obsolete');
   
-  // Check if using hybrid storage
-  if (currentStorage instanceof HybridStorage) {
-    try {
-      const hybridStorage = currentStorage as HybridStorage;
-      
-      // Call the public syncPendingWrites method
-      await hybridStorage.syncPendingWrites();
-      res.json({ 
-        success: true, 
-        message: 'Pending operations synchronized successfully',
-        pending: Array.from(hybridStorage.pendingWrites?.keys() || [])
-      });
-    } catch (error) {
-      console.error('Error while synchronizing pending operations:', error);
-      res.status(500).json({ 
-        success: false, 
-        message: 'Failed to synchronize pending operations',
-        error: error instanceof Error ? error.message : String(error)
-      });
-    }
-  } else {
-    res.status(400).json({ 
-      success: false, 
-      message: 'Not using hybrid storage - no pending operations to synchronize'
-    });
-  }
+  res.json({ 
+    success: true, 
+    message: 'No action needed - using fixed storage implementation',
+    pendingOperations: 0
+  });
 });
 
 // Endpoint to simulate database failure for testing (admin only)
@@ -70,37 +49,14 @@ systemRouter.post('/database/simulate-failure', (req: Request, res: Response) =>
     });
   }
   
-  const currentStorage = StorageFactory.storage;
+  // We no longer use hybrid storage, but keep endpoint for compatibility
+  console.log('Received database-failure simulation request - operation now obsolete');
   
-  // Check if using hybrid storage
-  if (currentStorage instanceof HybridStorage) {
-    try {
-      const hybridStorage = currentStorage as HybridStorage;
-      
-      // Force memory mode for testing
-      hybridStorage.usingDatabase = false;
-      hybridStorage.recoveryInProgress = true;
-      
-      res.json({ 
-        success: true, 
-        message: 'Database failure simulation activated',
-        mode: 'memory',
-        recoveryInProgress: hybridStorage.recoveryInProgress
-      });
-    } catch (error) {
-      console.error('Error while simulating database failure:', error);
-      res.status(500).json({ 
-        success: false, 
-        message: 'Failed to simulate database failure',
-        error: error instanceof Error ? error.message : String(error)
-      });
-    }
-  } else {
-    res.status(400).json({ 
-      success: false, 
-      message: 'Not using hybrid storage - cannot simulate database failure'
-    });
-  }
+  res.json({ 
+    success: true, 
+    message: 'Feature disabled - using fixed storage implementation',
+    mode: StorageFactory.storage instanceof MemStorage ? 'memory' : 'database'
+  });
 });
 
 // Endpoint to restore normal operation after testing (admin only)
@@ -113,97 +69,42 @@ systemRouter.post('/database/restore-normal', async (req: Request, res: Response
     });
   }
   
-  const currentStorage = StorageFactory.storage;
+  // We no longer use hybrid storage, but keep endpoint for compatibility
+  console.log('Received restore-normal request - operation now obsolete');
   
-  // Check if using hybrid storage
-  if (currentStorage instanceof HybridStorage) {
-    try {
-      const hybridStorage = currentStorage as HybridStorage;
-      
-      // First check if database is actually available
-      try {
-        await pool.query('SELECT 1');
-        
-        // Restore normal operation
-        hybridStorage.usingDatabase = true;
-        hybridStorage.recoveryInProgress = false;
-        
-        // Sync any pending operations
-        await hybridStorage.syncPendingWrites();
-        
-        res.json({ 
-          success: true, 
-          message: 'Normal database operation restored',
-          mode: 'database',
-          pendingWrites: Array.from(hybridStorage.pendingWrites.keys())
-        });
-      } catch (dbError) {
-        res.status(503).json({ 
-          success: false, 
-          message: 'Cannot restore normal operation - database is not available',
-          error: dbError instanceof Error ? dbError.message : String(dbError)
-        });
-      }
-    } catch (error) {
-      console.error('Error while restoring normal operation:', error);
-      res.status(500).json({ 
-        success: false, 
-        message: 'Failed to restore normal operation',
-        error: error instanceof Error ? error.message : String(error)
-      });
-    }
-  } else {
-    res.status(400).json({ 
+  // Check if database is connected
+  try {
+    await pool.query('SELECT 1');
+    
+    res.json({ 
+      success: true, 
+      message: 'Database is already operating normally',
+      mode: StorageFactory.storage instanceof MemStorage ? 'memory' : 'database',
+      connected: true
+    });
+  } catch (dbError) {
+    res.status(503).json({ 
       success: false, 
-      message: 'Not using hybrid storage - cannot restore normal operation'
+      message: 'Database connection issue detected',
+      error: dbError instanceof Error ? dbError.message : String(dbError),
+      mode: StorageFactory.storage instanceof MemStorage ? 'memory' : 'database',
+      connected: false
     });
   }
 });
 
 // Endpoint to check system health
 systemRouter.get('/health', async (req: Request, res: Response) => {
-  const currentStorage = StorageFactory.storage;
+  // Log file path to help debugging
+  console.log('🔍 Health endpoint called from:', import.meta.url);
   
-  // Determine storage type
-  let storageType = 'unknown';
-  let usingHybrid = false;
-  let pendingWrites = 0;
-  let hybridInfo = null;
+  // Determine actual session and data storage types - now fixed at startup
+  const isMemoryStorage = StorageFactory.storage instanceof MemStorage;
+  const isDatabaseStorage = StorageFactory.storage instanceof DatabaseStorage;
   
-  if (currentStorage instanceof DatabaseStorage) {
-    storageType = 'database';
-  } else if (currentStorage instanceof MemStorage) {
-    storageType = 'memory';
-  } else if (currentStorage instanceof HybridStorage) {
-    storageType = 'hybrid';
-    usingHybrid = true;
-    
-    // Get hybrid storage specific info if available
-    if (typeof (currentStorage as any).usingDatabase === 'boolean') {
-      const hybridStorage = currentStorage as any;
-      const pendingWriteTypes = hybridStorage.pendingWrites ? 
-        Array.from(hybridStorage.pendingWrites.keys()) : [];
-      
-      // Count total pending operations manually to avoid TypeScript issues
-      let totalPending = 0;
-      if (hybridStorage.pendingWrites) {
-        for (const type of pendingWriteTypes) {
-          const operations = hybridStorage.pendingWrites.get(type);
-          if (Array.isArray(operations)) {
-            totalPending += operations.length;
-          }
-        }
-      }
-      pendingWrites = totalPending;
-      
-      hybridInfo = {
-        usingDatabase: hybridStorage.usingDatabase,
-        pendingWriteTypes,
-        pendingWrites,
-        recoveryInProgress: hybridStorage.recoveryInProgress
-      };
-    }
-  }
+  const storageType = isMemoryStorage ? 'memory' : 'database';
+  
+  console.log('✅ Using fixed session and data store type:', storageType);
   
   // Database connectivity status
   let databaseConnected = false;
@@ -221,8 +122,8 @@ systemRouter.get('/health', async (req: Request, res: Response) => {
   const httpErrorsTotal = metrics.get('http_requests_error_total')?.value || 0;
   const appUptime = metrics.get('app_uptime_seconds')?.value || 0;
   
-  // Return system health information
-  res.json({
+  // Return system health information with accurate storage type
+  const response = {
     status: 'ok',
     timestamp: new Date().toISOString(),
     storage: storageType,
@@ -232,13 +133,12 @@ systemRouter.get('/health', async (req: Request, res: Response) => {
       uptime: appUptime,
       requests: httpRequestsTotal,
       errors: httpErrorsTotal,
-      errorRate: httpRequestsTotal ? (httpErrorsTotal / httpRequestsTotal) * 100 : 0
-    },
-    hybridStatus: usingHybrid ? {
-      pendingWrites,
-      hybridInfo
-    } : null
-  });
+      errorRate: httpRequestsTotal ? (httpErrorsTotal / httpRequestsTotal) : 0
+    }
+  };
+  
+  console.log('📊 Health response:', JSON.stringify(response));
+  res.json(response);
 });
 
 // Endpoint to expose metrics in Prometheus format
