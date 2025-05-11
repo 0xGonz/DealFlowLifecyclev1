@@ -14,6 +14,7 @@ import documentsRoutes from './routes/documents';
 import allocationsRoutes from './routes/allocations';
 import capitalCallsRoutes from './routes/capital-calls';
 import closingSchedulesRoutes from './routes/closing-schedules';
+import meetingsRoutes from './routes/meetings';
 import { systemRouter } from './routes/system';
 
 // Utils
@@ -82,6 +83,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/fund-allocations', allocationsRoutes); // Add this alias for client compatibility
   app.use('/api/capital-calls', capitalCallsRoutes);
   app.use('/api/closing-schedules', closingSchedulesRoutes);
+  app.use('/api/meetings', meetingsRoutes);
   app.use('/api/dashboard', dashboardRoutes);
   app.use('/api/leaderboard', leaderboardRoutes);
   app.use('/api/activity', activityRoutes);

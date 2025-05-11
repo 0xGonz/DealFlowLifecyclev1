@@ -224,6 +224,24 @@ export const insertDealAssignmentSchema = createInsertSchema(dealAssignments).om
 });
 
 // Notifications
+export const meetings = pgTable("meetings", {
+  id: serial("id").primaryKey(),
+  dealId: integer("deal_id").notNull(),
+  title: text("title").notNull(),
+  date: timestamp("date").notNull(),
+  attendees: text("attendees"),
+  notes: text("notes"),
+  createdBy: integer("created_by").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const insertMeetingSchema = createInsertSchema(meetings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const notifications = pgTable("notifications", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
@@ -318,6 +336,9 @@ export type InsertClosingScheduleEvent = z.infer<typeof insertClosingScheduleEve
 
 export type DealAssignment = typeof dealAssignments.$inferSelect;
 export type InsertDealAssignment = z.infer<typeof insertDealAssignmentSchema>;
+
+export type Meeting = typeof meetings.$inferSelect;
+export type InsertMeeting = z.infer<typeof insertMeetingSchema>;
 
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;

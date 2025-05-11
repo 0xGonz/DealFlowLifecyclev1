@@ -46,6 +46,19 @@ interface CapitalCall {
   fundName: string; // Added through API join
 }
 
+interface Meeting {
+  id: number;
+  dealId: number;
+  title: string;
+  date: string;
+  attendees: string | null;
+  notes: string | null;
+  createdBy: number;
+  createdAt: string;
+  updatedAt: string;
+  dealName: string; // Added through API join
+}
+
 interface ClosingScheduleEvent {
   id: number;
   dealId: number;
