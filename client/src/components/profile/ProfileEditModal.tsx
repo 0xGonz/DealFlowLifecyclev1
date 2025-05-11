@@ -76,12 +76,26 @@ export default function ProfileEditModal({
       // If authenticated, use the current user's ID, otherwise default to 1
       const userId = (currentUser && 'id' in currentUser) ? currentUser.id : 1;
       
+      // Create update payload - only include fields that actually changed
+      const updatePayload: any = {
+        fullName: name
+      };
+      
+      // Only include avatarColor if it changed
+      if (avatarColor !== currentUser?.avatarColor) {
+        updatePayload.avatarColor = avatarColor;
+      }
+      
+      // Only include role if it changed AND the current user is an admin
+      // Don't include role at all for non-admin users to avoid permission errors
+      if (role !== currentRole && currentUser?.role === 'admin') {
+        updatePayload.role = role;
+      }
+      
+      console.log('Updating profile with payload:', updatePayload);
+      
       // Update the user
-      await apiRequest("PATCH", `/api/users/${userId}`, {
-        fullName: name,
-        role: role,
-        avatarColor: avatarColor
-      });
+      await apiRequest("PATCH", `/api/users/${userId}`, updatePayload);
       
       // Refresh user data and timeline events
       await Promise.all([
@@ -103,9 +117,29 @@ export default function ProfileEditModal({
       onClose();
     } catch (error) {
       console.error("Error updating profile:", error);
+      
+      // Provide more detailed error message based on response
+      let errorMessage = "Failed to update profile";
+      
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      
+      // Check if it's a role permission issue
+      if (typeof error === 'object' && error && 'status' in error && error.status === 403) {
+        if ('data' in error && typeof error.data === 'object' && error.data && 'message' in error.data) {
+          errorMessage = String(error.data.message);
+          
+          // Special case for role permission issues
+          if (errorMessage.includes("administrators") && errorMessage.includes("roles")) {
+            errorMessage = "Only admin users can change roles. Your avatar color and name have been updated.";
+          }
+        }
+      }
+      
       toast({
         title: "Error",
-        description: "Failed to update profile",
+        description: errorMessage,
         variant: "destructive",
         duration: TOAST_DURATION.LONG
       });
@@ -156,17 +190,27 @@ export default function ProfileEditModal({
             <Label htmlFor="role" className="text-right">
               Role
             </Label>
-            <Select value={role} onValueChange={setRole}>
-              <SelectTrigger className="col-span-3">
-                <SelectValue placeholder={FORM_CONSTRAINTS.PLACEHOLDERS.SELECT_ROLE} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="partner">Partner</SelectItem>
-                <SelectItem value="analyst">Analyst</SelectItem>
-                <SelectItem value="admin">Administrator</SelectItem>
-                <SelectItem value="observer">Observer</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="col-span-3">
+              {currentUser?.role === 'admin' ? (
+                <Select value={role} onValueChange={setRole}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={FORM_CONSTRAINTS.PLACEHOLDERS.SELECT_ROLE} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="partner">Partner</SelectItem>
+                    <SelectItem value="analyst">Analyst</SelectItem>
+                    <SelectItem value="admin">Administrator</SelectItem>
+                    <SelectItem value="observer">Observer</SelectItem>
+                    <SelectItem value="intern">Intern</SelectItem>
+                  </SelectContent>
+                </Select>
+              ) : (
+                <div className="flex items-center space-x-2">
+                  <span className="border rounded-md px-3 py-2 bg-muted/50 text-muted-foreground text-sm capitalize">{role}</span>
+                  <span className="text-xs text-muted-foreground">(Only admins can change roles)</span>
+                </div>
+              )}
+            </div>
           </div>
           
           <div className="grid grid-cols-4 items-start gap-4">
