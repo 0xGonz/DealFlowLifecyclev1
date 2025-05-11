@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { format, isPast, addDays, isToday } from 'date-fns';
 import { DATE_FORMATS } from '@/lib/constants/time-constants';
@@ -34,6 +34,7 @@ import { Loader2, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import AppLayout from '@/components/layout/AppLayout';
 import ClosingEventForm from '@/components/calendar/ClosingEventForm';
 import CapitalCallForm from '@/components/calendar/CapitalCallForm';
+import { useAuth } from '@/hooks/use-auth';
 
 interface CapitalCall {
   id: number;
@@ -77,17 +78,34 @@ const CalendarPage = () => {
   const [isClosingEventFormOpen, setIsClosingEventFormOpen] = useState(false);
   const [isCapitalCallFormOpen, setIsCapitalCallFormOpen] = useState(false);
   
-  // Fetch capital calls
+  // Ensure authentication is valid on this page
+  const { data: currentUser, refreshAuth } = useAuth();
+  
+  // Refresh auth when calendar page mounts
+  useEffect(() => {
+    console.log('Calendar page mounted, refreshing auth');
+    refreshAuth();
+  }, [refreshAuth]);
+  
+  // Fetch capital calls with authentication check
   const { data: capitalCalls = [], isLoading: isLoadingCalls } = useQuery<CapitalCall[]>({
     queryKey: ['/api/capital-calls'],
+    enabled: !!currentUser, // Only run query if user is authenticated
   });
   
-  // Fetch closing schedule events
+  // Fetch closing schedule events with authentication check
   const { data: closingEvents = [], isLoading: isLoadingEvents } = useQuery<ClosingScheduleEvent[]>({
     queryKey: ['/api/closing-schedules'],
+    enabled: !!currentUser, // Only run query if user is authenticated
   });
   
   const isLoading = isLoadingCalls || isLoadingEvents;
+  
+  // Debug authentication state
+  console.log('Calendar page auth state:', { 
+    isAuthenticated: !!currentUser, 
+    username: currentUser?.username
+  });
 
   // Filter events based on selected date, tab and status filters
   const filteredCalls = React.useMemo(() => {
