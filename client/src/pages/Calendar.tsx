@@ -287,6 +287,7 @@ const CalendarPage = () => {
                 <SelectItem value={CALENDAR_EVENT_TYPES.ALL}>All Events</SelectItem>
                 <SelectItem value={CALENDAR_EVENT_TYPES.CAPITAL_CALLS}>Capital Calls</SelectItem>
                 <SelectItem value={CALENDAR_EVENT_TYPES.CLOSING_EVENTS}>Closing Events</SelectItem>
+                <SelectItem value={CALENDAR_EVENT_TYPES.MEETINGS}>Deal Meetings</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -302,11 +303,8 @@ const CalendarPage = () => {
                 onSelect={setSelectedDate}
                 className="rounded-md w-full flex-1"
                 weekStartsOn={0}
-                formatters={{
-                  day: (date) => format(date, 'd'),
-                  month: (date) => format(date, 'MMMM yyyy'),
-                  weekday: (date) => format(date, 'EEE')
-                }}
+                showOutsideDays
+                ISOWeek
                 components={{
                   Day: (props) => {
                     // Using a custom Day component to show events
@@ -324,25 +322,33 @@ const CalendarPage = () => {
                   },
                 }}
               />
-              <div className="p-4 mt-auto text-sm text-neutral-600 bg-gray-50 border-t flex flex-wrap gap-4">
-                {(activeTab === CALENDAR_EVENT_TYPES.ALL || activeTab === CALENDAR_EVENT_TYPES.CAPITAL_CALLS) && (
-                  <>
+              <div className="p-4 mt-auto text-sm text-neutral-600 bg-gray-50 border-t">
+                <div className="grid grid-cols-2 gap-y-2">
+                  {(activeTab === CALENDAR_EVENT_TYPES.ALL || activeTab === CALENDAR_EVENT_TYPES.CAPITAL_CALLS) && (
+                    <>
+                      <div className="flex items-center gap-2">
+                        <div className={`w-3 h-3 rounded-full ${CALENDAR_INDICATOR_COLORS.CALL}`}></div>
+                        <span>Capital Call</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className={`w-3 h-3 rounded-full ${CALENDAR_INDICATOR_COLORS.DUE}`}></div>
+                        <span>Due Date</span>
+                      </div>
+                    </>
+                  )}
+                  {(activeTab === CALENDAR_EVENT_TYPES.ALL || activeTab === CALENDAR_EVENT_TYPES.CLOSING_EVENTS) && (
                     <div className="flex items-center gap-2">
-                      <div className={`w-3 h-3 rounded-full ${CALENDAR_INDICATOR_COLORS.CALL}`}></div>
-                      <span>Capital Call</span>
+                      <div className={`w-3 h-3 rounded-full ${CALENDAR_INDICATOR_COLORS.CLOSING}`}></div>
+                      <span>Closing Event</span>
                     </div>
+                  )}
+                  {(activeTab === CALENDAR_EVENT_TYPES.ALL || activeTab === CALENDAR_EVENT_TYPES.MEETINGS) && (
                     <div className="flex items-center gap-2">
-                      <div className={`w-3 h-3 rounded-full ${CALENDAR_INDICATOR_COLORS.DUE}`}></div>
-                      <span>Due Date</span>
+                      <div className={`w-3 h-3 rounded-full ${CALENDAR_INDICATOR_COLORS.MEETING}`}></div>
+                      <span>Deal Meeting</span>
                     </div>
-                  </>
-                )}
-                {(activeTab === CALENDAR_EVENT_TYPES.ALL || activeTab === CALENDAR_EVENT_TYPES.CLOSING_EVENTS) && (
-                  <div className="flex items-center gap-2">
-                    <div className={`w-3 h-3 rounded-full ${CALENDAR_INDICATOR_COLORS.CLOSING}`}></div>
-                    <span>Closing Event</span>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>

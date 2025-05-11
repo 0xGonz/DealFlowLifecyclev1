@@ -18,6 +18,7 @@ export const CALENDAR_HIGHLIGHT_COLORS = {
   PAID: 'bg-green-50' as const,
   CLOSING: 'bg-purple-50' as const,
   ACTUAL_CLOSING: 'bg-indigo-50' as const,
+  MEETING: 'bg-pink-50' as const,
   PAST: 'text-neutral-400' as const,
 };
 
@@ -28,6 +29,7 @@ export const CALENDAR_INDICATOR_COLORS = {
   PAID: 'bg-green-500' as const,
   CLOSING: 'bg-purple-500' as const,
   ACTUAL_CLOSING: 'bg-indigo-500' as const,
+  MEETING: 'bg-pink-500' as const,
 };
 
 // Calendar view options
@@ -41,6 +43,7 @@ export const CALENDAR_EVENT_TYPES = {
   ALL: 'all' as const,
   CAPITAL_CALLS: 'capital_calls' as const,
   CLOSING_EVENTS: 'closing_events' as const,
+  MEETINGS: 'meetings' as const,
 };
 
 // Type definitions for calendar views and highlight types
