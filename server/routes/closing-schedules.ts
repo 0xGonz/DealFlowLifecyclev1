@@ -6,8 +6,16 @@ import { CLOSING_EVENT_STATUS } from '../constants/status-constants';
 const router = Router();
 const storage = StorageFactory.getStorage();
 
+// Custom type for the request with user property
+interface AuthRequest extends Request {
+  user?: {
+    id: number;
+    [key: string]: any;
+  };
+}
+
 // Get all closing schedule events
-router.get('/', async (req: Request, res: Response) => {
+router.get('/', async (req: AuthRequest, res: Response) => {
   try {
     // Get raw closing schedule events
     const closingEvents = await storage.getAllClosingScheduleEvents();
@@ -36,7 +44,7 @@ router.get('/', async (req: Request, res: Response) => {
 });
 
 // Get closing schedule events for a specific deal
-router.get('/deal/:dealId', async (req: Request, res: Response) => {
+router.get('/deal/:dealId', async (req: AuthRequest, res: Response) => {
   try {
     const dealId = parseInt(req.params.dealId);
     
@@ -55,7 +63,7 @@ router.get('/deal/:dealId', async (req: Request, res: Response) => {
 });
 
 // Create a new closing schedule event
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', async (req: AuthRequest, res: Response) => {
   try {
     // Process input data
     let modifiedBody = { ...req.body };
@@ -103,7 +111,7 @@ router.post('/', async (req: Request, res: Response) => {
 });
 
 // Update a closing schedule event status
-router.patch('/:id/status', async (req: Request, res: Response) => {
+router.patch('/:id/status', async (req: AuthRequest, res: Response) => {
   try {
     const id = parseInt(req.params.id);
     const { status, actualDate, actualAmount } = req.body;
@@ -121,11 +129,15 @@ router.patch('/:id/status', async (req: Request, res: Response) => {
     // Create a timeline event for this status update
     if (status === CLOSING_EVENT_STATUS.COMPLETED) {
       const deal = await storage.getDeal(updatedEvent.dealId);
+      
+      // Get the user ID safely
+      const userId = req.session?.userId || updatedEvent.createdBy;
+      
       await storage.createTimelineEvent({
         dealId: updatedEvent.dealId,
         eventType: 'note',
         content: `${updatedEvent.eventName} completed with ${actualAmount ? (updatedEvent.amountType === 'dollar' ? `$${actualAmount.toLocaleString()}` : `${actualAmount}%`) : 'an undisclosed amount'}`,
-        createdBy: req.user?.id || updatedEvent.createdBy,
+        createdBy: userId,
         metadata: {
           closingEventId: [updatedEvent.id],
           closingEventType: [updatedEvent.eventType],
@@ -142,7 +154,7 @@ router.patch('/:id/status', async (req: Request, res: Response) => {
 });
 
 // Update a closing schedule event date
-router.patch('/:id/date', async (req: Request, res: Response) => {
+router.patch('/:id/date', async (req: AuthRequest, res: Response) => {
   try {
     const id = parseInt(req.params.id);
     const { scheduledDate } = req.body;
@@ -180,12 +192,15 @@ router.patch('/:id/date', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Closing schedule event not found or could not be updated' });
     }
     
+    // Get the user ID safely
+    const userId = req.session?.userId || updatedEvent.createdBy;
+    
     // Create a timeline event for this date update
     await storage.createTimelineEvent({
       dealId: updatedEvent.dealId,
       eventType: 'note',
       content: `${updatedEvent.eventName} rescheduled to ${parsedDate.toLocaleDateString()}`,
-      createdBy: req.user?.id || updatedEvent.createdBy,
+      createdBy: userId,
       metadata: {
         closingEventId: [updatedEvent.id],
         closingEventType: [updatedEvent.eventType]
