@@ -473,8 +473,17 @@ const UnifiedEventForm: React.FC<UnifiedEventFormProps> = ({ isOpen, onClose, se
       console.log(`DELETE request to ${endpoint}`);
       
       const response = await apiRequest('DELETE', endpoint);
+      
+      // Check for 404 Not Found which would happen if the DELETE endpoint doesn't exist
+      if (response.status === 404) {
+        const errorData = await response.json();
+        console.error('Error response from ' + endpoint + ':', errorData);
+        throw new Error(`Delete endpoint not available: ${errorData.message || errorData.details || errorData.error || 'Route not found'}`);
+      }
+      
       if (!response.ok) {
         const errorData = await response.json();
+        console.error('Error response from ' + endpoint + ':', errorData);
         throw new Error(errorData.details || errorData.error || `Failed to delete ${eventToEdit.type}`);
       }
       

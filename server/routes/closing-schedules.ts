@@ -2,6 +2,8 @@ import { Router, Request, Response } from 'express';
 import { StorageFactory } from '../storage-factory';
 import { insertClosingScheduleEventSchema, type Deal } from '@shared/schema';
 import { CLOSING_EVENT_STATUS } from '../constants/status-constants';
+import { requireAuth } from '../utils/auth';
+import { requirePermission } from '../utils/permissions';
 
 const router = Router();
 const storage = StorageFactory.getStorage();
@@ -221,6 +223,54 @@ router.patch('/:id/date', async (req: AuthRequest, res: Response) => {
   } catch (error) {
     console.error(`Error updating closing schedule event date for event ${req.params.id}:`, error);
     res.status(500).json({ error: 'Failed to update closing schedule event date' });
+  }
+});
+
+// Delete a closing schedule event
+router.delete('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
+  try {
+    const id = parseInt(req.params.id);
+    
+    if (isNaN(id)) {
+      return res.status(400).json({ error: 'Invalid ID format' });
+    }
+    
+    // Get the event first to ensure it exists and to get details for the timeline event
+    const event = await storage.getClosingScheduleEvent(id);
+    if (!event) {
+      return res.status(404).json({ error: 'Closing schedule event not found' });
+    }
+    
+    // Delete the event
+    const success = await storage.deleteClosingScheduleEvent(id);
+    
+    if (!success) {
+      return res.status(500).json({ error: 'Failed to delete closing schedule event' });
+    }
+    
+    // Get the user ID safely
+    const userId = req.session?.userId || event.createdBy;
+    
+    // Create a timeline event for this deletion
+    await storage.createTimelineEvent({
+      dealId: event.dealId,
+      eventType: 'note',
+      content: `Closing event "${event.eventName}" has been deleted`,
+      createdBy: userId,
+      metadata: {
+        closingEventId: [event.id],
+        closingEventType: [event.eventType],
+        action: ['deleted']
+      }
+    });
+    
+    res.json({ success: true, id });
+  } catch (error) {
+    console.error(`Error deleting closing schedule event ${req.params.id}:`, error);
+    res.status(500).json({ 
+      error: 'Failed to delete closing schedule event',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 });
 
