@@ -284,15 +284,23 @@ const CalendarPage = () => {
           {format(date, 'd')}
         </span>
         {highlight && (
-          <div className="absolute bottom-1 flex gap-1 justify-center">
-            {highlight.types.has('call') && (
-              <div className={`h-3 w-3 rounded-full ${CALENDAR_INDICATOR_COLORS.CALL}`}></div>
-            )}
-            {highlight.types.has('closing') && (
-              <div className={`h-3 w-3 rounded-full ${CALENDAR_INDICATOR_COLORS.CLOSING}`}></div>
-            )}
-            {highlight.types.has('meeting') && (
-              <div className={`h-3 w-3 rounded-full ${CALENDAR_INDICATOR_COLORS.MEETING}`}></div>
+          <div className="absolute bottom-1 flex gap-1 justify-center w-full">
+            {/* Limit the number of indicators to avoid overflow */}
+            {Array.from(highlight.types).slice(0, 3).map((type, index) => {
+              let color = '';
+              if (type === 'call') color = CALENDAR_INDICATOR_COLORS.CALL;
+              if (type === 'due') color = CALENDAR_INDICATOR_COLORS.DUE;
+              if (type === 'paid') color = CALENDAR_INDICATOR_COLORS.PAID;
+              if (type === 'closing') color = CALENDAR_INDICATOR_COLORS.CLOSING;
+              if (type === 'completed') color = CALENDAR_INDICATOR_COLORS.ACTUAL_CLOSING;
+              if (type === 'meeting') color = CALENDAR_INDICATOR_COLORS.MEETING;
+              
+              return (
+                <div key={`${type}-${index}`} className={`h-2 w-2 rounded-full ${color}`}></div>
+              );
+            })}
+            {highlight.types.size > 3 && (
+              <div className="h-2 w-2 rounded-full bg-gray-400" title="More events"></div>
             )}
           </div>
         )}
@@ -372,28 +380,29 @@ const CalendarPage = () => {
                 }}
               />
               <div className="p-4 mt-auto text-sm text-neutral-600 bg-gray-50 border-t">
-                <div className="grid grid-cols-2 gap-y-2">
+                <h3 className="text-xs uppercase font-semibold text-muted-foreground mb-2">Legend</h3>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-3">
                   {(activeTab === CALENDAR_EVENT_TYPES.ALL || activeTab === CALENDAR_EVENT_TYPES.CAPITAL_CALLS) && (
                     <>
                       <div className="flex items-center gap-2">
-                        <div className={`w-3 h-3 rounded-full ${CALENDAR_INDICATOR_COLORS.CALL}`}></div>
+                        <div className={`w-2.5 h-2.5 rounded-full ${CALENDAR_INDICATOR_COLORS.CALL}`}></div>
                         <span>Capital Call</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className={`w-3 h-3 rounded-full ${CALENDAR_INDICATOR_COLORS.DUE}`}></div>
+                        <div className={`w-2.5 h-2.5 rounded-full ${CALENDAR_INDICATOR_COLORS.DUE}`}></div>
                         <span>Due Date</span>
                       </div>
                     </>
                   )}
                   {(activeTab === CALENDAR_EVENT_TYPES.ALL || activeTab === CALENDAR_EVENT_TYPES.CLOSING_EVENTS) && (
                     <div className="flex items-center gap-2">
-                      <div className={`w-3 h-3 rounded-full ${CALENDAR_INDICATOR_COLORS.CLOSING}`}></div>
+                      <div className={`w-2.5 h-2.5 rounded-full ${CALENDAR_INDICATOR_COLORS.CLOSING}`}></div>
                       <span>Closing Event</span>
                     </div>
                   )}
                   {(activeTab === CALENDAR_EVENT_TYPES.ALL || activeTab === CALENDAR_EVENT_TYPES.MEETINGS) && (
                     <div className="flex items-center gap-2">
-                      <div className={`w-3 h-3 rounded-full ${CALENDAR_INDICATOR_COLORS.MEETING}`}></div>
+                      <div className={`w-2.5 h-2.5 rounded-full ${CALENDAR_INDICATOR_COLORS.MEETING}`}></div>
                       <span>Deal Meeting</span>
                     </div>
                   )}
@@ -478,29 +487,56 @@ const CalendarPage = () => {
                 </div>
               ) : (
                 <>
+                  {/* No events message */}
+                  {filteredCalls.length === 0 && 
+                   filteredClosingEvents.length === 0 && 
+                   filteredMeetings.length === 0 && (
+                    <Card className="border-dashed">
+                      <CardContent className="py-6 flex flex-col items-center justify-center text-center">
+                        <div className="rounded-full bg-muted p-3 mb-3">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground h-6 w-6"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect><line x1="16" x2="16" y1="2" y2="6"></line><line x1="8" x2="8" y1="2" y2="6"></line><line x1="3" x2="21" y1="10" y2="10"></line></svg>
+                        </div>
+                        <h3 className="font-medium text-lg">No events scheduled</h3>
+                        <p className="text-sm text-muted-foreground mt-1">There are no events for this date.</p>
+                        <Button 
+                          onClick={() => setIsEventFormOpen(true)}
+                          size="sm"
+                          variant="outline"
+                          className="mt-4"
+                        >
+                          <Plus className="h-4 w-4 mr-1" />
+                          Add Event
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  )}
+                
                   {/* Capital Calls */}
                   {(activeTab === CALENDAR_EVENT_TYPES.ALL || activeTab === CALENDAR_EVENT_TYPES.CAPITAL_CALLS) && (
                     <>
                       {filteredCalls.length > 0 && (
                         <div>
-                          <h3 className="text-lg font-semibold mb-2">Capital Calls</h3>
+                          <h3 className="text-base font-semibold mb-2 flex items-center gap-2">
+                            <div className={`w-2.5 h-2.5 rounded-full ${CALENDAR_INDICATOR_COLORS.CALL}`}></div>
+                            Capital Calls
+                          </h3>
                           <div className="space-y-2">
                             {filteredCalls.map(call => (
-                              <Card key={call.id} className="overflow-hidden">
-                                <CardContent className="p-4">
+                              <Card key={call.id} className="overflow-hidden border-l-4 border-l-blue-500">
+                                <CardContent className="p-3">
                                   <div className="flex items-center justify-between mb-2">
-                                    <div className="font-semibold">{call.dealName}</div>
-                                    <Badge className={CAPITAL_CALL_STATUS_COLORS[call.status]}>
+                                    <div className="font-medium">{call.dealName}</div>
+                                    <Badge variant="outline" className="text-xs">
                                       {CAPITAL_CALL_STATUS_LABELS[call.status]}
                                     </Badge>
                                   </div>
-                                  <div className="text-sm text-muted-foreground">Fund: {call.fundName}</div>
-                                  <div className="flex justify-between mt-2">
+                                  <div className="text-xs text-muted-foreground truncate">Fund: {call.fundName}</div>
+                                  <div className="flex justify-between items-center mt-2">
                                     <div className="text-sm">
                                       <span className="font-medium">Amount:</span> {formatAmountByType(call.callAmount, call.amountType)}
                                     </div>
                                     
-                                    <div className="text-xs text-muted-foreground flex gap-2">
+                                    <div className="text-xs text-muted-foreground flex flex-col gap-1">
                                       <span>Due: {formatDate(call.dueDate)}</span>
                                       {call.paidDate && (
                                         <span>Paid: {formatDate(call.paidDate)}</span>
@@ -508,7 +544,7 @@ const CalendarPage = () => {
                                     </div>
                                   </div>
                                   {call.notes && (
-                                    <div className="mt-2 text-sm border-t pt-2 text-muted-foreground">
+                                    <div className="mt-2 text-xs border-t pt-2 text-muted-foreground line-clamp-2">
                                       {call.notes}
                                     </div>
                                   )}
@@ -526,37 +562,40 @@ const CalendarPage = () => {
                     <>
                       {filteredClosingEvents.length > 0 && (
                         <div className="mt-4">
-                          <h3 className="text-lg font-semibold mb-2">Closing Events</h3>
+                          <h3 className="text-base font-semibold mb-2 flex items-center gap-2">
+                            <div className={`w-2.5 h-2.5 rounded-full ${CALENDAR_INDICATOR_COLORS.CLOSING}`}></div>
+                            Closing Events
+                          </h3>
                           <div className="space-y-2">
                             {filteredClosingEvents.map(event => (
-                              <Card key={event.id} className="overflow-hidden">
-                                <CardContent className="p-4">
+                              <Card key={event.id} className="overflow-hidden border-l-4 border-l-purple-500">
+                                <CardContent className="p-3">
                                   <div className="flex items-center justify-between mb-2">
-                                    <div className="font-semibold">{event.eventName}</div>
-                                    <Badge className={CLOSING_EVENT_STATUS_COLORS[event.status]}>
+                                    <div className="font-medium">{event.eventName}</div>
+                                    <Badge variant="outline" className="text-xs">
                                       {CLOSING_EVENT_STATUS_LABELS[event.status]}
                                     </Badge>
                                   </div>
-                                  <div className="text-sm text-muted-foreground">Deal: {event.dealName}</div>
-                                  <div className="text-sm text-muted-foreground">Type: {CLOSING_EVENT_TYPE_LABELS[event.eventType]}</div>
+                                  <div className="text-xs text-muted-foreground truncate">Deal: {event.dealName}</div>
+                                  <div className="text-xs text-muted-foreground">Type: {CLOSING_EVENT_TYPE_LABELS[event.eventType]}</div>
                                   
-                                  <div className="flex justify-between mt-2 text-sm">
+                                  <div className="flex justify-between mt-2 items-center">
                                     {event.targetAmount && (
-                                      <div>
+                                      <div className="text-sm">
                                         <span className="font-medium">Target:</span> {formatAmountByType(event.targetAmount, event.amountType)}
                                       </div>
                                     )}
                                     
-                                    <div className="text-xs text-muted-foreground">
+                                    <div className="text-xs text-muted-foreground flex flex-col gap-1">
                                       <span>Scheduled: {formatDate(event.scheduledDate)}</span>
                                       {event.actualDate && (
-                                        <div>Actual: {formatDate(event.actualDate)}</div>
+                                        <span>Actual: {formatDate(event.actualDate)}</span>
                                       )}
                                     </div>
                                   </div>
                                   
                                   {event.notes && (
-                                    <div className="mt-2 text-sm border-t pt-2 text-muted-foreground">
+                                    <div className="mt-2 text-xs border-t pt-2 text-muted-foreground line-clamp-2">
                                       {event.notes}
                                     </div>
                                   )}
@@ -574,30 +613,36 @@ const CalendarPage = () => {
                     <>
                       {filteredMeetings.length > 0 && (
                         <div className="mt-4">
-                          <h3 className="text-lg font-semibold mb-2">Deal Meetings</h3>
+                          <h3 className="text-base font-semibold mb-2 flex items-center gap-2">
+                            <div className={`w-2.5 h-2.5 rounded-full ${CALENDAR_INDICATOR_COLORS.MEETING}`}></div>
+                            Deal Meetings
+                          </h3>
                           <div className="space-y-2">
                             {filteredMeetings.map(meeting => (
-                              <Card key={meeting.id} className="overflow-hidden">
-                                <CardContent className="p-4">
+                              <Card key={meeting.id} className="overflow-hidden border-l-4 border-l-pink-500">
+                                <CardContent className="p-3">
                                   <div className="flex items-center justify-between mb-2">
-                                    <div className="font-semibold">{meeting.title}</div>
+                                    <div className="font-medium">{meeting.title}</div>
+                                    <Badge variant="outline" className="text-xs">
+                                      Meeting
+                                    </Badge>
                                   </div>
-                                  <div className="text-sm text-muted-foreground">Deal: {meeting.dealName}</div>
+                                  <div className="text-xs text-muted-foreground truncate">Deal: {meeting.dealName}</div>
                                   
-                                  <div className="flex justify-between mt-2 text-sm">
-                                    <div className="text-xs text-muted-foreground">
-                                      <span>Time: {formatDate(meeting.date)}</span>
+                                  <div className="flex justify-between items-center mt-2">
+                                    <div className="text-sm">
+                                      <span className="font-medium">Time:</span> {format(new Date(meeting.date), 'h:mm a')}
                                     </div>
                                   </div>
                                   
                                   {meeting.attendees && (
-                                    <div className="mt-2 text-sm text-muted-foreground">
-                                      Attendees: {meeting.attendees}
+                                    <div className="mt-2 text-xs text-muted-foreground truncate max-w-full">
+                                      <span className="font-medium">Attendees:</span> {meeting.attendees}
                                     </div>
                                   )}
                                   
                                   {meeting.notes && (
-                                    <div className="mt-2 text-sm border-t pt-2 text-muted-foreground">
+                                    <div className="mt-2 text-xs border-t pt-2 text-muted-foreground line-clamp-2">
                                       {meeting.notes}
                                     </div>
                                   )}
