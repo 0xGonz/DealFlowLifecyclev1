@@ -83,6 +83,10 @@ const CalendarPage = () => {
   
   // State for unified event form
   const [isEventFormOpen, setIsEventFormOpen] = useState(false);
+  const [eventToEdit, setEventToEdit] = useState<{
+    type: 'capital-call' | 'closing-event' | 'meeting';
+    id: number;
+  } | null>(null);
   
   // Ensure authentication is valid on this page
   const { data: currentUser } = useAuth();
@@ -284,31 +288,13 @@ const CalendarPage = () => {
           {format(date, 'd')}
         </span>
         {highlight && (
-          <div className="absolute bottom-1 flex gap-1 justify-center w-full px-1">
-            {/* Show at most 3 indicators with a +X indicator if there are more */}
-            {(() => {
-              const types = Array.from(highlight.types).slice(0, 3);
-              return (
-                <div className="flex gap-0.5 mx-auto items-center">
-                  {types.map((type, index) => {
-                    let color = '';
-                    if (type === 'call') color = CALENDAR_INDICATOR_COLORS.CALL;
-                    if (type === 'due') color = CALENDAR_INDICATOR_COLORS.DUE;
-                    if (type === 'paid') color = CALENDAR_INDICATOR_COLORS.PAID;
-                    if (type === 'closing') color = CALENDAR_INDICATOR_COLORS.CLOSING;
-                    if (type === 'completed') color = CALENDAR_INDICATOR_COLORS.ACTUAL_CLOSING;
-                    if (type === 'meeting') color = CALENDAR_INDICATOR_COLORS.MEETING;
-                    
-                    return (
-                      <div key={`${type}-${index}`} className={`h-1.5 w-1.5 rounded-full ${color}`}></div>
-                    );
-                  })}
-                  {highlight.types.size > 3 && (
-                    <div className="text-[8px] text-muted-foreground ml-0.5">+{highlight.types.size - 3}</div>
-                  )}
-                </div>
-              );
-            })()}
+          <div className="absolute top-0.5 right-0.5">
+            {/* Show indicator in top right corner with event count */}
+            {highlight.types.size > 0 && (
+              <div className="flex items-center justify-center bg-primary/10 rounded-full w-4 h-4">
+                <span className="text-[9px] font-medium text-primary">{highlight.types.size}</span>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -533,9 +519,29 @@ const CalendarPage = () => {
                                 <CardContent className="p-3">
                                   <div className="flex items-center justify-between mb-2">
                                     <div className="font-medium">{call.dealName}</div>
-                                    <Badge variant="outline" className="text-xs">
-                                      {CAPITAL_CALL_STATUS_LABELS[call.status]}
-                                    </Badge>
+                                    <div className="flex items-center gap-2">
+                                      <Badge variant="outline" className="text-xs">
+                                        {CAPITAL_CALL_STATUS_LABELS[call.status]}
+                                      </Badge>
+                                      <Button 
+                                        variant="ghost" 
+                                        size="icon" 
+                                        className="h-6 w-6" 
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setEventToEdit({
+                                            type: 'capital-call',
+                                            id: call.id
+                                          });
+                                          setIsEventFormOpen(true);
+                                        }}
+                                      >
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                                          <path d="M5.433 13.917l1.262-3.155A4 4 0 017.58 9.42l6.92-6.918a2.121 2.121 0 013 3l-6.92 6.918c-.383.383-.84.685-1.343.886l-3.154 1.262a.5.5 0 01-.65-.65z" />
+                                          <path d="M3.5 5.75c0-.69.56-1.25 1.25-1.25H10A.75.75 0 0010 3H4.75A2.75 2.75 0 002 5.75v9.5A2.75 2.75 0 004.75 18h9.5A2.75 2.75 0 0017 15.25V10a.75.75 0 00-1.5 0v5.25c0 .69-.56 1.25-1.25 1.25h-9.5c-.69 0-1.25-.56-1.25-1.25v-9.5z" />
+                                        </svg>
+                                      </Button>
+                                    </div>
                                   </div>
                                   <div className="text-xs text-muted-foreground truncate">Fund: {call.fundName}</div>
                                   <div className="flex justify-between items-center mt-2">
@@ -579,9 +585,29 @@ const CalendarPage = () => {
                                 <CardContent className="p-3">
                                   <div className="flex items-center justify-between mb-2">
                                     <div className="font-medium">{event.eventName}</div>
-                                    <Badge variant="outline" className="text-xs">
-                                      {CLOSING_EVENT_STATUS_LABELS[event.status]}
-                                    </Badge>
+                                    <div className="flex items-center gap-2">
+                                      <Badge variant="outline" className="text-xs">
+                                        {CLOSING_EVENT_STATUS_LABELS[event.status]}
+                                      </Badge>
+                                      <Button 
+                                        variant="ghost" 
+                                        size="icon" 
+                                        className="h-6 w-6" 
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setEventToEdit({
+                                            type: 'closing-event',
+                                            id: event.id
+                                          });
+                                          setIsEventFormOpen(true);
+                                        }}
+                                      >
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                                          <path d="M5.433 13.917l1.262-3.155A4 4 0 017.58 9.42l6.92-6.918a2.121 2.121 0 013 3l-6.92 6.918c-.383.383-.84.685-1.343.886l-3.154 1.262a.5.5 0 01-.65-.65z" />
+                                          <path d="M3.5 5.75c0-.69.56-1.25 1.25-1.25H10A.75.75 0 0010 3H4.75A2.75 2.75 0 002 5.75v9.5A2.75 2.75 0 004.75 18h9.5A2.75 2.75 0 0017 15.25V10a.75.75 0 00-1.5 0v5.25c0 .69-.56 1.25-1.25 1.25h-9.5c-.69 0-1.25-.56-1.25-1.25v-9.5z" />
+                                        </svg>
+                                      </Button>
+                                    </div>
                                   </div>
                                   <div className="text-xs text-muted-foreground truncate">Deal: {event.dealName}</div>
                                   <div className="text-xs text-muted-foreground">Type: {CLOSING_EVENT_TYPE_LABELS[event.eventType]}</div>
@@ -630,9 +656,29 @@ const CalendarPage = () => {
                                 <CardContent className="p-3">
                                   <div className="flex items-center justify-between mb-2">
                                     <div className="font-medium">{meeting.title}</div>
-                                    <Badge variant="outline" className="text-xs">
-                                      Meeting
-                                    </Badge>
+                                    <div className="flex items-center gap-2">
+                                      <Badge variant="outline" className="text-xs">
+                                        Meeting
+                                      </Badge>
+                                      <Button 
+                                        variant="ghost" 
+                                        size="icon" 
+                                        className="h-6 w-6" 
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setEventToEdit({
+                                            type: 'meeting',
+                                            id: meeting.id
+                                          });
+                                          setIsEventFormOpen(true);
+                                        }}
+                                      >
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                                          <path d="M5.433 13.917l1.262-3.155A4 4 0 017.58 9.42l6.92-6.918a2.121 2.121 0 013 3l-6.92 6.918c-.383.383-.84.685-1.343.886l-3.154 1.262a.5.5 0 01-.65-.65z" />
+                                          <path d="M3.5 5.75c0-.69.56-1.25 1.25-1.25H10A.75.75 0 0010 3H4.75A2.75 2.75 0 002 5.75v9.5A2.75 2.75 0 004.75 18h9.5A2.75 2.75 0 0017 15.25V10a.75.75 0 00-1.5 0v5.25c0 .69-.56 1.25-1.25 1.25h-9.5c-.69 0-1.25-.56-1.25-1.25v-9.5z" />
+                                        </svg>
+                                      </Button>
+                                    </div>
                                   </div>
                                   <div className="text-xs text-muted-foreground truncate">Deal: {meeting.dealName}</div>
                                   
@@ -692,8 +738,12 @@ const CalendarPage = () => {
       {/* Render the unified event form */}
       <UnifiedEventForm
         isOpen={isEventFormOpen}
-        onClose={() => setIsEventFormOpen(false)}
+        onClose={() => {
+          setIsEventFormOpen(false);
+          setEventToEdit(null);
+        }}
         selectedDate={selectedDate}
+        eventToEdit={eventToEdit}
       />
     </AppLayout>
   );

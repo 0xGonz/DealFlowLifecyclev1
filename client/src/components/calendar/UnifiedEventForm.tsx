@@ -104,15 +104,20 @@ interface UnifiedEventFormProps {
   isOpen: boolean;
   onClose: () => void;
   selectedDate?: Date;
+  eventToEdit?: {
+    type: 'capital-call' | 'closing-event' | 'meeting';
+    id: number;
+  } | null;
 }
 
-const UnifiedEventForm: React.FC<UnifiedEventFormProps> = ({ isOpen, onClose, selectedDate }) => {
+const UnifiedEventForm: React.FC<UnifiedEventFormProps> = ({ isOpen, onClose, selectedDate, eventToEdit }) => {
   const { toast } = useToast();
   const { data: user } = useAuth();
   const queryClient = useQueryClient();
   const [selectedDealId, setSelectedDealId] = useState<number | null>(null);
   const [selectedEventType, setSelectedEventType] = useState<EventType>(EventType.MEETING);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isEditMode, setIsEditMode] = useState<boolean>(false);
   
   // Fetch deals
   const { data: deals = [], isLoading: isLoadingDeals } = useQuery<Deal[]>({
@@ -127,6 +132,26 @@ const UnifiedEventForm: React.FC<UnifiedEventFormProps> = ({ isOpen, onClose, se
   
   // Check if the selected deal has allocations (needed for capital calls)
   const dealHasAllocations = allocations.length > 0;
+  
+  // Fetch capital call details if editing
+  const { data: capitalCallToEdit, isLoading: isLoadingCapitalCallEdit } = useQuery({
+    queryKey: ['/api/capital-calls', eventToEdit?.id],
+    enabled: isEditMode && eventToEdit?.type === 'capital-call',
+  });
+  
+  // Fetch closing event details if editing
+  const { data: closingEventToEdit, isLoading: isLoadingClosingEventEdit } = useQuery({
+    queryKey: ['/api/closing-schedules', eventToEdit?.id],
+    enabled: isEditMode && eventToEdit?.type === 'closing-event',
+  });
+  
+  // Fetch meeting details if editing
+  const { data: meetingToEdit, isLoading: isLoadingMeetingEdit } = useQuery({
+    queryKey: ['/api/meetings', eventToEdit?.id],
+    enabled: isEditMode && eventToEdit?.type === 'meeting',
+  });
+  
+  const isLoadingEditData = isLoadingCapitalCallEdit || isLoadingClosingEventEdit || isLoadingMeetingEdit;
   
   // Filter deals that are relevant based on the event type
   const eligibleDeals = deals.filter(deal => {
@@ -186,27 +211,99 @@ const UnifiedEventForm: React.FC<UnifiedEventFormProps> = ({ isOpen, onClose, se
     defaultValues: getDefaultValues() as FormValues,
   });
   
-  // Reset form when event type changes
+  // Reset form when event type changes (but not in edit mode)
   React.useEffect(() => {
-    form.reset(getDefaultValues() as FormValues);
-    setErrorMessage(null);
-  }, [selectedEventType]);
+    if (!isEditMode) {
+      form.reset(getDefaultValues() as FormValues);
+      setErrorMessage(null);
+    }
+  }, [selectedEventType, isEditMode]);
+  
+  // Handle edit mode and populate form with event data
+  React.useEffect(() => {
+    if (eventToEdit) {
+      setIsEditMode(true);
+      
+      // Set the event type based on event being edited
+      if (eventToEdit.type === 'capital-call') {
+        setSelectedEventType(EventType.CAPITAL_CALL);
+      } else if (eventToEdit.type === 'closing-event') {
+        setSelectedEventType(EventType.CLOSING_EVENT);
+      } else if (eventToEdit.type === 'meeting') {
+        setSelectedEventType(EventType.MEETING);
+      }
+    } else {
+      setIsEditMode(false);
+    }
+  }, [eventToEdit]);
+  
+  // Populate form with event data when in edit mode and data is loaded
+  React.useEffect(() => {
+    if (isEditMode && !isLoadingEditData) {
+      if (eventToEdit?.type === 'capital-call' && capitalCallToEdit) {
+        setSelectedDealId(capitalCallToEdit.dealId);
+        form.reset({
+          dealId: capitalCallToEdit.dealId,
+          eventType: EventType.CAPITAL_CALL,
+          allocationId: capitalCallToEdit.allocationId,
+          callAmount: capitalCallToEdit.callAmount,
+          amountType: capitalCallToEdit.amountType,
+          callDate: capitalCallToEdit.callDate,
+          dueDate: capitalCallToEdit.dueDate,
+          capitalCallStatus: capitalCallToEdit.status,
+          notes: capitalCallToEdit.notes || '',
+        });
+      } else if (eventToEdit?.type === 'closing-event' && closingEventToEdit) {
+        setSelectedDealId(closingEventToEdit.dealId);
+        form.reset({
+          dealId: closingEventToEdit.dealId,
+          eventType: EventType.CLOSING_EVENT,
+          closingEventType: closingEventToEdit.eventType,
+          eventName: closingEventToEdit.eventName,
+          scheduledDate: closingEventToEdit.scheduledDate,
+          targetAmount: closingEventToEdit.targetAmount || undefined,
+          amountType: closingEventToEdit.amountType,
+          closingStatus: closingEventToEdit.status,
+          notes: closingEventToEdit.notes || '',
+          actualDate: closingEventToEdit.actualDate || undefined,
+          actualAmount: closingEventToEdit.actualAmount || undefined,
+        });
+      } else if (eventToEdit?.type === 'meeting' && meetingToEdit) {
+        setSelectedDealId(meetingToEdit.dealId);
+        form.reset({
+          dealId: meetingToEdit.dealId,
+          eventType: EventType.MEETING,
+          meetingTitle: meetingToEdit.title,
+          meetingDate: meetingToEdit.date,
+          attendees: meetingToEdit.attendees || '',
+          notes: meetingToEdit.notes || '',
+        });
+      }
+    }
+  }, [isEditMode, isLoadingEditData, eventToEdit, capitalCallToEdit, closingEventToEdit, meetingToEdit, form]);
 
-  // Create event mutation
-  const createEvent = useMutation({
+  // Create or update event mutation
+  const eventMutation = useMutation({
     mutationFn: async (data: FormValues) => {
       let endpoint = '';
       let payload: any = { ...data };
+      let method = isEditMode ? 'PATCH' : 'POST';
       
       // Prepare the data based on event type
       if (data.eventType === EventType.CAPITAL_CALL) {
         endpoint = '/api/capital-calls';
+        if (isEditMode && eventToEdit?.id) {
+          endpoint = `${endpoint}/${eventToEdit.id}`;
+        }
         // Transform capital call data
         payload = {
           dealId: data.dealId,
-          percentage: data.percentage,
+          allocationId: data.allocationId,
+          callAmount: data.callAmount,
           amountType: data.amountType,
+          callDate: data.callDate,
           dueDate: data.dueDate,
+          status: data.capitalCallStatus,
           notes: data.notes,
           createdBy: data.createdBy || user?.id,
         };
@@ -236,7 +333,7 @@ const UnifiedEventForm: React.FC<UnifiedEventFormProps> = ({ isOpen, onClose, se
         };
       }
       
-      const response = await apiRequest('POST', endpoint, payload);
+      const response = await apiRequest(method, endpoint, payload);
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.details || errorData.error || `Failed to create ${data.eventType}`);
@@ -286,7 +383,7 @@ const UnifiedEventForm: React.FC<UnifiedEventFormProps> = ({ isOpen, onClose, se
     }
     
     // Submit the form data
-    createEvent.mutate(data);
+    eventMutation.mutate(data);
   };
   
   // Helper function to get human-readable event type labels
@@ -307,9 +404,11 @@ const UnifiedEventForm: React.FC<UnifiedEventFormProps> = ({ isOpen, onClose, se
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-[525px]">
         <DialogHeader>
-          <DialogTitle>Create New Event</DialogTitle>
+          <DialogTitle>{isEditMode ? 'Edit' : 'Create New'} Event</DialogTitle>
           <DialogDescription>
-            Add an event to the calendar. Select the type of event you want to create.
+            {isEditMode 
+              ? 'Modify event details below.' 
+              : 'Add an event to the calendar. Select the type of event you want to create.'}
           </DialogDescription>
         </DialogHeader>
         
@@ -691,22 +790,22 @@ const UnifiedEventForm: React.FC<UnifiedEventFormProps> = ({ isOpen, onClose, se
                 type="button" 
                 variant="outline" 
                 onClick={onClose}
-                disabled={createEvent.isPending}
+                disabled={eventMutation.isPending}
               >
                 Cancel
               </Button>
               <Button 
                 type="submit" 
                 disabled={
-                  createEvent.isPending || 
+                  eventMutation.isPending || 
                   (selectedEventType === EventType.CAPITAL_CALL && 
                    Boolean(selectedDealId && !isLoadingAllocations && !dealHasAllocations))
                 }
               >
-                {createEvent.isPending && (
+                {eventMutation.isPending && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 )}
-                Create {getEventTypeLabel(selectedEventType)}
+                {isEditMode ? 'Update' : 'Create'} {getEventTypeLabel(selectedEventType)}
               </Button>
             </DialogFooter>
           </form>
