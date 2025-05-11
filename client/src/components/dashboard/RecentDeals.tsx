@@ -135,14 +135,14 @@ export default function RecentDeals() {
                       className="px-3 py-1.5 hover:bg-neutral-50 transition-colors cursor-pointer"
                       onClick={() => navigate(`/deals/${deal.id}`)}
                     >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-medium text-neutral-800 truncate">{deal.name}</h3>
+                      <div className="flex items-center justify-between w-full">
+                        <div className="flex items-center gap-2 min-w-0 flex-1">
+                          <h3 className="font-medium text-neutral-800 truncate max-w-[60%]">{deal.name}</h3>
                           <span className={`deal-stage-badge text-xs px-1.5 py-0.5 leading-none whitespace-nowrap ${stageBadgeClass}`}>
                             {deal.stageLabel}
                           </span>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-shrink-0">
                           {canEdit('deal') && (
                             <button 
                               className="text-neutral-500 hover:text-primary"
@@ -156,12 +156,12 @@ export default function RecentDeals() {
                           )}
                         </div>
                       </div>
-                      <div className="flex items-center justify-between mt-0.5">
-                        <div className="flex items-center gap-1">
-                          <Tag className="h-3 w-3 text-primary-600" />
-                          <span className="text-xs text-primary-700">{deal.sector}</span>
+                      <div className="flex items-center justify-between mt-0.5 w-full">
+                        <div className="flex items-center gap-1 min-w-0 flex-shrink-0 w-24">
+                          <Tag className="h-3 w-3 text-primary-600 flex-shrink-0" />
+                          <span className="text-xs text-primary-700 truncate">{deal.sector}</span>
                         </div>
-                        <span className="text-xs text-neutral-500">
+                        <span className="text-xs text-neutral-500 text-right flex-shrink-0">
                           Updated {formatDistanceToNow(new Date(deal.updatedAt), { addSuffix: true })}
                         </span>
                       </div>
