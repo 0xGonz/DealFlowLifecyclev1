@@ -151,6 +151,12 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
     onSuccess: (result, variables) => {
       console.log(`Successfully uploaded document of type: ${variables.type}`, result);
       
+      // Extract dealId from FormData to properly invalidate the document query
+      const dealId = variables.formData.get('dealId');
+      if (dealId) {
+        queryClient.invalidateQueries({ queryKey: [`/api/documents/deal/${dealId}`] });
+      }
+      
       toast({
         title: 'Document uploaded',
         description: `The ${DOCUMENT_TYPES[variables.type as keyof typeof DOCUMENT_TYPES]} was successfully uploaded.`,
@@ -227,7 +233,10 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
         fileInputRef.current.value = '';
       }
       
+      // Refresh data in the UI
       queryClient.invalidateQueries({ queryKey: ['/api/deals'] }); // Refresh deals data
+      queryClient.invalidateQueries({ queryKey: [`/api/documents/deal/${dealId}`] }); // Refresh documents for this deal
+      
       onClose(); // Close modal
     },
     onError: (error) => {
