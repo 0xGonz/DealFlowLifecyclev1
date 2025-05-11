@@ -17,131 +17,64 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Create session stores
-// First create a memory store for fallback
-const MemoryStore = memorystore(session);
-const memoryStore = new MemoryStore({
-  checkPeriod: 86400000 // prune expired entries every 24h
-});
-
-// Increase max listeners to prevent warnings
-// This is needed because we're adding listeners in multiple places
-memoryStore.setMaxListeners(1000); // Significantly increase to prevent MaxListenersExceededWarning
-
-// Configure PostgreSQL session store
-const PgSession = connectPgSimple(session);
+// Create session stores with fixed strategy for the life of the process
+// This prevents session loss due to store switching during runtime
 
 // Initialize the StorageFactory to use the hybrid storage implementation
 const storage = StorageFactory.getStorage();
 
-// Session store instance that will be used by the app
-let activeSessionStore: any;
+// Decide once at startup which session store to use
+const useMemoryOnly = process.env.USE_MEMORY_SESSIONS === "true" || process.env.NODE_ENV !== "production";
 
-// Try to initialize the PostgreSQL session store with improved error handling
-try {
-  // More resilient PostgreSQL session store configuration with recovery options
-  activeSessionStore = new PgSession({
-    pool,
-    tableName: 'session', // Use this specific table name for compatibility
-    createTableIfMissing: true, // Create the session table if it doesn't exist
-    pruneSessionInterval: 1800, // Reduced prune frequency to every 30 minutes to further decrease DB load
-    errorLog: (error) => {
-      console.error('PostgreSQL session store error:', error);
-      // If we get connection errors, switch to memory store automatically
-      if (error.message && (
-        error.message.includes('termina') || 
-        error.message.includes('conn') || 
-        error.message.includes('timeout')
-      )) {
-        console.log('PgSession error detected - switching to memory store');
-        activeSessionStore = memoryStore;
-      }
-    },
-    schemaName: 'public', // Explicitly set schema name
-    disableTouch: false, // Enable touch to update the last access time
-    ttl: 86400 * 7, // Session lifetime in seconds (7 days, same as cookie)
-    // Increased timeouts for better tolerance to connection issues
-    conObject: {
-      connectionTimeoutMillis: 15000,
-      query_timeout: 10000
-    }
-  });
-  
-  // Increase max listeners to prevent warnings
-  activeSessionStore.setMaxListeners(1000);
-  
-  // Also increase PgStore emit listeners to avoid warnings
-  if (activeSessionStore.pool && typeof activeSessionStore.pool.setMaxListeners === 'function') {
-    activeSessionStore.pool.setMaxListeners(1000);
-  }
-  
-  // Check session table exists and is accessible
-  pool.query('SELECT 1 FROM session LIMIT 1')
-    .then(() => {
-      console.log('Session table verified and accessible');
+console.log(`Using ${useMemoryOnly ? 'memory-only' : 'PostgreSQL'} session store (fixed for app lifetime)`);
+
+// Create the appropriate session store based on startup decision
+const MemoryStore = memorystore(session);
+const PgSession = connectPgSimple(session);
+
+// Type definition for our session store
+type SessionStoreType = session.Store;
+
+// Create and configure the selected session store
+const sessionStore: SessionStoreType = useMemoryOnly
+  ? new MemoryStore({ 
+      checkPeriod: 86400000 // prune expired entries every 24h
     })
-    .catch((err) => {
-      console.log('Creating session table if it doesn\'t exist...');
-      // The createTableIfMissing option should handle this, but we'll verify manually
-      pool.query(`
-        CREATE TABLE IF NOT EXISTS "session" (
-          "sid" varchar NOT NULL COLLATE "default",
-          "sess" json NOT NULL,
-          "expire" timestamp(6) NOT NULL,
-          CONSTRAINT "session_pkey" PRIMARY KEY ("sid")
-        )
-      `).then(() => {
-        console.log('Session table created successfully');
-      }).catch((createErr) => {
-        console.error('Error creating session table:', createErr);
-        console.log('Continuing with memory storage due to table creation failure');
-        activeSessionStore = memoryStore;
-      });
+  : new PgSession({
+      pool,
+      tableName: 'session', // Use this specific table name for compatibility
+      createTableIfMissing: true, // Create the session table if it doesn't exist
+      pruneSessionInterval: 1800, // Reduced prune frequency to every 30 minutes
+      errorLog: (error) => {
+        console.error('PostgreSQL session store error:', error);
+        // Just log the error, but don't switch stores mid-request
+      },
+      schemaName: 'public', // Explicitly set schema name
+      disableTouch: false, // Enable touch to update the last access time
+      ttl: 86400 * 7, // Session lifetime in seconds (7 days, same as cookie)
+      conObject: {
+        connectionTimeoutMillis: 15000,
+        query_timeout: 10000
+      }
     });
-  
-  console.log('Using PostgreSQL session store');
-} catch (error) {
-  console.error('Failed to initialize PostgreSQL session store:', error);
-  console.log('Falling back to memory session store');
-  activeSessionStore = memoryStore;
-  
-  // Set higher max listeners when falling back to memory store
-  memoryStore.setMaxListeners(1000);
+
+// Increase max listeners to prevent warnings
+if (typeof sessionStore.setMaxListeners === 'function') {
+  sessionStore.setMaxListeners(1000);
 }
 
-// Create a function to get the appropriate session store with automatic fallback
-let lastDbCheck = 0;
-const DB_CHECK_INTERVAL = 60000; // 1 minute between DB checks
-
-const getSessionStore = () => {
-  const now = Date.now();
-  
-  // Only perform DB check once per minute to reduce strain and prevent excessive event listeners
-  if (activeSessionStore instanceof PgSession && (now - lastDbCheck > DB_CHECK_INTERVAL)) {
-    lastDbCheck = now;
-    
-    // Use the hybrid storage system to determine database connectivity
-    const hybridStorage = storage as any;
-    if (hybridStorage.usingDatabase === false) {
-      // Switch to memory store if hybrid storage is operating in memory mode
-      if (activeSessionStore !== memoryStore) {
-        console.log('Hybrid storage in memory mode - switching session store to memory');
-        activeSessionStore = memoryStore;
-      }
-    } else {
-      // Double-check database connectivity
-      pool.query('SELECT 1')
-        .catch(err => {
-          console.error('PostgreSQL connection failed, switching to memory session store:', err);
-          activeSessionStore = memoryStore;
-          
-          // Ensure memory store has enough event listeners
-          memoryStore.setMaxListeners(1000);
-        });
+// Additional setup for PostgreSQL session store
+if (!useMemoryOnly) {
+  try {
+    // Type assertion for pool access
+    const pgStore = sessionStore as any;
+    if (pgStore.pool && typeof pgStore.pool.setMaxListeners === 'function') {
+      pgStore.pool.setMaxListeners(1000);
     }
+  } catch (err) {
+    console.warn('Failed to set max listeners on PostgreSQL pool', err);
   }
-  return activeSessionStore;
-};
+}
 
 // Add metrics middleware to track request metrics
 app.use(metricsMiddleware());
@@ -162,60 +95,24 @@ app.use((req, res, next) => {
 // Configure the session middleware
 app.set('trust proxy', 1); // Trust first proxy for secure cookies behind a proxy
 
-// Add error handling for session store
-app.use((req, res, next) => {
-  // Apply session middleware with error handling
+// Apply session middleware with a fixed store
+app.use(
   session({
-    store: getSessionStore(), // Get the appropriate session store with fallback capability
+    store: sessionStore, // Use the fixed session store chosen at startup
     secret: process.env.SESSION_SECRET || 'investment-tracker-secret',
     name: 'investment_tracker.sid', // Custom cookie name to avoid conflicts
-    resave: true, // Changed to true to ensure session is saved on every request
+    resave: false, // Set to false since we're using a reliable store
     saveUninitialized: false,
     rolling: true, // Reset cookie expiration on every response
     cookie: {
       secure: process.env.NODE_ENV === 'production',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // Extended to 7 days for better persistence
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       httpOnly: true,
       sameSite: 'lax',
       path: '/' // Ensure cookie is available for all paths
     }
-  })(req, res, (err) => {
-    if (err) {
-      console.error('Session middleware error:', err);
-      
-      // If there's a database error, switch to memory store for this request
-      if (err.message && (err.message.includes('termina') || err.message.includes('conn'))) {
-        console.log('Switching to memory store due to database connection error');
-        activeSessionStore = memoryStore;
-        
-        // Ensure memory store has enough event listeners when used as fallback
-        memoryStore.setMaxListeners(1000);
-        
-        // Try again with memory store
-        session({
-          store: memoryStore,
-          secret: process.env.SESSION_SECRET || 'investment-tracker-secret',
-          name: 'investment_tracker.sid',
-          resave: true,
-          saveUninitialized: false,
-          rolling: true,
-          cookie: {
-            secure: process.env.NODE_ENV === 'production',
-            maxAge: 7 * 24 * 60 * 60 * 1000,
-            httpOnly: true,
-            sameSite: 'lax',
-            path: '/'
-          }
-        })(req, res, next);
-      } else {
-        // For other errors, continue with the error
-        next(err);
-      }
-    } else {
-      next();
-    }
-  });
-});
+  })
+);
 
 // Session debug middleware with more detailed output
 app.use((req, res, next) => {
