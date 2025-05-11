@@ -97,7 +97,12 @@ const CalendarPage = () => {
     queryKey: ['/api/closing-schedules'],
   });
   
-  const isLoading = isLoadingCalls || isLoadingEvents;
+  // Fetch deal meetings
+  const { data: meetings = [], isLoading: isLoadingMeetings } = useQuery<Meeting[]>({
+    queryKey: ['/api/meetings'],
+  });
+  
+  const isLoading = isLoadingCalls || isLoadingEvents || isLoadingMeetings;
   
   // Debug authentication state
   console.log('Calendar page auth state:', { 
@@ -147,6 +152,18 @@ const CalendarPage = () => {
     
     return filtered;
   }, [closingEvents, selectedDate, statusFilter, eventTypeFilter]);
+  
+  // Filter meetings based on selected date
+  const filteredMeetings = React.useMemo(() => {
+    if (!selectedDate) return [];
+    
+    const dateStr = format(selectedDate, DATE_FORMATS.ISO);
+    const filtered = meetings.filter(meeting => {
+      return meeting.date.startsWith(dateStr);
+    });
+    
+    return filtered;
+  }, [meetings, selectedDate]);
 
   // Generate calendar highlights based on capital calls and closing events
   const calendarHighlights = React.useMemo(() => {
@@ -212,8 +229,24 @@ const CalendarPage = () => {
       });
     }
     
+    // Show meetings only if on 'all' or 'meetings' tab
+    if (activeTab === CALENDAR_EVENT_TYPES.ALL || activeTab === CALENDAR_EVENT_TYPES.MEETINGS) {
+      // Add meeting highlights
+      meetings.forEach(meeting => {
+        // Format dates to YYYY-MM-DD strings for comparison
+        const meetingDateStr = meeting.date.split('T')[0];
+        
+        // Add meeting date highlight
+        if (!highlights[meetingDateStr]) {
+          highlights[meetingDateStr] = { count: 0, types: new Set() };
+        }
+        highlights[meetingDateStr].count++;
+        highlights[meetingDateStr].types.add('meeting');
+      });
+    }
+    
     return highlights;
-  }, [capitalCalls, closingEvents, activeTab]);
+  }, [capitalCalls, closingEvents, meetings, activeTab]);
 
   // Custom day render function for the calendar
   const renderDay = (date: Date) => {
@@ -257,6 +290,9 @@ const CalendarPage = () => {
             )}
             {highlight.types.has('closing') && (
               <div className={`h-3 w-3 rounded-full ${CALENDAR_INDICATOR_COLORS.CLOSING}`}></div>
+            )}
+            {highlight.types.has('meeting') && (
+              <div className={`h-3 w-3 rounded-full ${CALENDAR_INDICATOR_COLORS.MEETING}`}></div>
             )}
           </div>
         )}
@@ -533,10 +569,53 @@ const CalendarPage = () => {
                     </>
                   )}
                   
+                  {/* Meetings */}
+                  {(activeTab === CALENDAR_EVENT_TYPES.ALL || activeTab === CALENDAR_EVENT_TYPES.MEETINGS) && (
+                    <>
+                      {filteredMeetings.length > 0 && (
+                        <div className="mt-4">
+                          <h3 className="text-lg font-semibold mb-2">Deal Meetings</h3>
+                          <div className="space-y-2">
+                            {filteredMeetings.map(meeting => (
+                              <Card key={meeting.id} className="overflow-hidden">
+                                <CardContent className="p-4">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <div className="font-semibold">{meeting.title}</div>
+                                  </div>
+                                  <div className="text-sm text-muted-foreground">Deal: {meeting.dealName}</div>
+                                  
+                                  <div className="flex justify-between mt-2 text-sm">
+                                    <div className="text-xs text-muted-foreground">
+                                      <span>Time: {formatDate(meeting.date)}</span>
+                                    </div>
+                                  </div>
+                                  
+                                  {meeting.attendees && (
+                                    <div className="mt-2 text-sm text-muted-foreground">
+                                      Attendees: {meeting.attendees}
+                                    </div>
+                                  )}
+                                  
+                                  {meeting.notes && (
+                                    <div className="mt-2 text-sm border-t pt-2 text-muted-foreground">
+                                      {meeting.notes}
+                                    </div>
+                                  )}
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
+                  
                   {/* Show message when no events are found */}
                   {((activeTab === CALENDAR_EVENT_TYPES.CAPITAL_CALLS && filteredCalls.length === 0) ||
                     (activeTab === CALENDAR_EVENT_TYPES.CLOSING_EVENTS && filteredClosingEvents.length === 0) ||
-                    (activeTab === CALENDAR_EVENT_TYPES.ALL && filteredCalls.length === 0 && filteredClosingEvents.length === 0)) && (
+                    (activeTab === CALENDAR_EVENT_TYPES.MEETINGS && filteredMeetings.length === 0) ||
+                    (activeTab === CALENDAR_EVENT_TYPES.ALL && filteredCalls.length === 0 && 
+                     filteredClosingEvents.length === 0 && filteredMeetings.length === 0)) && (
                     <div className="text-center py-8 text-muted-foreground">
                       No events found for this date.
                       <div className="mt-2">
