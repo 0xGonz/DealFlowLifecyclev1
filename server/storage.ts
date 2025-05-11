@@ -11,7 +11,8 @@ import {
   Document, InsertDocument,
   MemoComment, InsertMemoComment,
   CapitalCall, InsertCapitalCall,
-  ClosingScheduleEvent, InsertClosingScheduleEvent
+  ClosingScheduleEvent, InsertClosingScheduleEvent,
+  AiAnalysis, InsertAiAnalysis
 } from "@shared/schema";
 
 // This file defines the storage interface and in-memory implementation
@@ -61,6 +62,12 @@ export interface IStorage {
   getDocumentsByDeal(dealId: number): Promise<Document[]>;
   getDocumentsByType(dealId: number, documentType: string): Promise<Document[]>;
   deleteDocument(id: number): Promise<boolean>;
+  
+  // AI Analysis
+  createAiAnalysis(analysis: InsertAiAnalysis): Promise<AiAnalysis>;
+  getAiAnalysis(id: number): Promise<AiAnalysis | undefined>;
+  getAiAnalysisByDeal(dealId: number): Promise<AiAnalysis | undefined>;
+  deleteAiAnalysis(id: number): Promise<boolean>;
   
   // Funds
   createFund(fund: InsertFund): Promise<Fund>;
@@ -129,6 +136,7 @@ export class MemStorage implements IStorage {
   private memoComments: Map<number, MemoComment>;
   private capitalCalls: Map<number, CapitalCall>;
   private closingScheduleEvents: Map<number, ClosingScheduleEvent>;
+  private aiAnalyses: Map<number, AiAnalysis>;
   
   private userIdCounter: number;
   private dealIdCounter: number;
@@ -143,6 +151,7 @@ export class MemStorage implements IStorage {
   private commentIdCounter: number;
   private capitalCallIdCounter: number;
   private closingEventIdCounter: number;
+  private aiAnalysisIdCounter: number;
 
   constructor() {
     this.users = new Map();
@@ -158,6 +167,7 @@ export class MemStorage implements IStorage {
     this.memoComments = new Map();
     this.capitalCalls = new Map();
     this.closingScheduleEvents = new Map();
+    this.aiAnalyses = new Map();
     
     this.userIdCounter = 1;
     this.dealIdCounter = 1;
@@ -172,6 +182,7 @@ export class MemStorage implements IStorage {
     this.commentIdCounter = 1;
     this.capitalCallIdCounter = 1;
     this.closingEventIdCounter = 1;
+    this.aiAnalysisIdCounter = 1;
   }
 
 
@@ -895,6 +906,44 @@ export class MemStorage implements IStorage {
     const exists = this.closingScheduleEvents.has(id);
     if (exists) {
       this.closingScheduleEvents.delete(id);
+    }
+    return exists;
+  }
+
+  // AI Analysis methods
+  async createAiAnalysis(analysis: InsertAiAnalysis): Promise<AiAnalysis> {
+    const id = this.aiAnalysisIdCounter++;
+    const createdAt = new Date();
+    const updatedAt = new Date();
+    
+    const newAnalysis: AiAnalysis = { 
+      ...analysis,
+      id,
+      createdAt,
+      updatedAt
+    };
+    
+    this.aiAnalyses.set(id, newAnalysis);
+    return newAnalysis;
+  }
+  
+  async getAiAnalysis(id: number): Promise<AiAnalysis | undefined> {
+    return this.aiAnalyses.get(id);
+  }
+  
+  async getAiAnalysisByDeal(dealId: number): Promise<AiAnalysis | undefined> {
+    for (const analysis of this.aiAnalyses.values()) {
+      if (analysis.dealId === dealId) {
+        return analysis;
+      }
+    }
+    return undefined;
+  }
+  
+  async deleteAiAnalysis(id: number): Promise<boolean> {
+    const exists = this.aiAnalyses.has(id);
+    if (exists) {
+      this.aiAnalyses.delete(id);
     }
     return exists;
   }

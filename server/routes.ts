@@ -15,6 +15,7 @@ import allocationsRoutes from './routes/allocations';
 import capitalCallsRoutes from './routes/capital-calls';
 import closingSchedulesRoutes from './routes/closing-schedules';
 import meetingsRoutes from './routes/meetings';
+import aiAnalystRoutes from './routes/ai-analyst';
 import { systemRouter } from './routes/system';
 
 // Utils
@@ -89,6 +90,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/activity', activityRoutes);
   app.use('/api/notifications', notificationsRoutes);
   app.use('/api/documents', documentsRoutes);
+  app.use('/api/ai-analyst', aiAnalystRoutes);
   app.use('/api/system', systemRouter);
   
   // Catch-all route for 404s

@@ -14,6 +14,7 @@ import { MiniMemoDisplay } from "@/components/memos/MiniMemoDisplay";
 import { MemoDetailDialog } from "@/components/memos/MemoDetailDialog";
 import { CreateCapitalCallForm } from "@/components/capitalcalls/CreateCapitalCallForm";
 import CapitalCallsList from "@/components/capitalcalls/CapitalCallsList";
+import AiAnalysisSection from "@/components/deal-detail/AiAnalysisSection";
 import { UserAvatar } from "@/components/common/UserAvatar";
 import { 
   Card, 
@@ -94,7 +95,7 @@ export default function DealDetail() {
   const getActiveTab = () => {
     const searchParams = new URLSearchParams(window.location.search);
     const tab = searchParams.get('tab');
-    return tab === 'timeline' || tab === 'memos' || tab === 'documents' || tab === 'capitalcalls'
+    return tab === 'timeline' || tab === 'memos' || tab === 'documents' || tab === 'capitalcalls' || tab === 'aianalysis'
       ? tab 
       : 'documents'; // Default tab
   };
@@ -604,6 +605,9 @@ export default function DealDetail() {
               <TabsTrigger value="capitalcalls" className="text-xs sm:text-sm h-8 sm:h-10 px-2 sm:px-4 flex-1">
                 Capital Calls
               </TabsTrigger>
+              <TabsTrigger value="aianalysis" className="text-xs sm:text-sm h-8 sm:h-10 px-2 sm:px-4 flex-1">
+                AI Analysis
+              </TabsTrigger>
             </TabsList>
           </div>
           
@@ -781,6 +785,16 @@ export default function DealDetail() {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="aianalysis">
+            {deal?.id ? (
+              <AiAnalysisSection dealId={Number(dealId)} />
+            ) : (
+              <div className="flex items-center justify-center p-8">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              </div>
+            )}
           </TabsContent>
 
         </Tabs>

@@ -25,7 +25,7 @@ export const deals = pgTable("deals", {
   description: text("description").default(""), // Allow empty description
   sector: text("industry").default(""), // Allow empty sector
   stage: text("stage", { 
-    enum: ["initial_review", "screening", "diligence", "ic_review", "closing", "closed", "invested", "rejected"]
+    enum: ["initial_review", "screening", "diligence", "ai_review", "ic_review", "closing", "closed", "invested", "rejected"]
   }).notNull().default("initial_review"),
   rejectionReason: text("rejection_reason"),
   rejectedAt: timestamp("rejected_at"),
@@ -354,6 +354,7 @@ export const DealStageLabels: Record<Deal['stage'], string> = {
   initial_review: "Initial Review",
   screening: "Screening",
   diligence: "Diligence",
+  ai_review: "AI Review",
   ic_review: "IC Review",
   closing: "Closing",
   closed: "Closed",
@@ -370,5 +371,35 @@ export const DealStageColors: Record<Deal['stage'], string> = {
   closing: "success",
   closed: "success",
   invested: "success",
-  rejected: "danger"
+  rejected: "danger",
+  ai_review: "warning"
 };
+
+// AI Analysis model
+export const aiAnalysis = pgTable("ai_analysis", {
+  id: serial("id").primaryKey(),
+  dealId: integer("deal_id").notNull().references(() => deals.id, { onDelete: "cascade" }),
+  summary: text("summary").notNull(),
+  investmentThesis: text("investment_thesis"),
+  keyRisks: jsonb("key_risks").$type<string[]>().default([]),
+  sectorFitAnalysis: text("sector_fit_analysis"),
+  valuationAnalysis: text("valuation_analysis"),
+  openQuestions: jsonb("open_questions").$type<string[]>().default([]),
+  recommendation: text("recommendation", { 
+    enum: ["recommended", "not_recommended", "needs_more_diligence"] 
+  }).notNull(),
+  confidence: real("confidence").notNull(), // 0.0 to 1.0 confidence score
+  sourceReferences: jsonb("source_references").$type<{source: string, weight: number}[]>().default([]),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  createdBy: integer("created_by").notNull(),
+});
+
+export const insertAiAnalysisSchema = createInsertSchema(aiAnalysis).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type AiAnalysis = typeof aiAnalysis.$inferSelect;
+export type InsertAiAnalysis = z.infer<typeof insertAiAnalysisSchema>;
