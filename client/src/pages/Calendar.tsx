@@ -253,16 +253,16 @@ const CalendarPage = () => {
     
     return (
       <div className={`w-full h-full flex items-center justify-center rounded-md relative ${bgClass}`}>
-        <span className={`${isPastDate ? 'text-muted-foreground' : ''}`}>
+        <span className={`text-lg ${isPastDate ? 'text-muted-foreground' : ''}`}>
           {format(date, 'd')}
         </span>
         {highlight && (
           <div className="absolute bottom-1 flex gap-1 justify-center">
             {highlight.types.has('call') && (
-              <div className={`h-2 w-2 rounded-full ${CALENDAR_INDICATOR_COLORS.CALL}`}></div>
+              <div className={`h-2.5 w-2.5 rounded-full ${CALENDAR_INDICATOR_COLORS.CALL}`}></div>
             )}
             {highlight.types.has('closing') && (
-              <div className={`h-2 w-2 rounded-full ${CALENDAR_INDICATOR_COLORS.CLOSING}`}></div>
+              <div className={`h-2.5 w-2.5 rounded-full ${CALENDAR_INDICATOR_COLORS.CLOSING}`}></div>
             )}
           </div>
         )}
@@ -334,12 +334,12 @@ const CalendarPage = () => {
         <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr] gap-6 h-full">
           {/* Calendar */}
           <Card className={`h-full flex flex-col ${selectedView === CALENDAR_VIEWS.LIST ? 'hidden md:block' : ''}`}>
-            <CardContent className="p-4 flex flex-col flex-grow h-full">
+            <CardContent className="p-0 flex flex-col flex-grow h-full">
               <Calendar
                 mode="single"
                 selected={selectedDate}
                 onSelect={setSelectedDate}
-                className="rounded-md border text-base w-full h-full flex-grow"
+                className="rounded-md w-full h-full flex-grow"
                 components={{
                   Day: (props) => {
                     // Using a custom Day component to show events
@@ -349,7 +349,7 @@ const CalendarPage = () => {
                           // Handle the click event manually
                           setSelectedDate(props.date);
                         }} 
-                        className="w-full h-full min-w-[40px] min-h-[40px] p-0 my-1 font-normal text-base rounded-md flex items-center justify-center transition-colors hover:bg-neutral-100"
+                        className="w-full h-full min-w-[50px] min-h-[50px] p-0 my-0.5 font-normal text-base rounded-md flex items-center justify-center transition-colors hover:bg-neutral-100"
                       >
                         {renderDay(props.date)}
                       </button>
@@ -357,14 +357,14 @@ const CalendarPage = () => {
                   },
                 }}
               />
-              <div className="mt-4 text-sm text-neutral-600">
+              <div className="p-4 mt-auto text-sm text-neutral-600 bg-gray-50 border-t flex flex-wrap gap-4">
                 {(activeTab === CALENDAR_EVENT_TYPES.ALL || activeTab === CALENDAR_EVENT_TYPES.CAPITAL_CALLS) && (
                   <>
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex items-center gap-2">
                       <div className={`w-3 h-3 rounded-full ${CALENDAR_INDICATOR_COLORS.CALL}`}></div>
                       <span>Capital Call</span>
                     </div>
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex items-center gap-2">
                       <div className={`w-3 h-3 rounded-full ${CALENDAR_INDICATOR_COLORS.DUE}`}></div>
                       <span>Due Date</span>
                     </div>
