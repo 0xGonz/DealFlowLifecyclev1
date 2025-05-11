@@ -259,10 +259,10 @@ const CalendarPage = () => {
         {highlight && (
           <div className="absolute bottom-1 flex gap-1 justify-center">
             {highlight.types.has('call') && (
-              <div className={`h-2.5 w-2.5 rounded-full ${CALENDAR_INDICATOR_COLORS.CALL}`}></div>
+              <div className={`h-3 w-3 rounded-full ${CALENDAR_INDICATOR_COLORS.CALL}`}></div>
             )}
             {highlight.types.has('closing') && (
-              <div className={`h-2.5 w-2.5 rounded-full ${CALENDAR_INDICATOR_COLORS.CLOSING}`}></div>
+              <div className={`h-3 w-3 rounded-full ${CALENDAR_INDICATOR_COLORS.CLOSING}`}></div>
             )}
           </div>
         )}
@@ -349,7 +349,7 @@ const CalendarPage = () => {
                           // Handle the click event manually
                           setSelectedDate(props.date);
                         }} 
-                        className="w-full h-full min-w-[50px] min-h-[50px] p-0 my-0.5 font-normal text-base rounded-md flex items-center justify-center transition-colors hover:bg-neutral-100"
+                        className="w-full h-full p-0 my-0.5 font-normal text-base rounded-md flex items-center justify-center transition-colors hover:bg-neutral-100"
                       >
                         {renderDay(props.date)}
                       </button>
