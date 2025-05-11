@@ -7,6 +7,7 @@ import UsersListAdmin from "@/components/users/UsersListAdmin";
 import AddUserDialog from "@/components/users/AddUserDialog";
 import EditUserDialog from "@/components/users/EditUserDialog";
 import DeleteUserAlert from "@/components/users/DeleteUserAlert";
+import { PADDING, MARGIN, GAP } from "@/lib/constants/spacing-constants";
 
 // Define User type
 interface User {
@@ -46,8 +47,8 @@ export default function UsersPage() {
   
   return (
     <AppLayout>
-      <div className="container py-6 max-w-6xl">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+      <div className={`${PADDING.LAYOUT.PAGE} pb-20 w-full overflow-hidden`}>
+        <div className={`flex flex-col sm:flex-row justify-between items-start sm:items-center ${MARGIN.LAYOUT.SECTION}`}>
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Users</h1>
             <p className="text-muted-foreground">Manage users and permissions</p>
@@ -64,12 +65,14 @@ export default function UsersPage() {
         </div>
 
         {/* Users List with Admin functionality */}
-        <UsersListAdmin 
-          users={users} 
-          isLoading={isLoading} 
-          onEditUser={handleEditUser} 
-          onDeleteUser={handleDeleteUser} 
-        />
+        <div className={`${MARGIN.LAYOUT.COMPONENT}`}>
+          <UsersListAdmin 
+            users={users} 
+            isLoading={isLoading} 
+            onEditUser={handleEditUser} 
+            onDeleteUser={handleDeleteUser} 
+          />
+        </div>
         
         {/* Add User Dialog */}
         <AddUserDialog 

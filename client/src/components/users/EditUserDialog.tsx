@@ -72,7 +72,7 @@ export default function EditUserDialog({ isOpen, onClose, user }: EditUserDialog
         username: user.username,
         email: user.email,
         role: user.role,
-        avatarColor: user.avatarColor || AVATAR_COLORS.blue,
+        avatarColor: user.avatarColor || AVATAR_COLORS.BLUE,
         newPassword: "",
       });
     }
