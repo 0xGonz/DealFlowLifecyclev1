@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { 
   BarChart3, 
@@ -9,15 +8,10 @@ import {
   Settings, 
   Users,
   X,
-  DollarSign,
   CalendarIcon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import ProfileEditModal from "@/components/profile/ProfileEditModal";
-import { useQuery } from "@tanstack/react-query";
-import { Skeleton } from "@/components/ui/skeleton";
 import { LAYOUT } from "@/lib/constants/ui-constants";
-import { UserAvatar } from "@/components/common/UserAvatar";
 
 import { useAuth } from "@/hooks/use-auth";
 
@@ -25,28 +19,9 @@ interface SidebarProps {
   onCloseMobile?: () => void;
 }
 
-interface User {
-  id: number;
-  username: string;
-  fullName: string;
-  initials: string;
-  role: string;
-  avatarColor?: string | null;
-}
-
 export default function Sidebar({ onCloseMobile }: SidebarProps) {
   const [location] = useLocation();
-  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const { logout } = useAuth();
-  
-  // Fetch current user
-  const { data: currentUser, isLoading } = useQuery<User>({
-    queryKey: ["/api/auth/me"],
-    retry: 2,
-    refetchOnWindowFocus: true,
-    staleTime: 0, // Always consider data stale so it refreshes
-    refetchInterval: 30000, // Refresh every 30 seconds
-  });
 
   // Navigation items
   const mainNavItems = [
@@ -94,57 +69,18 @@ export default function Sidebar({ onCloseMobile }: SidebarProps) {
     <aside className={`h-full bg-card shadow-md overflow-y-auto flex-shrink-0`} style={{ width: LAYOUT.SIDEBAR_WIDTH }}>
       {/* Set fixed width for consistent sidebar rendering */}
       <div className="flex flex-col h-full">
-        {/* User Profile at the top with close button for mobile */}
-        <div className="p-3 border-b border-border flex justify-between items-center">
-          <div 
-            className="flex items-center space-x-2 cursor-pointer hover:bg-muted p-1 rounded-md transition-colors" 
-            onClick={() => setIsProfileModalOpen(true)}
-          >
-            {isLoading ? (
-              <>
-                <Skeleton className="h-8 w-8 rounded-full" />
-                <div className="flex flex-col">
-                  <Skeleton className="h-4 w-24" />
-                  <Skeleton className="h-3 w-16 mt-1" />
-                </div>
-              </>
-            ) : currentUser ? (
-              <>
-                {/* Force a new component instance with a unique key based on the avatar color */}
-                <UserAvatar 
-                  key={`avatar-${currentUser.id}-${currentUser.avatarColor}`}
-                  user={currentUser} 
-                  size="sm"
-                />
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium">{currentUser.fullName}</span>
-                  <span className="text-xs text-neutral-500 capitalize">{currentUser.role}</span>
-                </div>
-              </>
-            ) : (
-              <>
-                <UserAvatar 
-                  user={{ id: 0, fullName: "Guest User", initials: "GU", role: "guest" }}
-                  size="sm"
-                />
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium">Guest User</span>
-                  <span className="text-xs text-neutral-500">Not signed in</span>
-                </div>
-              </>
-            )}
-          </div>
-          {onCloseMobile && (
+        {/* Mobile close button */}
+        {onCloseMobile && (
+          <div className="p-3 border-b border-border flex justify-end items-center md:hidden">
             <Button 
               variant="ghost" 
               size="icon" 
-              className="md:hidden" 
               onClick={onCloseMobile}
             >
               <X className="h-5 w-5" />
             </Button>
-          )}
-        </div>
+          </div>
+        )}
         
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto scrollbar-thin py-2">
@@ -206,14 +142,6 @@ export default function Sidebar({ onCloseMobile }: SidebarProps) {
             Logout
           </a>
         </div>
-
-        {/* Profile Edit Modal */}
-        <ProfileEditModal
-          isOpen={isProfileModalOpen}
-          onClose={() => setIsProfileModalOpen(false)}
-          currentName={currentUser?.fullName ?? ''}
-          currentRole={currentUser?.role ?? ''}
-        />
       </div>
     </aside>
   );
