@@ -45,96 +45,29 @@ export class DatabaseStorage implements IStorage {
     
     throw error;
   }
-  
-  /**
-   * Reset error counters when database connectivity is restored
-   * Called by HybridStorage when switching back to database mode
-   */
-  public resetErrorCounters(): void {
-    console.log('DatabaseStorage: Resetting error counters after database recovery');
-    this.dbErrors = 0;
-  }
 
   async getUser(id: number): Promise<User | undefined> {
     if (!db) {
-      console.warn('Database not initialized in getUser');
-      return undefined;
-    }
-    
-    // Add validation for ID to prevent database errors
-    if (!id || isNaN(id) || id <= 0) {
-      console.warn(`Invalid user ID provided to getUser: ${id}`);
-      return undefined;
+      throw new Error('Database not initialized');
     }
     
     try {
-      // Add defensive logging
-      console.log(`DatabaseStorage: Getting user with ID: ${id}`);
-      
       const [user] = await db.select().from(users).where(eq(users.id, id));
-      
       // Reset error count on successful operations
       this.dbErrors = 0;
-      
-      if (!user) {
-        console.log(`DatabaseStorage: No user found with ID: ${id}`);
-      }
-      
       return user || undefined;
     } catch (error) {
-      console.error(`DatabaseStorage: Error getting user with ID ${id}:`, error);
-      
-      // Don't throw, just track the error and return undefined
-      this.dbErrors++;
-      
-      // Log the escalating error count
-      if (this.dbErrors > 0) {
-        console.warn(`DatabaseStorage: Error count: ${this.dbErrors}/${DatabaseStorage.MAX_DB_ERRORS}`);
-      }
-      
+      this.handleDbError(error as Error, 'getUser');
       return undefined;
     }
   }
   
   async getUserByUsername(username: string): Promise<User | undefined> {
     if (!db) {
-      console.warn('Database not initialized in getUserByUsername');
-      return undefined;
+      throw new Error('Database not initialized');
     }
-    
-    // Add validation for username
-    if (!username || typeof username !== 'string') {
-      console.warn(`Invalid username provided to getUserByUsername: ${username}`);
-      return undefined;
-    }
-    
-    try {
-      // Add defensive logging
-      console.log(`DatabaseStorage: Getting user with username: ${username}`);
-      
-      const [user] = await db.select().from(users).where(eq(users.username, username));
-      
-      // Reset error count on successful operations
-      this.dbErrors = 0;
-      
-      if (!user) {
-        console.log(`DatabaseStorage: No user found with username: ${username}`);
-      }
-      
-      return user || undefined;
-    } catch (error) {
-      console.error(`DatabaseStorage: Error getting user with username ${username}:`, error);
-      
-      // Don't throw, just track the error and return undefined
-      this.dbErrors++;
-      
-      // Log the escalating error count
-      if (this.dbErrors > 0) {
-        console.warn(`DatabaseStorage: Error count: ${this.dbErrors}/${DatabaseStorage.MAX_DB_ERRORS}`);
-      }
-      
-      return undefined;
-    }
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
   }
   
   async createUser(insertUser: InsertUser): Promise<User> {
@@ -211,8 +144,7 @@ export class DatabaseStorage implements IStorage {
         leadInvestor: deal.leadInvestor || null
       };
       
-      // Convert the dealData to a proper insert format to fix TypeScript error
-      const [newDeal] = await db.insert(deals).values([dealData] as any).returning();
+      const [newDeal] = await db.insert(deals).values(dealData).returning();
       return newDeal;
     } catch (error) {
       console.error('Error creating deal:', error);
@@ -863,16 +795,10 @@ export class DatabaseStorage implements IStorage {
       throw new Error('Database not initialized');
     }
     
-    try {
-      const result = await db
-        .delete(closingScheduleEvents)
-        .where(eq(closingScheduleEvents.id, id));
-        
-      // Use optional chaining to handle potentially null rowCount
-      return !!result?.rowCount;
-    } catch (error) {
-      this.handleDbError(error as Error, 'deleteClosingScheduleEvent');
-      return false; // This line won't be reached due to handleDbError throwing
-    }
+    const result = await db
+      .delete(closingScheduleEvents)
+      .where(eq(closingScheduleEvents.id, id));
+      
+    return result.rowCount > 0;
   }
 }

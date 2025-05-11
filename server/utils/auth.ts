@@ -10,7 +10,6 @@ declare module 'express-session' {
     userId?: number;
     username?: string;
     role?: string;
-    potentiallyInvalid?: boolean;
   }
 }
 
@@ -39,7 +38,7 @@ export function requireRole(roles: string | string[]) {
   };
 }
 
-// Helper to get the current user from the session - with race condition protection
+// Helper to get the current user from the session
 export async function getCurrentUser(req: Request) {
   if (!req.session || !req.session.userId) {
     console.log('No userId in session, user is not authenticated');
@@ -50,65 +49,27 @@ export async function getCurrentUser(req: Request) {
   
   try {
     const storage = StorageFactory.getStorage();
-    
-    // First attempt
-    let user = await storage.getUser(req.session.userId);
+    const user = await storage.getUser(req.session.userId);
     
     if (!user) {
-      // This could be a race condition or database hiccup - do a retry with a small delay
-      console.log(`User with ID ${req.session.userId} not found on first attempt - retrying...`);
-      
-      // Add a small delay to allow other operations to complete
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      // Retry the user lookup
-      user = await storage.getUser(req.session.userId);
-      
-      if (!user) {
-        console.log(`User with ID ${req.session.userId} still not found after retry`);
-        
-        // Check if we're using the hybrid storage in memory mode
-        // If we are, the user might exist in the session but not in memory
-        const hybridStorage = storage as any;
-        if (hybridStorage.usingDatabase === false) {
-          console.log('Using memory storage mode - maintaining session despite missing user');
-          return {
-            id: req.session.userId,
-            username: req.session.username || 'Unknown',
-            role: req.session.role || 'user',
-            fullName: 'Session User',
-            email: '',
-            password: '',
-            initials: req.session.username?.substring(0, 2).toUpperCase() || 'UN',
-            avatarColor: '#6B7280',
-            createdAt: new Date()
-          };
-        }
-        
-        // Only destroy the session if we've verified multiple times the user doesn't exist
-        // and we're in database mode (not memory mode)
-        console.warn(`User with ID ${req.session.userId} not found in database but was in session`);
-        
-        // Instead of immediately destroying the session, mark it for potential cleanup
-        // but continue the current request
-        req.session.potentiallyInvalid = true;
-        
-        // Return null but don't destroy session immediately
-        return null;
-      }
-    }
-    
-    // If we found the user, clear any potential invalid flag
-    if (req.session.potentiallyInvalid) {
-      delete req.session.potentiallyInvalid;
+      console.error(`User with ID ${req.session.userId} not found in database but was in session`);
+      // Session refers to a user that doesn't exist in the database
+      // This is an inconsistent state - we should destroy the session
+      await new Promise<void>((resolve) => {
+        req.session.destroy((err) => {
+          if (err) {
+            console.error('Error destroying invalid session:', err);
+          }
+          resolve();
+        });
+      });
+      return null;
     }
     
     console.log(`Found current user: ${user.username} (ID: ${user.id}, Role: ${user.role})`);
     return user;
   } catch (error) {
     console.error('Error getting current user:', error);
-    
-    // Don't destroy session on error, just return null
     return null;
   }
 }
