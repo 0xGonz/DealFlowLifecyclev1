@@ -64,12 +64,12 @@ export default function RecentDeals() {
   return (
     <div>
       <Card className="h-full flex flex-col">
-        <CardHeader className="pb-3">
+        <CardHeader className="pb-2 px-5 pt-5">
           <CardTitle>Recent Deals</CardTitle>
         </CardHeader>
         
-        <CardContent className="flex-1">
-          <div className="flex flex-col justify-between items-stretch gap-3 mb-5">
+        <CardContent className="flex-1 p-5 pt-2">
+          <div className="flex flex-col justify-between items-stretch gap-3 mb-4">
             <div className="flex flex-wrap gap-2 w-full space-y-2 sm:space-y-0">
               <Select value={stageFilter} onValueChange={setStageFilter}>
                 <SelectTrigger className="h-8 sm:h-9 text-xs sm:text-sm w-full xs:w-[48%] sm:w-[120px] md:w-[150px]">
@@ -123,8 +123,8 @@ export default function RecentDeals() {
               <p className="text-sm sm:text-base text-neutral-500">No deals found matching your filters.</p>
             </div>
           ) : (
-            <div className="rounded-md overflow-hidden border border-neutral-200">
-              <ul className="divide-y divide-neutral-200">
+            <div className="rounded-md overflow-hidden border border-neutral-200 w-full">
+              <ul className="divide-y divide-neutral-200 w-full border-t-0 border-r-0 border-l-0">
                 {filteredDeals.map(rawDeal => {
                   // Enrich deal with computed properties
                   const deal = enrichDealWithComputedProps(rawDeal);
@@ -132,7 +132,7 @@ export default function RecentDeals() {
                   return (
                     <li 
                       key={deal.id} 
-                      className="px-3 py-1.5 hover:bg-neutral-50 transition-colors cursor-pointer"
+                      className="px-4 py-1.5 hover:bg-neutral-50 transition-colors cursor-pointer"
                       onClick={() => navigate(`/deals/${deal.id}`)}
                     >
                       <div className="flex items-center justify-between w-full">
