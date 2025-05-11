@@ -195,7 +195,7 @@ export default function Pipeline() {
     new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
 
-  // Group deals by stage for the tab view, maintaining sort order (newest first)
+  // Group deals by stage for the tab view
   const dealsByStage = sortedFilteredDeals?.reduce((acc: Record<string, Deal[]>, deal: Deal) => {
     const stage = deal.stage;
     if (!acc[stage]) {
@@ -204,6 +204,15 @@ export default function Pipeline() {
     acc[stage].push(deal);
     return acc;
   }, {} as Record<string, Deal[]>);
+  
+  // Ensure deals within each stage are sorted by creation date (newest first)
+  if (dealsByStage) {
+    Object.keys(dealsByStage).forEach(stage => {
+      dealsByStage[stage].sort((a, b) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+    });
+  }
 
   return (
     <AppLayout>
