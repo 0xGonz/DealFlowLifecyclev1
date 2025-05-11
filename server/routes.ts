@@ -22,13 +22,42 @@ import { requireAuth, getCurrentUser } from './utils/auth';
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
-  // Middleware to attach user object to request
-  app.use('/api', async (req: Request, res: Response, next: NextFunction) => {
-    if (req.session.userId) {
-      const user = await getCurrentUser(req);
-      (req as any).user = user;
+  // Debug middleware to log session consistency issues
+  app.use('/api', (req: Request, res: Response, next: NextFunction) => {
+    if (req.path === '/closing-schedules') {
+      console.log(`Session debug before closing-schedules: userId=${req.session?.userId || 'none'}, sessionID=${req.sessionID?.substring(0, 8)}...`);
+      
+      // Print session data for debugging
+      if (req.session) {
+        console.log('Session object:', {
+          id: req.sessionID,
+          cookie: req.session.cookie,
+          userId: req.session.userId,
+          username: req.session.username,
+          role: req.session.role
+        });
+        
+        if (!req.session.userId) {
+          console.log('No userId in session, user is not authenticated');
+        }
+      }
     }
     next();
+  });
+  
+  // Middleware to attach user object to request - enhanced with error handling
+  app.use('/api', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      if (req.session?.userId) {
+        const user = await getCurrentUser(req);
+        (req as any).user = user;
+      }
+      next();
+    } catch (error) {
+      console.error('Error in user middleware:', error);
+      // Continue even with error to avoid breaking the request
+      next();
+    }
   });
   
   // Authentication middleware for all API routes except auth endpoints and system endpoints
