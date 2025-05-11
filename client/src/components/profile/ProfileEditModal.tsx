@@ -7,7 +7,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useQuery } from "@tanstack/react-query";
-import { FORM_CONSTRAINTS, TOAST_DURATION, USER_ROLE_DESCRIPTIONS } from "@/lib/constants/ui-constants";
+import { FORM_CONSTRAINTS, TOAST_DURATION, USER_ROLE_DESCRIPTIONS, AVATAR_COLORS } from "@/lib/constants/ui-constants";
+import { UserAvatar } from "@/components/common/UserAvatar";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 interface ProfileEditModalProps {
   isOpen: boolean;
@@ -24,6 +26,7 @@ export default function ProfileEditModal({
 }: ProfileEditModalProps) {
   const [name, setName] = useState(currentName);
   const [role, setRole] = useState(currentRole);
+  const [avatarColor, setAvatarColor] = useState<string | null>(null);
   
   const { toast } = useToast();
   const [isUpdating, setIsUpdating] = useState(false);
@@ -48,7 +51,13 @@ export default function ProfileEditModal({
   useEffect(() => {
     setName(currentName);
     setRole(currentRole);
-  }, [currentName, currentRole]);
+    
+    if (currentUser?.avatarColor) {
+      setAvatarColor(currentUser.avatarColor);
+    } else {
+      setAvatarColor(AVATAR_COLORS.DEFAULT);
+    }
+  }, [currentName, currentRole, currentUser]);
 
   const handleSubmit = async () => {
     if (!name?.trim() || name.length < FORM_CONSTRAINTS.USERNAME.MIN_LENGTH) {
@@ -70,7 +79,8 @@ export default function ProfileEditModal({
       // Update the user
       await apiRequest("PATCH", `/api/users/${userId}`, {
         fullName: name,
-        role: role
+        role: role,
+        avatarColor: avatarColor
       });
       
       // Refresh user data and timeline events
@@ -110,6 +120,23 @@ export default function ProfileEditModal({
         <DialogHeader>
           <DialogTitle>Edit Profile</DialogTitle>
         </DialogHeader>
+        
+        {/* Avatar Preview */}
+        <div className="flex justify-center mb-4">
+          {currentUser && (
+            <div className="flex flex-col items-center">
+              <UserAvatar 
+                user={{
+                  ...currentUser,
+                  avatarColor: avatarColor
+                }} 
+                size="lg"
+              />
+              <span className="text-sm text-muted-foreground mt-2">Avatar Preview</span>
+            </div>
+          )}
+        </div>
+        
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="name" className="text-right">
@@ -124,6 +151,7 @@ export default function ProfileEditModal({
               placeholder={FORM_CONSTRAINTS.PLACEHOLDERS.ENTER_NAME}
             />
           </div>
+          
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="role" className="text-right">
               Role
@@ -140,6 +168,93 @@ export default function ProfileEditModal({
               </SelectContent>
             </Select>
           </div>
+          
+          <div className="grid grid-cols-4 items-start gap-4">
+            <Label className="text-right pt-2">
+              Avatar Color
+            </Label>
+            <div className="col-span-3">
+              <RadioGroup
+                value={avatarColor || AVATAR_COLORS.DEFAULT}
+                onValueChange={setAvatarColor}
+                className="grid grid-cols-4 gap-2"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem 
+                    value={AVATAR_COLORS.BLUE} 
+                    id="color-blue" 
+                    className="border-2"
+                    style={{ backgroundColor: AVATAR_COLORS.BLUE }}
+                  />
+                  <Label htmlFor="color-blue">Blue</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem 
+                    value={AVATAR_COLORS.RED} 
+                    id="color-red" 
+                    className="border-2"
+                    style={{ backgroundColor: AVATAR_COLORS.RED }}
+                  />
+                  <Label htmlFor="color-red">Red</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem 
+                    value={AVATAR_COLORS.GREEN} 
+                    id="color-green" 
+                    className="border-2"
+                    style={{ backgroundColor: AVATAR_COLORS.GREEN }}
+                  />
+                  <Label htmlFor="color-green">Green</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem 
+                    value={AVATAR_COLORS.PURPLE} 
+                    id="color-purple" 
+                    className="border-2"
+                    style={{ backgroundColor: AVATAR_COLORS.PURPLE }}
+                  />
+                  <Label htmlFor="color-purple">Purple</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem 
+                    value={AVATAR_COLORS.ORANGE} 
+                    id="color-orange" 
+                    className="border-2"
+                    style={{ backgroundColor: AVATAR_COLORS.ORANGE }}
+                  />
+                  <Label htmlFor="color-orange">Orange</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem 
+                    value={AVATAR_COLORS.TEAL} 
+                    id="color-teal" 
+                    className="border-2"
+                    style={{ backgroundColor: AVATAR_COLORS.TEAL }}
+                  />
+                  <Label htmlFor="color-teal">Teal</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem 
+                    value={AVATAR_COLORS.PINK} 
+                    id="color-pink" 
+                    className="border-2"
+                    style={{ backgroundColor: AVATAR_COLORS.PINK }}
+                  />
+                  <Label htmlFor="color-pink">Pink</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem 
+                    value={AVATAR_COLORS.INDIGO} 
+                    id="color-indigo" 
+                    className="border-2"
+                    style={{ backgroundColor: AVATAR_COLORS.INDIGO }}
+                  />
+                  <Label htmlFor="color-indigo">Indigo</Label>
+                </div>
+              </RadioGroup>
+            </div>
+          </div>
+          
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="permissions" className="text-right">
               Permissions

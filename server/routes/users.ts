@@ -145,7 +145,7 @@ router.patch('/:id', async (req: Request, res: Response) => {
     }
     
     // Only allow updating safe fields (not password or critical fields)
-    const { fullName, role } = req.body;
+    const { fullName, role, avatarColor } = req.body;
     const updateData: any = {};
     
     if (fullName) {
@@ -168,6 +168,12 @@ router.patch('/:id', async (req: Request, res: Response) => {
       return res.status(403).json({ 
         message: 'Only administrators can update user roles' 
       });
+    }
+    
+    // Allow users to update their avatar color
+    if (avatarColor) {
+      updateData.avatarColor = avatarColor;
+      console.log(`User (ID: ${currentUserId}) updating avatar color for user ${targetUserId} to: ${avatarColor}`);
     }
     
     // Update the user
