@@ -84,6 +84,11 @@ export default function Sidebar({ onCloseMobile }: SidebarProps) {
         
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto scrollbar-thin py-2">
+          {/* DealFlow Title */}
+          <div className="mb-4 px-4">
+            <h2 className="text-lg font-bold text-primary-dark">DealFlow V1.0</h2>
+          </div>
+          
           <ul>
             {mainNavItems.map((item) => (
               <li key={item.href} className="mb-1 px-2">
