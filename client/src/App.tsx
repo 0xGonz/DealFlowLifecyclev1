@@ -17,6 +17,7 @@ import AuthPage from "@/pages/auth-page";
 import StarTest from "@/pages/StarTest";
 import CapitalCalls from "@/pages/CapitalCalls";
 import CapitalCallsByAllocation from "@/pages/CapitalCallsByAllocation";
+import AiAnalysisPage from "@/pages/AiAnalysisPage";
 import { AuthProvider } from "@/hooks/use-auth";
 import ErrorBoundary from "@/components/common/ErrorBoundary";
 import { ProtectedRoute } from "@/components/common/ProtectedRoute";
@@ -34,6 +35,7 @@ function Router() {
       <ProtectedRoute path="/calendar" component={Calendar} />
       <ProtectedRoute path="/capital-calls" component={CapitalCalls} />
       <ProtectedRoute path="/capital-calls/allocation/:id" component={CapitalCallsByAllocation} />
+      <ProtectedRoute path="/ai-analysis" component={AiAnalysisPage} />
       <ProtectedRoute path="/settings" component={Settings} />
       <ProtectedRoute path="/users" component={Users} />
       <Route path="/auth" component={AuthPage} />

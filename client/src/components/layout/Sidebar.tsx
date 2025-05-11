@@ -8,7 +8,8 @@ import {
   Settings, 
   Users,
   X,
-  CalendarIcon
+  CalendarIcon,
+  Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LAYOUT } from "@/lib/constants/ui-constants";
@@ -49,6 +50,11 @@ export default function Sidebar({ onCloseMobile }: SidebarProps) {
       href: "/calendar", 
       label: "Calendar", 
       icon: <CalendarIcon className="h-5 w-5 mr-2" /> 
+    },
+    { 
+      href: "/ai-analysis", 
+      label: "AI Analysis", 
+      icon: <Sparkles className="h-5 w-5 mr-2" /> 
     },
   ];
 
