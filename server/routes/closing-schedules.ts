@@ -1,9 +1,10 @@
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { StorageFactory } from '../storage-factory';
 import { insertClosingScheduleEventSchema, type Deal } from '@shared/schema';
 import { CLOSING_EVENT_STATUS } from '../constants/status-constants';
 import { requireAuth } from '../utils/auth';
 import { requirePermission } from '../utils/permissions';
+import { AppError } from '../utils/errorHandlers';
 
 const router = Router();
 const storage = StorageFactory.getStorage();
@@ -226,30 +227,37 @@ router.patch('/:id/date', async (req: AuthRequest, res: Response) => {
   }
 });
 
-// Delete a closing schedule event
-router.delete('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
+// Delete a closing schedule event - rewritten to use async/await
+router.delete('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const id = parseInt(req.params.id);
+    console.log(`DELETE request to /api/closing-schedules/${req.params.id}`);
     
+    const id = parseInt(req.params.id);
     if (isNaN(id)) {
-      return res.status(400).json({ error: 'Invalid ID format' });
+      return res.status(400).json({ message: 'Invalid ID format' });
     }
     
-    // Get the event first to ensure it exists and to get details for the timeline event
+    // Check if the user is logged in via the session
+    if (!req.session || !req.session.userId) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    const userId = req.session.userId;
+    console.log(`User ID ${userId} attempting to delete closing schedule event ${id}`);
+    
+    // First get the event to ensure it exists
     const event = await storage.getClosingScheduleEvent(id);
+    
     if (!event) {
-      return res.status(404).json({ error: 'Closing schedule event not found' });
+      return res.status(404).json({ message: 'Closing schedule event not found' });
     }
     
     // Delete the event
-    const success = await storage.deleteClosingScheduleEvent(id);
+    const deleteSuccess = await storage.deleteClosingScheduleEvent(id);
     
-    if (!success) {
-      return res.status(500).json({ error: 'Failed to delete closing schedule event' });
+    if (!deleteSuccess) {
+      return res.status(500).json({ message: 'Failed to delete closing schedule event' });
     }
-    
-    // Get the user ID safely
-    const userId = req.session?.userId || event.createdBy;
     
     // Create a timeline event for this deletion
     await storage.createTimelineEvent({
@@ -264,11 +272,12 @@ router.delete('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
       }
     });
     
-    res.json({ success: true, id });
+    console.log(`Successfully deleted closing schedule event with ID ${id}`);
+    return res.json({ success: true, id });
   } catch (error) {
     console.error(`Error deleting closing schedule event ${req.params.id}:`, error);
-    res.status(500).json({ 
-      error: 'Failed to delete closing schedule event',
+    return res.status(500).json({ 
+      message: 'Failed to delete closing schedule event',
       details: error instanceof Error ? error.message : 'Unknown error'
     });
   }

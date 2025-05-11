@@ -460,34 +460,66 @@ const UnifiedEventForm: React.FC<UnifiedEventFormProps> = ({ isOpen, onClose, se
       }
       
       let endpoint = '';
+      let eventTypeName = '';
       
       // Determine the correct endpoint based on event type
       if (eventToEdit.type === 'capital-call') {
         endpoint = `/api/capital-calls/${eventToEdit.id}`;
+        eventTypeName = 'capital call';
       } else if (eventToEdit.type === 'closing-event') {
         endpoint = `/api/closing-schedules/${eventToEdit.id}`;
+        eventTypeName = 'closing event';
       } else if (eventToEdit.type === 'meeting') {
         endpoint = `/api/meetings/${eventToEdit.id}`;
+        eventTypeName = 'meeting';
       }
       
-      console.log(`DELETE request to ${endpoint}`);
+      console.log(`Sending DELETE request to ${endpoint}`);
       
-      const response = await apiRequest('DELETE', endpoint);
-      
-      // Check for 404 Not Found which would happen if the DELETE endpoint doesn't exist
-      if (response.status === 404) {
-        const errorData = await response.json();
-        console.error('Error response from ' + endpoint + ':', errorData);
-        throw new Error(`Delete endpoint not available: ${errorData.message || errorData.details || errorData.error || 'Route not found'}`);
+      try {
+        const response = await apiRequest('DELETE', endpoint);
+        
+        // Handle common error responses with specific messages
+        if (response.status === 401) {
+          throw new Error('You need to be logged in to delete this event');
+        }
+        
+        if (response.status === 403) {
+          throw new Error('You do not have permission to delete this event');
+        }
+        
+        if (response.status === 404) {
+          throw new Error(`This ${eventTypeName} no longer exists or has already been deleted`);
+        }
+        
+        if (!response.ok) {
+          let errorMessage = `Failed to delete ${eventTypeName}`;
+          try {
+            const errorData = await response.json();
+            if (errorData) {
+              errorMessage = errorData.message || errorData.details || errorData.error || errorMessage;
+            }
+          } catch (e) {
+            // If we can't parse the error JSON, use the default message
+          }
+          throw new Error(errorMessage);
+        }
+        
+        // Try to parse the success response
+        let result;
+        try {
+          result = await response.json();
+        } catch (e) {
+          // If we can't parse the response JSON, still consider it a success
+          // because response.ok was true
+          result = { success: true, id: eventToEdit.id };
+        }
+        
+        return result;
+      } catch (error) {
+        console.error(`Error during DELETE request to ${endpoint}:`, error);
+        throw error;
       }
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Error response from ' + endpoint + ':', errorData);
-        throw new Error(errorData.details || errorData.error || `Failed to delete ${eventToEdit.type}`);
-      }
-      
-      return true;
     },
     onSuccess: () => {
       // Invalidate all event queries to refresh data
@@ -498,6 +530,7 @@ const UnifiedEventForm: React.FC<UnifiedEventFormProps> = ({ isOpen, onClose, se
       toast({
         title: "Event deleted successfully",
         description: `The event has been permanently removed.`,
+        variant: "default",
       });
       
       // Close the dialog
@@ -508,7 +541,7 @@ const UnifiedEventForm: React.FC<UnifiedEventFormProps> = ({ isOpen, onClose, se
       toast({
         variant: 'destructive',
         title: "Failed to delete event",
-        description: error.message,
+        description: error.message || "An unknown error occurred",
       });
     },
   });
