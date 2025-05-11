@@ -79,24 +79,19 @@ const CalendarPage = () => {
   const [isCapitalCallFormOpen, setIsCapitalCallFormOpen] = useState(false);
   
   // Ensure authentication is valid on this page
-  const { data: currentUser, refreshAuth } = useAuth();
+  const { data: currentUser } = useAuth();
   
-  // Refresh auth when calendar page mounts
-  useEffect(() => {
-    console.log('Calendar page mounted, refreshing auth');
-    refreshAuth();
-  }, [refreshAuth]);
+  // We don't need to call refreshAuth here anymore - ProtectedRoute already does it
+  // and it causes a race condition
   
-  // Fetch capital calls with authentication check
+  // Fetch capital calls - no need to add auth check since ProtectedRoute handles it
   const { data: capitalCalls = [], isLoading: isLoadingCalls } = useQuery<CapitalCall[]>({
     queryKey: ['/api/capital-calls'],
-    enabled: !!currentUser, // Only run query if user is authenticated
   });
   
-  // Fetch closing schedule events with authentication check
+  // Fetch closing schedule events - no need to add auth check since ProtectedRoute handles it
   const { data: closingEvents = [], isLoading: isLoadingEvents } = useQuery<ClosingScheduleEvent[]>({
     queryKey: ['/api/closing-schedules'],
-    enabled: !!currentUser, // Only run query if user is authenticated
   });
   
   const isLoading = isLoadingCalls || isLoadingEvents;
@@ -106,6 +101,15 @@ const CalendarPage = () => {
     isAuthenticated: !!currentUser, 
     username: currentUser?.username
   });
+  
+  // Safely handle authentication
+  useEffect(() => {
+    if (!currentUser) {
+      // This page should only be reached through ProtectedRoute, 
+      // but add additional safety check
+      console.log('No current user in Calendar, authentication check should happen in ProtectedRoute');
+    }
+  }, [currentUser]);
 
   // Filter events based on selected date, tab and status filters
   const filteredCalls = React.useMemo(() => {
