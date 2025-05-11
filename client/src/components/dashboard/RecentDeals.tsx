@@ -30,7 +30,7 @@ export default function RecentDeals() {
     queryKey: ["/api/deals"],
   });
 
-  // Filter deals based on current filters and limit to most recent 3
+  // Filter deals based on current filters and limit to most recent 5
   const filteredDeals = deals
     .filter((deal: Deal) => {
       // Stage filter
@@ -55,7 +55,7 @@ export default function RecentDeals() {
       return true;
     })
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    .slice(0, 3); // Only show the most recent 3 deals
+    .slice(0, 5); // Show the most recent 5 deals
 
   // Find selected deal name for allocate modal
   const selectedDealName = allocateDealId ? 
