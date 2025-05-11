@@ -1,14 +1,25 @@
 import { useQuery } from "@tanstack/react-query";
 import { getQueryFn } from "@/lib/queryClient";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Database, HardDrive, Clock, Server } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+
+type HybridStatus = {
+  pendingWrites: number;
+  hybridInfo: {
+    usingDatabase: boolean;
+    pendingWriteTypes: string[];
+    pendingWrites: number;
+    recoveryInProgress: boolean;
+  } | null;
+};
 
 type SystemHealthResponse = {
   status: string;
   timestamp: string;
-  storage: 'database' | 'memory';
+  storage: 'database' | 'memory' | 'hybrid' | 'unknown';
   databaseConnected: boolean;
   environment: string;
+  hybridStatus: HybridStatus | null;
 };
 
 export function DatabaseStatusAlert() {
@@ -19,24 +30,97 @@ export function DatabaseStatusAlert() {
     staleTime: 15000, // Consider data stale after 15 seconds
   });
 
-  // Only show alert if we have data and we're in memory storage mode
-  if (!healthData || (healthData.storage === 'database' && healthData.databaseConnected)) {
+  // No alert if no data or if we're using database and it's connected
+  if (!healthData) {
+    return null;
+  }
+  
+  // Using hybrid storage with database mode - no alert needed
+  if (healthData.storage === 'hybrid' && 
+      healthData.hybridStatus?.hybridInfo?.usingDatabase && 
+      healthData.databaseConnected) {
+    return null;
+  }
+  
+  // Using regular database mode and it's connected - no alert needed
+  if (healthData.storage === 'database' && healthData.databaseConnected) {
     return null;
   }
 
+  // Determine alert variant based on storage type
+  const variant = 
+    healthData.storage === 'memory' ? 'destructive' : 
+    healthData.storage === 'hybrid' && !healthData.hybridStatus?.hybridInfo?.usingDatabase ? 'warning' : 
+    !healthData.databaseConnected ? 'warning' : 
+    'default';
+  
+  // Determine icon
+  const Icon = 
+    healthData.storage === 'memory' ? HardDrive : 
+    healthData.storage === 'hybrid' ? Server :
+    Database;
+
   return (
-    <Alert variant="destructive" className="mb-4 fixed bottom-4 right-4 z-50 max-w-md shadow-lg">
-      <AlertCircle className="h-4 w-4" />
-      <AlertTitle>Database Connection Issue</AlertTitle>
+    <Alert variant={variant} className="mb-4 fixed bottom-4 right-4 z-50 max-w-md shadow-lg">
+      <Icon className="h-4 w-4" />
+      <AlertTitle>
+        {healthData.storage === 'memory' ? "Database Disconnected" : 
+         healthData.storage === 'hybrid' && !healthData.hybridStatus?.hybridInfo?.usingDatabase ? "Operating in Hybrid Fallback Mode" :
+         "Database Status Warning"}
+      </AlertTitle>
       <AlertDescription>
         {healthData.storage === 'memory' ? (
           <>
-            The application is currently operating in fallback mode. Your data is being stored temporarily 
-            and may not persist if you close the application. We're attempting to reconnect to the database.
+            <p>
+              The application is currently operating in memory-only mode. Your data is being stored temporarily 
+              and may not persist if you close the application. We're attempting to reconnect to the database.
+            </p>
+          </>
+        ) : healthData.storage === 'hybrid' ? (
+          <>
+            {!healthData.databaseConnected ? (
+              <>
+                <p>
+                  Database connection issues detected. Don't worry - your data is being stored safely using our hybrid storage system.
+                </p>
+                {healthData.hybridStatus?.pendingWrites ? (
+                  <div className="mt-1 text-sm flex items-center">
+                    <Clock className="inline h-3 w-3 mr-1" />
+                    <span>
+                      {healthData.hybridStatus.pendingWrites} operations waiting to sync
+                    </span>
+                  </div>
+                ) : null}
+                {healthData.hybridStatus?.hybridInfo?.recoveryInProgress ? (
+                  <div className="mt-1 text-sm flex items-center">
+                    <Server className="inline h-3 w-3 mr-1" />
+                    <span>
+                      Database recovery in progress...
+                    </span>
+                  </div>
+                ) : null}
+              </>
+            ) : (
+              <>
+                <p>
+                  Your data is being stored using our hybrid storage system for improved reliability.
+                </p>
+                {healthData.hybridStatus?.pendingWrites ? (
+                  <div className="mt-1 text-sm flex items-center">
+                    <Clock className="inline h-3 w-3 mr-1" />
+                    <span>
+                      Syncing {healthData.hybridStatus.pendingWrites} operations to database
+                    </span>
+                  </div>
+                ) : null}
+              </>
+            )}
           </>
         ) : (
           <>
-            Database connection issues detected. Some features may be temporarily unavailable.
+            <p>
+              Database connection issues detected. Some features may be temporarily unavailable.
+            </p>
           </>
         )}
       </AlertDescription>

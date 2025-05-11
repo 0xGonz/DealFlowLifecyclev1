@@ -8,6 +8,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import connectPgSimple from 'connect-pg-simple';
 import memorystore from 'memorystore';
+import { StorageFactory } from "./storage-factory";
 
 const app = express();
 app.use(express.json());
@@ -26,6 +27,9 @@ memoryStore.setMaxListeners(1000); // Significantly increase to prevent MaxListe
 
 // Configure PostgreSQL session store
 const PgSession = connectPgSimple(session);
+
+// Initialize the StorageFactory to use the hybrid storage implementation
+const storage = StorageFactory.getStorage();
 
 // Session store instance that will be used by the app
 let activeSessionStore: any;
@@ -113,15 +117,25 @@ const getSessionStore = () => {
   if (activeSessionStore instanceof PgSession && (now - lastDbCheck > DB_CHECK_INTERVAL)) {
     lastDbCheck = now;
     
-    // Check if PostgreSQL is still available
-    pool.query('SELECT 1')
-      .catch(err => {
-        console.error('PostgreSQL connection failed, switching to memory session store:', err);
+    // Use the hybrid storage system to determine database connectivity
+    const hybridStorage = storage as any;
+    if (hybridStorage.usingDatabase === false) {
+      // Switch to memory store if hybrid storage is operating in memory mode
+      if (activeSessionStore !== memoryStore) {
+        console.log('Hybrid storage in memory mode - switching session store to memory');
         activeSessionStore = memoryStore;
-        
-        // Ensure memory store has enough event listeners
-        memoryStore.setMaxListeners(1000);
-      });
+      }
+    } else {
+      // Double-check database connectivity
+      pool.query('SELECT 1')
+        .catch(err => {
+          console.error('PostgreSQL connection failed, switching to memory session store:', err);
+          activeSessionStore = memoryStore;
+          
+          // Ensure memory store has enough event listeners
+          memoryStore.setMaxListeners(1000);
+        });
+    }
   }
   return activeSessionStore;
 };
