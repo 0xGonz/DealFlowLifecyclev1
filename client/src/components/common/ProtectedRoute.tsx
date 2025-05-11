@@ -1,22 +1,29 @@
-import { ReactNode, useEffect } from 'react';
-import { Route, Redirect, useParams } from 'wouter';
+import { ReactNode } from 'react';
+import { Route, Redirect } from 'wouter';
 import { useAuth } from '@/hooks/use-auth';
 import { Loader2 } from 'lucide-react';
 
 interface ProtectedRouteProps {
   path: string;
   component: React.ComponentType<any>;
+  requiredRoles?: string | string[];
 }
 
-export function ProtectedRoute({ path, component: Component }: ProtectedRouteProps) {
-  const { data, isLoading } = useAuth();
+/**
+ * Path-based ProtectedRoute component that handles both authentication
+ * and optional role-based authorization.
+ */
+export function ProtectedRoute({ 
+  path, 
+  component: Component, 
+  requiredRoles 
+}: ProtectedRouteProps) {
+  const { data: user, isLoading } = useAuth();
 
-  // Add debugging logs
-  console.log(`ProtectedRoute for ${path}: isLoading=${isLoading}, user=${data?.username}`);
-
-  // We no longer need to call refreshAuth() here as it creates a race condition
-  // with the refreshAuth() call in AuthProvider's useEffect
-  // This was causing authentication issues, especially on the Calendar page
+  // Add minimal debugging logs in production
+  if (process.env.NODE_ENV !== 'production') {
+    console.log(`ProtectedRoute for ${path}: isLoading=${isLoading}, user=${user?.username}`);
+  }
 
   // Show a loading state while checking authentication
   if (isLoading) {
@@ -32,18 +39,39 @@ export function ProtectedRoute({ path, component: Component }: ProtectedRoutePro
     );
   }
 
-  // If not authenticated, redirect to login
-  if (!data) {
-    console.log(`ProtectedRoute ${path}: User not authenticated, redirecting to /auth`);
+  // If not authenticated, redirect to auth page
+  if (!user) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`ProtectedRoute ${path}: User not authenticated, redirecting to /auth`);
+    }
     return (
       <Route path={path}>
         <Redirect to="/auth" />
       </Route>
     );
   }
+  
+  // Role-based access control (if roles are specified)
+  if (requiredRoles) {
+    const allowedRoles = Array.isArray(requiredRoles) ? requiredRoles : [requiredRoles];
+    
+    if (!user.role || !allowedRoles.includes(user.role)) {
+      if (process.env.NODE_ENV !== 'production') {
+        console.log(`ProtectedRoute ${path}: User ${user.username} lacks required role (has: ${user.role}, required: ${allowedRoles.join(',')})`);
+      }
+      // Redirect to unauthorized page or dashboard
+      return (
+        <Route path={path}>
+          <Redirect to="/unauthorized" />
+        </Route>
+      );
+    }
+  }
 
-  // User is authenticated, render the component
-  console.log(`ProtectedRoute ${path}: Rendering component for user ${data.username}`);
+  // User is authenticated and authorized, render the component
+  if (process.env.NODE_ENV !== 'production') {
+    console.log(`ProtectedRoute ${path}: Rendering component for user ${user.username}`);
+  }
   return <Route path={path}>
     <Component />
   </Route>;

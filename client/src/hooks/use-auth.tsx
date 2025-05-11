@@ -14,7 +14,7 @@ type AuthContextType = {
   isLoading: boolean;
   error: Error | null;
   login: UseMutationResult<User, Error, LoginData>;
-  logout: UseMutationResult<void, Error, void>;
+  logout: UseMutationResult<any, Error, void>; // Using 'any' for the return type to be more flexible
   register: UseMutationResult<User, Error, RegisterData>;
   refreshAuth: () => Promise<User | null>;
 };
@@ -144,17 +144,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useMutation({
     mutationFn: async () => {
-      await apiRequest("POST", "/api/auth/logout");
+      try {
+        const response = await apiRequest("POST", "/api/auth/logout");
+        if (!response.ok) {
+          const errorText = await response.text().catch(() => 'Unknown error');
+          throw new Error(errorText || `Logout failed with status ${response.status}`);
+        }
+        return response; // Return the response
+      } catch (error) {
+        console.error('Logout API request failed:', error);
+        throw error;
+      }
     },
     onSuccess: () => {
+      // Clear the auth data in the cache
+      console.log('Logout successful, clearing auth data');
       localQueryClient.setQueryData(["/api/auth/me"], null);
+      
+      // Invalidate all queries that depend on authentication
       localQueryClient.invalidateQueries({queryKey: ["/api/auth/me"]});
+      
+      // Use window.location for a clean redirect that resets all state
       window.location.href = "/auth";
     },
     onError: (error: Error) => {
+      console.error('Logout mutation error handler:', error);
       toast({
         title: "Logout failed",
-        description: error.message,
+        description: error.message || "Unable to logout. Please try again.",
         variant: "destructive",
       });
     },

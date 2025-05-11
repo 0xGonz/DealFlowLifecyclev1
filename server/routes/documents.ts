@@ -33,6 +33,38 @@ const sanitizeFilePath = (filePath: string): string => {
 
 const router = Router();
 
+// Define allowed MIME types for security
+const ALLOWED_MIME_TYPES = [
+  // PDF documents
+  'application/pdf',
+  // Office documents
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+  'application/vnd.ms-powerpoint',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation', // .pptx
+  // Text files
+  'text/plain',
+  'text/csv',
+  // Images
+  'image/jpeg',
+  'image/png',
+  'image/gif',
+  // ZIP archives
+  'application/zip',
+  'application/x-zip-compressed'
+];
+
+// Sanitize filename to prevent security issues
+const sanitizeFilename = (filename: string): string => {
+  // Remove path traversal characters and maintain only safe characters
+  return filename
+    .replace(/[\/\\?%*:|"<>]/g, '_') // Replace unsafe chars with underscore
+    .replace(/\s+/g, '_')           // Replace spaces with underscores
+    .toLowerCase();                  // Convert to lowercase for consistency
+};
+
 // Set up multer storage
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -46,15 +78,31 @@ const storage = multer.diskStorage({
   filename: (req, file, cb) => {
     // Generate a unique filename to prevent overwriting
     const uniqueId = crypto.randomUUID();
-    cb(null, `${uniqueId}-${file.originalname}`);
+    // Sanitize the original filename before appending to UUID
+    const sanitizedFilename = sanitizeFilename(file.originalname);
+    cb(null, `${uniqueId}-${sanitizedFilename}`);
   }
 });
+
+// Custom file filter for MIME type validation
+const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+  // Check if the file's MIME type is in our allowed list
+  if (ALLOWED_MIME_TYPES.includes(file.mimetype)) {
+    // Accept the file
+    cb(null, true);
+  } else {
+    // Reject the file with custom error message
+    cb(new Error(`File type not allowed. Allowed types: ${ALLOWED_MIME_TYPES.join(', ')}`));
+  }
+};
 
 const upload = multer({
   storage,
   limits: {
     fileSize: 10 * 1024 * 1024, // 10MB file size limit
+    files: 1                     // Maximum number of files per upload
   },
+  fileFilter
 });
 
 // Get all documents for a deal - requires authentication
@@ -210,16 +258,51 @@ router.get('/:id/download', requireAuth, async (req: Request, res: Response) => 
   }
 });
 
+// Error handler for multer errors
+const handleMulterError = (err: any, req: Request, res: Response, next: NextFunction) => {
+  if (err instanceof multer.MulterError) {
+    // Handle Multer-specific errors
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(413).json({ 
+        error: 'File too large', 
+        message: 'The uploaded file exceeds the maximum size limit of 10MB.' 
+      });
+    } else if (err.code === 'LIMIT_UNEXPECTED_FILE') {
+      return res.status(400).json({ 
+        error: 'Unexpected field', 
+        message: 'Please upload a single file with field name "file".' 
+      });
+    }
+  } else if (err && err.message) {
+    // This could be the file filter error with MIME type validation
+    return res.status(415).json({ 
+      error: 'Invalid file type', 
+      message: err.message 
+    });
+  }
+  // For other errors, pass to next error handler
+  next(err);
+};
+
 // Upload a document - requires authentication
-router.post('/upload', requireAuth, upload.single('file'), async (req: Request, res: Response) => {
+// We don't attach upload.single() directly to the route handler, but use it separately
+// to allow proper error handling
+router.post('/upload', requireAuth, (req: Request, res: Response, next: NextFunction) => {
+  upload.single('file')(req, res, (err) => {
+    if (err) {
+      return handleMulterError(err, req, res, next);
+    }
+    next();
+  });
+}, async (req: Request, res: Response) => {
   try {
-    console.log('Received document upload request:', req.body);
-    console.log('File info:', req.file);
-    
     // Get the authenticated user from the request
     const user = req.user;
     if (!user) {
-      return res.status(401).json({ message: 'You must be logged in to upload documents' });
+      return res.status(401).json({ 
+        error: 'Unauthorized',
+        message: 'You must be logged in to upload documents' 
+      });
     }
     
     // Access the uploaded file via req.file and form fields via req.body
@@ -229,28 +312,56 @@ router.post('/upload', requireAuth, upload.single('file'), async (req: Request, 
     const { dealId, documentType, description } = req.body;
     
     // If we don't have a file or required fields, return an error
-    if (!req.file || !dealId || !documentType) {
-      console.error('Missing required fields:', { file: !!req.file, dealId, documentType });
-      return res.status(400).json({ message: 'Missing required fields' });
+    if (!req.file) {
+      return res.status(400).json({ 
+        error: 'Missing file',
+        message: 'No file was uploaded. Please select a file to upload.' 
+      });
+    }
+    
+    if (!dealId) {
+      return res.status(400).json({ 
+        error: 'Missing dealId',
+        message: 'A deal ID must be provided with the document upload.' 
+      });
+    }
+    
+    if (!documentType) {
+      return res.status(400).json({ 
+        error: 'Missing documentType',
+        message: 'A document type must be specified.' 
+      });
+    }
+    
+    // Validate dealId is a number
+    const dealIdNum = parseInt(dealId);
+    if (isNaN(dealIdNum)) {
+      return res.status(400).json({ 
+        error: 'Invalid dealId',
+        message: 'Deal ID must be a valid number.' 
+      });
     }
     
     // Check if the deal exists
-    const deal = await storageClient.getDeal(parseInt(dealId));
+    const deal = await storageClient.getDeal(dealIdNum);
     if (!deal) {
-      return res.status(404).json({ message: 'Deal not found' });
+      return res.status(404).json({ 
+        error: 'Deal not found',
+        message: `No deal found with ID ${dealIdNum}.` 
+      });
     }
     
     // Use file information from multer
-    const fileName = req.file.originalname;
+    const fileName = sanitizeFilename(req.file.originalname);
     const fileType = req.file.mimetype;
     const fileSize = req.file.size;
     
-    // The file path is now controlled by multer
-    // The file is saved to public/uploads/<uniqueId>-<originalname>
+    // The file path is now controlled by multer and sanitized
+    // The file is saved to public/uploads/<uniqueId>-<sanitizedFilename>
     const filePath = `/uploads/${path.basename(req.file.path)}`;
     
     const documentData = {
-      dealId: parseInt(dealId),
+      dealId: dealIdNum,
       fileName,
       fileType,
       fileSize,
@@ -261,13 +372,12 @@ router.post('/upload', requireAuth, upload.single('file'), async (req: Request, 
       uploadedAt: new Date()
     };
     
-    console.log('Creating document with data:', documentData);
+    // Save document info to database
     const document = await storageClient.createDocument(documentData);
-    console.log('Document created successfully:', document);
     
     // Also create a timeline event for the document upload
     await storageClient.createTimelineEvent({
-      dealId: parseInt(dealId),
+      dealId: dealIdNum,
       eventType: 'document_upload',
       content: `Document uploaded: ${fileName}`,
       createdBy: user.id, // Use the authenticated user's ID
@@ -277,7 +387,10 @@ router.post('/upload', requireAuth, upload.single('file'), async (req: Request, 
     return res.status(201).json(document);
   } catch (error) {
     console.error('Error uploading document:', error);
-    return res.status(500).json({ message: 'Failed to upload document' });
+    return res.status(500).json({ 
+      error: 'Server error',
+      message: 'An unexpected error occurred while uploading the document.' 
+    });
   }
 });
 

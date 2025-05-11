@@ -18,33 +18,55 @@ import memorystore from 'memorystore';
 import { StorageFactory } from "./storage-factory";
 import { initJobQueues } from "./jobs";
 import { metricsMiddleware } from "./middleware/metrics";
-import { loggingService } from "./services";
+import { LoggingService } from "./services";
 
 const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.json({ limit: "1mb" }));
+app.use(express.urlencoded({ extended: false, limit: "1mb" }));
 
 // ─── SESSION CONFIGURATION - SINGLE POINT OF TRUTH ─────────────────────────
 // Initialize the StorageFactory to use the hybrid storage implementation
 const storage = StorageFactory.getStorage();
 
 // Create the appropriate session store classes
-const MemoryStore = memorystore(session);
 const PgSession = connectPgSimple(session);
 
-// Decide once, never change - default to postgres sessions in all environments
-// unless explicitly told to use memory sessions
-const useMemory = process.env.USE_MEMORY_SESSIONS === "true";
+// Always use PostgreSQL for sessions in production to ensure consistency
+// Memory sessions should only be used for development or testing
+const isProd = process.env.NODE_ENV === 'production';
+const forceUseMemory = process.env.USE_MEMORY_SESSIONS === "true";
 
-const sessionStore = useMemory
-  ? new MemoryStore({ checkPeriod: 86400000 })               // memory
-  : new PgSession({ 
+// Default to PostgreSQL in production, regardless of USE_MEMORY_SESSIONS setting
+// This prevents accidental session store switching in production
+let sessionStore;
+
+if (isProd || !forceUseMemory) {
+  // Use PostgreSQL in production or when not explicitly using memory
+  try {
+    sessionStore = new PgSession({ 
       pool, 
       tableName: "session",
-      createTableIfMissing: true
-    });           // postgres
-
-console.log("▶ Using", useMemory ? "MemoryStore" : "PgSession", "for sessions");
+      createTableIfMissing: true,
+      pruneSessionInterval: 60 // Prune expired sessions every 60 seconds
+    });
+    console.log("▶ Using PgSession for sessions (PostgreSQL)");
+  } catch (error) {
+    console.error("Failed to create PostgreSQL session store:", error);
+    if (isProd) {
+      throw new Error("Cannot run in production without PostgreSQL session store");
+    } else {
+      // Fallback to memory store only in dev mode
+      const MemoryStore = memorystore(session);
+      sessionStore = new MemoryStore({ checkPeriod: 86400000 }); // 24 hours
+      console.log("▶ Fallback to MemoryStore for sessions due to PostgreSQL error");
+    }
+  }
+} else {
+  // Explicit request for memory store in non-production
+  const MemoryStore = memorystore(session);
+  sessionStore = new MemoryStore({ checkPeriod: 86400000 }); // 24 hours
+  console.log("▶ Using MemoryStore for sessions (explicitly requested)");
+}
 
 // Debug the session store to verify it remains consistent
 console.log("⏱️  Session store is", sessionStore.constructor.name);
