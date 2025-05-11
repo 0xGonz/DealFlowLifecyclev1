@@ -84,11 +84,6 @@ export default function Sidebar({ onCloseMobile }: SidebarProps) {
         
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto scrollbar-thin py-2">
-          {/* V1.0 Title */}
-          <div className="mb-4 px-4">
-            <h2 className="text-2xl font-extrabold tracking-tight text-primary-dark">V1.0</h2>
-          </div>
-          
           <ul>
             {mainNavItems.map((item) => (
               <li key={item.href} className="mb-1 px-2">
