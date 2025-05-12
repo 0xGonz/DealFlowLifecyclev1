@@ -54,16 +54,13 @@ const AiAnalysisPage = () => {
   });
 
   // Fetch deal documents if a deal is selected
-  const { data: documents } = useQuery<Document[]>({
-    queryKey: [`/api/documents/by-deal/${selectedDealId}`],
+  const { data: documents, isError: isDocumentsError } = useQuery<Document[]>({
+    queryKey: ['/api/documents/deal', selectedDealId],
     enabled: !!selectedDealId,
   });
 
-  // Fetch deal memos if a deal is selected
-  const { data: memos } = useQuery<MiniMemo[]>({
-    queryKey: [`/api/deals/${selectedDealId}/mini-memos`],
-    enabled: !!selectedDealId,
-  });
+  // Mini-memos functionality will be implemented in a future update
+  const memos: MiniMemo[] = [];
 
   const askQuestion = async () => {
     if (!selectedDealId || !question.trim()) {

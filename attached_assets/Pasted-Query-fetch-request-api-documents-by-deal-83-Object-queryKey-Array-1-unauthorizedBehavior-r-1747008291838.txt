@@ -1,0 +1,43 @@
+Query fetch request: /api/documents/by-deal/83 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Query fetch request: /api/deals/83/mini-memos 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Query Response from /api/deals/83/mini-memos: 
+Object {status: 404, statusText: "Not Found", ok: false}
+Error response from /api/deals/83/mini-memos: 
+Object {status: 404, text: "{"message":"Route not found: GET /api/deals/83/mini-memos"}"}
+
+Exception during query fetch to /api/deals/83/mini-memos: 
+TypeError {message: "Failed to execute 'text' on 'Response': body stream already read"}
+
+Query Response from /api/documents/by-deal/83: 
+Object {status: 404, statusText: "Not Found", ok: false}
+Error response from /api/documents/by-deal/83: 
+Object {status: 404, text: "{"message":"Route not found: GET /api/documents/by-deal/83"}"}
+
+Exception during query fetch to /api/documents/by-deal/83: 
+TypeError {message: "Failed to execute 'text' on 'Response': body stream already read"}
+
+Query fetch request: /api/deals/83/mini-memos 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Query fetch request: /api/documents/by-deal/83 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Query Response from /api/deals/83/mini-memos: 
+Object {status: 404, statusText: "Not Found", ok: false}
+Error response from /api/deals/83/mini-memos: 
+Object {status: 404, text: "{"message":"Route not found: GET /api/deals/83/mini-memos"}"}
+
+Exception during query fetch to /api/deals/83/mini-memos: 
+TypeError {message: "Failed to execute 'text' on 'Response': body stream already read"}
+
+Query Response from /api/documents/by-deal/83: 
+Object {status: 404, statusText: "Not Found", ok: false}
+Error response from /api/documents/by-deal/83: 
+Object {status: 404, text: "{"message":"Route not found: GET /api/documents/by-deal/83"}"}
+
+Exception during query fetch to /api/documents/by-deal/83: 
+TypeError {message: "Failed to execute 'text' on 'Response': body stream already read"}
+
+API Request: POST /api/ai-analyst/83/insights No data
+Sending fetch request to /api/ai-analyst/83/insights with options: 
+Object {method: "POST", credentials: "include

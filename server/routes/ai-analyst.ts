@@ -2,10 +2,15 @@ import { Router, Request, Response } from "express";
 import { StorageFactory } from "../storage-factory";
 import { z } from "zod";
 import { insertAiAnalysisSchema } from "@shared/schema";
+import { OpenAiService } from "../utils/openai-service";
+import { requireAuth, requireRole } from "../utils/auth";
 
 const storage = StorageFactory.getStorage();
 
 const router = Router();
+
+// Add authentication middleware
+router.use(requireRole(['admin', 'partner', 'analyst']));
 
 // Get AI analysis for a deal
 router.get("/:dealId", async (req: Request, res: Response) => {
@@ -69,7 +74,7 @@ router.post("/:dealId", async (req: Request, res: Response) => {
         eventType: 'ai_analysis',
         content: `AI analysis ${existingAnalysis ? 'updated' : 'created'} for this deal`,
         createdBy: (req as any).user.id,
-        metadata: { analysisId: newAnalysis.id }
+        metadata: { analysisId: [newAnalysis.id] }
       });
 
       return res.status(201).json(newAnalysis);
@@ -107,14 +112,19 @@ router.post("/:dealId/ask", async (req: Request, res: Response) => {
         return res.status(404).json({ error: "Deal not found" });
       }
 
-      // TODO: In a real implementation, this would call the OpenAI API
-      // For now, just return a response that indicates we received the question
-      // This would be replaced with actual OpenAI integration
+      // Get related documents for the deal
+      const documents = await storage.getDocumentsByDeal(dealId);
+      
+      // Memos are not currently implemented, so we'll pass an empty array
+      const memos: any[] = [];
 
-      const aiResponse = {
-        text: `This is a simulated AI response to your question: "${question}"`,
-        sources: []
-      };
+      // Call the OpenAI service to answer the question
+      const aiResponse = await OpenAiService.answerQuestion(
+        question,
+        deal,
+        documents,
+        memos
+      );
 
       return res.json(aiResponse);
     } catch (error) {
@@ -143,27 +153,18 @@ router.post("/:dealId/insights", async (req: Request, res: Response) => {
       return res.status(404).json({ error: "Deal not found" });
     }
 
-    // TODO: In a real implementation, this would call the OpenAI API
-    // For now, just return simulated insights
-    // This would be replaced with actual OpenAI integration
+    // Get related documents for the deal
+    const documents = await storage.getDocumentsByDeal(dealId);
     
-    const insights = [
-      {
-        title: "Market Opportunity",
-        content: "The target market shows strong growth potential based on available documents.",
-        confidence: 0.87
-      },
-      {
-        title: "Competitive Advantage",
-        content: "Analysis indicates the company has several competitive advantages in its sector.",
-        confidence: 0.82
-      },
-      {
-        title: "Risk Assessment",
-        content: "Primary risks appear to be related to execution and market adoption.",
-        confidence: 0.75
-      }
-    ];
+    // Memos are not currently implemented, so we'll pass an empty array
+    const memos: any[] = [];
+
+    // Use OpenAI service to generate insights
+    const insights = await OpenAiService.generateInsights(
+      deal,
+      documents,
+      memos
+    );
 
     return res.json(insights);
   } catch (error) {
