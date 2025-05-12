@@ -611,45 +611,39 @@ export default function DealDetail() {
           
           <TabsContent value="timeline">
             <div className="grid grid-cols-1 sm:grid-cols-12 gap-6">
-              <div className="sm:col-span-8 md:col-span-8">
+              <div className="sm:col-span-12 md:col-span-12">
                 <Card>
                   <CardHeader className="pb-2 sm:pb-4">
-                    <CardTitle className="text-base sm:text-xl">Timeline & Notes</CardTitle>
-                    <CardDescription className="text-xs sm:text-sm">
-                      History of activity and communication for this deal
-                    </CardDescription>
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
+                      <div>
+                        <CardTitle className="text-base sm:text-xl">Timeline & Notes</CardTitle>
+                        <CardDescription className="text-xs sm:text-sm">
+                          History of activity and communication for this deal
+                        </CardDescription>
+                      </div>
+                      <div className="mt-3 sm:mt-0">
+                        <Button 
+                          onClick={handleAddNote}
+                          disabled={addNoteMutation.isPending || !newNote.trim()}
+                          size="sm"
+                        >
+                          <MessageSquare className="h-4 w-4 mr-2" />
+                          {addNoteMutation.isPending ? 'Adding...' : 'Add Note'}
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="mt-3">
+                      <Textarea 
+                        placeholder="Type your note here..." 
+                        className="min-h-[80px]"
+                        value={newNote}
+                        onChange={(e) => setNewNote(e.target.value)}
+                      />
+                    </div>
                   </CardHeader>
                   <CardContent>
                     <Timeline dealId={deal?.id} />
                   </CardContent>
-                </Card>
-              </div>
-              
-              <div className="sm:col-span-4 md:col-span-4">
-                <Card>
-                  <CardHeader className="pb-2 sm:pb-4">
-                    <CardTitle className="text-base sm:text-xl">Add Note</CardTitle>
-                    <CardDescription className="text-xs sm:text-sm">
-                      Add a note to the deal timeline
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Textarea 
-                      placeholder="Type your note here..." 
-                      className="min-h-[150px]"
-                      value={newNote}
-                      onChange={(e) => setNewNote(e.target.value)}
-                    />
-                  </CardContent>
-                  <CardFooter className="flex justify-end">
-                    <Button 
-                      onClick={handleAddNote}
-                      disabled={addNoteMutation.isPending || !newNote.trim()}
-                    >
-                      <MessageSquare className="h-4 w-4 mr-2" />
-                      {addNoteMutation.isPending ? 'Adding...' : 'Add Note'}
-                    </Button>
-                  </CardFooter>
                 </Card>
               </div>
             </div>
