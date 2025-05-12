@@ -28,10 +28,8 @@ export default function EnhancedPDFViewer({ isOpen, onClose, documentId, documen
   const { toast } = useToast();
   const documentUrl = `/api/documents/${documentId}/download`;
   
-  // Initialize PDF worker configuration
-  useEffect(() => {
-    configurePdfWorker();
-  }, []);
+  // PDF worker is already configured via the side-effect import in main.tsx
+  // No need to manually initialize anything here
   
   // Function to handle authentication errors
   const handleAuthError = (error: any) => {

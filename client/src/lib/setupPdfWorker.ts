@@ -4,5 +4,5 @@ import { pdfjs } from 'react-pdf';
 // The `?url` suffix is the magic.
 import workerURL from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 
-// Register the URL with pdf.js at runtime.
+// Register the URL with pdf.js at runtime (side effect)
 pdfjs.GlobalWorkerOptions.workerSrc = workerURL;
