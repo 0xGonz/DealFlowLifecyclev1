@@ -390,7 +390,7 @@ export default function DealDetail() {
         
         {/* Stage progression visualization */}
         <div className="mb-6">
-          <StageProgression currentStage={deal.stage} />
+          <StageProgression deal={deal} />
         </div>
         
         {/* Main content tabs */}

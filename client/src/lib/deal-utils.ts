@@ -24,11 +24,11 @@ function getStageLabel(stage: string): string {
     'ic_review': 'IC Review',
     'approved': 'Approved',
     'decline': 'Declined',
+    'rejected': 'Rejected',
     'closed': 'Closed',
     'closing': 'Closing',
     'invested': 'Invested',
-    'ai_review': 'AI Review',
-    'rejected': 'Rejected'
+    'ai_review': 'AI Review'
   };
   
   return stageLabels[stage] || 'Unknown Stage';
