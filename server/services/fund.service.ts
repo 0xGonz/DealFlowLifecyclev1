@@ -58,6 +58,47 @@ export class FundService {
   }
 
   /**
+   * Calculate Fund AUM from fund allocations
+   * This centralized method ensures consistent AUM calculation
+   */
+  async calculateFundAUM(fundId: number): Promise<number> {
+    const storage = getStorage();
+    const allocations = await storage.getAllocationsByFund(fundId);
+    
+    // Sum up all 'funded' allocations for the AUM
+    const aum = allocations
+      .filter(allocation => allocation.status === 'funded')
+      .reduce((sum, allocation) => sum + Number(allocation.amount || 0), 0);
+    
+    return aum;
+  }
+  
+  /**
+   * Update a fund's AUM in the database
+   */
+  async updateFundAUM(fundId: number): Promise<boolean> {
+    try {
+      const storage = getStorage();
+      const fund = await storage.getFund(fundId);
+      
+      if (!fund) {
+        return false;
+      }
+      
+      // Calculate the new AUM
+      const aum = await this.calculateFundAUM(fundId);
+      
+      // Update the fund with the new AUM
+      await storage.updateFund(fundId, { aum });
+      
+      return true;
+    } catch (error) {
+      console.error('Error updating fund AUM:', error);
+      return false;
+    }
+  }
+  
+  /**
    * Get a specific fund with its allocations
    */
   async getFundWithAllocations(fundId: number): Promise<FundWithAllocations | null> {

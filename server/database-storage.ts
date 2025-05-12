@@ -2,6 +2,7 @@ import { db } from './db';
 import { IStorage } from './storage';
 import { StorageFactory } from './storage-factory';
 import { eq, and, sql, inArray, asc } from 'drizzle-orm';
+import { FundService } from './services/fund.service';
 import {
   User, InsertUser,
   Deal, InsertDeal,
@@ -460,16 +461,10 @@ export class DatabaseStorage implements IStorage {
       .values(allocationData)
       .returning();
       
-    // Update fund AUM, but only if the allocation is 'funded'
-    // Only funded allocations should count towards AUM
-    if (allocation.status === 'funded') {
-      const [fund] = await db.select().from(funds).where(eq(funds.id, allocation.fundId));
-      if (fund) {
-        await db.update(funds)
-          .set({ aum: fund.aum + allocation.amount })
-          .where(eq(funds.id, fund.id));
-      }
-    }
+    // Use the FundService to update the fund AUM
+    // This centralizes our AUM calculation logic
+    const fundService = new FundService();
+    await fundService.updateFundAUM(allocation.fundId);
       
     return newAllocation;
   }
@@ -493,7 +488,7 @@ export class DatabaseStorage implements IStorage {
       throw new Error('Database not initialized');
     }
     try {
-      // First get the allocation to be deleted so we can update fund AUM if needed
+      // First get the allocation to be deleted
       const [allocation] = await db
         .select()
         .from(fundAllocations)
@@ -503,24 +498,17 @@ export class DatabaseStorage implements IStorage {
         return false;
       }
       
+      // Store the fund ID before deleting the allocation
+      const fundId = allocation.fundId;
+      
       // Delete the allocation
       await db.delete(fundAllocations)
         .where(eq(fundAllocations.id, id));
       
-      // If the allocation was funded, subtract its amount from the fund's AUM
-      if (allocation.status === 'funded') {
-        const [fund] = await db
-          .select()
-          .from(funds)
-          .where(eq(funds.id, allocation.fundId));
-        
-        if (fund) {
-          await db
-            .update(funds)
-            .set({ aum: Math.max(0, fund.aum - allocation.amount) })
-            .where(eq(funds.id, fund.id));
-        }
-      }
+      // Use the FundService to recalculate and update the fund's AUM
+      // This ensures consistent AUM calculation across the application
+      const fundService = new FundService();
+      await fundService.updateFundAUM(fundId);
       
       return true;
     } catch (error) {
@@ -660,7 +648,7 @@ export class DatabaseStorage implements IStorage {
       throw new Error('Database not initialized');
     }
     try {
-      // Get the original allocation to check for status changes
+      // Get the original allocation
       const [originalAllocation] = await db
         .select()
         .from(fundAllocations)
@@ -670,9 +658,6 @@ export class DatabaseStorage implements IStorage {
         return undefined;
       }
       
-      // Store the original status to track changes
-      const originalStatus = originalAllocation.status;
-      
       // Update the allocation
       const [updatedAllocation] = await db
         .update(fundAllocations)
@@ -680,30 +665,10 @@ export class DatabaseStorage implements IStorage {
         .where(eq(fundAllocations.id, id))
         .returning();
       
-      // If status has changed, update the fund's AUM accordingly
-      if (allocationUpdate.status && allocationUpdate.status !== originalStatus) {
-        const [fund] = await db
-          .select()
-          .from(funds)
-          .where(eq(funds.id, originalAllocation.fundId));
-        
-        if (fund) {
-          // If the allocation was not funded before but is now, add to AUM
-          if (originalStatus !== 'funded' && allocationUpdate.status === 'funded') {
-            await db
-              .update(funds)
-              .set({ aum: fund.aum + originalAllocation.amount })
-              .where(eq(funds.id, fund.id));
-          }
-          // If the allocation was funded before but is not anymore, subtract from AUM
-          else if (originalStatus === 'funded' && allocationUpdate.status !== 'funded') {
-            await db
-              .update(funds)
-              .set({ aum: Math.max(0, fund.aum - originalAllocation.amount) })
-              .where(eq(funds.id, fund.id));
-          }
-        }
-      }
+      // Use the FundService to recalculate and update the fund's AUM
+      // This ensures consistent AUM calculation across the application
+      const fundService = new FundService();
+      await fundService.updateFundAUM(originalAllocation.fundId);
       
       return updatedAllocation || undefined;
     } catch (error) {
