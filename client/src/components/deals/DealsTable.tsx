@@ -104,19 +104,39 @@ export default function DealsTable({ deals, onEdit, onAllocate, onUpdateStatus, 
                         </div>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="start" className="w-[180px]">
-                        {Object.entries(DealStageLabels).map(([stage, label]) => (
-                          <DropdownMenuItem 
-                            key={stage} 
-                            className="flex items-center justify-between text-xs sm:text-sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onUpdateStatus ? onUpdateStatus(deal.id, stage, deal.name) : console.log(`Changed status to ${stage}`);
-                            }}
-                          >
-                            <span>{label}</span>
-                            {stage === deal.stage && <Check className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-primary" />}
-                          </DropdownMenuItem>
-                        ))}
+                        {Object.entries(DealStageLabels)
+                          .filter(([stage, _]) => stage !== "rejected") // Filter out rejected from dropdown
+                          .map(([stage, label]) => (
+                            <DropdownMenuItem 
+                              key={stage} 
+                              className="flex items-center justify-between text-xs sm:text-sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (onUpdateStatus) {
+                                  onUpdateStatus(deal.id, stage, deal.name);
+                                } else {
+                                  console.log(`Changed status to ${stage}`);
+                                }
+                              }}
+                            >
+                              <span>{label}</span>
+                              {stage === deal.stage && <Check className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-primary" />}
+                            </DropdownMenuItem>
+                          ))}
+                        {/* Separate item for rejection that triggers the dialog */}
+                        <DropdownMenuItem 
+                          key="rejected"
+                          className="flex items-center justify-between text-xs sm:text-sm text-destructive"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (onUpdateStatus) {
+                              onUpdateStatus(deal.id, "rejected", deal.name);
+                            }
+                          }}
+                        >
+                          <span>{DealStageLabels.rejected}</span>
+                          {deal.stage === "rejected" && <Check className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-primary" />}
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
