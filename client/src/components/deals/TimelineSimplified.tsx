@@ -363,11 +363,11 @@ export default function TimelineSimplified({ dealId }: TimelineProps) {
                 <CardContent className="p-3">
                   <div className="flex justify-between items-start">
                     <div className="flex items-center gap-2">
-                      {event.user ? (
+                      {event.user && typeof event.user === 'object' ? (
                         <>
                           <UserAvatar user={event.user} size="sm" />
                           <div>
-                            <p className="font-medium text-sm">{event.user?.fullName || 'Unknown User'}</p>
+                            <p className="font-medium text-sm">{typeof event.user.fullName === 'string' ? event.user.fullName : 'Unknown User'}</p>
                             <p className="text-xs text-neutral-500">
                               {formatDistanceToNow(new Date(event.createdAt), { addSuffix: true })}
                             </p>
@@ -467,7 +467,11 @@ export default function TimelineSimplified({ dealId }: TimelineProps) {
                     <div className="mt-2">
                       <Badge variant="outline" className="bg-green-50">
                         <DollarSign className="h-3 w-3 mr-1" /> 
-                        {event.metadata.fundName || 'Fund'}: {event.metadata.amount ? event.metadata.amount : '0'} {event.metadata.amountType === 'percentage' ? '%' : '$'}
+                        {typeof event.metadata.fundName === 'string' ? event.metadata.fundName : 'Fund'}: 
+                        {typeof event.metadata.amount === 'string' || typeof event.metadata.amount === 'number' 
+                          ? event.metadata.amount 
+                          : '0'} 
+                        {event.metadata.amountType === 'percentage' ? '%' : '$'}
                       </Badge>
                     </div>
                   )}
