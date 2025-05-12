@@ -441,7 +441,7 @@ export default function TimelineSimplified({ dealId }: TimelineProps) {
                         </div>
                       ) : (
                         <div className="text-sm whitespace-pre-wrap mt-2">
-                          {event.content}
+                          {typeof event.content === 'string' ? event.content : ''}
                         </div>
                       )}
                     </>
@@ -449,7 +449,7 @@ export default function TimelineSimplified({ dealId }: TimelineProps) {
                   
                   {event.eventType !== 'note' && (
                     <div className="text-sm mt-2">
-                      {event.content}
+                      {typeof event.content === 'string' ? event.content : ''}
                     </div>
                   )}
                   
@@ -467,7 +467,7 @@ export default function TimelineSimplified({ dealId }: TimelineProps) {
                     <div className="mt-2">
                       <Badge variant="outline" className="bg-green-50">
                         <DollarSign className="h-3 w-3 mr-1" /> 
-                        {event.metadata.fundName || 'Fund'}: {event.metadata.amount} {event.metadata.amountType === 'percentage' ? '%' : '$'}
+                        {event.metadata.fundName || 'Fund'}: {event.metadata.amount ? event.metadata.amount : '0'} {event.metadata.amountType === 'percentage' ? '%' : '$'}
                       </Badge>
                     </div>
                   )}
