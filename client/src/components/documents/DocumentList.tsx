@@ -11,7 +11,7 @@ import { formatBytes } from '@/lib/utils/format';
 import EnhancedPDFViewer from './EnhancedPDFViewer';
 import EmbeddedPDFViewer from './EmbeddedPDFViewer';
 // Import react-pdf components
-import { Document as PDFDocument, Page as PDFPage } from 'react-pdf/dist/esm/entry.vite';
+import { Document as PDFDocument, Page as PDFPage } from 'react-pdf';
 // Import centralized PDF configuration
 import '@/lib/pdf-config';
 import {

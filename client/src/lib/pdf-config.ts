@@ -1,10 +1,22 @@
-// This file is kept for backward compatibility but no longer needs configuration
-// when using react-pdf/dist/esm/entry.vite which auto-configures the worker
+import { pdfjs } from 'react-pdf';
 
-// Simple no-op function to avoid breaking existing imports
+// Set the worker source URL for PDF.js
+const workerSrc = '/pdf.worker.js'; // We copy this file to public/
+
 export const configurePdfWorker = () => {
-  console.log('PDF worker auto-configured by entry.vite bundle');
+  try {
+    // Ensure we only set the worker src once
+    if (!pdfjs.GlobalWorkerOptions.workerSrc) {
+      console.log('Setting PDF worker URL to:', workerSrc);
+      pdfjs.GlobalWorkerOptions.workerSrc = workerSrc;
+    }
+  } catch (error) {
+    console.error('Failed to set PDF.js worker:', error);
+  }
 };
+
+// Call this function immediately when imported
+configurePdfWorker();
 
 // Export other PDF-related configuration and utility functions as needed
 export default {
