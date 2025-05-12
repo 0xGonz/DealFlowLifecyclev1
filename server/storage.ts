@@ -596,10 +596,13 @@ export class MemStorage implements IStorage {
     
     this.fundAllocations.set(id, newAllocation);
     
-    // Update fund AUM
-    const fund = await this.getFund(allocation.fundId);
-    if (fund) {
-      await this.updateFund(fund.id, { aum: fund.aum + allocation.amount });
+    // Update fund AUM, but only if the allocation is 'funded'
+    // Only funded allocations should count towards AUM
+    if (allocation.status === 'funded') {
+      const fund = await this.getFund(allocation.fundId);
+      if (fund) {
+        await this.updateFund(fund.id, { aum: fund.aum + allocation.amount });
+      }
     }
     
     return newAllocation;
@@ -616,6 +619,14 @@ export class MemStorage implements IStorage {
   async deleteFundAllocation(id: number): Promise<boolean> {
     const allocation = this.fundAllocations.get(id);
     if (!allocation) return false;
+    
+    // If the allocation was funded, subtract its amount from the fund's AUM
+    if (allocation.status === 'funded') {
+      const fund = await this.getFund(allocation.fundId);
+      if (fund) {
+        await this.updateFund(fund.id, { aum: Math.max(0, fund.aum - allocation.amount) });
+      }
+    }
     
     this.fundAllocations.delete(id);
     return true;
@@ -767,12 +778,31 @@ export class MemStorage implements IStorage {
     const allocation = this.fundAllocations.get(id);
     if (!allocation) return undefined;
     
+    // Store the original status to track changes
+    const originalStatus = allocation.status;
+    
     const updatedAllocation: FundAllocation = {
       ...allocation,
       ...allocationUpdate
     };
     
     this.fundAllocations.set(id, updatedAllocation);
+    
+    // If status has changed, update the fund's AUM accordingly
+    if (allocationUpdate.status && allocationUpdate.status !== originalStatus) {
+      const fund = await this.getFund(allocation.fundId);
+      if (fund) {
+        // If the allocation was not funded before but is now, add to AUM
+        if (originalStatus !== 'funded' && allocationUpdate.status === 'funded') {
+          await this.updateFund(fund.id, { aum: fund.aum + allocation.amount });
+        }
+        // If the allocation was funded before but is not anymore, subtract from AUM
+        else if (originalStatus === 'funded' && allocationUpdate.status !== 'funded') {
+          await this.updateFund(fund.id, { aum: Math.max(0, fund.aum - allocation.amount) });
+        }
+      }
+    }
+    
     return updatedAllocation;
   }
 
