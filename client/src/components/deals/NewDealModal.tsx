@@ -227,7 +227,13 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
         fileInputRef.current.value = '';
       }
       
+      // Refresh all relevant data
       queryClient.invalidateQueries({ queryKey: ['/api/deals'] }); // Refresh deals data
+      
+      // Important: Also invalidate document queries for this specific deal
+      // This ensures documents will appear immediately in the DocumentList component
+      queryClient.invalidateQueries({ queryKey: [`/api/documents/deal/${dealId}`] });
+      
       onClose(); // Close modal
     },
     onError: (error) => {
