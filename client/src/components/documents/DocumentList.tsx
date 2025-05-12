@@ -70,9 +70,16 @@ export default function DocumentList({ dealId }: DocumentListProps) {
     mutationFn: async (documentId: number) => {
       return apiRequest('DELETE', `/api/documents/${documentId}`, {});
     },
-    onSuccess: () => {
+    onSuccess: (_, deletedDocumentId) => {
+      // Clear selected document if it's the one that was deleted
+      if (selectedDocument && selectedDocument.id === deletedDocumentId) {
+        setSelectedDocument(null);
+      }
+      
+      // Invalidate queries to refresh document lists
       queryClient.invalidateQueries({ queryKey: [`/api/documents/deal/${dealId}`] });
       queryClient.invalidateQueries({ queryKey: [`/api/deals/${dealId}`] });
+      
       toast({
         title: 'Document deleted',
         description: 'The document has been successfully deleted.',
