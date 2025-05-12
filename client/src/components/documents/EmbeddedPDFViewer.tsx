@@ -19,16 +19,35 @@ export default function EmbeddedPDFViewer({ documentId, documentName }: Embedded
   const isPdfFile = documentName.toLowerCase().endsWith('.pdf') || 
                     documentName.toLowerCase().includes('pdf');
 
-  // Error handler for PDF viewer 
+  // Error handler for PDF viewer
   const handlePdfError = (error: Error) => {
     console.error('PDF viewer error:', error);
     setPdfFailed(true);
     
-    toast({
-      title: 'Document Viewer Issue',
-      description: 'PDF could not be loaded. This might be because the file is missing or corrupted. Trying alternative viewer.',
-      variant: 'destructive',
-    });
+    // Check if this is a 404 Not Found or missing file error
+    const isFileNotFound = 
+      error.message && (
+        error.message.includes('404') || 
+        error.message.includes('not found') || 
+        error.message.toLowerCase().includes('missingpdfexception')
+      );
+    
+    if (isFileNotFound) {
+      toast({
+        title: 'Document Not Found',
+        description: 'The file appears to be missing. Please try uploading it again.',
+        variant: 'destructive',
+      });
+      
+      // Suggest re-uploading via mutation (would need to implement)
+      // removeDocumentMutation.mutate(documentId);
+    } else {
+      toast({
+        title: 'Document Viewer Issue',
+        description: 'PDF could not be loaded. Trying alternative viewer.',
+        variant: 'destructive',
+      });
+    }
   };
 
   return (

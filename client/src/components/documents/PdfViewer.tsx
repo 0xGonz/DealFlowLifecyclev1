@@ -31,8 +31,30 @@ export const PdfViewer = () => {
   const onDocumentLoadError = useCallback((err: Error) => {
     console.error('Error loading PDF:', err);
     setIsLoading(false);
-    setError(err);
-  }, []);
+    
+    // Check if this is a 404 Not Found error
+    if (err.message && (
+        err.message.includes('404') || 
+        err.message.includes('not found') || 
+        err.message.toLowerCase().includes('missingpdfexception')
+      )) {
+      // Handle document not found case specifically
+      const notFoundError = new Error(
+        'The document file could not be found. It may have been deleted or not properly saved. Please try uploading it again.'
+      );
+      setError(notFoundError);
+      
+      // Remove this document from the list if it's no longer available
+      setDocs(prev => prev.filter(doc => doc.id !== current?.id));
+      
+      // Set current to null after a delay to allow user to read the error
+      setTimeout(() => {
+        setCurrent(null);
+      }, 3000);
+    } else {
+      setError(err);
+    }
+  }, [current, setDocs, setCurrent]);
 
   const goToPreviousPage = useCallback(() => {
     setPageNumber((prevPageNumber) => Math.max(prevPageNumber - 1, 1));

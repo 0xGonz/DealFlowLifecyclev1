@@ -65,14 +65,16 @@ const sanitizeFilename = (filename: string): string => {
     .toLowerCase();                  // Convert to lowercase for consistency
 };
 
-// Set up multer storage
+// Set up multer storage directly in project root (persisted in Replit)
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadDir = path.join(process.cwd(), 'public/uploads');
+    // Use process.cwd() to ensure we're in the project root directory
+    const uploadDir = path.join(process.cwd(), 'public', 'uploads');
     // Ensure the upload directory exists
     if (!fs.existsSync(uploadDir)){
       fs.mkdirSync(uploadDir, { recursive: true });
     }
+    console.log(`Storing uploaded file in: ${uploadDir}`);
     cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
@@ -80,7 +82,9 @@ const storage = multer.diskStorage({
     const uniqueId = crypto.randomUUID();
     // Sanitize the original filename before appending to UUID
     const sanitizedFilename = sanitizeFilename(file.originalname);
-    cb(null, `${uniqueId}-${sanitizedFilename}`);
+    const finalFilename = `${uniqueId}-${sanitizedFilename}`;
+    console.log(`Generated filename for upload: ${finalFilename}`);
+    cb(null, finalFilename);
   }
 });
 
@@ -203,120 +207,76 @@ router.get('/:id/download', requireAuth, async (req: Request, res: Response) => 
       // Handle stream errors
       fileStream.on('error', (err) => {
         console.error('Error streaming document:', err);
-        res.status(500).json({ message: 'Error serving document' });
+        res.status(500).json({ 
+          error: 'Stream error',
+          message: 'Error accessing the document file'
+        });
       });
       return;
     }
     
-    // If the file doesn't exist in the expected location, check for it with different paths/formats
-    // This helps handle cases where filenames have spaces or special characters
-    const alternativePaths = [
-      // Try without encodeURIComponent in the filename
-      path.join(process.cwd(), 'public/uploads', path.basename(document.filePath)),
-      // Just the filename without the UUID prefix
-      path.join(process.cwd(), 'public/uploads', document.fileName),
-      // Use our custom replacement file for document ID 9 (ISP Pest Control)
-      document.id === 9 ? path.join(process.cwd(), 'public/uploads', '68651402-9d35-4aca-b33e-3aaba36131b8-iron_skillet_pest_fund_presentation_2025-05[1].pdf') : null,
-      // General fallback to sample file for any PDF
-      document.fileName.toLowerCase().endsWith('.pdf') ? path.join(process.cwd(), 'public/uploads', 'sample-upload.pdf') : null
-    ].filter(Boolean); // Remove null entries
+    // If the file doesn't exist in the expected location, check for it in the uploads directory directly
+    // This is a simpler approach than before and avoids special-casing specific documents
+    const uploadsDir = path.join(process.cwd(), 'public/uploads');
     
-    // Try each alternative path
-    let foundFile = false;
-    for (const altPath of alternativePaths) {
-      // Skip null paths
-      if (!altPath) continue;
+    console.log(`Document not found at expected path: ${actualFilePath}`);
+    console.log(`Looking for documents containing the filename "${document.fileName}" in ${uploadsDir}`);
+    
+    try {
+      // List files in uploads directory
+      const files = fs.readdirSync(uploadsDir);
       
-      if (fs.existsSync(altPath) && !foundFile) {
-        foundFile = true;
-        console.log(`Serving file from alternative location: ${altPath}`);
-        const fileStream = fs.createReadStream(altPath);
+      // Look for files that might match by containing the original filename
+      // This handles cases where filename got mangled but is still recognizable
+      const possibleMatches = files.filter(file => {
+        // Check if this file contains the document filename (case insensitive)
+        const docNameLower = document.fileName.toLowerCase();
+        const fileLower = file.toLowerCase();
+        
+        // Check for exact match first
+        if (fileLower === docNameLower) return true;
+        
+        // Look for UUID pattern followed by the filename
+        const uuidPattern = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
+        if (fileLower.replace(uuidPattern, '').includes(docNameLower)) return true;
+        
+        // Look for files with sanitized version of the name
+        const sanitizedName = sanitizeFilename(document.fileName);
+        if (fileLower.includes(sanitizedName)) return true;
+        
+        return false;
+      });
+      
+      console.log(`Found ${possibleMatches.length} potential matching files`);
+      
+      // If we found possible matches, try serving the first one
+      if (possibleMatches.length > 0) {
+        const matchPath = path.join(uploadsDir, possibleMatches[0]);
+        console.log(`Serving document from matched file: ${matchPath}`);
+        
+        const fileStream = fs.createReadStream(matchPath);
+        fileStream.pipe(res);
         
         // Handle stream errors
         fileStream.on('error', (err) => {
-          console.error('Error streaming document from alternative path:', err);
-          foundFile = false;
-          // Continue to next path on error instead of returning error response
-          return;
+          console.error('Error streaming document from matched file:', err);
+          res.status(500).json({ 
+            error: 'Stream error',
+            message: 'Error accessing the matched document file'
+          });
         });
-        
-        fileStream.pipe(res);
         return;
       }
+    } catch (err) {
+      console.error('Error searching uploads directory:', err);
     }
     
-    // Still no file found - for PDF viewer, it's better to serve a minimal valid PDF
-    // than an HTML error page, which causes MissingPDFException in the viewer
-    if (document.fileType === 'application/pdf' || document.fileName.toLowerCase().endsWith('.pdf')) {
-      console.log(`No PDF file found for: ${document.fileName}. Serving minimal valid PDF.`);
-      
-      // Create a minimal valid PDF on the fly
-      const minimalPdf = `%PDF-1.4
-1 0 obj
-<</Type /Catalog /Pages 2 0 R>>
-endobj
-2 0 obj
-<</Type /Pages /Kids [3 0 R] /Count 1>>
-endobj
-3 0 obj
-<</Type /Page /Parent 2 0 R /Resources 4 0 R /MediaBox [0 0 612 792] /Contents 6 0 R>>
-endobj
-4 0 obj
-<</Font <</F1 5 0 R>>>>
-endobj
-5 0 obj
-<</Type /Font /Subtype /Type1 /BaseFont /Helvetica>>
-endobj
-6 0 obj
-<</Length 191>>
-stream
-BT
-/F1 24 Tf
-50 700 Td
-(Document Unavailable) Tj
-/F1 16 Tf
-0 -50 Td
-(The document "${document.fileName}" could not be found.) Tj
-0 -30 Td
-(Please contact the administrator or re-upload the file.) Tj
-ET
-endstream
-endobj
-xref
-0 7
-0000000000 65535 f
-0000000009 00000 n
-0000000056 00000 n
-0000000111 00000 n
-0000000212 00000 n
-0000000251 00000 n
-0000000317 00000 n
-trailer
-<</Size 7 /Root 1 0 R>>
-startxref
-513
-%%EOF`;
-      
-      // Send the minimal PDF
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `inline; filename="placeholder-${document.fileName}"`);
-      res.status(200).send(minimalPdf);
-      return;
-    }
-    
-    // For non-PDF files, show HTML error page
-    console.log(`No file found for: ${document.fileName} at ${document.filePath}. Showing error message.`);
-    res.status(404).send(`<html><body style="font-family: Arial, sans-serif; text-align: center; margin: 50px;">
-      <h1 style="color: #d32f2f;">Document Not Found</h1>
-      <p>The document "${document.fileName}" could not be found on the server.</p>
-      <p>This may happen when:</p>
-      <ul style="text-align: left; width: 400px; margin: 0 auto;">
-        <li>The file has been deleted from the server</li>
-        <li>The file was uploaded but not properly saved</li>
-        <li>The file path in the database is incorrect</li>
-      </ul>
-      <p style="margin-top: 20px;">Please upload the document again or contact support if this issue persists.</p>
-    </body></html>`);
+    // No file found - return a clean 404 error
+    console.log(`No file found for: ${document.fileName} at ${document.filePath}. Returning 404.`);
+    return res.status(404).json({ 
+      error: 'File not found',
+      message: 'The requested document file could not be found on the server. Please re-upload the document.' 
+    });
 
   } catch (error) {
     console.error('Error downloading document:', error);
@@ -418,13 +378,27 @@ router.post('/upload', requireAuth, (req: Request, res: Response, next: NextFunc
     }
     
     // Use file information from multer
-    const fileName = sanitizeFilename(req.file.originalname);
+    const fileName = req.file.originalname; // Keep original filename for display
     const fileType = req.file.mimetype;
     const fileSize = req.file.size;
     
-    // The file path is now controlled by multer and sanitized
-    // The file is saved to public/uploads/<uniqueId>-<sanitizedFilename>
+    // Construct a consistent relative path from the project root
+    // This path will be used later to locate the file for download
+    // Store the path relative to /public so it works regardless of server restarts
     const filePath = `/uploads/${path.basename(req.file.path)}`;
+    
+    console.log(`Saving document with filePath: ${filePath}`);
+    console.log(`Original file saved at: ${req.file.path}`);
+    
+    // Verify the file exists on disk before saving to database
+    const actualFilePath = path.join(process.cwd(), 'public', filePath);
+    if (!fs.existsSync(actualFilePath)) {
+      console.error(`WARNING: File does not exist at ${actualFilePath} after upload`);
+      return res.status(500).json({
+        error: 'Upload failed',
+        message: 'File was not properly saved to disk. Please try again.'
+      });
+    }
     
     const documentData = {
       dealId: dealIdNum,
