@@ -7,6 +7,7 @@ import DealsTable from "@/components/deals/DealsTable";
 import NewDealModal from "@/components/deals/NewDealModal";
 import EditDealModal from "@/components/deals/EditDealModal";
 import AllocateFundModal from "@/components/deals/AllocateFundModal";
+import RejectionDialog from "@/components/deals/RejectionDialog";
 import PipelineStats from "@/components/pipeline/PipelineStats";
 import StageDistribution from "@/components/pipeline/StageDistribution";
 import SectorDistribution from "@/components/pipeline/SectorDistribution";
@@ -44,6 +45,9 @@ export default function Pipeline() {
   const [searchTerm, setSearchTerm] = useState("");
   const [dateFilter, setDateFilter] = useState("all");
   const [returnFilter, setReturnFilter] = useState("all");
+  const [showRejectionDialog, setShowRejectionDialog] = useState(false);
+  const [pendingRejectionDealId, setPendingRejectionDealId] = useState<number | null>(null);
+  const [pendingRejectionDealName, setPendingRejectionDealName] = useState("");
   const { toast } = useToast();
   const [, navigate] = useLocation();
 
@@ -77,8 +81,17 @@ export default function Pipeline() {
   
   // Mutation for updating deal status
   const updateDealStatusMutation = useMutation({
-    mutationFn: async ({ dealId, stage }: { dealId: number; stage: string }) => {
-      const response = await apiRequest("PATCH", `/api/deals/${dealId}`, { stage });
+    mutationFn: async ({ 
+      dealId, 
+      stage, 
+      rejectionReason 
+    }: { 
+      dealId: number; 
+      stage: string; 
+      rejectionReason?: string 
+    }) => {
+      const payload = rejectionReason ? { stage, rejectionReason } : { stage };
+      const response = await apiRequest("PATCH", `/api/deals/${dealId}`, payload);
       // If response is empty, get the full deal data
       if (!response || Object.keys(response).length === 0) {
         return apiRequest("GET", `/api/deals/${dealId}`);
@@ -375,8 +388,14 @@ export default function Pipeline() {
                       setSelectedDealName(dealName);
                       setIsAllocateFundModalOpen(true);
                     }}
-                    onUpdateStatus={(dealId, stage) => {
-                      updateDealStatusMutation.mutate({ dealId, stage });
+                    onUpdateStatus={(dealId, stage, dealName) => {
+                      if (stage === "rejected") {
+                        setPendingRejectionDealId(dealId);
+                        setPendingRejectionDealName(dealName || "");
+                        setShowRejectionDialog(true);
+                      } else {
+                        updateDealStatusMutation.mutate({ dealId, stage });
+                      }
                     }}
                     onViewDocuments={(dealId) => {
                       navigate(`/deals/${dealId}?tab=documents`);
@@ -446,6 +465,24 @@ export default function Pipeline() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+        
+        {/* Rejection Dialog */}
+        <RejectionDialog
+          isOpen={showRejectionDialog}
+          onOpenChange={setShowRejectionDialog}
+          dealName={pendingRejectionDealName}
+          onConfirm={(reason) => {
+            if (pendingRejectionDealId) {
+              updateDealStatusMutation.mutate({ 
+                dealId: pendingRejectionDealId, 
+                stage: "rejected", 
+                rejectionReason: reason 
+              });
+              setPendingRejectionDealId(null);
+              setPendingRejectionDealName("");
+            }
+          }}
+        />
       </div>
     </AppLayout>
   );

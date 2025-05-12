@@ -20,7 +20,7 @@ type DealsTableProps = {
   deals: Deal[] | undefined;
   onEdit: (dealId: number) => void;
   onAllocate: (dealId: number, dealName: string) => void;
-  onUpdateStatus?: (dealId: number, newStatus: string) => void;
+  onUpdateStatus?: (dealId: number, newStatus: string, dealName?: string) => void;
   onViewDocuments?: (dealId: number) => void;
   onDelete?: (dealId: number, dealName: string) => void;
   isLoading: boolean;
@@ -110,7 +110,7 @@ export default function DealsTable({ deals, onEdit, onAllocate, onUpdateStatus, 
                             className="flex items-center justify-between text-xs sm:text-sm"
                             onClick={(e) => {
                               e.stopPropagation();
-                              onUpdateStatus ? onUpdateStatus(deal.id, stage) : console.log(`Changed status to ${stage}`);
+                              onUpdateStatus ? onUpdateStatus(deal.id, stage, deal.name) : console.log(`Changed status to ${stage}`);
                             }}
                           >
                             <span>{label}</span>
