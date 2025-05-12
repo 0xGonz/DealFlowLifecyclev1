@@ -3,7 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useRoute, useLocation } from "wouter";
 import { usePermissions } from "@/hooks/use-permissions";
 import AppLayout from "@/components/layout/AppLayout";
-import Timeline from "@/components/deals/Timeline";
+import TimelineSimplified from "@/components/deals/TimelineSimplified";
 import EditDealModal from "@/components/deals/EditDealModal";
 import AssignUserModal from "@/components/deals/AssignUserModal";
 import AllocateFundModal from "@/components/deals/AllocateFundModal";
@@ -626,7 +626,7 @@ export default function DealDetail() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <Timeline dealId={deal?.id} />
+                    <TimelineSimplified dealId={deal?.id} />
                   </CardContent>
                 </Card>
               </div>

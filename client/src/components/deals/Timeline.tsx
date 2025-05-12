@@ -101,9 +101,8 @@ export default function Timeline({ dealId }: TimelineProps) {
   const [editContent, setEditContent] = useState("");
   const [eventToDelete, setEventToDelete] = useState<number | null>(null);
   
-  // State for filtering and view options
+  // State for filtering and view options (simplified)
   const [activeTab, setActiveTab] = useState<'all' | 'notes' | 'documents' | 'stages'>('all');
-  const [expandedFilters, setExpandedFilters] = useState(false);
   const [filters, setFilters] = useState<FilterOptions>({
     eventTypes: ['note', 'stage_change', 'document_upload', 'memo_added', 'star_added', 'ai_analysis', 'fund_allocation'],
     dateRange: 'all',
@@ -118,27 +117,18 @@ export default function Timeline({ dealId }: TimelineProps) {
     queryKey: [`/api/deals/${dealId}/timeline`],
     enabled: !!dealId,
   });
-  
-  // Fetch users for filtering
-  const { data: usersData = [] } = useQuery<any[]>({
-    queryKey: ["/api/users"],
-  });
 
   // Filter and process timeline data
   const filteredTimelineData = timelineData
     .filter(event => {
-      // Filter by event type
-      if (!filters.eventTypes.includes(event.eventType)) return false;
-      
-      // Filter by user if specified
-      if (filters.userFilter && event.createdBy !== filters.userFilter) return false;
-      
       // Filter by date range
       const eventDate = new Date(event.createdAt);
       const today = new Date();
-      const todayStart = new Date(today.setHours(0, 0, 0, 0));
       
-      if (filters.dateRange === 'today' && eventDate < todayStart) return false;
+      if (filters.dateRange === 'today') {
+        const todayStart = new Date(today.setHours(0, 0, 0, 0));
+        if (eventDate < todayStart) return false;
+      }
       
       if (filters.dateRange === 'week') {
         const weekStart = new Date(today);
@@ -161,27 +151,10 @@ export default function Timeline({ dealId }: TimelineProps) {
     })
     // Sort by date descending (newest first)
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  
-  // Function to toggle event type filter
-  const toggleEventTypeFilter = (eventType: EventType) => {
-    setFilters(prev => {
-      const currentFilters = [...prev.eventTypes];
-      if (currentFilters.includes(eventType)) {
-        return { ...prev, eventTypes: currentFilters.filter(type => type !== eventType) };
-      } else {
-        return { ...prev, eventTypes: [...currentFilters, eventType] };
-      }
-    });
-  };
 
   // Function to set date range filter
   const setDateRangeFilter = (range: FilterOptions['dateRange']) => {
     setFilters(prev => ({ ...prev, dateRange: range }));
-  };
-
-  // Function to set user filter
-  const setUserFilter = (userId: number | null) => {
-    setFilters(prev => ({ ...prev, userFilter: userId }));
   };
 
   const addNoteMutation = useMutation({
