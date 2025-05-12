@@ -26,14 +26,25 @@ export const Sidebar = ({ dealId }: { dealId: number }) => {
     mutationFn: async (file: File) => {
       const formData = new FormData();
       formData.append('file', file);
+      formData.append('dealId', dealId.toString());
+      formData.append('documentType', 'document'); // Default document type
       
-      const response = await fetch(`/api/documents/deal/${dealId}/upload`, {
+      const response = await fetch(`/api/documents/upload`, {
         method: 'POST',
         body: formData,
       });
       
       if (!response.ok) {
-        throw new Error('Failed to upload document');
+        // Try to get more specific error message from the server
+        const errorData = await response.json().catch(() => null);
+        
+        if (errorData && errorData.message) {
+          throw new Error(errorData.message);
+        } else if (errorData && errorData.error) {
+          throw new Error(errorData.error);
+        } else {
+          throw new Error(`Failed to upload document (${response.status})`);
+        }
       }
       
       return await response.json();
