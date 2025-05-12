@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDF Viewer Test</title>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    h1 {
+      color: #d32f2f;
+      margin-bottom: 20px;
+    }
+    #pdf-container {
+      border: 1px solid #ddd;
+      width: 100%;
+      max-width: 800px;
+      height: 800px;
+      overflow: auto;
+    }
+    canvas {
+      width: 100%;
+    }
+    .controls {
+      margin: 20px 0;
+      display: flex;
+      gap: 10px;
+    }
+    button {
+      padding: 8px 12px;
+      background-color: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #1565c0;
+    }
+    .status {
+      margin-top: 10px;
+      padding: 10px;
+      background-color: #f5f5f5;
+      border-radius: 4px;
+      width: 100%;
+      max-width: 800px;
+    }
+  </style>
+</head>
+<body>
+  <h1>PDF Viewer Test</h1>
+  
+  <div class="controls">
+    <button id="loadSample">Load Sample PDF</button>
+    <button id="loadIronSkillet">Load Iron Skillet PDF</button>
+    <button id="loadMinimal">Load Minimal PDF</button>
+  </div>
+  
+  <div id="pdf-container"></div>
+  
+  <div class="status" id="status">Status: Ready</div>
+  
+  <script>
+    // Initialize the PDF.js worker
+    pdfjsLib.GlobalWorkerOptions.workerSrc = '//cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+    
+    // Function to load and render a PDF
+    async function loadPDF(url) {
+      const container = document.getElementById('pdf-container');
+      const status = document.getElementById('status');
+      
+      // Clear previous content
+      container.innerHTML = '';
+      
+      try {
+        status.textContent = `Status: Loading ${url}...`;
+        
+        // Load the PDF document
+        const loadingTask = pdfjsLib.getDocument(url);
+        const pdf = await loadingTask.promise;
+        
+        status.textContent = `Status: PDF loaded successfully. ${pdf.numPages} pages.`;
+        
+        // Render the first page
+        const page = await pdf.getPage(1);
+        const viewport = page.getViewport({ scale: 1.5 });
+        
+        // Prepare canvas
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+        
+        container.appendChild(canvas);
+        
+        // Render PDF page into canvas context
+        const renderContext = {
+          canvasContext: context,
+          viewport: viewport
+        };
+        
+        await page.render(renderContext).promise;
+        
+        status.textContent = `Status: Page 1 rendered successfully.`;
+      } catch (error) {
+        console.error('Error loading PDF:', error);
+        status.textContent = `Status: Error - ${error.message}`;
+        container.innerHTML = `<div style="padding: 20px; color: red;">Error loading PDF: ${error.message}</div>`;
+      }
+    }
+    
+    // Event listeners for buttons
+    document.getElementById('loadSample').addEventListener('click', () => {
+      loadPDF('/uploads/sample-upload.pdf');
+    });
+    
+    document.getElementById('loadIronSkillet').addEventListener('click', () => {
+      loadPDF('/uploads/68651402-9d35-4aca-b33e-3aaba36131b8-iron_skillet_pest_fund_presentation_2025-05[1].pdf');
+    });
+    
+    document.getElementById('loadMinimal').addEventListener('click', () => {
+      // Create a minimal PDF on the fly
+      const minimalPdf = `%PDF-1.4
+1 0 obj
+<</Type /Catalog /Pages 2 0 R>>
+endobj
+2 0 obj
+<</Type /Pages /Kids [3 0 R] /Count 1>>
+endobj
+3 0 obj
+<</Type /Page /Parent 2 0 R /Resources 4 0 R /MediaBox [0 0 612 792] /Contents 6 0 R>>
+endobj
+4 0 obj
+<</Font <</F1 5 0 R>>>>
+endobj
+5 0 obj
+<</Type /Font /Subtype /Type1 /BaseFont /Helvetica>>
+endobj
+6 0 obj
+<</Length 191>>
+stream
+BT
+/F1 24 Tf
+50 700 Td
+(Minimal Test PDF) Tj
+/F1 16 Tf
+0 -50 Td
+(This is a minimal PDF generated on the fly.) Tj
+0 -30 Td
+(It should render correctly in the PDF.js viewer.) Tj
+ET
+endstream
+endobj
+xref
+0 7
+0000000000 65535 f
+0000000009 00000 n
+0000000056 00000 n
+0000000111 00000 n
+0000000212 00000 n
+0000000251 00000 n
+0000000317 00000 n
+trailer
+<</Size 7 /Root 1 0 R>>
+startxref
+513
+%%EOF`;
+      
+      // Convert the string to a Uint8Array
+      const uint8Array = new TextEncoder().encode(minimalPdf);
+      
+      // Create a Blob
+      const blob = new Blob([uint8Array], { type: 'application/pdf' });
+      
+      // Create a URL for the Blob
+      const url = URL.createObjectURL(blob);
+      
+      // Load the PDF from the Blob URL
+      loadPDF(url);
+    });
+  </script>
+</body>
+</html>

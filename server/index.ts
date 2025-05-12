@@ -20,143 +20,168 @@ import { initJobQueues } from "./jobs";
 import { metricsMiddleware } from "./middleware/metrics";
 import { LoggingService } from "./services";
 
-const app = express();
-app.use(express.json({ limit: "1mb" }));
-app.use(express.urlencoded({ extended: false, limit: "1mb" }));
+// Main async function to allow using await
+async function initialize() {
+  const app = express();
+  app.use(express.json({ limit: "1mb" }));
+  app.use(express.urlencoded({ extended: false, limit: "1mb" }));
 
-// ─── SESSION CONFIGURATION - SINGLE POINT OF TRUTH ─────────────────────────
-// Initialize the StorageFactory to use the hybrid storage implementation
-const storage = StorageFactory.getStorage();
+  // ─── SESSION CONFIGURATION - SINGLE POINT OF TRUTH ─────────────────────────
+  // Initialize the StorageFactory to use the hybrid storage implementation
+  const storage = StorageFactory.getStorage();
 
-// Create the appropriate session store classes
-const PgSession = connectPgSimple(session);
-
-// Always use PostgreSQL for sessions in production to ensure consistency
-// Memory sessions should only be used for development or testing
-const isProd = process.env.NODE_ENV === 'production';
-const forceUseMemory = process.env.USE_MEMORY_SESSIONS === "true";
-
-// Default to PostgreSQL in production, regardless of USE_MEMORY_SESSIONS setting
-// This prevents accidental session store switching in production
-let sessionStore;
-
-if (isProd || !forceUseMemory) {
-  // Use PostgreSQL in production or when not explicitly using memory
-  try {
-    sessionStore = new PgSession({ 
-      pool, 
-      tableName: "session",
-      createTableIfMissing: true,
-      pruneSessionInterval: 60 // Prune expired sessions every 60 seconds
-    });
-    console.log("▶ Using PgSession for sessions (PostgreSQL)");
-  } catch (error) {
-    console.error("Failed to create PostgreSQL session store:", error);
-    if (isProd) {
-      throw new Error("Cannot run in production without PostgreSQL session store");
-    } else {
-      // Fallback to memory store only in dev mode
-      const MemoryStore = memorystore(session);
-      sessionStore = new MemoryStore({ checkPeriod: 86400000 }); // 24 hours
-      console.log("▶ Fallback to MemoryStore for sessions due to PostgreSQL error");
-    }
-  }
-} else {
-  // Explicit request for memory store in non-production
+  // Create the appropriate session store classes
+  const PgSession = connectPgSimple(session);
   const MemoryStore = memorystore(session);
-  sessionStore = new MemoryStore({ checkPeriod: 86400000 }); // 24 hours
-  console.log("▶ Using MemoryStore for sessions (explicitly requested)");
-}
 
-// Debug the session store to verify it remains consistent
-console.log("⏱️  Session store is", sessionStore.constructor.name);
+  // Always use PostgreSQL for sessions in production to ensure consistency
+  // Memory sessions should only be used for development or testing
+  const isProd = process.env.NODE_ENV === 'production';
+  const forceUseMemory = process.env.USE_MEMORY_SESSIONS === "true";
 
-// Add metrics middleware to track request metrics
-app.use(metricsMiddleware());
+  // Default to PostgreSQL in production, regardless of USE_MEMORY_SESSIONS setting
+  // This prevents accidental session store switching in production
+  let sessionStore;
 
-// Configure CORS to allow cross-origin requests for development/embedding
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
-  }
-  next();
-});
-
-// Configure the session middleware
-app.set('trust proxy', 1); // Trust first proxy for secure cookies behind a proxy
-
-// Apply session middleware with a fixed store chosen at startup
-app.use(
-  session({
-    store: sessionStore,
-    secret: process.env.SESSION_SECRET || "dlf-dev-secret",
-    name: "dlf.sid",
-    resave: false,
-    saveUninitialized: false,
-    rolling: true,
-    cookie: {
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      httpOnly: true,
-      maxAge: 7 * 24 * 60 * 60 * 1000,        // 7 days
-    },
-  })
-);
-
-// Session debug middleware with more detailed output
-app.use((req, res, next) => {
-  if (req.path.startsWith('/api/auth')) {
-    console.log(`Session debug [${req.method} ${req.path}]: sessionID=${req.sessionID?.substring(0, 8)}..., hasSession=${!!req.session}, userId=${req.session?.userId || 'none'}, headers=${JSON.stringify(req.headers['cookie']?.substring(0, 20) || 'none')}`);
-  }
-  next();
-});
-
-app.use((req, res, next) => {
-  const start = Date.now();
-  const reqPath = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
-
-  const originalResJson = res.json;
-  res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
-    return originalResJson.apply(res, [bodyJson, ...args]);
+  // Function to create memory store with consistent settings
+  const createMemoryStore = () => {
+    return new MemoryStore({ 
+      checkPeriod: 86400000,  // 24 hours
+      stale: true             // Remove stale entries
+    });
   };
 
-  res.on("finish", () => {
-    const duration = Date.now() - start;
-    if (reqPath.startsWith("/api")) {
-      let logLine = `${req.method} ${reqPath} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
-      }
+  // For testing in Replit, we might see database connection issues
+  // Let's add a more robust approach for testing environments
+  let isDbHealthy = true;
 
-      if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + "…";
-      }
+  // Test database connection first with a simple query with short timeout
+  try {
+    // Perform a quick check to see if database is responsive
+    const testResult = await new Promise((resolve, reject) => {
+      const testTimeout = setTimeout(() => {
+        isDbHealthy = false;
+        reject(new Error("Database connection test timed out after 2 seconds"));
+      }, 2000);
+      
+      pool.query('SELECT 1 AS test')
+        .then(result => {
+          clearTimeout(testTimeout);
+          isDbHealthy = true;
+          resolve(result);
+        })
+        .catch(err => {
+          clearTimeout(testTimeout);
+          isDbHealthy = false;
+          reject(err);
+        });
+    });
+    
+    console.log("Database connectivity check passed");
+  } catch (error: any) {
+    console.error("Database connectivity check failed:", error.message);
+    isDbHealthy = false;
+  }
 
-      log(logLine);
+  // Choose session store based on environment and database health
+  if ((isProd || !forceUseMemory) && isDbHealthy) {
+    // Use PostgreSQL in production or when not explicitly using memory
+    try {
+      sessionStore = new PgSession({ 
+        pool, 
+        tableName: "session",
+        createTableIfMissing: true,
+        pruneSessionInterval: 60, // Prune expired sessions every 60 seconds
+        // Add error handling to be more resilient
+        errorLog: (err) => console.error("PgSession error:", err)
+      });
+      console.log("▶ Using PgSession for sessions (PostgreSQL)");
+    } catch (error) {
+      console.error("Failed to create PostgreSQL session store:", error);
+      if (isProd) {
+        throw new Error("Cannot run in production without PostgreSQL session store");
+      } else {
+        // Fallback to memory store only in dev mode
+        sessionStore = createMemoryStore();
+        console.log("▶ Fallback to MemoryStore for sessions due to PostgreSQL error");
+      }
     }
+  } else {
+    // Use memory store due to explicit request or database health issues
+    sessionStore = createMemoryStore();
+    
+    if (forceUseMemory) {
+      console.log("▶ Using MemoryStore for sessions (explicitly requested)");
+    } else {
+      console.log("▶ Using MemoryStore for sessions (database health check failed)");
+    }
+  }
+
+  // Debug the session store to verify it remains consistent
+  console.log("⏱️  Session store is", sessionStore.constructor.name);
+
+  // Add metrics middleware to track request metrics
+  app.use(metricsMiddleware());
+
+  // Configure CORS to allow cross-origin requests for development/embedding
+  app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+    
+    if (req.method === 'OPTIONS') {
+      return res.sendStatus(200);
+    }
+    next();
   });
 
-  next();
-});
+  // Configure the session middleware
+  app.set('trust proxy', 1); // Trust first proxy for secure cookies behind a proxy
 
-// Ensure the uploads directory exists
-const uploadDir = path.join(process.cwd(), 'public/uploads');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-  console.log('Created uploads directory:', uploadDir);
-}
+  // Apply session middleware with a fixed store chosen at startup
+  app.use(
+    session({
+      store: sessionStore,
+      secret: process.env.SESSION_SECRET || "dlf-dev-secret",
+      name: "dlf.sid",
+      resave: false,
+      saveUninitialized: false,
+      rolling: true,
+      cookie: {
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        httpOnly: true,
+        secure: isProd, // Only set secure cookies in production
+        sameSite: 'lax',
+      },
+    })
+  );
 
-(async () => {
-  console.log('Initializing database connection...');
-  // Database is already initialized, and we're using it for session storage
-  
+  // Debug session usage on specific requests to help understand session issues
+  app.use((req, res, next) => {
+    // Only log for auth-related endpoints to avoid excessive logging
+    if (req.path.startsWith('/api/auth')) {
+      const sessionID = req.sessionID?.substring(0, 10) + '...';
+      const hasSession = !!req.session;
+      const userId = req.session?.userId;
+      const sessionCookies = req.headers.cookie || '';
+      console.log(`Session debug [${req.method} ${req.path}]: sessionID=${sessionID}, hasSession=${hasSession}, userId=${userId}, headers="${sessionCookies.substring(0, 25)}"`);
+      
+      if (req.path === '/api/auth/me') {
+        console.log('Session cookies:', req.headers.cookie);
+        console.log('Session object:', req.session);
+      }
+    }
+    next();
+  });
+
+  // Ensure the uploads directory exists
+  const uploadDir = path.join(process.cwd(), 'public/uploads');
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+    console.log('Created uploads directory:', uploadDir);
+  }
+
   // Initialize background job queues
   try {
     initJobQueues();
@@ -190,4 +215,10 @@ if (!fs.existsSync(uploadDir)) {
   }, () => {
     log(`serving on port ${port}`);
   });
-})();
+}
+
+// Execute the main function
+initialize().catch(error => {
+  console.error('Failed to initialize application:', error);
+  process.exit(1);
+});
