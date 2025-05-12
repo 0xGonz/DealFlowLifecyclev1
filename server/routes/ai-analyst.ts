@@ -1,175 +1,117 @@
-import { Router, Request, Response } from "express";
-import { StorageFactory } from "../storage-factory";
-import { z } from "zod";
-import { insertAiAnalysisSchema } from "@shared/schema";
-import { OpenAiService } from "../utils/openai-service";
-import { requireAuth, requireRole } from "../utils/auth";
-
-const storage = StorageFactory.getStorage();
+import { Router } from 'express';
+import { z } from 'zod';
+import { StorageFactory } from '../storage-factory';
+import { AppError } from '../utils/errorHandlers';
+import { requireRole } from '../utils/auth';
+import { insertAiAnalysisSchema } from '@shared/schema';
 
 const router = Router();
 
-// Add authentication middleware
-router.use(requireRole(['admin', 'partner', 'analyst']));
-
-// Get AI analysis for a deal
-router.get("/:dealId", async (req: Request, res: Response) => {
+// Get AI analysis for a specific deal
+router.get('/:dealId', async (req, res, next) => {
   try {
     const dealId = parseInt(req.params.dealId);
     if (isNaN(dealId)) {
-      return res.status(400).json({ error: "Invalid deal ID" });
+      throw new AppError('Invalid deal ID', 400);
     }
 
+    const storage = StorageFactory.getStorage();
     const analysis = await storage.getAiAnalysisByDeal(dealId);
     if (!analysis) {
-      return res.status(404).json({ error: "No AI analysis found for this deal" });
+      return res.status(404).json({ message: 'No AI analysis found for this deal' });
     }
 
-    return res.json(analysis);
+    res.json(analysis);
   } catch (error) {
-    console.error("Error fetching AI analysis:", error);
-    return res.status(500).json({ error: "Failed to fetch AI analysis" });
+    next(error);
   }
 });
 
-// Create or update AI analysis for a deal
-router.post("/:dealId", async (req: Request, res: Response) => {
+// Get specific AI analysis by its ID
+router.get('/by-id/:id', async (req, res, next) => {
   try {
-    const dealId = parseInt(req.params.dealId);
-    if (isNaN(dealId)) {
-      return res.status(400).json({ error: "Invalid deal ID" });
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      throw new AppError('Invalid analysis ID', 400);
     }
 
-    // First check if the deal exists
-    const deal = await storage.getDeal(dealId);
-    if (!deal) {
-      return res.status(404).json({ error: "Deal not found" });
+    const storage = StorageFactory.getStorage();
+    const analysis = await storage.getAiAnalysis(id);
+    if (!analysis) {
+      return res.status(404).json({ message: 'AI analysis not found' });
     }
 
-    // Validate request body
-    const validationSchema = insertAiAnalysisSchema.extend({
-      // Additional runtime validation can be added here if needed
-    });
-
-    try {
-      const analysisData = validationSchema.parse({
-        ...req.body,
-        dealId,
-        createdBy: (req as any).user.id
-      });
-
-      // Check if analysis already exists
-      const existingAnalysis = await storage.getAiAnalysisByDeal(dealId);
-      if (existingAnalysis) {
-        // Delete old analysis
-        await storage.deleteAiAnalysis(existingAnalysis.id);
-      }
-
-      // Create new analysis
-      const newAnalysis = await storage.createAiAnalysis(analysisData);
-
-      // Add a timeline event for the analysis
-      await storage.createTimelineEvent({
-        dealId,
-        eventType: 'ai_analysis',
-        content: `AI analysis ${existingAnalysis ? 'updated' : 'created'} for this deal`,
-        createdBy: (req as any).user.id,
-        metadata: { analysisId: [newAnalysis.id] }
-      });
-
-      return res.status(201).json(newAnalysis);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: "Invalid data format", details: error.errors });
-      }
-      throw error;
-    }
+    res.json(analysis);
   } catch (error) {
-    console.error("Error creating AI analysis:", error);
-    return res.status(500).json({ error: "Failed to create AI analysis" });
+    next(error);
   }
 });
 
-// Ask the AI a question about a deal
-router.post("/:dealId/ask", async (req: Request, res: Response) => {
+// Generate AI analysis for a deal
+router.post('/:dealId/generate', requireRole(['admin', 'partner']), async (req, res, next) => {
   try {
     const dealId = parseInt(req.params.dealId);
     if (isNaN(dealId)) {
-      return res.status(400).json({ error: "Invalid deal ID" });
+      throw new AppError('Invalid deal ID', 400);
     }
 
-    // Validate request body
-    const questionSchema = z.object({
-      question: z.string().min(1).max(1000)
-    });
-
-    try {
-      const { question } = questionSchema.parse(req.body);
-
-      // Check if deal exists
-      const deal = await storage.getDeal(dealId);
-      if (!deal) {
-        return res.status(404).json({ error: "Deal not found" });
-      }
-
-      // Get related documents for the deal
-      const documents = await storage.getDocumentsByDeal(dealId);
-      
-      // Memos are not currently implemented, so we'll pass an empty array
-      const memos: any[] = [];
-
-      // Call the OpenAI service to answer the question
-      const aiResponse = await OpenAiService.answerQuestion(
-        question,
-        deal,
-        documents,
-        memos
-      );
-
-      return res.json(aiResponse);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: "Invalid data format", details: error.errors });
-      }
-      throw error;
-    }
-  } catch (error) {
-    console.error("Error processing AI question:", error);
-    return res.status(500).json({ error: "Failed to process question" });
-  }
-});
-
-// Generate AI insights for a deal
-router.post("/:dealId/insights", async (req: Request, res: Response) => {
-  try {
-    const dealId = parseInt(req.params.dealId);
-    if (isNaN(dealId)) {
-      return res.status(400).json({ error: "Invalid deal ID" });
-    }
-
-    // Check if deal exists
-    const deal = await storage.getDeal(dealId);
-    if (!deal) {
-      return res.status(404).json({ error: "Deal not found" });
-    }
-
-    // Get related documents for the deal
-    const documents = await storage.getDocumentsByDeal(dealId);
+    const storage = StorageFactory.getStorage();
     
-    // Memos are not currently implemented, so we'll pass an empty array
-    const memos: any[] = [];
+    // Check if the deal exists
+    const deal = await storage.getDeal(dealId);
+    if (!deal) {
+      throw new AppError('Deal not found', 404);
+    }
 
-    // Use OpenAI service to generate insights
-    const insights = await OpenAiService.generateInsights(
-      deal,
-      documents,
-      memos
-    );
+    // Check if an analysis already exists for this deal
+    const existingAnalysis = await storage.getAiAnalysisByDeal(dealId);
+    if (existingAnalysis) {
+      // If it exists, first delete it
+      await storage.deleteAiAnalysis(existingAnalysis.id);
+    }
 
-    return res.json(insights);
+    // In a real application, this would connect to an AI service
+    // For now, we'll create a mock analysis with sample data
+    const newAnalysis = await storage.createAiAnalysis({
+      dealId,
+      createdBy: req.user.id,
+      summary: `This is an AI-generated analysis for ${deal.name}. The analysis considers the deal's sector, target return, and other available information.`,
+      investmentThesis: `${deal.name} presents an opportunity in the ${deal.sector || 'unknown'} sector with a target return of ${deal.targetReturn || 'unknown'}.`,
+      recommendation: 'needs_more_diligence',
+      keyRisks: ['Market volatility', 'Execution risk', 'Regulatory concerns'],
+      sectorFitAnalysis: `The deal fits within our investment strategy for the ${deal.sector || 'unknown'} sector.`,
+      valuationAnalysis: `Based on the available information, the valuation appears to be in line with market standards.`,
+      openQuestions: ['What is the management team track record?', 'How does this compare to competitors?'],
+      confidence: 0.75,
+      sourceReferences: [
+        { source: 'Deal Documents', weight: 0.6 },
+        { source: 'Market Research', weight: 0.4 }
+      ]
+    });
+
+    res.status(201).json(newAnalysis);
   } catch (error) {
-    console.error("Error generating AI insights:", error);
-    return res.status(500).json({ error: "Failed to generate insights" });
+    next(error);
+  }
+});
+
+// Delete an AI analysis
+router.delete('/:id', requireRole(['admin', 'partner']), async (req, res, next) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      throw new AppError('Invalid analysis ID', 400);
+    }
+
+    const storage = StorageFactory.getStorage();
+    const success = await storage.deleteAiAnalysis(id);
+    if (!success) {
+      return res.status(404).json({ message: 'AI analysis not found' });
+    }
+
+    res.status(204).end();
+  } catch (error) {
+    next(error);
   }
 });
 
