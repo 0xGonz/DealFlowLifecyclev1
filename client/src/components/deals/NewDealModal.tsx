@@ -131,8 +131,8 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
   };
 
   const uploadDocumentMutation = useMutation({
-    mutationFn: async (params: { formData: FormData, type: string }) => {
-      console.log(`Uploading document of type: ${params.type}`);
+    mutationFn: async (params: { formData: FormData, type: string, dealId?: number }) => {
+      console.log(`Uploading document of type: ${params.type}${params.dealId ? ` for deal ${params.dealId}` : ''}`);
       
       // Log the formData contents for debugging (except the file itself)
       const formDataEntries = Array.from(params.formData.entries());
@@ -217,7 +217,8 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
             console.log(`Starting upload for ${doc.file.name} (${doc.type}) to deal ${dealId}`);
             const result = await uploadDocumentMutation.mutateAsync({ 
               formData: formData,
-              type: doc.type
+              type: doc.type,
+              dealId: dealId
             });
             console.log('Document upload response:', result);
             
