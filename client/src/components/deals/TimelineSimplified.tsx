@@ -410,7 +410,7 @@ export default function TimelineSimplified({ dealId }: TimelineProps) {
                   {event.eventType === 'note' && (
                     <>
                       {/* Different styling for note types */}
-                      {event.metadata?.noteType && (
+                      {event.metadata?.noteType && typeof event.metadata.noteType === 'string' && (
                         <Badge 
                           className={`mt-2 mb-2 ${
                             event.metadata.noteType === 'question' ? 'bg-amber-500' : 
@@ -458,7 +458,7 @@ export default function TimelineSimplified({ dealId }: TimelineProps) {
                     <div className="mt-2">
                       <Badge variant="outline" className="bg-blue-50">
                         <FileText className="h-3 w-3 mr-1" /> 
-                        {event.metadata.fileName || 'Document'}
+                        {typeof event.metadata.fileName === 'string' ? event.metadata.fileName : 'Document'}
                       </Badge>
                     </div>
                   )}
