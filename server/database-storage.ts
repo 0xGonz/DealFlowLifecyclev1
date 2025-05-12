@@ -460,6 +460,17 @@ export class DatabaseStorage implements IStorage {
       .values(allocationData)
       .returning();
       
+    // Update fund AUM, but only if the allocation is 'funded'
+    // Only funded allocations should count towards AUM
+    if (allocation.status === 'funded') {
+      const [fund] = await db.select().from(funds).where(eq(funds.id, allocation.fundId));
+      if (fund) {
+        await db.update(funds)
+          .set({ aum: fund.aum + allocation.amount })
+          .where(eq(funds.id, fund.id));
+      }
+    }
+      
     return newAllocation;
   }
   
@@ -482,8 +493,35 @@ export class DatabaseStorage implements IStorage {
       throw new Error('Database not initialized');
     }
     try {
+      // First get the allocation to be deleted so we can update fund AUM if needed
+      const [allocation] = await db
+        .select()
+        .from(fundAllocations)
+        .where(eq(fundAllocations.id, id));
+      
+      if (!allocation) {
+        return false;
+      }
+      
+      // Delete the allocation
       await db.delete(fundAllocations)
         .where(eq(fundAllocations.id, id));
+      
+      // If the allocation was funded, subtract its amount from the fund's AUM
+      if (allocation.status === 'funded') {
+        const [fund] = await db
+          .select()
+          .from(funds)
+          .where(eq(funds.id, allocation.fundId));
+        
+        if (fund) {
+          await db
+            .update(funds)
+            .set({ aum: Math.max(0, fund.aum - allocation.amount) })
+            .where(eq(funds.id, fund.id));
+        }
+      }
+      
       return true;
     } catch (error) {
       console.error('Error deleting fund allocation:', error);
@@ -622,11 +660,51 @@ export class DatabaseStorage implements IStorage {
       throw new Error('Database not initialized');
     }
     try {
+      // Get the original allocation to check for status changes
+      const [originalAllocation] = await db
+        .select()
+        .from(fundAllocations)
+        .where(eq(fundAllocations.id, id));
+      
+      if (!originalAllocation) {
+        return undefined;
+      }
+      
+      // Store the original status to track changes
+      const originalStatus = originalAllocation.status;
+      
+      // Update the allocation
       const [updatedAllocation] = await db
         .update(fundAllocations)
         .set(allocationUpdate)
         .where(eq(fundAllocations.id, id))
         .returning();
+      
+      // If status has changed, update the fund's AUM accordingly
+      if (allocationUpdate.status && allocationUpdate.status !== originalStatus) {
+        const [fund] = await db
+          .select()
+          .from(funds)
+          .where(eq(funds.id, originalAllocation.fundId));
+        
+        if (fund) {
+          // If the allocation was not funded before but is now, add to AUM
+          if (originalStatus !== 'funded' && allocationUpdate.status === 'funded') {
+            await db
+              .update(funds)
+              .set({ aum: fund.aum + originalAllocation.amount })
+              .where(eq(funds.id, fund.id));
+          }
+          // If the allocation was funded before but is not anymore, subtract from AUM
+          else if (originalStatus === 'funded' && allocationUpdate.status !== 'funded') {
+            await db
+              .update(funds)
+              .set({ aum: Math.max(0, fund.aum - originalAllocation.amount) })
+              .where(eq(funds.id, fund.id));
+          }
+        }
+      }
+      
       return updatedAllocation || undefined;
     } catch (error) {
       console.error('Error updating fund allocation:', error);
