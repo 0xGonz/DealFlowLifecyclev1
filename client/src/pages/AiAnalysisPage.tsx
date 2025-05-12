@@ -55,7 +55,7 @@ const AiAnalysisPage = () => {
 
   // Fetch deal documents if a deal is selected
   const { data: documents, isError: isDocumentsError } = useQuery<Document[]>({
-    queryKey: ['/api/documents/deal', selectedDealId],
+    queryKey: [`/api/documents/deal/${selectedDealId}`],
     enabled: !!selectedDealId,
   });
 
