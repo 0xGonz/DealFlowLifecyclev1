@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
 import { UserAvatar } from "@/components/common/UserAvatar";
 import { 
+  ArrowRight,
   CheckCircle, 
   FileEdit,
   MessageSquare,
@@ -481,6 +482,31 @@ export default function TimelineSimplified({ dealId }: TimelineProps) {
                       <Badge variant="outline" className="bg-purple-50">
                         <RocketIcon className="h-3 w-3 mr-1" /> 
                         AI Analysis
+                      </Badge>
+                    </div>
+                  )}
+                  
+                  {event.eventType === 'stage_change' && event.metadata && (
+                    <div className="mt-2">
+                      <Badge variant="outline" className="bg-primary-50">
+                        <ArrowRight className="h-3 w-3 mr-1" /> 
+                        From {Array.isArray(event.metadata.previousStage) 
+                          ? typeof event.metadata.previousStage[0] === 'string' 
+                            ? event.metadata.previousStage[0]
+                            : 'Previous Stage' 
+                          : typeof event.metadata.previousStage === 'string'
+                            ? event.metadata.previousStage
+                            : 'Previous Stage'
+                        } 
+                        → 
+                        {Array.isArray(event.metadata.newStage)
+                          ? typeof event.metadata.newStage[0] === 'string'
+                            ? event.metadata.newStage[0]
+                            : 'New Stage'
+                          : typeof event.metadata.newStage === 'string'
+                            ? event.metadata.newStage
+                            : 'New Stage'
+                        }
                       </Badge>
                     </div>
                   )}
