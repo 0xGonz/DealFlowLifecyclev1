@@ -610,10 +610,10 @@ export default function DealDetail() {
 
           
           <TabsContent value="timeline">
-            <div className="grid grid-cols-1 sm:grid-cols-12 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-12 gap-6 mt-4">
               <div className="sm:col-span-12 md:col-span-12">
                 <Card>
-                  <CardContent>
+                  <CardContent className="p-6">
                     <Timeline dealId={deal?.id} />
                   </CardContent>
                 </Card>
@@ -622,88 +622,93 @@ export default function DealDetail() {
           </TabsContent>
           
           <TabsContent value="memos">
-            <Card>
-              <CardHeader className="pb-2 sm:pb-4">
-                <CardTitle className="text-base sm:text-xl">Mini-Memos</CardTitle>
-                <CardDescription className="text-xs sm:text-sm">
-                  Investment theses and evaluations
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {deal?.miniMemos?.length ? (
-                  <div className="space-y-4 sm:space-y-6">
-                    {/* Display header explaining team assessments */}
-                    <div className="text-sm text-muted-foreground p-2 rounded bg-muted/50">
-                      <InfoIcon className="h-4 w-4 inline-block mr-2" />
-                      Team members can submit individual assessments for collaborative evaluation.
-                    </div>
+            <div className="mt-4">
+              <Card>
+                <CardHeader className="pb-2 sm:pb-4">
+                  <CardTitle className="text-base sm:text-xl">Mini-Memos</CardTitle>
+                  <CardDescription className="text-xs sm:text-sm">
+                    Investment theses and evaluations
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-6">
+                  {deal?.miniMemos?.length ? (
+                    <div className="space-y-4 sm:space-y-6">
+                      {/* Display header explaining team assessments */}
+                      <div className="text-sm text-muted-foreground p-2 rounded bg-muted/50">
+                        <InfoIcon className="h-4 w-4 inline-block mr-2" />
+                        Team members can submit individual assessments for collaborative evaluation.
+                      </div>
                     
-                    {/* Add button to create a new memo */}
-                    <div className="flex justify-end">
-                      <MiniMemoForm
-                        dealId={deal.id}
-                        onSubmit={() => refetch()}
-                        buttonLabel="Add Team Assessment"
-                        buttonVariant="outline"
-                        buttonSize="sm"
-                        buttonIcon={<Users className="h-3.5 w-3.5 mr-1.5" />}
-                      />
-                    </div>
-                    
-                    {/* Loop through deal's mini memos but display as multiple cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {deal.miniMemos.map((memo: MiniMemo) => (
-                        <MiniMemoDisplay 
-                          key={memo.id} 
-                          memo={memo} 
-                          onClick={() => {
-                            setSelectedMemo(memo);
-                            setIsMemoDetailOpen(true);
-                          }}
+                      {/* Add button to create a new memo */}
+                      <div className="flex justify-end">
+                        <MiniMemoForm
+                          dealId={deal.id}
+                          onSubmit={() => refetch()}
+                          buttonLabel="Add Team Assessment"
+                          buttonVariant="outline"
+                          buttonSize="sm"
+                          buttonIcon={<Users className="h-3.5 w-3.5 mr-1.5" />}
                         />
-                      ))}
+                      </div>
+                      
+                      {/* Loop through deal's mini memos but display as multiple cards */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {deal.miniMemos.map((memo: MiniMemo) => (
+                          <MiniMemoDisplay 
+                            key={memo.id} 
+                            memo={memo} 
+                            onClick={() => {
+                              setSelectedMemo(memo);
+                              setIsMemoDetailOpen(true);
+                            }}
+                          />
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-6 sm:py-8 text-neutral-500">
-                    <FileText className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-2 sm:mb-3 opacity-30" />
-                    <p className="text-sm sm:text-base">No team assessments have been submitted for this deal yet.</p>
-                    {deal && (
-                      <MiniMemoForm
-                        dealId={deal.id}
-                        onSubmit={() => refetch()}
-                        buttonLabel="Create Team Assessment"
-                        buttonSize="sm"
-                        buttonIcon={<FileText className="h-3.5 w-3.5 mr-1.5" />}
-                        className="mt-3 inline-flex"
-                      />
-                    )}
-                  </div>
-                )}
+                  ) : (
+                    <div className="text-center py-6 sm:py-8 text-neutral-500">
+                      <FileText className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-2 sm:mb-3 opacity-30" />
+                      <p className="text-sm sm:text-base">No team assessments have been submitted for this deal yet.</p>
+                      {deal && (
+                        <MiniMemoForm
+                          dealId={deal.id}
+                          onSubmit={() => refetch()}
+                          buttonLabel="Create Team Assessment"
+                          buttonSize="sm"
+                          buttonIcon={<FileText className="h-3.5 w-3.5 mr-1.5" />}
+                          className="mt-3 inline-flex"
+                        />
+                      )}
+                    </div>
+                  )}
               </CardContent>
             </Card>
+            </div>
           </TabsContent>
           
           <TabsContent value="documents">
-            {deal && <DocumentsTab dealId={deal.id} />}
+            <div className="mt-4">
+              {deal && <DocumentsTab dealId={deal.id} />}
+            </div>
           </TabsContent>
           
           <TabsContent value="capitalcalls">
-            <Card>
-              <CardHeader className="pb-2 sm:pb-4">
-                <CardTitle className="text-base sm:text-xl">Capital Calls</CardTitle>
-                <CardDescription className="text-xs sm:text-sm">
-                  Manage capital calls for this investment
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {deal?.id ? (
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <div className="text-sm text-muted-foreground p-2 rounded bg-muted/50">
-                        <InfoIcon className="h-4 w-4 inline-block mr-2" />
-                        Schedule and track capital calls associated with this deal.
-                      </div>
+            <div className="mt-4">
+              <Card>
+                <CardHeader className="pb-2 sm:pb-4">
+                  <CardTitle className="text-base sm:text-xl">Capital Calls</CardTitle>
+                  <CardDescription className="text-xs sm:text-sm">
+                    Manage capital calls for this investment
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-6">
+                  {deal?.id ? (
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <div className="text-sm text-muted-foreground p-2 rounded bg-muted/50">
+                          <InfoIcon className="h-4 w-4 inline-block mr-2" />
+                          Schedule and track capital calls associated with this deal.
+                        </div>
                       
                       {canCreate('capital-call') && (
                         <div className="relative ml-auto group">
@@ -737,6 +742,7 @@ export default function DealDetail() {
                 )}
               </CardContent>
             </Card>
+            </div>
           </TabsContent>
 
         </Tabs>
