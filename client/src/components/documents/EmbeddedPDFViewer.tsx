@@ -4,8 +4,6 @@ import { Download, FileText } from 'lucide-react';
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Document as PDFDocument, Page as PDFPage } from 'react-pdf';
-// Import centralized PDF configuration
-import '@/lib/pdf-config';
 
 interface EmbeddedPDFViewerProps {
   documentId: number;

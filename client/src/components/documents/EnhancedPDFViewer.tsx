@@ -14,10 +14,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { Download, ZoomIn, ZoomOut, RotateCw, File, Printer, ChevronLeft, ChevronRight } from 'lucide-react';
 
-// Import react-pdf - making it a dynamic import to avoid issues with SSR
+// Import react-pdf components
 import { Document as PDFDocument, Page as PDFPage } from 'react-pdf';
-// Import and initialize the PDF configuration before using PDFDocument
-import { configurePdfWorker } from '@/lib/pdf-config';
 
 interface EnhancedPDFViewerProps {
   isOpen: boolean;
