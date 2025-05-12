@@ -314,58 +314,6 @@ export default function TimelineSimplified({ dealId }: TimelineProps) {
 
   return (
     <div>
-      {/* Add quick note field - Simplified */}
-      <div className="mb-6">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex flex-wrap gap-2 mb-3">
-              <Badge 
-                variant={noteType === 'note' ? 'default' : 'outline'}
-                className={`cursor-pointer ${noteType === 'note' ? '' : 'hover:bg-secondary/50'}`}
-                onClick={() => setNoteType('note')}
-              >
-                <MessageSquare className="mr-1 h-3 w-3" /> Note
-              </Badge>
-              <Badge 
-                variant={noteType === 'question' ? 'default' : 'outline'}
-                className={`cursor-pointer ${noteType === 'question' ? 'bg-amber-500 hover:bg-amber-600' : 'hover:bg-amber-200'}`}
-                onClick={() => setNoteType('question')}
-              >
-                <Info className="mr-1 h-3 w-3" /> Question
-              </Badge>
-              <Badge 
-                variant={noteType === 'decision' ? 'default' : 'outline'}
-                className={`cursor-pointer ${noteType === 'decision' ? 'bg-green-500 hover:bg-green-600' : 'hover:bg-green-200'}`}
-                onClick={() => setNoteType('decision')}
-              >
-                <CheckCircle className="mr-1 h-3 w-3" /> Decision
-              </Badge>
-              <Badge 
-                variant={noteType === 'concern' ? 'default' : 'outline'}
-                className={`cursor-pointer ${noteType === 'concern' ? 'bg-red-500 hover:bg-red-600' : 'hover:bg-red-200'}`}
-                onClick={() => setNoteType('concern')}
-              >
-                <AlertCircle className="mr-1 h-3 w-3" /> Concern
-              </Badge>
-            </div>
-            <div className="flex space-x-2">
-              <Textarea 
-                placeholder={`Add a ${noteType === 'question' ? 'question' : noteType === 'decision' ? 'decision' : noteType === 'concern' ? 'concern' : 'note'}...`} 
-                className="resize-none min-h-[80px]"
-                value={newNote}
-                onChange={(e) => setNewNote(e.target.value)}
-              />
-              <Button 
-                className="shrink-0"
-                onClick={handleAddNote}
-                disabled={addNoteMutation.isPending || !newNote.trim()}
-              >
-                {addNoteMutation.isPending ? "Adding..." : "Add"}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
 
       {/* Timeline events - Simplified */}
       <div className="mb-4">
