@@ -271,8 +271,11 @@ router.get('/:id/download', requireAuth, async (req: Request, res: Response) => 
       console.error('Error searching uploads directory:', err);
     }
     
-    // No file found - return a clean 404 error
+    // No file found - log detailed information and return a clean 404 error
     console.log(`No file found for: ${document.fileName} at ${document.filePath}. Returning 404.`);
+    console.log(`Document record from database:`, document);
+    console.log(`Uploads directory content:`, fs.existsSync(uploadsDir) ? fs.readdirSync(uploadsDir) : 'Directory not found');
+    
     return res.status(404).json({ 
       error: 'File not found',
       message: 'The requested document file could not be found on the server. Please re-upload the document.' 
@@ -389,6 +392,7 @@ router.post('/upload', requireAuth, (req: Request, res: Response, next: NextFunc
     
     console.log(`Saving document with filePath: ${filePath}`);
     console.log(`Original file saved at: ${req.file.path}`);
+    console.log(`Absolute path for verification: ${path.join(process.cwd(), 'public', filePath)}`);
     
     // Verify the file exists on disk before saving to database
     const actualFilePath = path.join(process.cwd(), 'public', filePath);

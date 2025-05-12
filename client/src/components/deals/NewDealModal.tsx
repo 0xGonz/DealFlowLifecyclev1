@@ -134,6 +134,13 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
     mutationFn: async (params: { formData: FormData, type: string }) => {
       console.log(`Uploading document of type: ${params.type}`);
       
+      // Log the formData contents for debugging (except the file itself)
+      const formDataEntries = Array.from(params.formData.entries());
+      const formDataLog = formDataEntries
+        .filter(([key]) => key !== 'file')
+        .map(([key, value]) => `${key}: ${value}`);
+      console.log('FormData contents:', formDataLog);
+      
       // Using standard fetch for FormData upload
       const response = await fetch('/api/documents/upload', {
         method: 'POST',
@@ -143,6 +150,7 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
       
       if (!response.ok) {
         const errorText = await response.text();
+        console.error('Document upload response error:', errorText);
         throw new Error(`Failed to upload document: ${errorText}`);
       }
       
@@ -185,23 +193,67 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
       
       // Upload all documents if available
       if (documentUploads.length > 0 && dealId) {
+        console.log(`Uploading ${documentUploads.length} documents for new deal ${dealId}`);
+        
+        // Keep track of successful uploads for toast notification summary
+        let successCount = 0;
+        let failCount = 0;
+        
         for (const doc of documentUploads) {
           const formData = new FormData();
+          // The file must be appended with the key 'file' as expected by multer
           formData.append('file', doc.file);
-          formData.append('fileName', doc.file.name);
-          formData.append('fileType', doc.file.type);
+          
+          // These parameters are required by the server's document upload handler
           formData.append('dealId', dealId.toString());
           formData.append('documentType', doc.type);
-          formData.append('description', doc.description);
+          
+          // Optional description field
+          if (doc.description) {
+            formData.append('description', doc.description);
+          }
           
           try {
-            await uploadDocumentMutation.mutateAsync({ 
+            console.log(`Starting upload for ${doc.file.name} (${doc.type}) to deal ${dealId}`);
+            const result = await uploadDocumentMutation.mutateAsync({ 
               formData: formData,
               type: doc.type
             });
+            console.log('Document upload response:', result);
+            
+            // Log successful document upload
+            if (result && result.id) {
+              console.log(`Uploaded document ${result.id} (${result.fileName || 'unnamed'}) successfully`);
+              
+              // Invalidate document queries to ensure fresh data on next access
+              queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
+              if (result.dealId) {
+                queryClient.invalidateQueries({ queryKey: [`/api/documents/deal/${result.dealId}`] });
+              }
+            }
+            
+            successCount++;
           } catch (err) {
             console.error(`Failed to upload ${doc.type}:`, err);
+            failCount++;
+            
+            // Show a toast notification for the error
+            toast({
+              title: `Failed to upload ${DOCUMENT_TYPES[doc.type]}`,
+              description: err instanceof Error ? err.message : 'An unknown error occurred',
+              variant: 'destructive'
+            });
           }
+        }
+        
+        // Show a summary toast if there were successful uploads
+        if (successCount > 0) {
+          toast({
+            title: `${successCount} document${successCount > 1 ? 's' : ''} uploaded successfully`,
+            description: failCount > 0 
+              ? `${failCount} document${failCount > 1 ? 's' : ''} failed to upload. Please try again.` 
+              : `All documents were uploaded successfully.`
+          });
         }
       }
       
@@ -230,9 +282,14 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
       // Refresh all relevant data
       queryClient.invalidateQueries({ queryKey: ['/api/deals'] }); // Refresh deals data
       
-      // Important: Also invalidate document queries for this specific deal
+      // Invalidate document queries for this specific deal
       // This ensures documents will appear immediately in the DocumentList component
       queryClient.invalidateQueries({ queryKey: [`/api/documents/deal/${dealId}`] });
+      
+      // Also invalidate any other document-related queries
+      queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
+      
+      console.log(`Invalidated queries for deal and documents after creation of deal ${dealId}`);
       
       onClose(); // Close modal
     },

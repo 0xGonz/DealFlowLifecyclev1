@@ -7,6 +7,7 @@ import "./index.css";
 import './lib/setupPdfWorker';
 
 // Import react-pdf styles to fix the warnings about missing text and annotation layer styles
+// These styles are required for proper PDF rendering with react-pdf
 import 'react-pdf/dist/esm/Page/TextLayer.css';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 
