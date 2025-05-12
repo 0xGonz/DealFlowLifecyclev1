@@ -192,8 +192,8 @@ const AiAnalysisPage = () => {
                         <span className="font-medium">{memos?.length || 0}</span>
                       </div>
                       {documents && documents.length > 0 && (
-                        <div className="mt-2 text-xs text-amber-600 dark:text-amber-400 pt-2 border-t border-border">
-                          <p>The AI can currently see document metadata but not extract PDF content. For best results, please include key details in document descriptions.</p>
+                        <div className="mt-2 text-xs text-emerald-600 dark:text-emerald-400 pt-2 border-t border-border">
+                          <p>AI can now analyze PDF content! The system will automatically extract and process text from your uploaded documents.</p>
                         </div>
                       )}
                     </div>
@@ -234,9 +234,9 @@ const AiAnalysisPage = () => {
               <TabsContent value="ask" className="space-y-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Ask About This Deal</CardTitle>
+                    <CardTitle>Ask About This Deal & Documents</CardTitle>
                     <CardDescription>
-                      Ask questions about this deal based on available metadata, descriptions, and deal details
+                      Ask questions about this deal and its PDF documents - AI will analyze document content and deal details
                     </CardDescription>
                   </CardHeader>
                   <CardContent>

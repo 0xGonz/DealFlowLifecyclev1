@@ -1,5 +1,6 @@
 import OpenAI from 'openai';
 import { Deal, Document, MiniMemo } from '@shared/schema';
+import { PdfExtractionService } from './pdf-extraction-lazy';
 
 // Helper function to get stage label
 function getStageLabel(stage: string): string {
@@ -63,20 +64,40 @@ export class OpenAiService {
       // Add document information
       if (documents.length > 0) {
         context += `\nDocument Summary:\n`;
+        
+        // First list all documents with their metadata
         documents.forEach(doc => {
           context += `- ${doc.fileName}: ${doc.description || 'No description'}\n`;
-          
-          // Here we would typically extract the content from the document
-          // In a production system, we would have a document processing service that
-          // extracts text from PDFs and other file types and stores it in a database
-          // For this prototype, we're acknowledging that we have documents but don't
-          // yet have the ability to extract their content directly
-          
-          // This would be enhanced with actual document content in a future update
         });
         
-        context += `\nNote: PDF content extraction is currently in development. ` +
-                  `The AI analysis will work best when document descriptions are detailed.\n`;
+        // For PDF files, attempt to extract the content
+        const pdfDocs = documents.filter(doc => 
+          doc.fileType === 'application/pdf' && doc.filePath
+        );
+        
+        // Add PDF content if available
+        if (pdfDocs.length > 0) {
+          context += `\nPDF Content:\n`;
+          
+          // Process each PDF (we'll do this sequentially to avoid hitting API rate limits)
+          for (const doc of pdfDocs) {
+            try {
+              // Note: In a production system, this should be done asynchronously
+              // or pre-processed and cached to avoid delaying the API response
+              const pdfText = await PdfExtractionService.extractText(doc.filePath);
+              
+              if (pdfText && pdfText.trim()) {
+                context += `\n--- Content from ${doc.fileName} ---\n`;
+                // Limit PDF text to a reasonable size to avoid token limit issues
+                context += pdfText.substring(0, 8000) + (pdfText.length > 8000 ? '...(truncated)' : '');
+                context += `\n--- End of ${doc.fileName} ---\n`;
+              }
+            } catch (error: any) {
+              console.error(`Error extracting PDF content from ${doc.fileName}:`, error);
+              context += `\nCould not extract content from ${doc.fileName}: ${error.message || 'Processing error'}\n`;
+            }
+          }
+        }
       }
 
       // Add memos information
@@ -161,15 +182,39 @@ export class OpenAiService {
       let documentContext = '';
       if (documents.length > 0) {
         documentContext += `\nRelated Documents:\n`;
+        
+        // First list all documents with their metadata
         documents.forEach(doc => {
           documentContext += `- ${doc.fileName}: ${doc.description || 'No description'}\n`;
-          
-          // Here we would typically extract the content from the document
-          // This would be implemented in a future update with a document processing service
         });
         
-        documentContext += `\nNote: PDF content extraction is currently in development. ` +
-                         `The AI analysis currently relies on document metadata and descriptions.\n`;
+        // For PDF files, attempt to extract the content
+        const pdfDocs = documents.filter(doc => 
+          doc.fileType === 'application/pdf' && doc.filePath
+        );
+        
+        // Add PDF content if available
+        if (pdfDocs.length > 0) {
+          documentContext += `\nPDF Content:\n`;
+          
+          // Process each PDF (we'll do this sequentially to avoid hitting API rate limits)
+          for (const doc of pdfDocs) {
+            try {
+              // Extract PDF text content
+              const pdfText = await PdfExtractionService.extractText(doc.filePath);
+              
+              if (pdfText && pdfText.trim()) {
+                documentContext += `\n--- Content from ${doc.fileName} ---\n`;
+                // Limit PDF text to a reasonable size to avoid token limit issues
+                documentContext += pdfText.substring(0, 8000) + (pdfText.length > 8000 ? '...(truncated)' : '');
+                documentContext += `\n--- End of ${doc.fileName} ---\n`;
+              }
+            } catch (error: any) {
+              console.error(`Error extracting PDF content from ${doc.fileName}:`, error);
+              documentContext += `\nCould not extract content from ${doc.fileName}: ${error.message || 'Processing error'}\n`;
+            }
+          }
+        }
       }
 
       // Add memos information
