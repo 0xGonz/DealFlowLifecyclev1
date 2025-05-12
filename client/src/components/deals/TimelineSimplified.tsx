@@ -363,13 +363,24 @@ export default function TimelineSimplified({ dealId }: TimelineProps) {
                 <CardContent className="p-3">
                   <div className="flex justify-between items-start">
                     <div className="flex items-center gap-2">
-                      <UserAvatar user={event.user} size="sm" />
-                      <div>
-                        <p className="font-medium text-sm">{event.user?.fullName || 'Unknown User'}</p>
-                        <p className="text-xs text-neutral-500">
-                          {formatDistanceToNow(new Date(event.createdAt), { addSuffix: true })}
-                        </p>
-                      </div>
+                      {event.user ? (
+                        <>
+                          <UserAvatar user={event.user} size="sm" />
+                          <div>
+                            <p className="font-medium text-sm">{event.user?.fullName || 'Unknown User'}</p>
+                            <p className="text-xs text-neutral-500">
+                              {formatDistanceToNow(new Date(event.createdAt), { addSuffix: true })}
+                            </p>
+                          </div>
+                        </>
+                      ) : (
+                        <div>
+                          <p className="font-medium text-sm">Unknown User</p>
+                          <p className="text-xs text-neutral-500">
+                            {formatDistanceToNow(new Date(event.createdAt), { addSuffix: true })}
+                          </p>
+                        </div>
+                      )}
                     </div>
                     
                     {event.eventType === 'note' && canModifyNote(event) && (
