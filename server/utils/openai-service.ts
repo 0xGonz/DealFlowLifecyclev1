@@ -65,7 +65,18 @@ export class OpenAiService {
         context += `\nDocument Summary:\n`;
         documents.forEach(doc => {
           context += `- ${doc.fileName}: ${doc.description || 'No description'}\n`;
+          
+          // Here we would typically extract the content from the document
+          // In a production system, we would have a document processing service that
+          // extracts text from PDFs and other file types and stores it in a database
+          // For this prototype, we're acknowledging that we have documents but don't
+          // yet have the ability to extract their content directly
+          
+          // This would be enhanced with actual document content in a future update
         });
+        
+        context += `\nNote: PDF content extraction is currently in development. ` +
+                  `The AI analysis will work best when document descriptions are detailed.\n`;
       }
 
       // Add memos information
@@ -152,7 +163,13 @@ export class OpenAiService {
         documentContext += `\nRelated Documents:\n`;
         documents.forEach(doc => {
           documentContext += `- ${doc.fileName}: ${doc.description || 'No description'}\n`;
+          
+          // Here we would typically extract the content from the document
+          // This would be implemented in a future update with a document processing service
         });
+        
+        documentContext += `\nNote: PDF content extraction is currently in development. ` +
+                         `The AI analysis currently relies on document metadata and descriptions.\n`;
       }
 
       // Add memos information

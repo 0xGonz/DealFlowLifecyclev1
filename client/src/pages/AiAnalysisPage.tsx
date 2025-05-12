@@ -191,6 +191,11 @@ const AiAnalysisPage = () => {
                         <span>Memos:</span>
                         <span className="font-medium">{memos?.length || 0}</span>
                       </div>
+                      {documents && documents.length > 0 && (
+                        <div className="mt-2 text-xs text-amber-600 dark:text-amber-400 pt-2 border-t border-border">
+                          <p>The AI can currently see document metadata but not extract PDF content. For best results, please include key details in document descriptions.</p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
@@ -231,7 +236,7 @@ const AiAnalysisPage = () => {
                   <CardHeader>
                     <CardTitle>Ask About This Deal</CardTitle>
                     <CardDescription>
-                      Ask any question about this deal and I'll analyze all available information
+                      Ask questions about this deal based on available metadata, descriptions, and deal details
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
