@@ -84,6 +84,9 @@ export default function DocumentList({ dealId }: DocumentListProps) {
         title: 'Document deleted',
         description: 'The document has been successfully deleted.',
       });
+      
+      // After invalidating queries, automatically select the first document in the list
+      // This will happen when the data is refetched and the useEffect runs
     },
     onError: () => {
       toast({
@@ -384,7 +387,7 @@ export default function DocumentList({ dealId }: DocumentListProps) {
             </div>
           </div>
           
-          {/* Display selected document or show "select a document" message */}
+          {/* Document preview section */}
           <div className="mt-8">
             {selectedDocument ? (
               <div className="space-y-1">
@@ -405,40 +408,9 @@ export default function DocumentList({ dealId }: DocumentListProps) {
                      selectedDocument.fileName.toLowerCase().endsWith('.pdf') ? (
                       <div className="w-full h-full">
                         <div id="pdf-viewer-container" className="w-full h-full">
-                          <PDFDocument
-                            file={`/api/documents/${selectedDocument.id}/download`}
-                            onLoadError={(error) => {
-                              console.error('Error loading PDF:', error);
-                              // Switch to iframe fallback
-                              const container = document.getElementById('pdf-viewer-container');
-                              const fallback = document.getElementById('pdf-iframe-fallback');
-                              
-                              if (container && fallback) {
-                                container.style.display = 'none';
-                                fallback.style.display = 'block';
-                              }
-                              
-                              toast({
-                                title: 'Using simple document viewer',
-                                description: 'PDF viewer could not be initialized. Using simple document viewer instead.',
-                              });
-                            }}
-                            className="pdf-document w-full h-full"
-                          >
-                            <PDFPage
-                              pageNumber={1}
-                              renderAnnotationLayer={true}
-                              renderTextLayer={true}
-                              className="shadow-md"
-                              width={800}
-                            />
-                          </PDFDocument>
-                        </div>
-                        <div id="pdf-iframe-fallback" style={{display: 'none'}} className="w-full h-full">
-                          <iframe 
-                            src={`/api/documents/${selectedDocument.id}/download`} 
-                            className="w-full h-full border-0" 
-                            title={selectedDocument.fileName}
+                          <EmbeddedPDFViewer 
+                            documentId={selectedDocument.id} 
+                            documentName={selectedDocument.fileName}
                           />
                         </div>
                       </div>
@@ -453,12 +425,15 @@ export default function DocumentList({ dealId }: DocumentListProps) {
                 </Card>
               </div>
             ) : (
-              <div className="flex items-center justify-center h-[900px] bg-neutral-50 rounded-lg border">
-                <div className="text-center">
-                  <FileText className="h-16 w-16 mx-auto mb-4 text-neutral-300" />
-                  <p className="text-sm text-neutral-500">Select a document to preview</p>
+              <Card className="p-6 w-full">
+                <div className="flex flex-col items-center justify-center text-center">
+                  <FileText className="h-12 w-12 text-neutral-300 mb-4" />
+                  <h3 className="text-lg font-medium mb-2">No document selected</h3>
+                  <p className="text-neutral-500 text-sm max-w-md">
+                    Select a document from the list above to preview it here.
+                  </p>
                 </div>
-              </div>
+              </Card>
             )}
           </div>
         </div>
