@@ -8,7 +8,7 @@ import EditDealModal from "@/components/deals/EditDealModal";
 import AssignUserModal from "@/components/deals/AssignUserModal";
 import AllocateFundModal from "@/components/deals/AllocateFundModal";
 import StageProgression from "@/components/deals/StageProgression";
-import DocumentList from "@/components/documents/DocumentList";
+import { DocumentsTab } from "@/components/documents/DocumentsTab";
 import { MiniMemoForm } from "@/components/memos/MiniMemoForm";
 import { MiniMemoDisplay } from "@/components/memos/MiniMemoDisplay";
 import { MemoDetailDialog } from "@/components/memos/MemoDetailDialog";
@@ -713,17 +713,7 @@ export default function DealDetail() {
           </TabsContent>
           
           <TabsContent value="documents">
-            <Card>
-              <CardHeader className="pb-2 sm:pb-4">
-                <CardTitle className="text-base sm:text-xl">Documents</CardTitle>
-                <CardDescription className="text-xs sm:text-sm">
-                  Deal-related files and attachments
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {deal && <DocumentList dealId={deal.id} />}
-              </CardContent>
-            </Card>
+            {deal && <DocumentsTab dealId={deal.id} />}
           </TabsContent>
           
           <TabsContent value="capitalcalls">
