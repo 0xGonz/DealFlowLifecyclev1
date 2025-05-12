@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { generateDealNotification } from "@/lib/utils/notification-utils";
 import AppLayout from "@/components/layout/AppLayout";
@@ -48,6 +48,13 @@ export default function Pipeline() {
   const [showRejectionDialog, setShowRejectionDialog] = useState(false);
   const [pendingRejectionDealId, setPendingRejectionDealId] = useState<number | null>(null);
   const [pendingRejectionDealName, setPendingRejectionDealName] = useState("");
+  
+  // For debugging only - log when rejection dialog state changes
+  useEffect(() => {
+    if (showRejectionDialog) {
+      console.log("Pipeline: Rejection dialog opened for deal:", pendingRejectionDealName);
+    }
+  }, [showRejectionDialog, pendingRejectionDealName]);
   const { toast } = useToast();
   const [, navigate] = useLocation();
 
@@ -389,10 +396,18 @@ export default function Pipeline() {
                       setIsAllocateFundModalOpen(true);
                     }}
                     onUpdateStatus={(dealId, stage, dealName) => {
+                      console.log("Pipeline: onUpdateStatus called with", { dealId, stage, dealName });
                       if (stage === "rejected") {
+                        console.log("Pipeline: Showing rejection dialog for", dealName);
+                        
+                        // Set the state in preparation for dialog
                         setPendingRejectionDealId(dealId);
                         setPendingRejectionDealName(dealName || "");
-                        setShowRejectionDialog(true);
+                        
+                        // Use a small timeout to ensure state updates before dialog opens
+                        setTimeout(() => {
+                          setShowRejectionDialog(true);
+                        }, 10);
                       } else {
                         updateDealStatusMutation.mutate({ dealId, stage });
                       }
@@ -469,10 +484,15 @@ export default function Pipeline() {
         {/* Rejection Dialog */}
         <RejectionDialog
           isOpen={showRejectionDialog}
-          onOpenChange={setShowRejectionDialog}
+          onOpenChange={(open) => {
+            console.log("RejectionDialog onOpenChange:", open);
+            setShowRejectionDialog(open);
+          }}
           dealName={pendingRejectionDealName}
           onConfirm={(reason) => {
+            console.log("RejectionDialog onConfirm with reason:", reason);
             if (pendingRejectionDealId) {
+              console.log("Submitting rejection for dealId:", pendingRejectionDealId);
               updateDealStatusMutation.mutate({ 
                 dealId: pendingRejectionDealId, 
                 stage: "rejected", 

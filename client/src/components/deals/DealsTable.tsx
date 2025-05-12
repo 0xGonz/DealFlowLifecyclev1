@@ -113,7 +113,8 @@ export default function DealsTable({ deals, onEdit, onAllocate, onUpdateStatus, 
                               onClick={(e) => {
                                 e.stopPropagation();
                                 if (onUpdateStatus) {
-                                  onUpdateStatus(deal.id, stage, deal.name);
+                                  console.log("DealsTable: Calling onUpdateStatus with", { id: deal.id, stage, name: deal.name });
+                                onUpdateStatus(deal.id, stage, deal.name);
                                 } else {
                                   console.log(`Changed status to ${stage}`);
                                 }
@@ -123,14 +124,28 @@ export default function DealsTable({ deals, onEdit, onAllocate, onUpdateStatus, 
                               {stage === deal.stage && <Check className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-primary" />}
                             </DropdownMenuItem>
                           ))}
-                        {/* Separate item for rejection that triggers the dialog */}
+                        {/* Separate menu item for rejection */}
                         <DropdownMenuItem 
                           key="rejected"
-                          className="flex items-center justify-between text-xs sm:text-sm text-destructive"
+                          className="flex items-center justify-between text-xs sm:text-sm text-destructive border-t border-border mt-1 pt-1"
                           onClick={(e) => {
                             e.stopPropagation();
+                            e.preventDefault();
                             if (onUpdateStatus) {
-                              onUpdateStatus(deal.id, "rejected", deal.name);
+                              // Force close the dropdown menu to avoid it staying open
+                              const clickEvent = new MouseEvent('click', {
+                                bubbles: true,
+                                cancelable: true,
+                                view: window
+                              });
+                              // Dispatch the click event to close the dropdown
+                              document.dispatchEvent(clickEvent);
+                              
+                              // Wait for dropdown to close, then open rejection dialog
+                              setTimeout(() => {
+                                console.log("DealsTable: Rejection item clicked for", deal.name);
+                                onUpdateStatus(deal.id, "rejected", deal.name);
+                              }, 50);
                             }
                           }}
                         >

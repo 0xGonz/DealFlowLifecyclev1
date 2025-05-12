@@ -1,14 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from '@/hooks/use-toast';
 
@@ -27,6 +26,14 @@ export default function RejectionDialog({
 }: RejectionDialogProps) {
   const { toast } = useToast();
   const [rejectionReason, setRejectionReason] = useState("");
+  
+  // Reset rejection reason when dialog opens
+  useEffect(() => {
+    if (isOpen) {
+      console.log("RejectionDialog opened for deal:", dealName);
+      setRejectionReason(""); // Clear previous reason
+    }
+  }, [isOpen, dealName]);
 
   const handleConfirm = () => {
     if (rejectionReason.trim() === "") {
@@ -38,38 +45,63 @@ export default function RejectionDialog({
       return;
     }
     
+    console.log("Submitting rejection with reason:", rejectionReason);
     onConfirm(rejectionReason);
-    setRejectionReason(""); // Reset for next use
+    onOpenChange(false);
   };
 
   return (
-    <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Reject {dealName || 'Deal'}</AlertDialogTitle>
-          <AlertDialogDescription>
+    <Dialog 
+      open={isOpen} 
+      onOpenChange={(open) => {
+        console.log("Dialog changing open state to:", open);
+        onOpenChange(open);
+      }}
+    >
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-xl text-destructive">
+            Reject {dealName || 'Deal'}
+          </DialogTitle>
+          <DialogDescription>
             Please provide a reason for rejecting this deal. This information will be tracked and visible to the team.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <Textarea
-          value={rejectionReason}
-          onChange={(e) => setRejectionReason(e.target.value)}
-          placeholder="Enter rejection reason..."
-          className="min-h-[100px]"
-        />
-        <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction 
-            onClick={(e) => {
-              e.preventDefault();
+          </DialogDescription>
+        </DialogHeader>
+        
+        <div className="py-4">
+          <Textarea
+            value={rejectionReason}
+            onChange={(e) => setRejectionReason(e.target.value)}
+            placeholder="Enter rejection reason..."
+            className="min-h-[100px]"
+            autoFocus
+          />
+        </div>
+        
+        <DialogFooter className="sm:justify-between">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              console.log("Cancel button clicked");
+              onOpenChange(false);
+            }}
+          >
+            Cancel
+          </Button>
+          
+          <Button
+            type="button"
+            variant="destructive"
+            onClick={() => {
+              console.log("Confirm button clicked with reason:", rejectionReason);
               handleConfirm();
             }}
-            className="bg-destructive hover:bg-destructive/90"
           >
             Reject
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
