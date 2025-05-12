@@ -20,7 +20,7 @@ type DealsTableProps = {
   deals: Deal[] | undefined;
   onEdit: (dealId: number) => void;
   onAllocate: (dealId: number, dealName: string) => void;
-  onUpdateStatus?: (dealId: number, newStatus: string, dealName?: string) => void;
+  onUpdateStatus?: (dealId: number, newStatus: string) => void;
   onViewDocuments?: (dealId: number) => void;
   onDelete?: (dealId: number, dealName: string) => void;
   isLoading: boolean;
@@ -104,54 +104,19 @@ export default function DealsTable({ deals, onEdit, onAllocate, onUpdateStatus, 
                         </div>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="start" className="w-[180px]">
-                        {Object.entries(DealStageLabels)
-                          .filter(([stage, _]) => stage !== "rejected") // Filter out rejected from dropdown
-                          .map(([stage, label]) => (
-                            <DropdownMenuItem 
-                              key={stage} 
-                              className="flex items-center justify-between text-xs sm:text-sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if (onUpdateStatus) {
-                                  console.log("DealsTable: Calling onUpdateStatus with", { id: deal.id, stage, name: deal.name });
-                                onUpdateStatus(deal.id, stage, deal.name);
-                                } else {
-                                  console.log(`Changed status to ${stage}`);
-                                }
-                              }}
-                            >
-                              <span>{label}</span>
-                              {stage === deal.stage && <Check className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-primary" />}
-                            </DropdownMenuItem>
-                          ))}
-                        {/* Separate menu item for rejection */}
-                        <DropdownMenuItem 
-                          key="rejected"
-                          className="flex items-center justify-between text-xs sm:text-sm text-destructive border-t border-border mt-1 pt-1"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            e.preventDefault();
-                            if (onUpdateStatus) {
-                              // Force close the dropdown menu to avoid it staying open
-                              const clickEvent = new MouseEvent('click', {
-                                bubbles: true,
-                                cancelable: true,
-                                view: window
-                              });
-                              // Dispatch the click event to close the dropdown
-                              document.dispatchEvent(clickEvent);
-                              
-                              // Wait for dropdown to close, then open rejection dialog
-                              setTimeout(() => {
-                                console.log("DealsTable: Rejection item clicked for", deal.name);
-                                onUpdateStatus(deal.id, "rejected", deal.name);
-                              }, 50);
-                            }
-                          }}
-                        >
-                          <span>{DealStageLabels.rejected}</span>
-                          {deal.stage === "rejected" && <Check className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-primary" />}
-                        </DropdownMenuItem>
+                        {Object.entries(DealStageLabels).map(([stage, label]) => (
+                          <DropdownMenuItem 
+                            key={stage} 
+                            className="flex items-center justify-between text-xs sm:text-sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onUpdateStatus ? onUpdateStatus(deal.id, stage) : console.log(`Changed status to ${stage}`);
+                            }}
+                          >
+                            <span>{label}</span>
+                            {stage === deal.stage && <Check className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-primary" />}
+                          </DropdownMenuItem>
+                        ))}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>

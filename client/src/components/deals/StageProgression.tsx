@@ -3,9 +3,20 @@ import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { generateDealNotification } from "@/lib/utils/notification-utils";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { DealStageLabels } from "@shared/schema";
-import RejectionDialog from "./RejectionDialog";
 
 // Define the stage order for progression
 const stageOrder = [
@@ -96,11 +107,23 @@ export default function StageProgression({ deal, onStageUpdated }: StageProgress
   };
   
   // Handle rejection with reason
-  const rejectDeal = (reason: string) => {
+  const rejectDeal = () => {
+    if (rejectionReason.trim() === "") {
+      toast({
+        title: "Rejection Reason Required",
+        description: "Please provide a reason for rejecting this deal.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     updateDealMutation.mutate({ 
       stage: "rejected", 
-      rejectionReason: reason 
+      rejectionReason 
     });
+    
+    setShowRejectionDialog(false);
+    setRejectionReason("");
   };
   
   // Handle passing on a deal
@@ -163,19 +186,39 @@ export default function StageProgression({ deal, onStageUpdated }: StageProgress
       
       {!isRejected && !isPassed && (
         <div className="flex justify-end space-x-2">
-          <RejectionDialog 
-            isOpen={showRejectionDialog} 
-            onOpenChange={setShowRejectionDialog}
-            onConfirm={rejectDeal}
-            dealName={deal.name}
-          />
-          <Button 
-            variant="outline" 
-            className="text-destructive hover:bg-destructive/10"
-            onClick={() => setShowRejectionDialog(true)}
-          >
-            Reject Deal
-          </Button>
+          <AlertDialog open={showRejectionDialog} onOpenChange={setShowRejectionDialog}>
+            <AlertDialogTrigger asChild>
+              <Button variant="outline" className="text-destructive hover:bg-destructive/10">
+                Reject Deal
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Reject Deal</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Please provide a reason for rejecting this deal. This information will be tracked and visible to the team.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <Textarea
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                placeholder="Enter rejection reason..."
+                className="min-h-[100px]"
+              />
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    rejectDeal();
+                  }}
+                  className="bg-destructive hover:bg-destructive/90"
+                >
+                  Reject
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
           
           <Button 
             variant="outline" 
