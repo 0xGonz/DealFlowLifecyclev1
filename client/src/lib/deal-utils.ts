@@ -16,6 +16,20 @@ export function enrichDealWithComputedProps(deal: Deal): Deal & { stageLabel: st
  * Returns a user-friendly label for a deal stage
  */
 function getStageLabel(stage: string): string {
-  const stageConfig = DEAL_STAGES.find(s => s.value === stage);
-  return stageConfig?.label || 'Unknown Stage';
+  // Map stage values to human-readable labels
+  const stageLabels: {[key: string]: string} = {
+    'initial_review': 'Initial Review',
+    'screening': 'Screening',
+    'diligence': 'Diligence',
+    'ic_review': 'IC Review',
+    'approved': 'Approved',
+    'decline': 'Declined',
+    'closed': 'Closed',
+    'closing': 'Closing',
+    'invested': 'Invested',
+    'ai_review': 'AI Review',
+    'rejected': 'Rejected'
+  };
+  
+  return stageLabels[stage] || 'Unknown Stage';
 }
