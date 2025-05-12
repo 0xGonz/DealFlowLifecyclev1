@@ -328,7 +328,14 @@ export type InsertFund = z.infer<typeof insertFundSchema>;
 export type FundAllocation = typeof fundAllocations.$inferSelect;
 export type InsertFundAllocation = z.infer<typeof insertFundAllocationSchema>;
 
-export type CapitalCall = typeof capitalCalls.$inferSelect;
+// Base type from the table
+export type CapitalCallBase = typeof capitalCalls.$inferSelect;
+
+// Extended type with additional properties for the API response
+export type CapitalCall = CapitalCallBase & {
+  dealName?: string;
+  fundName?: string;
+};
 export type InsertCapitalCall = z.infer<typeof insertCapitalCallSchema>;
 
 export type ClosingScheduleEvent = typeof closingScheduleEvents.$inferSelect;

@@ -550,6 +550,7 @@ const CalendarPage = () => {
                                     </div>
                                     
                                     <div className="text-xs text-muted-foreground flex flex-col gap-1">
+                                      <span>Call Date: {formatDate(call.callDate)}</span>
                                       <span>Due: {formatDate(call.dueDate)}</span>
                                       {call.paidDate && (
                                         <span>Paid: {formatDate(call.paidDate)}</span>

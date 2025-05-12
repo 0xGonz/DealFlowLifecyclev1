@@ -632,7 +632,26 @@ export class DatabaseStorage implements IStorage {
     if (!db) {
       throw new Error('Database not initialized');
     }
-    return await db.select().from(capitalCalls);
+    
+    // Get all capital calls with allocation details
+    const results = await db
+      .select({
+        capital_call: capitalCalls,
+        allocation: fundAllocations,
+        deal: deals,
+        fund: funds
+      })
+      .from(capitalCalls)
+      .leftJoin(fundAllocations, eq(capitalCalls.allocationId, fundAllocations.id))
+      .leftJoin(deals, eq(fundAllocations.dealId, deals.id))
+      .leftJoin(funds, eq(fundAllocations.fundId, funds.id));
+      
+    // Transform the results to include deal and fund names
+    return results.map(result => ({
+      ...result.capital_call,
+      dealName: result.deal?.name || 'Unknown Deal',
+      fundName: result.fund?.name || 'Unknown Fund'
+    }));
   }
   
   async getFundAllocation(id: number): Promise<FundAllocation | undefined> {
