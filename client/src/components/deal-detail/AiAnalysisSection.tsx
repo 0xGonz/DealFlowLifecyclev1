@@ -1,9 +1,12 @@
-import { useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { usePermissions } from '@/hooks/use-permissions';
 import AiAnalysisPanel from '@/components/analysis/AiAnalysisPanel';
+import AiInsights from '@/components/analysis/AiInsights';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertTriangle } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Sparkles, FileSearch, MessageSquareText } from 'lucide-react';
 import { Deal } from '@shared/schema';
 
 interface AiAnalysisSectionProps {
@@ -11,6 +14,7 @@ interface AiAnalysisSectionProps {
 }
 
 const AiAnalysisSection = ({ dealId }: AiAnalysisSectionProps) => {
+  const [activeTab, setActiveTab] = useState<string>('full-analysis');
   const { canView } = usePermissions();
   const canViewAiAnalysis = canView('aiAnalysis');
 
@@ -75,7 +79,43 @@ const AiAnalysisSection = ({ dealId }: AiAnalysisSectionProps) => {
     );
   }
 
-  return <AiAnalysisPanel dealId={dealId} />;
+  return (
+    <div className="mt-6 space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Sparkles className="w-5 h-5 mr-2" />
+            AI Analysis Tools
+          </CardTitle>
+          <CardDescription>
+            Leverage AI to gain insights and analyze this investment opportunity
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="full-analysis">
+                <FileSearch className="w-4 h-4 mr-2" />
+                Full Analysis
+              </TabsTrigger>
+              <TabsTrigger value="insights">
+                <MessageSquareText className="w-4 h-4 mr-2" />
+                Quick Insights
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="full-analysis" className="pt-4">
+              <AiAnalysisPanel dealId={dealId} />
+            </TabsContent>
+            
+            <TabsContent value="insights" className="pt-4">
+              <AiInsights dealId={dealId} />
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
+    </div>
+  );
 };
 
 export default AiAnalysisSection;
