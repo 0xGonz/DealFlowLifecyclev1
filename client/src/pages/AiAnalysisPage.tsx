@@ -55,13 +55,13 @@ const AiAnalysisPage = () => {
 
   // Fetch deal documents if a deal is selected
   const { data: documents } = useQuery<Document[]>({
-    queryKey: [`/api/documents/deal/${selectedDealId}`],
+    queryKey: [`/api/documents/by-deal/${selectedDealId}`],
     enabled: !!selectedDealId,
   });
 
   // Fetch deal memos if a deal is selected
   const { data: memos } = useQuery<MiniMemo[]>({
-    queryKey: [`/api/mini-memos/deal/${selectedDealId}`],
+    queryKey: [`/api/deals/${selectedDealId}/mini-memos`],
     enabled: !!selectedDealId,
   });
 
