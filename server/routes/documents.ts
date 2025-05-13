@@ -20,6 +20,7 @@ import multer from 'multer';
 
 // Import the central authentication middleware
 import { requireAuth as centralRequireAuth } from '../utils/auth';
+import { requirePermission } from '../utils/permissions';
 
 // Use the central authentication middleware to ensure consistency
 const requireAuth = centralRequireAuth;
@@ -316,7 +317,7 @@ const handleMulterError = (err: any, req: Request, res: Response, next: NextFunc
 // Upload a document - requires authentication
 // We don't attach upload.single() directly to the route handler, but use it separately
 // to allow proper error handling
-router.post('/upload', requireAuth, (req: Request, res: Response, next: NextFunction) => {
+router.post('/upload', requireAuth, requirePermission('create', 'document'), (req: Request, res: Response, next: NextFunction) => {
   upload.single('file')(req, res, (err) => {
     if (err) {
       return handleMulterError(err, req, res, next);
@@ -439,7 +440,7 @@ router.post('/upload', requireAuth, (req: Request, res: Response, next: NextFunc
 });
 
 // Delete a document - requires authentication
-router.delete('/:id', requireAuth, async (req: Request, res: Response) => {
+router.delete('/:id', requireAuth, requirePermission('delete', 'document'), async (req: Request, res: Response) => {
   try {
     const storage = StorageFactory.getStorage();
     const id = parseInt(req.params.id);

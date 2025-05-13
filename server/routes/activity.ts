@@ -1,10 +1,11 @@
 import { Router, Request, Response } from "express";
 import { StorageFactory } from "../storage-factory";
+import { requireAuth } from "../utils/auth";
 
 const router = Router();
 
 // Get activity feed with improved error handling and performance
-router.get('/', async (req: Request, res: Response) => {
+router.get('/', requireAuth, async (req: Request, res: Response) => {
   try {
     console.log('Activity feed request received');
     const storage = StorageFactory.getStorage();

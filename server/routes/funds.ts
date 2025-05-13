@@ -162,7 +162,7 @@ router.post('/', requireAuth, requirePermission('create', 'fund'), async (req: R
 });
 
 // Update a fund
-router.patch('/:id', async (req: Request, res: Response) => {
+router.patch('/:id', requireAuth, requirePermission('edit', 'fund'), async (req: Request, res: Response) => {
   try {
     const fundId = Number(req.params.id);
     
@@ -187,7 +187,7 @@ router.patch('/:id', async (req: Request, res: Response) => {
 });
 
 // Delete a fund
-router.delete('/:id', async (req: Request, res: Response) => {
+router.delete('/:id', requireAuth, requirePermission('delete', 'fund'), async (req: Request, res: Response) => {
   try {
     const fundId = Number(req.params.id);
     

@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import { StorageFactory } from "../storage-factory";
 import { DealStageLabels, TimelineEvent } from "@shared/schema";
+import { requireAuth } from "../utils/auth";
 
 const router = Router();
 
@@ -50,7 +51,7 @@ function calculateWeightedScore(params: {
 }
 
 // Get leaderboard data
-router.get('/', async (req: Request, res: Response) => {
+router.get('/', requireAuth, async (req: Request, res: Response) => {
   try {
     const storage = StorageFactory.getStorage();
     const allDeals = await storage.getDeals();

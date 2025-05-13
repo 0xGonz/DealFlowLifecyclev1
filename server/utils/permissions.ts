@@ -10,7 +10,7 @@ export type Permission = 'create' | 'view' | 'edit' | 'delete';
 /**
  * Resource types in the application
  */
-export type ResourceType = 'deal' | 'fund' | 'user' | 'document' | 'allocation' | 'capital-call';
+export type ResourceType = 'deal' | 'fund' | 'user' | 'document' | 'allocation' | 'capital-call' | 'closingEvent';
 
 /**
  * Role hierarchy for permission checks

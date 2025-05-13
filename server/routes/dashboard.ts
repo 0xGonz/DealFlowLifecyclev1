@@ -1,11 +1,12 @@
 import { Router, Request, Response } from "express";
 import { StorageFactory } from "../storage-factory";
 import { DASHBOARD_METRICS, calculateDynamicBaselines } from "../config/dashboard-metrics";
+import { requireAuth } from "../utils/auth";
 
 const router = Router();
 
 // Get dashboard stats
-router.get('/stats', async (req: Request, res: Response) => {
+router.get('/stats', requireAuth, async (req: Request, res: Response) => {
   try {
     console.log('Dashboard stats: Getting storage instance');
     const storage = StorageFactory.getStorage();

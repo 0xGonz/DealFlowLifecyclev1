@@ -18,7 +18,7 @@ interface AuthRequest extends Request {
 }
 
 // Get all closing schedule events
-router.get('/', async (req: AuthRequest, res: Response) => {
+router.get('/', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
     // Debug session data
     console.log(`Closing schedules GET request with session userId: ${req.session?.userId}`);
@@ -57,7 +57,7 @@ router.get('/', async (req: AuthRequest, res: Response) => {
 });
 
 // Get closing schedule events for a specific deal
-router.get('/deal/:dealId', async (req: AuthRequest, res: Response) => {
+router.get('/deal/:dealId', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
     const dealId = parseInt(req.params.dealId);
     
@@ -76,7 +76,7 @@ router.get('/deal/:dealId', async (req: AuthRequest, res: Response) => {
 });
 
 // Create a new closing schedule event
-router.post('/', async (req: AuthRequest, res: Response) => {
+router.post('/', requireAuth, requirePermission('create', 'closingEvent'), async (req: AuthRequest, res: Response) => {
   try {
     // Process input data
     let modifiedBody = { ...req.body };
@@ -124,7 +124,7 @@ router.post('/', async (req: AuthRequest, res: Response) => {
 });
 
 // Update a closing schedule event status
-router.patch('/:id/status', async (req: AuthRequest, res: Response) => {
+router.patch('/:id/status', requireAuth, requirePermission('edit', 'closingEvent'), async (req: AuthRequest, res: Response) => {
   try {
     const id = parseInt(req.params.id);
     const { status, actualDate, actualAmount } = req.body;
@@ -167,7 +167,7 @@ router.patch('/:id/status', async (req: AuthRequest, res: Response) => {
 });
 
 // Update a closing schedule event date
-router.patch('/:id/date', async (req: AuthRequest, res: Response) => {
+router.patch('/:id/date', requireAuth, requirePermission('edit', 'closingEvent'), async (req: AuthRequest, res: Response) => {
   try {
     const id = parseInt(req.params.id);
     const { scheduledDate } = req.body;
@@ -228,7 +228,7 @@ router.patch('/:id/date', async (req: AuthRequest, res: Response) => {
 });
 
 // Delete a closing schedule event - rewritten to use async/await
-router.delete('/:id', async (req: Request, res: Response, next: NextFunction) => {
+router.delete('/:id', requireAuth, requirePermission('delete', 'closingEvent'), async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     console.log(`DELETE request to /api/closing-schedules/${req.params.id}`);
     
@@ -237,12 +237,7 @@ router.delete('/:id', async (req: Request, res: Response, next: NextFunction) =>
       return res.status(400).json({ message: 'Invalid ID format' });
     }
     
-    // Check if the user is logged in via the session
-    if (!req.session || !req.session.userId) {
-      return res.status(401).json({ message: 'Authentication required' });
-    }
-    
-    const userId = req.session.userId;
+    const userId = req.user?.id || 0; // Default to 0 if user ID is undefined
     console.log(`User ID ${userId} attempting to delete closing schedule event ${id}`);
     
     // First get the event to ensure it exists
@@ -264,7 +259,7 @@ router.delete('/:id', async (req: Request, res: Response, next: NextFunction) =>
       dealId: event.dealId,
       eventType: 'note',
       content: `Closing event "${event.eventName}" has been deleted`,
-      createdBy: userId,
+      createdBy: userId || 0, // Default to 0 if userId is undefined
       metadata: {
         closingEventId: [event.id],
         closingEventType: [event.eventType],

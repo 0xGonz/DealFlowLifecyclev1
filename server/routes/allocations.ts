@@ -4,6 +4,8 @@ import { StorageFactory } from '../storage-factory';
 import { synchronizeAllocationDates } from '../utils/date-integration';
 import { capitalCallService } from '../services/capital-call.service';
 import { z } from 'zod';
+import { requireAuth } from '../utils/auth';
+import { requirePermission } from '../utils/permissions';
 
 const router = Router();
 const storage = StorageFactory.getStorage();
@@ -124,7 +126,7 @@ async function recalculatePortfolioWeights(fundId: number): Promise<void> {
 }
 
 // Get all allocations
-router.get('/', async (req: Request, res: Response) => {
+router.get('/', requireAuth, async (req: Request, res: Response) => {
   try {
     
     // Get all fund allocations from each fund
@@ -167,7 +169,7 @@ router.get('/', async (req: Request, res: Response) => {
 });
 
 // Fund allocations
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', requireAuth, requirePermission('create', 'allocation'), async (req: Request, res: Response) => {
   try {
     
     // Log the incoming data for debugging
@@ -318,7 +320,7 @@ router.post('/', async (req: Request, res: Response) => {
 });
 
 // Get allocations for a fund
-router.get('/fund/:fundId', async (req: Request, res: Response) => {
+router.get('/fund/:fundId', requireAuth, async (req: Request, res: Response) => {
   try {
     const fundId = Number(req.params.fundId);
     
@@ -372,7 +374,7 @@ router.get('/fund/:fundId/invalid', async (req: Request, res: Response) => {
 });
 
 // Get allocations for a deal
-router.get('/deal/:dealId', async (req: Request, res: Response) => {
+router.get('/deal/:dealId', requireAuth, async (req: Request, res: Response) => {
   try {
     const dealId = Number(req.params.dealId);
     
@@ -401,7 +403,7 @@ router.get('/deal/:dealId', async (req: Request, res: Response) => {
 });
 
 // Delete an allocation
-router.delete('/:id', async (req: Request, res: Response) => {
+router.delete('/:id', requireAuth, requirePermission('delete', 'allocation'), async (req: Request, res: Response) => {
   try {
     const allocationId = Number(req.params.id);
     
@@ -470,7 +472,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
 });
 
 // Update an allocation
-router.patch('/:id', async (req: Request, res: Response) => {
+router.patch('/:id', requireAuth, requirePermission('edit', 'allocation'), async (req: Request, res: Response) => {
   try {
     const allocationId = Number(req.params.id);
     
