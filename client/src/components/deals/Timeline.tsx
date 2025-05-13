@@ -712,7 +712,7 @@ export default function Timeline({ dealId }: TimelineProps) {
                     )}
                   </div>
                 ) : (
-                  <div className={`text-sm text-neutral-800 mt-1 p-2 rounded-md ${
+                  <div className={`text-sm text-neutral-800 mt-1 p-2 rounded-md whitespace-pre-line ${
                     event.eventType === 'note' && event.metadata?.noteType === 'question' ? 'bg-amber-50' :
                     event.eventType === 'note' && event.metadata?.noteType === 'decision' ? 'bg-green-50' :
                     event.eventType === 'note' && event.metadata?.noteType === 'concern' ? 'bg-red-50' :
