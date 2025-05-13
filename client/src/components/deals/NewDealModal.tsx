@@ -177,15 +177,28 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
 
   const createDealMutation = useMutation({
     mutationFn: async (values: DealFormValues) => {
-      return apiRequest("POST", "/api/deals", values);
+      const response = await apiRequest("POST", "/api/deals", values);
+      if (!response.ok) {
+        throw new Error(`Failed to create deal: ${response.status} ${response.statusText}`);
+      }
+      
+      // Parse the response JSON to get the deal data with ID
+      try {
+        const dealData = await response.json();
+        console.log('Deal created successfully with data:', dealData);
+        return dealData;
+      } catch (error) {
+        console.error('Error parsing deal creation response:', error);
+        throw new Error('Failed to parse deal creation response');
+      }
     },
-    onSuccess: async (response: any) => {
+    onSuccess: async (dealData: any) => {
       // Extract the created deal data from the response
-      const dealId = response.id;
+      const dealId = dealData?.id;
       const dealName = form.getValues('name'); // Get the deal name from the form
       
       if (!dealId) {
-        console.error('Created deal has no ID!', response);
+        console.error('Created deal has no ID!', dealData);
         toast({
           title: "Deal created",
           description: "New deal created but document upload failed - no deal ID returned.",
@@ -567,9 +580,40 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
                       <div 
                         className="mt-1 border border-dashed rounded-md p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-neutral-50 transition-colors"
                         onClick={() => fileInputRef.current?.click()}
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          e.currentTarget.classList.add("bg-neutral-50", "border-primary");
+                        }}
+                        onDragLeave={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          e.currentTarget.classList.remove("bg-neutral-50", "border-primary");
+                        }}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          e.currentTarget.classList.remove("bg-neutral-50", "border-primary");
+                          
+                          if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                            const file = e.dataTransfer.files[0];
+                            // Add the new document to the list
+                            const newDoc: DocumentUpload = {
+                              file,
+                              type: currentDocType,
+                              description: currentDocDescription || `${DOCUMENT_TYPES[currentDocType]} for deal`
+                            };
+                            
+                            setDocumentUploads([...documentUploads, newDoc]);
+                            
+                            // Reset the form
+                            setCurrentDocDescription('');
+                            setShowDocUploadForm(false);
+                          }
+                        }}
                       >
                         <FileUp className="h-6 w-6 mb-2 text-neutral-400" />
-                        <p className="text-sm font-medium">Click to select a file</p>
+                        <p className="text-sm font-medium">Click or drag & drop to add file</p>
                         <p className="text-xs text-neutral-500">PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, etc.</p>
                       </div>
                       <input 
@@ -578,6 +622,7 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
                         className="hidden" 
                         onChange={handleFileChange}
                         accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+                        aria-label="Upload document"
                       />
                     </div>
                   </div>

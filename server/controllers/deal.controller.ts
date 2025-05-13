@@ -81,6 +81,16 @@ export class DealController {
       // Create the deal
       const newDeal = await dealService.createDeal(dealData, user);
       
+      // Verify we have a valid deal object with ID before returning
+      if (!newDeal || typeof newDeal.id !== 'number') {
+        console.error('Deal created but missing valid ID:', newDeal);
+        return res.status(500).json({ message: 'Failed to create deal with valid ID' });
+      }
+      
+      // Log success for debugging
+      console.log(`Created new deal ID ${newDeal.id} for user ${user.id} (${user.username})`);
+      
+      // Return the full deal object with ID to the client
       res.status(201).json(newDeal);
     } catch (error) {
       if (error instanceof z.ZodError) {
