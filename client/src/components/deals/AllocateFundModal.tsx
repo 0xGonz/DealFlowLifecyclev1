@@ -95,14 +95,40 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
   // Create allocation mutation
   const createAllocation = useMutation({
     mutationFn: async (data: AllocationFormData) => {
-      // Format dates as ISO strings (needed for Zod parsing on the server-side)
+      // Ensure dates are properly formatted for the server
+      // We want to preserve the exact date (e.g., 2024-12-31) without timezone shifts
+      
+      // Helper to ensure consistent date formatting
+      const formatDateForAPI = (date: Date | string | null | undefined): string => {
+        if (!date) return new Date().toISOString();
+        
+        // If it's a string, ensure it's properly formatted
+        if (typeof date === 'string') {
+          // Check if it's a date-only string (YYYY-MM-DD)
+          if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+            // Add time component to avoid timezone shifting (noon UTC)
+            return new Date(`${date}T12:00:00Z`).toISOString();
+          }
+          return new Date(date).toISOString();
+        }
+        
+        // It's a Date object
+        return date.toISOString();
+      };
+      
       const formattedData = {
         ...data,
         // Convert Date objects to strings
-        allocationDate: data.allocationDate instanceof Date ? data.allocationDate.toISOString() : data.allocationDate,
-        firstCallDate: data.firstCallDate instanceof Date ? data.firstCallDate.toISOString() : data.firstCallDate
+        allocationDate: formatDateForAPI(data.allocationDate),
+        firstCallDate: formatDateForAPI(data.firstCallDate)
       };
-      console.log('Formatted data being sent:', formattedData);
+      
+      console.log('Allocation dates:', {
+        originalAllocationDate: data.allocationDate,
+        originalFirstCallDate: data.firstCallDate,
+        formattedAllocationDate: formattedData.allocationDate,
+        formattedFirstCallDate: formattedData.firstCallDate
+      });
       
       try {
         console.log('Sending API request to POST /api/allocations');

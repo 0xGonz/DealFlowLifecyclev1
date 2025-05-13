@@ -224,15 +224,40 @@ router.post('/', async (req: Request, res: Response) => {
         const capitalCallSchedule = req.body.capitalCallSchedule;
         const callFrequency = req.body.callFrequency || 'monthly';
         
-        // Use the allocation date as the default call date if no specific call date is provided
-        // This helps ensure dates are consistent throughout the system
-        const defaultDate = allocationData.allocationDate 
-          ? new Date(allocationData.allocationDate) 
-          : new Date();
-          
-        const firstCallDate = req.body.firstCallDate 
-          ? new Date(req.body.firstCallDate) 
-          : defaultDate;
+        // Parse the allocation date properly, ensuring timezone preservation
+        let defaultDate: Date;
+        try {
+          defaultDate = allocationData.allocationDate 
+            ? new Date(allocationData.allocationDate) 
+            : new Date();
+            
+          console.log('Using allocation date as default:', {
+            original: allocationData.allocationDate,
+            parsed: defaultDate.toISOString()
+          });
+        } catch (error) {
+          console.error('Error parsing allocation date:', error);
+          defaultDate = new Date();
+        }
+        
+        // Parse the first call date from the request body, preserving timezone
+        let firstCallDate: Date;
+        try {
+          if (req.body.firstCallDate) {
+            firstCallDate = new Date(req.body.firstCallDate);
+            
+            console.log('Using explicitly provided first call date:', {
+              original: req.body.firstCallDate,
+              parsed: firstCallDate.toISOString()
+            });
+          } else {
+            firstCallDate = defaultDate;
+            console.log('No first call date provided, using default date');
+          }
+        } catch (error) {
+          console.error('Error parsing first call date:', error);
+          firstCallDate = defaultDate;
+        }
           
         const callCount = req.body.callCount || 1;
         const callPercentage = req.body.callPercentage || 100;

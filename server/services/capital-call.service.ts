@@ -64,6 +64,14 @@ export class CapitalCallService {
     // If it's a single payment, create a paid capital call immediately
     if (capitalCallSchedule === 'single') {
       const callAmount = allocation.amount;
+      
+      // Log the incoming date for debugging
+      console.log('Creating single payment capital call with date:', {
+        originalDate: firstCallDate,
+        isoString: firstCallDate.toISOString(),
+        dateString: firstCallDate.toString()
+      });
+      
       // Use the firstCallDate passed from the form for the call date, due date, and paid date
       // This ensures we respect the user's selection instead of always using current date
       const singleCall = await storage.createCapitalCall({
