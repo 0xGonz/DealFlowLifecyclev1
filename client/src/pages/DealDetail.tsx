@@ -14,7 +14,6 @@ import { MiniMemoDisplay } from "@/components/memos/MiniMemoDisplay";
 import { MemoDetailDialog } from "@/components/memos/MemoDetailDialog";
 import { CreateCapitalCallForm } from "@/components/capitalcalls/CreateCapitalCallForm";
 import CapitalCallsList from "@/components/capitalcalls/CapitalCallsList";
-import { AllocationCommitmentInfo } from "@/components/allocations/AllocationCommitmentInfo";
 import { UserAvatar } from "@/components/common/UserAvatar";
 import { 
   Card, 
@@ -76,16 +75,7 @@ import {
 import { formatDistanceToNow } from "date-fns";
 import { getDealStageBadgeClass } from "@/lib/utils/format";
 import { enrichDealWithComputedProps } from "@/lib/utils";
-import { formatCurrency, formatPercentage } from "@/lib/formatters";
 import { Deal, MiniMemo, User } from "@/lib/types";
-import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableHead,
-  TableRow,
-  TableCell,
-} from "@/components/ui/table";
 import { DEFAULT_EMPTY_TEXT, DEFAULT_AVATAR_TEXT, COMPANY_LABELS } from "@/lib/constants/display-constants";
 import { DEAL_STAGES } from "@/lib/constants/deal-constants";
 
@@ -104,7 +94,7 @@ export default function DealDetail() {
   const getActiveTab = () => {
     const searchParams = new URLSearchParams(window.location.search);
     const tab = searchParams.get('tab');
-    return tab === 'timeline' || tab === 'memos' || tab === 'documents' || tab === 'capitalcalls' || tab === 'allocations'
+    return tab === 'timeline' || tab === 'memos' || tab === 'documents' || tab === 'capitalcalls'
       ? tab 
       : 'documents'; // Default tab
   };
@@ -616,9 +606,6 @@ export default function DealDetail() {
               <TabsTrigger value="capitalcalls" className="text-xs sm:text-sm h-8 sm:h-10 px-2 sm:px-4 flex-1">
                 Capital Calls
               </TabsTrigger>
-              <TabsTrigger value="allocations" className="text-xs sm:text-sm h-8 sm:h-10 px-2 sm:px-4 flex-1">
-                Allocations
-              </TabsTrigger>
             </TabsList>
           </div>
           
@@ -757,54 +744,6 @@ export default function DealDetail() {
                 )}
               </CardContent>
             </Card>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="allocations">
-            <div className="mt-4">
-              <Card>
-                <CardHeader className="pb-2 sm:pb-4">
-                  <CardTitle className="text-base sm:text-xl">Fund Allocations</CardTitle>
-                  <CardDescription className="text-xs sm:text-sm">
-                    View fund allocations and commitment details for this deal
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-6">
-                  {deal?.id ? (
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center">
-                        <div className="text-sm text-muted-foreground p-2 rounded bg-muted/50">
-                          <InfoIcon className="h-4 w-4 inline-block mr-2" />
-                          Track capital commitments and allocation details by fund
-                        </div>
-                        
-                        {/* Add allocation button */}
-                        {canCreate('allocation') && (
-                          <Button 
-                            size="sm" 
-                            onClick={() => setIsAllocateModalOpen(true)}
-                            className="gap-2"
-                          >
-                            <Building className="h-3.5 w-3.5 mr-1.5" />
-                            Allocate to Fund
-                          </Button>
-                        )}
-                      </div>
-                      
-                      {/* Allocation commitment information */}
-                      <AllocationCommitmentInfo 
-                        allocationId={deal.id} 
-                        onCreateCapitalCall={() => setIsCapitalCallFormOpen(true)}
-                      />
-                    </div>
-                  ) : (
-                    <div className="text-center py-8 text-neutral-500">
-                      <div className="animate-spin h-8 w-8 border-2 border-primary border-opacity-50 border-t-primary rounded-full mx-auto mb-4"></div>
-                      <p>Loading allocations...</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
             </div>
           </TabsContent>
 
