@@ -179,36 +179,44 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
     mutationFn: async (values: DealFormValues) => {
       return apiRequest("POST", "/api/deals", values);
     },
-    onSuccess: async (response) => {
+    onSuccess: async (response: any) => {
       // Extract the created deal data from the response
-      const dealData = response as any; // Cast to any for now to access id
-      const dealId = dealData.id;
+      const dealId = response.id;
       const dealName = form.getValues('name'); // Get the deal name from the form
+      
+      if (!dealId) {
+        console.error('Created deal has no ID!', response);
+        toast({
+          title: "Deal created",
+          description: "New deal created but document upload failed - no deal ID returned.",
+          variant: "destructive"
+        });
+        return;
+      }
       
       // Show success toast
       toast({
         title: "Deal created",
-        description: "New deal has been successfully created."
+        description: documentUploads.length > 0 
+          ? `Deal created successfully. Uploading ${documentUploads.length} document${documentUploads.length > 1 ? 's' : ''}...` 
+          : "New deal has been successfully created."
       });
       
       // Upload all documents if available
-      if (documentUploads.length > 0 && dealId) {
+      if (documentUploads.length > 0) {
         console.log(`Uploading ${documentUploads.length} documents for new deal ${dealId}`);
         
         // Keep track of successful uploads for toast notification summary
         let successCount = 0;
         let failCount = 0;
         
-        for (const doc of documentUploads) {
+        // Create an array of promises for document uploads
+        const uploadPromises = documentUploads.map(async (doc) => {
           const formData = new FormData();
-          // The file must be appended with the key 'file' as expected by multer
           formData.append('file', doc.file);
-          
-          // These parameters are required by the server's document upload handler
           formData.append('dealId', dealId.toString());
           formData.append('documentType', doc.type);
           
-          // Optional description field
           if (doc.description) {
             formData.append('description', doc.description);
           }
@@ -220,59 +228,52 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
               type: doc.type,
               dealId: dealId
             });
-            console.log('Document upload response:', result);
             
-            // Log successful document upload
             if (result && result.id) {
-              console.log(`Uploaded document ${result.id} (${result.fileName || 'unnamed'}) successfully`);
-              
-              // Invalidate document queries to ensure fresh data on next access
-              queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
-              if (result.dealId) {
-                queryClient.invalidateQueries({ queryKey: [`/api/documents/deal/${result.dealId}`] });
-              }
+              console.log(`Uploaded document ${result.id} successfully`);
+              successCount++;
+              return { success: true, doc };
             }
-            
-            successCount++;
+            return { success: false, doc, error: 'No document ID returned' };
           } catch (err) {
             console.error(`Failed to upload ${doc.type}:`, err);
             failCount++;
-            
-            // Show a toast notification for the error
-            toast({
-              title: `Failed to upload ${DOCUMENT_TYPES[doc.type]}`,
-              description: err instanceof Error ? err.message : 'An unknown error occurred',
-              variant: 'destructive'
-            });
+            return { success: false, doc, error: err instanceof Error ? err.message : 'Unknown error' };
           }
-        }
+        });
         
-        // Show a summary toast if there were successful uploads
-        if (successCount > 0) {
-          toast({
-            title: `${successCount} document${successCount > 1 ? 's' : ''} uploaded successfully`,
-            description: failCount > 0 
-              ? `${failCount} document${failCount > 1 ? 's' : ''} failed to upload. Please try again.` 
-              : `All documents were uploaded successfully.`
-          });
-        }
+        // Wait for all uploads to complete
+        const results = await Promise.allSettled(uploadPromises);
+        
+        // Count successful and failed uploads
+        successCount = results.filter(r => r.status === 'fulfilled' && (r.value as any).success).length;
+        failCount = documentUploads.length - successCount;
+        
+        // Invalidate document queries to ensure fresh data
+        queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
+        queryClient.invalidateQueries({ queryKey: [`/api/documents/deal/${dealId}`] });
+        
+        // Show a summary toast
+        toast({
+          title: `${successCount} document${successCount > 1 ? 's' : ''} uploaded successfully`,
+          description: failCount > 0 
+            ? `${failCount} document${failCount > 1 ? 's' : ''} failed to upload. Please try again.` 
+            : `All documents were uploaded successfully.`
+        });
       }
       
-      // Create notification for new deal
       try {
-        // Generate notification for all users (using admin user ID 1 for now)
-        // In a real-world scenario, we would notify relevant team members or all users
+        // Create notification for new deal
         await generateDealNotification(1, dealName, 'created', dealId);
-        
-        // Refresh notifications in the UI
         queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
         queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread-count'] });
       } catch (err) {
         console.error('Failed to create notification:', err);
       }
       
-      form.reset(); // Reset form
-      setDocumentUploads([]); // Reset document uploads
+      // Reset all form state
+      form.reset();
+      setDocumentUploads([]);
       setCurrentDocDescription('');
       setCurrentDocType('pitch_deck');
       setShowDocUploadForm(false);
@@ -280,21 +281,13 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
         fileInputRef.current.value = '';
       }
       
-      // Refresh all relevant data
-      queryClient.invalidateQueries({ queryKey: ['/api/deals'] }); // Refresh deals data
+      // Refresh deals data
+      queryClient.invalidateQueries({ queryKey: ['/api/deals'] });
       
-      // Invalidate document queries for this specific deal
-      // This ensures documents will appear immediately in the DocumentList component
-      queryClient.invalidateQueries({ queryKey: [`/api/documents/deal/${dealId}`] });
-      
-      // Also invalidate any other document-related queries
-      queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
-      
-      console.log(`Invalidated queries for deal and documents after creation of deal ${dealId}`);
-      
-      onClose(); // Close modal
+      // Close the modal
+      onClose();
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       toast({
         title: "Error",
         description: "Failed to create deal. Please try again.",
