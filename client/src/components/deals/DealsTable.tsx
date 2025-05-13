@@ -103,18 +103,23 @@ export default function DealsTable({ deals, onEdit, onAllocate, onUpdateStatus, 
                           <ChevronDown className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 flex-shrink-0 text-neutral-400" />
                         </div>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="start" className="w-[180px]">
+                      <DropdownMenuContent align="start" className="w-[220px]">
                         {Object.entries(DealStageLabels).map(([stage, label]) => (
                           <DropdownMenuItem 
                             key={stage} 
-                            className="flex items-center justify-between text-xs sm:text-sm"
+                            className="flex items-center justify-between text-xs sm:text-sm px-3 py-1.5"
                             onClick={(e) => {
                               e.stopPropagation();
                               onUpdateStatus ? onUpdateStatus(deal.id, stage) : console.log(`Changed status to ${stage}`);
                             }}
                           >
-                            <span>{label}</span>
-                            {stage === deal.stage && <Check className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-primary" />}
+                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                              <Badge className={`${getDealStageBadgeClass(stage)} text-xs px-1.5 py-0 whitespace-nowrap`}>
+                                {label}
+                              </Badge>
+                              <span className="truncate">{label}</span>
+                            </div>
+                            {stage === deal.stage && <Check className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-primary ml-2 flex-shrink-0" />}
                           </DropdownMenuItem>
                         ))}
                       </DropdownMenuContent>

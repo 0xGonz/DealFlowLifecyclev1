@@ -416,7 +416,7 @@ export default function DealDetail() {
                           Change Stage <ChevronDown className="ml-1 h-3 w-3" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="start" className="w-44">
+                      <DropdownMenuContent align="start" className="w-56">
                         <DropdownMenuLabel className="text-xs">Change stage to:</DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         {Object.entries(DEAL_STAGES).map(([key, value]) => (
@@ -431,12 +431,14 @@ export default function DealDetail() {
                                 });
                               }
                             }}
-                            className="text-xs"
+                            className="text-xs flex items-center justify-between px-3 py-1.5"
                           >
-                            <Badge className={`${getDealStageBadgeClass(value)} text-xs mr-2 px-1.5 py-0`}>
-                              {key.replace(/_/g, ' ')}
-                            </Badge>
-                            <span>{key.replace(/_/g, ' ')}</span>
+                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                              <Badge className={`${getDealStageBadgeClass(value)} text-xs px-1.5 py-0 whitespace-nowrap`}>
+                                {key.replace(/_/g, ' ')}
+                              </Badge>
+                              <span className="truncate">{key.replace(/_/g, ' ')}</span>
+                            </div>
                           </DropdownMenuItem>
                         ))}
                       </DropdownMenuContent>
