@@ -223,7 +223,17 @@ router.post('/', async (req: Request, res: Response) => {
         // Extract all parameters needed for capital call creation
         const capitalCallSchedule = req.body.capitalCallSchedule;
         const callFrequency = req.body.callFrequency || 'monthly';
-        const firstCallDate = req.body.firstCallDate ? new Date(req.body.firstCallDate) : new Date();
+        
+        // Use the allocation date as the default call date if no specific call date is provided
+        // This helps ensure dates are consistent throughout the system
+        const defaultDate = allocationData.allocationDate 
+          ? new Date(allocationData.allocationDate) 
+          : new Date();
+          
+        const firstCallDate = req.body.firstCallDate 
+          ? new Date(req.body.firstCallDate) 
+          : defaultDate;
+          
         const callCount = req.body.callCount || 1;
         const callPercentage = req.body.callPercentage || 100;
         
