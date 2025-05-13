@@ -13,9 +13,67 @@ const storage = StorageFactory.getStorage();
 // Get all capital calls
 router.get('/', requireAuth, async (req, res) => {
   try {
+    // Get query parameters for filtering
+    const status = req.query.status as string || undefined;
+    const fromDate = req.query.fromDate ? new Date(req.query.fromDate as string) : undefined;
+    const toDate = req.query.toDate ? new Date(req.query.toDate as string) : undefined;
+    const fundId = req.query.fundId ? Number(req.query.fundId) : undefined;
+    
     // Get all capital calls from database
     const result = await storage.getAllCapitalCalls();
-    return res.json(result);
+    
+    // Filter results based on query params
+    let filteredResult = result;
+    if (status) {
+      filteredResult = filteredResult.filter(call => call.status === status);
+    }
+    if (fromDate) {
+      filteredResult = filteredResult.filter(call => 
+        new Date(call.callDate) >= fromDate || 
+        new Date(call.dueDate) >= fromDate
+      );
+    }
+    if (toDate) {
+      filteredResult = filteredResult.filter(call => 
+        new Date(call.callDate) <= toDate || 
+        new Date(call.dueDate) <= toDate
+      );
+    }
+    
+    // Enhance with deal and fund details
+    const enhancedResults = await Promise.all(
+      filteredResult.map(async (call) => {
+        try {
+          // Get the allocation
+          const allocation = await storage.getFundAllocation(call.allocationId);
+          if (!allocation) return call;
+          
+          // If we have a fundId filter and this call doesn't match, skip it
+          if (fundId && allocation.fundId !== fundId) return null;
+          
+          // Get the deal and fund
+          const deal = await storage.getDeal(allocation.dealId);
+          const fund = await storage.getFund(allocation.fundId);
+          
+          return {
+            ...call,
+            dealId: allocation.dealId,
+            dealName: deal?.name || 'Unknown Deal',
+            fundId: allocation.fundId,
+            fundName: fund?.name || 'Unknown Fund',
+            outstanding: call.outstanding || Math.max(0, call.callAmount - (call.paidAmount || 0))
+          };
+        } catch (err) {
+          console.error('Error enhancing capital call data:', err);
+          return call;
+        }
+      })
+    );
+    
+    // Filter out null results (calls that didn't match our filter)
+    const finalResults = enhancedResults.filter(call => call !== null);
+    
+    return res.json(finalResults);
   } catch (error: any) {
     console.error('Error fetching all capital calls:', error);
     return res.status(500).json({ message: error.message || 'Internal server error' });
@@ -38,8 +96,64 @@ router.get('/deal/:dealId', requireAuth, async (req, res) => {
       return res.status(400).json({ message: 'Invalid deal ID' });
     }
 
+    // Get all capital calls for this deal
     const capitalCalls = await storage.getCapitalCallsByDeal(dealId);
-    return res.json(capitalCalls);
+    
+    if (!capitalCalls.length) {
+      return res.json([]);
+    }
+    
+    // Enhance with deal and fund information
+    const allocationIds = [...new Set(capitalCalls.map(call => call.allocationId))];
+    const allocations = await Promise.all(
+      allocationIds.map(id => storage.getFundAllocation(id))
+    );
+    
+    // Create a lookup map for allocations
+    const allocationMap = allocations.reduce((map, allocation) => {
+      if (allocation) {
+        map[allocation.id] = allocation;
+      }
+      return map;
+    }, {} as Record<number, any>);
+    
+    // Get all relevant funds for these allocations
+    const fundIds = [...new Set(
+      allocations
+        .filter(a => a !== null)
+        .map(a => a!.fundId)
+    )];
+    const funds = await Promise.all(
+      fundIds.map(id => storage.getFund(id))
+    );
+    
+    // Create a lookup map for funds
+    const fundMap = funds.reduce((map, fund) => {
+      if (fund) {
+        map[fund.id] = fund;
+      }
+      return map;
+    }, {} as Record<number, any>);
+    
+    // Enhance capital calls with deal and fund info
+    const enhancedCalls = capitalCalls.map(call => {
+      const allocation = allocationMap[call.allocationId];
+      if (allocation) {
+        const fund = fundMap[allocation.fundId] || { name: 'Unknown Fund' };
+        return {
+          ...call,
+          dealId,
+          dealName: allocation.dealName || 'Deal',
+          fundId: allocation.fundId,
+          fundName: fund.name,
+          // Use outstanding from database if available, otherwise calculate
+          outstanding: call.outstanding || Math.max(0, call.callAmount - (call.paidAmount || 0))
+        };
+      }
+      return call;
+    });
+    
+    return res.json(enhancedCalls);
   } catch (error: any) {
     console.error('Error fetching capital calls:', error);
     return res.status(500).json({ message: error.message || 'Internal server error' });

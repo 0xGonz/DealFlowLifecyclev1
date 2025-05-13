@@ -220,6 +220,12 @@ export class CapitalCallService {
     const newPaidAmount = (currentCall.paidAmount || 0) + paymentAmount;
     const newOutstanding = Math.max(0, currentCall.callAmount - newPaidAmount);
     
+    // Update the outstanding amount in the database
+    await storage.updateCapitalCall(capitalCallId, { 
+      outstanding: newOutstanding,
+      paidAmount: newPaidAmount
+    });
+    
     // Determine new status based on payment amount
     let newStatus: CapitalCall['status'] = currentCall.status;
     
@@ -383,35 +389,110 @@ export class CapitalCallService {
     const storage = StorageFactory.getStorage();
     const capitalCalls = await storage.getAllCapitalCalls();
     
+    if (!capitalCalls.length) {
+      return [];
+    }
+    
     // Filter capital calls by date range
     const filteredCalls = capitalCalls.filter((call: CapitalCall) => {
       const callDate = new Date(call.callDate);
       return callDate >= startDate && callDate <= endDate;
     });
-
-    // Get detailed information for each capital call
-    const result: CapitalCallWithFundAllocation[] = [];
     
-    for (const call of filteredCalls) {
-      // Get allocation details
-      const allocation = await storage.getFundAllocation(call.allocationId);
-      if (!allocation) continue;
-      
-      // Get fund details
-      const fund = await storage.getFund(allocation.fundId);
-      if (!fund) continue;
-      
-      // Get deal details
-      const deal = await storage.getDeal(allocation.dealId);
-      if (!deal) continue;
-      
-      result.push({
-        ...call,
-        fund_name: fund.name,
-        deal_name: deal.name,
-        allocation_amount: allocation.amount
-      });
+    if (!filteredCalls.length) {
+      return [];
     }
+
+    // Get all allocation IDs from capital calls
+    const allocationIds = [...new Set(filteredCalls.map(call => call.allocationId))];
+    
+    // Fetch all allocations in a single batch
+    const allocations = await Promise.all(
+      allocationIds.map(id => storage.getFundAllocation(id))
+    );
+    
+    // Create a lookup map for allocations
+    const allocationMap = allocations.reduce((map, allocation) => {
+      if (allocation) {
+        map[allocation.id] = allocation;
+      }
+      return map;
+    }, {} as Record<number, any>);
+    
+    // Get all deal IDs from allocations
+    const dealIds = [...new Set(
+      allocations
+        .filter(a => a !== null)
+        .map(a => a!.dealId)
+    )];
+    
+    // Fetch all deals in a single batch
+    const deals = await Promise.all(
+      dealIds.map(id => storage.getDeal(id))
+    );
+    
+    // Create a lookup map for deals
+    const dealMap = deals.reduce((map, deal) => {
+      if (deal) {
+        map[deal.id] = deal;
+      }
+      return map;
+    }, {} as Record<number, any>);
+    
+    // Get all fund IDs from allocations
+    const fundIds = [...new Set(
+      allocations
+        .filter(a => a !== null)
+        .map(a => a!.fundId)
+    )];
+    
+    // Fetch all funds in a single batch
+    const funds = await Promise.all(
+      fundIds.map(id => storage.getFund(id))
+    );
+    
+    // Create a lookup map for funds
+    const fundMap = funds.reduce((map, fund) => {
+      if (fund) {
+        map[fund.id] = fund;
+      }
+      return map;
+    }, {} as Record<number, any>);
+    
+    // Now enhance each capital call with fund and deal information
+    const result = filteredCalls.map(call => {
+      const allocation = allocationMap[call.allocationId];
+      
+      if (!allocation) {
+        return {
+          ...call,
+          fund_name: 'Unknown Fund',
+          deal_name: 'Unknown Deal',
+          allocation_amount: 0,
+          // Allow for client-side calculation by including both fields
+          outstanding: call.outstanding || Math.max(0, call.callAmount - (call.paidAmount || 0)),
+          dealId: 0,
+          fundId: 0
+        };
+      }
+      
+      const deal = dealMap[allocation.dealId] || { name: 'Unknown Deal' };
+      const fund = fundMap[allocation.fundId] || { name: 'Unknown Fund' };
+      
+      return {
+        ...call,
+        fund_name: fund.name || 'Unknown Fund',
+        deal_name: deal.name || 'Unknown Deal',
+        allocation_amount: allocation.amount || 0,
+        // For client compatibility
+        dealId: allocation.dealId,
+        fundId: allocation.fundId,
+        dealName: deal.name,
+        fundName: fund.name,
+        // Ensure outstanding amount is calculated if not available
+        outstanding: call.outstanding || Math.max(0, call.callAmount - (call.paidAmount || 0))
+      };
+    });
     
     return result;
   }

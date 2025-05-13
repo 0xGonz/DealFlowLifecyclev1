@@ -179,12 +179,23 @@ export default function CapitalCallsList({ dealId }: CapitalCallsListProps) {
     setShowPaymentHistory(true);
   };
 
-  // Function to look up fund name from allocation ID
-  const getFundNameByAllocationId = (allocationId: number) => {
-    const allocation = allocations.find((a: any) => a.id === allocationId);
+  // Function to get fund name from capital call data
+  const getFundName = (call: any) => {
+    // First try to use direct fund_name property if it exists
+    if (call.fund_name) {
+      return call.fund_name;
+    }
+    
+    // Next try to use fundName if it exists
+    if (call.fundName) {
+      return call.fundName;
+    }
+    
+    // Fall back to looking up from allocation data
+    const allocation = allocations.find((a: any) => a.id === call.allocationId);
     
     if (allocation) {
-      // First try to get the fund from the allocation's fund object
+      // Try to get the fund from the allocation's fund object
       if (allocation.fund && allocation.fund.name) {
         return allocation.fund.name;
       }
@@ -268,7 +279,7 @@ export default function CapitalCallsList({ dealId }: CapitalCallsListProps) {
             {capitalCalls.map((call: any) => (
               <TableRow key={call.id}>
                 <TableCell className="font-medium">
-                  {getFundNameByAllocationId(call.allocationId)}
+                  {getFundName(call)}
                 </TableCell>
                 <TableCell>
                   {call.amountType === 'dollar' ? (
