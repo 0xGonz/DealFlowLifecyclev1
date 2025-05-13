@@ -142,13 +142,13 @@ export function MiniMemoDisplay({
             {memo.risksAndMitigations && (
               <div>
                 <h4 className="text-xs sm:text-sm font-medium text-neutral-700">Risks & Mitigations</h4>
-                <p className="text-xs sm:text-sm text-neutral-600 mt-1">{memo.risksAndMitigations}</p>
+                <p className="text-xs sm:text-sm text-neutral-600 mt-1 whitespace-pre-line">{memo.risksAndMitigations}</p>
               </div>
             )}
             {memo.pricingConsideration && (
               <div>
                 <h4 className="text-xs sm:text-sm font-medium text-neutral-700">Pricing Considerations</h4>
-                <p className="text-xs sm:text-sm text-neutral-600 mt-1">{memo.pricingConsideration}</p>
+                <p className="text-xs sm:text-sm text-neutral-600 mt-1 whitespace-pre-line">{memo.pricingConsideration}</p>
               </div>
             )}
           </TabsContent>
@@ -272,18 +272,18 @@ export function MiniMemoDisplay({
         <div className="space-y-3">
           <div>
             <h4 className="text-xs sm:text-sm font-medium text-neutral-700">Investment Thesis</h4>
-            <p className="text-xs sm:text-sm text-neutral-600 mt-1">{memo.thesis}</p>
+            <p className="text-xs sm:text-sm text-neutral-600 mt-1 whitespace-pre-line">{memo.thesis}</p>
           </div>
           {memo.risksAndMitigations && (
             <div>
               <h4 className="text-xs sm:text-sm font-medium text-neutral-700">Risks & Mitigations</h4>
-              <p className="text-xs sm:text-sm text-neutral-600 mt-1">{memo.risksAndMitigations}</p>
+              <p className="text-xs sm:text-sm text-neutral-600 mt-1 whitespace-pre-line">{memo.risksAndMitigations}</p>
             </div>
           )}
           {memo.pricingConsideration && (
             <div>
               <h4 className="text-xs sm:text-sm font-medium text-neutral-700">Pricing Considerations</h4>
-              <p className="text-xs sm:text-sm text-neutral-600 mt-1">{memo.pricingConsideration}</p>
+              <p className="text-xs sm:text-sm text-neutral-600 mt-1 whitespace-pre-line">{memo.pricingConsideration}</p>
             </div>
           )}
         </div>
