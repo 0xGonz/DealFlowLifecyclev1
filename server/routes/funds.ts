@@ -6,13 +6,15 @@ import {
   DealStageLabels
 } from "@shared/schema";
 import { z } from "zod";
+import { requireAuth } from "../utils/auth";
+import { requirePermission } from "../utils/permissions";
 
 const router = Router();
 // Use the recommended getStorage method to obtain storage instance
 const storage = StorageFactory.getStorage();
 
 // Get all funds
-router.get('/', async (req: Request, res: Response) => {
+router.get('/', requireAuth, async (req: Request, res: Response) => {
   try {
     const funds = await storage.getFunds();
     
@@ -60,7 +62,7 @@ router.get('/', async (req: Request, res: Response) => {
 });
 
 // Get a specific fund by ID
-router.get('/:id', async (req: Request, res: Response) => {
+router.get('/:id', requireAuth, async (req: Request, res: Response) => {
   try {
     const fund = await storage.getFund(Number(req.params.id));
     
@@ -146,7 +148,7 @@ router.get('/:id', async (req: Request, res: Response) => {
 });
 
 // Create a new fund
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', requireAuth, requirePermission('create', 'fund'), async (req: Request, res: Response) => {
   try {
     const fundData = insertFundSchema.parse(req.body);
     const newFund = await storage.createFund(fundData);

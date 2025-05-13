@@ -275,6 +275,8 @@ export const capitalCalls = pgTable("capital_calls", {
   notes: text("notes"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  // This column will be added in the migration, along with the CHECK constraint
+  callPct: real("call_pct"),
 });
 
 export const insertCapitalCallSchema = createInsertSchema(capitalCalls).omit({

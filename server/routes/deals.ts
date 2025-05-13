@@ -9,6 +9,7 @@ import {
 } from "@shared/schema";
 import { z } from "zod";
 import { IStorage } from "../storage";
+import { requireAuth } from "../utils/auth";
 import { requirePermission } from "../utils/permissions";
 import { dealService } from "../services";
 import { StorageFactory } from "../storage-factory";
@@ -21,7 +22,7 @@ function getStorage(): IStorage {
 }
 
 // Get all deals or filter by stage
-router.get('/', async (req: Request, res: Response) => {
+router.get('/', requireAuth, async (req: Request, res: Response) => {
   try {
     const storage = getStorage();
     let deals;
@@ -62,7 +63,7 @@ router.get('/', async (req: Request, res: Response) => {
 });
 
 // Get a specific deal by ID
-router.get('/:id', async (req: Request, res: Response) => {
+router.get('/:id', requireAuth, async (req: Request, res: Response) => {
   try {
     // Check if the ID is valid
     if (req.params.id === 'undefined' || req.params.id === 'null') {
@@ -241,7 +242,7 @@ router.patch('/:id', requirePermission('edit', 'deal'), async (req: Request, res
 });
 
 // Get timeline events for a deal
-router.get('/:dealId/timeline', async (req: Request, res: Response) => {
+router.get('/:dealId/timeline', requireAuth, async (req: Request, res: Response) => {
   try {
     const dealId = Number(req.params.dealId);
     
@@ -279,7 +280,7 @@ router.get('/:dealId/timeline', async (req: Request, res: Response) => {
 });
 
 // Create a timeline event for a deal
-router.post('/:dealId/timeline', async (req: Request, res: Response) => {
+router.post('/:dealId/timeline', requireAuth, async (req: Request, res: Response) => {
   try {
     const dealId = Number(req.params.dealId);
     const user = (req as any).user;
@@ -324,7 +325,7 @@ router.post('/:dealId/timeline', async (req: Request, res: Response) => {
 });
 
 // Update a timeline event
-router.put('/:dealId/timeline/:eventId', async (req: Request, res: Response) => {
+router.put('/:dealId/timeline/:eventId', requireAuth, async (req: Request, res: Response) => {
   try {
     const dealId = Number(req.params.dealId);
     const eventId = Number(req.params.eventId);
@@ -392,7 +393,7 @@ router.put('/:dealId/timeline/:eventId', async (req: Request, res: Response) => 
 });
 
 // Delete a timeline event
-router.delete('/:dealId/timeline/:eventId', async (req: Request, res: Response) => {
+router.delete('/:dealId/timeline/:eventId', requireAuth, async (req: Request, res: Response) => {
   try {
     const dealId = Number(req.params.dealId);
     const eventId = Number(req.params.eventId);
@@ -440,7 +441,7 @@ router.delete('/:dealId/timeline/:eventId', async (req: Request, res: Response) 
 });
 
 // Get all stars for a deal
-router.get('/:dealId/stars', async (req: Request, res: Response) => {
+router.get('/:dealId/stars', requireAuth, async (req: Request, res: Response) => {
   try {
     const dealId = Number(req.params.dealId);
     
@@ -459,7 +460,7 @@ router.get('/:dealId/stars', async (req: Request, res: Response) => {
 });
 
 // Toggle star on a deal
-router.post('/:dealId/star', async (req: Request, res: Response) => {
+router.post('/:dealId/star', requireAuth, async (req: Request, res: Response) => {
   try {
     const dealId = Number(req.params.dealId);
     const user = (req as any).user;
@@ -506,7 +507,7 @@ router.post('/:dealId/star', async (req: Request, res: Response) => {
 });
 
 // Unstar a deal
-router.delete('/:dealId/star', async (req: Request, res: Response) => {
+router.delete('/:dealId/star', requireAuth, async (req: Request, res: Response) => {
   try {
     const dealId = Number(req.params.dealId);
     const user = (req as any).user;
@@ -530,7 +531,7 @@ router.delete('/:dealId/star', async (req: Request, res: Response) => {
 });
 
 // Assign a user to a deal
-router.post('/:dealId/assignments', async (req: Request, res: Response) => {
+router.post('/:dealId/assignments', requireAuth, async (req: Request, res: Response) => {
   try {
     const dealId = Number(req.params.dealId);
     const { userId } = req.body;
@@ -602,7 +603,7 @@ router.post('/:dealId/assignments', async (req: Request, res: Response) => {
 });
 
 // Get assignments for a deal
-router.get('/:dealId/assignments', async (req: Request, res: Response) => {
+router.get('/:dealId/assignments', requireAuth, async (req: Request, res: Response) => {
   try {
     const dealId = Number(req.params.dealId);
     
@@ -640,7 +641,7 @@ router.get('/:dealId/assignments', async (req: Request, res: Response) => {
 });
 
 // Unassign a user from a deal
-router.delete('/:dealId/assignments/:userId', async (req: Request, res: Response) => {
+router.delete('/:dealId/assignments/:userId', requireAuth, async (req: Request, res: Response) => {
   try {
     const dealId = Number(req.params.dealId);
     const userId = Number(req.params.userId);
@@ -727,7 +728,7 @@ router.delete('/:id', requirePermission('delete', 'deal'), async (req: Request, 
 });
 
 // Get mini memos for a deal
-router.get('/:dealId/memos', async (req: Request, res: Response) => {
+router.get('/:dealId/memos', requireAuth, async (req: Request, res: Response) => {
   try {
     const dealId = Number(req.params.dealId);
     
@@ -765,7 +766,7 @@ router.get('/:dealId/memos', async (req: Request, res: Response) => {
 });
 
 // Create a mini memo for a deal
-router.post('/:dealId/memos', async (req: Request, res: Response) => {
+router.post('/:dealId/memos', requireAuth, async (req: Request, res: Response) => {
   try {
     const dealId = Number(req.params.dealId);
     const user = (req as any).user;
@@ -814,7 +815,7 @@ router.post('/:dealId/memos', async (req: Request, res: Response) => {
 });
 
 // Update a mini memo - only allowed for the original creator
-router.patch('/:dealId/memos/:memoId', async (req: Request, res: Response) => {
+router.patch('/:dealId/memos/:memoId', requireAuth, async (req: Request, res: Response) => {
   try {
     const dealId = Number(req.params.dealId);
     const memoId = Number(req.params.memoId);
@@ -863,7 +864,7 @@ router.patch('/:dealId/memos/:memoId', async (req: Request, res: Response) => {
 });
 
 // Delete a mini memo - only allowed for the original creator
-router.delete('/:dealId/memos/:memoId', async (req: Request, res: Response) => {
+router.delete('/:dealId/memos/:memoId', requireAuth, async (req: Request, res: Response) => {
   try {
     const dealId = Number(req.params.dealId);
     const memoId = Number(req.params.memoId);
@@ -908,7 +909,7 @@ router.delete('/:dealId/memos/:memoId', async (req: Request, res: Response) => {
 });
 
 // Get comments for a memo
-router.get('/:dealId/memos/:memoId/comments', async (req: Request, res: Response) => {
+router.get('/:dealId/memos/:memoId/comments', requireAuth, async (req: Request, res: Response) => {
   try {
     const memoId = Number(req.params.memoId);
     
@@ -940,7 +941,7 @@ router.get('/:dealId/memos/:memoId/comments', async (req: Request, res: Response
 });
 
 // Add a comment to a memo
-router.post('/:dealId/memos/:memoId/comments', async (req: Request, res: Response) => {
+router.post('/:dealId/memos/:memoId/comments', requireAuth, async (req: Request, res: Response) => {
   try {
     const dealId = Number(req.params.dealId);
     const memoId = Number(req.params.memoId);
