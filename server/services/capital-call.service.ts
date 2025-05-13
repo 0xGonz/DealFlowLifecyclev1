@@ -229,6 +229,14 @@ export class CapitalCallService {
       throw new Error('Capital call not found');
     }
     
+    // Calculate potential new paid amount to check for over-payment
+    const potentialPaidAmount = (currentCall.paidAmount || 0) + paymentAmount;
+    
+    // Check for over-payment
+    if (potentialPaidAmount > currentCall.callAmount) {
+      throw new Error(`Payment amount of ${paymentAmount} would exceed the call amount. The maximum allowed payment is ${currentCall.callAmount - (currentCall.paidAmount || 0)}`);
+    }
+    
     // Create payment record
     await storage.createCapitalCallPayment({
       capitalCallId,
@@ -240,7 +248,7 @@ export class CapitalCallService {
     });
     
     // Calculate new outstanding amount
-    const newPaidAmount = (currentCall.paidAmount || 0) + paymentAmount;
+    const newPaidAmount = potentialPaidAmount;
     const newOutstanding = Math.max(0, currentCall.callAmount - newPaidAmount);
     
     // Update the outstanding amount in the database

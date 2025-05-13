@@ -7,7 +7,7 @@ import { requireAuth } from '../utils/auth';
 const router = Router();
 
 // Get all notifications for the current user
-router.get('/', async (req: Request, res: Response) => {
+router.get('/', requireAuth, async (req: Request, res: Response) => {
   try {
     const user = req.user;
     
@@ -25,7 +25,7 @@ router.get('/', async (req: Request, res: Response) => {
 });
 
 // Get unread notification count
-router.get('/unread-count', async (req: Request, res: Response) => {
+router.get('/unread-count', requireAuth, async (req: Request, res: Response) => {
   try {
     const user = req.user;
     
@@ -43,7 +43,7 @@ router.get('/unread-count', async (req: Request, res: Response) => {
 });
 
 // Mark notification as read
-router.patch('/:id/read', async (req: Request, res: Response) => {
+router.patch('/:id/read', requireAuth, async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
@@ -64,7 +64,7 @@ router.patch('/:id/read', async (req: Request, res: Response) => {
 });
 
 // Mark all notifications as read
-router.post('/mark-all-read', async (req: Request, res: Response) => {
+router.post('/mark-all-read', requireAuth, async (req: Request, res: Response) => {
   try {
     const user = req.user;
     

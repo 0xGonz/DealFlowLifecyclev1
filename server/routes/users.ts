@@ -1,6 +1,6 @@
 import { Router, Request, Response } from "express";
 import { StorageFactory } from "../storage-factory";
-import { hashPassword } from "../utils/auth";
+import { hashPassword, requireAuth } from "../utils/auth";
 import { z } from 'zod';
 import { createInsertSchema } from 'drizzle-zod';
 import * as schema from '@shared/schema';
@@ -16,7 +16,7 @@ const userInsertSchema = createInsertSchema(schema.users, {
 }).omit({ id: true });
 
 // Create a new user with password hashing - ADMIN ONLY
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', requireAuth, async (req: Request, res: Response) => {
   try {
     // Check if the current user is an admin
     if (!req.session.userId) {
@@ -81,7 +81,7 @@ router.post('/', async (req: Request, res: Response) => {
 });
 
 // Get all users
-router.get('/', async (req: Request, res: Response) => {
+router.get('/', requireAuth, async (req: Request, res: Response) => {
   try {
     const storage = StorageFactory.getStorage();
     const users = await storage.getUsers();
@@ -100,7 +100,7 @@ router.get('/', async (req: Request, res: Response) => {
 });
 
 // Get a specific user by ID
-router.get('/:id', async (req: Request, res: Response) => {
+router.get('/:id', requireAuth, async (req: Request, res: Response) => {
   try {
     const storage = StorageFactory.getStorage();
     const user = await storage.getUser(Number(req.params.id));
@@ -117,7 +117,7 @@ router.get('/:id', async (req: Request, res: Response) => {
 });
 
 // Update a user's profile
-router.patch('/:id', async (req: Request, res: Response) => {
+router.patch('/:id', requireAuth, async (req: Request, res: Response) => {
   try {
     // Check if the current user is authenticated
     if (!req.session.userId) {
@@ -192,7 +192,7 @@ router.patch('/:id', async (req: Request, res: Response) => {
 });
 
 // Change password endpoint
-router.post('/:id/change-password', async (req: Request, res: Response) => {
+router.post('/:id/change-password', requireAuth, async (req: Request, res: Response) => {
   try {
     // Check if the current user is authenticated
     if (!req.session.userId) {
@@ -268,7 +268,7 @@ router.post('/:id/change-password', async (req: Request, res: Response) => {
 });
 
 // Delete user endpoint - ADMIN ONLY
-router.delete('/:id', async (req: Request, res: Response) => {
+router.delete('/:id', requireAuth, async (req: Request, res: Response) => {
   try {
     // Check if the current user is authenticated and an admin
     if (!req.session.userId) {
