@@ -10,6 +10,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { useAuth } from '@/hooks/use-auth';
 import { DATE_FORMATS } from '@/lib/constants/time-constants';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 import {
   Form,
@@ -24,7 +25,10 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Loader2 } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Check, ChevronsUpDown, Loader2 } from 'lucide-react';
 
 // Define a custom schema for the form, extending the database schema with validation
 const closingEventFormSchema = z.object({
@@ -141,36 +145,68 @@ const ClosingEventForm: React.FC<ClosingEventFormProps> = ({ isOpen, onClose, se
         
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            {/* Deal selector */}
+            {/* Deal selector - Searchable */}
             <FormField
               control={form.control}
               name="dealId"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Deal</FormLabel>
-                  <Select
-                    onValueChange={(value) => field.onChange(parseInt(value))}
-                    defaultValue={field.value?.toString()}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select deal" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {isLoadingDeals ? (
-                        <div className="p-2 flex justify-center">
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        </div>
-                      ) : (
-                        eligibleDeals.map((deal) => (
-                          <SelectItem key={deal.id} value={deal.id.toString()}>
-                            {deal.name}
-                          </SelectItem>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
+                  {/* Using Combobox for searchable dropdown */}
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          className="w-full justify-between"
+                          disabled={isLoadingDeals || createClosingEvent.isPending}
+                        >
+                          {field.value
+                            ? eligibleDeals.find(
+                                (deal) => deal.id === field.value
+                              )?.name || "Select deal"
+                            : "Select deal"}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[300px] p-0">
+                      <Command>
+                        <CommandInput placeholder="Search deals..." />
+                        <CommandEmpty>No deal found.</CommandEmpty>
+                        <CommandGroup>
+                          <ScrollArea className="h-72">
+                            {isLoadingDeals ? (
+                              <div className="p-2 flex justify-center">
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              </div>
+                            ) : (
+                              eligibleDeals.map((deal) => (
+                                <CommandItem
+                                  key={deal.id}
+                                  value={deal.name}
+                                  onSelect={() => {
+                                    field.onChange(deal.id);
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      deal.id === field.value
+                                        ? "opacity-100"
+                                        : "opacity-0"
+                                    )}
+                                  />
+                                  {deal.name}
+                                </CommandItem>
+                              ))
+                            )}
+                          </ScrollArea>
+                        </CommandGroup>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                   <FormMessage />
                 </FormItem>
               )}
