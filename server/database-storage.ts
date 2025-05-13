@@ -499,8 +499,9 @@ export class DatabaseStorage implements IStorage {
         return false;
       }
       
-      // Store the fund ID before deleting the allocation
+      // Store the fund ID and deal ID before deleting the allocation
       const fundId = allocation.fundId;
+      const dealId = allocation.dealId;
       
       // Delete the allocation
       await db.delete(fundAllocations)
@@ -510,6 +511,26 @@ export class DatabaseStorage implements IStorage {
       // This ensures consistent AUM calculation across the application
       const fundService = new FundService();
       await fundService.updateFundAUM(fundId);
+      
+      // Check if this was the last allocation for this deal
+      const remainingAllocations = await this.getAllocationsByDeal(dealId);
+      if (remainingAllocations.length === 0) {
+        // Check the current deal stage
+        const [deal] = await db
+          .select()
+          .from(deals)
+          .where(eq(deals.id, dealId));
+          
+        if (deal && deal.stage === 'invested') {
+          // Update the deal stage to 'closing' since there are no more allocations
+          await db
+            .update(deals)
+            .set({ stage: 'closing' })
+            .where(eq(deals.id, dealId));
+            
+          console.log(`[INFO] Deal ${dealId} (${deal.name}) automatically moved back to 'closing' stage after all allocations were removed`);
+        }
+      }
       
       return true;
     } catch (error) {
