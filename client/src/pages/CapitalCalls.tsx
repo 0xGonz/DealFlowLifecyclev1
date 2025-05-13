@@ -87,11 +87,13 @@ const CapitalCalls = () => {
     
     const dateStr = format(selectedDate, DATE_FORMATS.ISO);
     let filtered = capitalCalls.filter(call => {
-      const callDateMatch = call.callDate.startsWith(dateStr);
-      const dueDateMatch = call.dueDate.startsWith(dateStr);
-      const paidDateMatch = call.paidDate?.startsWith(dateStr);
+      // Compare only the date part (YYYY-MM-DD) and ignore time to handle different timezones
+      const callDateStr = call.callDate.split('T')[0];
+      const dueDateStr = call.dueDate.split('T')[0];
+      const paidDateStr = call.paidDate?.split('T')[0];
+      const selectedDateStr = dateStr.split('T')[0];
       
-      return callDateMatch || dueDateMatch || paidDateMatch;
+      return callDateStr === selectedDateStr || dueDateStr === selectedDateStr || paidDateStr === selectedDateStr;
     });
     
     if (filter !== 'all') {

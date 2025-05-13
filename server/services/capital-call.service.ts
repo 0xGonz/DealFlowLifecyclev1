@@ -6,6 +6,7 @@ import {
   FundAllocation
 } from '@shared/schema';
 import { addMonths, addQuarters, addYears } from 'date-fns';
+import { normalizeToNoonUTC, formatToNoonUTC } from '@shared/utils/date-utils';
 
 // Define allocation statuses for use in the service
 const ALLOCATION_STATUS = {
@@ -73,16 +74,24 @@ export class CapitalCallService {
       });
       
       // Use the firstCallDate passed from the form for the call date, due date, and paid date
-      // This ensures we respect the user's selection instead of always using current date
+      // Normalize all dates to noon UTC to avoid timezone issues
+      const normalizedDate = normalizeToNoonUTC(firstCallDate);
+      
+      console.log('Creating single payment capital call with normalized date:', {
+        originalDate: firstCallDate,
+        normalizedDate: normalizedDate,
+        isoString: normalizedDate.toISOString()
+      });
+      
       const singleCall = await storage.createCapitalCall({
         allocationId: allocation.id,
         callAmount: callAmount,
         amountType: allocation.amountType,
-        callDate: firstCallDate, // Use the selected date
-        dueDate: firstCallDate, // Use the selected date
+        callDate: normalizedDate, // Use the normalized date
+        dueDate: normalizedDate, // Use the normalized date
         status: 'paid',
         paidAmount: callAmount, // Fully paid
-        paidDate: firstCallDate, // Use the selected date
+        paidDate: normalizedDate, // Use the normalized date
         outstanding: 0, // Nothing left to pay
         notes: 'Single payment allocation - automatically paid'
       });
@@ -108,29 +117,33 @@ export class CapitalCallService {
       
       // Calculate call date based on frequency
       if (i === 0) {
-        callDate = new Date(firstCallDate);
+        callDate = normalizeToNoonUTC(firstCallDate);
       } else {
+        // Create normalized base date
+        const baseDate = normalizeToNoonUTC(firstCallDate);
+        
         switch (callFrequency) {
           case 'monthly':
-            callDate = addMonths(new Date(firstCallDate), i);
+            callDate = normalizeToNoonUTC(addMonths(baseDate, i));
             break;
           case 'quarterly':
-            callDate = addQuarters(new Date(firstCallDate), i);
+            callDate = normalizeToNoonUTC(addQuarters(baseDate, i));
             break;
           case 'biannual':
-            callDate = addMonths(new Date(firstCallDate), i * 6);
+            callDate = normalizeToNoonUTC(addMonths(baseDate, i * 6));
             break;
           case 'annual':
-            callDate = addYears(new Date(firstCallDate), i);
+            callDate = normalizeToNoonUTC(addYears(baseDate, i));
             break;
           default:
-            callDate = addMonths(new Date(firstCallDate), i);
+            callDate = normalizeToNoonUTC(addMonths(baseDate, i));
         }
       }
       
       // Calculate due date (30 days after call date)
-      const dueDate = new Date(callDate);
-      dueDate.setDate(dueDate.getDate() + 30);
+      const dueDate = addMonths(callDate, 1);
+      // Normalize to noon UTC to avoid timezone issues
+      const normalizedDueDate = normalizeToNoonUTC(dueDate);
       
       // For the last call, use remaining percentage to ensure we reach 100%
       const isLastCall = i === callCount - 1;
@@ -150,7 +163,7 @@ export class CapitalCallService {
         callAmount,
         amountType: allocation.amountType,
         callDate,
-        dueDate,
+        dueDate: normalizedDueDate, // Use normalized due date
         status: 'scheduled',
         paidAmount: 0, // Initially nothing paid
         outstanding: callAmount, // Full amount outstanding

@@ -4,6 +4,7 @@ import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { formatPercentage } from '@/lib/utils/format';
+import { formatDateForAPI } from '@/lib/dateUtils';
 import { FINANCIAL_CALCULATION } from '@/lib/constants/calculation-constants';
 import { ALLOCATION_STATUS, CAPITAL_CALL_SCHEDULES, PAYMENT_SCHEDULE_LABELS } from '@/lib/constants/allocation-constants';
 
@@ -95,30 +96,10 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
   // Create allocation mutation
   const createAllocation = useMutation({
     mutationFn: async (data: AllocationFormData) => {
-      // Ensure dates are properly formatted for the server
-      // We want to preserve the exact date (e.g., 2024-12-31) without timezone shifts
-      
-      // Helper to ensure consistent date formatting
-      const formatDateForAPI = (date: Date | string | null | undefined): string => {
-        if (!date) return new Date().toISOString();
-        
-        // If it's a string, ensure it's properly formatted
-        if (typeof date === 'string') {
-          // Check if it's a date-only string (YYYY-MM-DD)
-          if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-            // Add time component to avoid timezone shifting (noon UTC)
-            return new Date(`${date}T12:00:00Z`).toISOString();
-          }
-          return new Date(date).toISOString();
-        }
-        
-        // It's a Date object
-        return date.toISOString();
-      };
-      
+      // Use the formatDateForAPI utility for consistent date handling
       const formattedData = {
         ...data,
-        // Convert Date objects to strings
+        // Convert Date objects to strings with noon UTC
         allocationDate: formatDateForAPI(data.allocationDate),
         firstCallDate: formatDateForAPI(data.firstCallDate)
       };
