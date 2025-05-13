@@ -30,38 +30,67 @@ export const PdfViewer = () => {
     setError(null);
   }, []);
 
-  const onDocumentLoadError = useCallback((err: Error) => {
+  const onDocumentLoadError = useCallback(async (err: Error) => {
     console.error('Error loading PDF:', err);
     setIsLoading(false);
     
-    // Check if this is a 404 Not Found error or MissingPDFException
-    if (err.message && (
-        err.message.includes('404') || 
-        err.message.includes('not found') || 
-        err.message.toLowerCase().includes('missingpdfexception') ||
-        (err as any)?.name === 'MissingPDFException'
-      )) {
-      // Handle document not found case specifically
-      const notFoundError = new Error(
-        'The document file could not be found. It may have been deleted or not properly saved. Please try uploading it again.'
-      );
-      setError(notFoundError);
-      
-      // Display toast notification
-      toast({
-        title: "Document Missing",
-        description: "Document missing – it may have been deleted.",
-        variant: "destructive"
-      });
-      
-      // Remove this document from the list if it's no longer available
-      setDocs(prev => prev.filter(doc => doc.id !== current?.id));
-      
-      // Set current to null after a delay to allow user to read the error
-      setTimeout(() => {
-        setCurrent(null);
-      }, 3000);
+    // Check if this is a MissingPDFException
+    const isMissingPdfError = 
+      err.message?.toLowerCase().includes('missingpdfexception') || 
+      (err as any)?.name === 'MissingPDFException';
+    
+    if (isMissingPdfError && current) {
+      // Do a HEAD request to confirm if it's truly a 404 before removing it
+      try {
+        const head = await fetch(current.downloadUrl, { 
+          method: 'HEAD', 
+          credentials: 'include' 
+        });
+        
+        if (head.status === 404) {
+          // This is a genuine 404 - the document is truly gone
+          const notFoundError = new Error(
+            'The document file could not be found. It may have been deleted or not properly saved. Please try uploading it again.'
+          );
+          setError(notFoundError);
+          
+          toast({
+            title: "Document Missing",
+            description: "Document missing – it may have been deleted.",
+            variant: "destructive"
+          });
+          
+          // Only remove from list if it's a confirmed 404
+          setDocs(prev => prev.filter(doc => doc.id !== current?.id));
+          
+          setTimeout(() => {
+            setCurrent(null);
+          }, 3000);
+        } else {
+          // This is a temporary error (auth, server issue, etc.) - don't remove document
+          const tempError = new Error(
+            `Temporary error (${head.status}). The document exists but couldn't be loaded. Try refreshing or clicking again.`
+          );
+          setError(tempError);
+          
+          toast({
+            title: "Loading Issue",
+            description: `Temporary error (${head.status}). Try again or refresh the page.`,
+            variant: "warning"
+          });
+        }
+      } catch (fetchErr) {
+        // Network error during the HEAD request - don't remove document
+        setError(new Error("Network error checking document status. Please check your connection."));
+        
+        toast({
+          title: "Network Error",
+          description: "Connection issue when checking document status. Try again later.",
+          variant: "warning"
+        });
+      }
     } else {
+      // Some other error type - just show the error
       setError(err);
     }
   }, [current, setDocs, setCurrent, toast]);
