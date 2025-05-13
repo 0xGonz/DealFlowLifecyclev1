@@ -1,5 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { Express } from 'express-serve-static-core';
+import { fileTypeFromFile } from 'file-type';
 
 declare global {
   namespace Express {
@@ -329,6 +330,45 @@ router.post('/upload', requireAuth, requirePermission('create', 'document'), (re
     }
     next();
   });
+}, async (req: Request, res: Response, next: NextFunction) => {
+  // Additional validation for file type using file-type package
+  try {
+    if (!req.file) {
+      return next(); // Let the next handler handle missing file error
+    }
+    
+    // Check the actual file content to validate it's really a PDF
+    const fileTypeResult = await fileTypeFromFile(req.file.path);
+    
+    // If no file type detected or not a PDF when expecting one
+    if (!fileTypeResult) {
+      // Delete the uploaded file to clean up
+      fs.unlinkSync(req.file.path);
+      return res.status(400).json({ 
+        error: 'unsupportedType',
+        message: 'Cannot determine file type or empty file was uploaded.' 
+      });
+    }
+    
+    // For PDF files, ensure it's really a PDF
+    if (req.file.mimetype === 'application/pdf' && fileTypeResult.mime !== 'application/pdf') {
+      // Delete the uploaded file to clean up
+      fs.unlinkSync(req.file.path);
+      return res.status(400).json({ 
+        error: 'unsupportedType',
+        message: 'File appears to be masquerading as a PDF but is actually: ' + fileTypeResult.mime 
+      });
+    }
+    
+    // Accept the file and proceed
+    next();
+  } catch (error) {
+    console.error('Error during file type validation:', error);
+    return res.status(500).json({ 
+      error: 'validationError',
+      message: 'Error validating file type' 
+    });
+  }
 }, async (req: Request, res: Response) => {
   try {
     // Get the authenticated user from the request

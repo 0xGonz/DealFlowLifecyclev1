@@ -2,11 +2,13 @@ import { useState, useCallback, useEffect } from 'react';
 import { Document, Page } from 'react-pdf';
 import { useDocs, DocMeta } from '@/context/DocumentsContext';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 import '@/styles/pdf-layers.css';
 // PDF Worker is configured in setupPdfWorker.ts and loaded in main.tsx
 
 export const PdfViewer = () => {
   const { current, setDocs, setCurrent } = useDocs();
+  const { toast } = useToast();
   const [numPages, setNumPages] = useState(0);
   const [pageNumber, setPageNumber] = useState(1);
   const [scale, setScale] = useState(1.0);
@@ -32,17 +34,25 @@ export const PdfViewer = () => {
     console.error('Error loading PDF:', err);
     setIsLoading(false);
     
-    // Check if this is a 404 Not Found error
+    // Check if this is a 404 Not Found error or MissingPDFException
     if (err.message && (
         err.message.includes('404') || 
         err.message.includes('not found') || 
-        err.message.toLowerCase().includes('missingpdfexception')
+        err.message.toLowerCase().includes('missingpdfexception') ||
+        (err as any)?.name === 'MissingPDFException'
       )) {
       // Handle document not found case specifically
       const notFoundError = new Error(
         'The document file could not be found. It may have been deleted or not properly saved. Please try uploading it again.'
       );
       setError(notFoundError);
+      
+      // Display toast notification
+      toast({
+        title: "Document Missing",
+        description: "Document missing – it may have been deleted.",
+        variant: "destructive"
+      });
       
       // Remove this document from the list if it's no longer available
       setDocs(prev => prev.filter(doc => doc.id !== current?.id));
@@ -54,7 +64,7 @@ export const PdfViewer = () => {
     } else {
       setError(err);
     }
-  }, [current, setDocs, setCurrent]);
+  }, [current, setDocs, setCurrent, toast]);
 
   const goToPreviousPage = useCallback(() => {
     setPageNumber((prevPageNumber) => Math.max(prevPageNumber - 1, 1));

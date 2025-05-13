@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useMutation } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
@@ -127,8 +127,62 @@ export const Sidebar = ({ dealId }: { dealId: number }) => {
     fileInputRef.current?.click();
   };
 
+  // Handle file drop
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDraggingOver(false);
+    
+    const file = e.dataTransfer.files?.[0];
+    if (!file) {
+      toast({
+        title: "Upload failed",
+        description: "No file was detected. Please try again.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Check if the file type is supported
+    const fileExt = file.name.split('.').pop()?.toLowerCase();
+    const supportedExtensions = ['pdf', 'doc', 'docx', 'xls', 'xlsx'];
+    
+    if (!fileExt || !supportedExtensions.includes(fileExt)) {
+      toast({
+        title: "Unsupported file type",
+        description: `Only ${supportedExtensions.join(', ')} files are supported. You tried to upload a ${fileExt || 'unknown'} file.`,
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Upload the file
+    uploadMutation.mutate(file);
+  };
+
+  // Prevent default to avoid browser opening the file
+  // State to track when we're dragging over the drop zone
+  const [isDraggingOver, setIsDraggingOver] = useState(false);
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    if (!isDraggingOver) {
+      setIsDraggingOver(true);
+    }
+  };
+  
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDraggingOver(false);
+  };
+
   return (
-    <div className="p-4 h-full flex flex-col">
+    <div 
+      className={`p-4 h-full flex flex-col ${isDraggingOver ? 'bg-primary/10 border-2 border-dashed border-primary/50 rounded' : ''}`}
+      onDrop={handleDrop}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDragEnd={() => setIsDraggingOver(false)}
+    >
       <div className="flex justify-between items-center mb-4">
         <h3 className="font-medium">Documents</h3>
         <div>
@@ -142,6 +196,7 @@ export const Sidebar = ({ dealId }: { dealId: number }) => {
           <Button
             size="sm"
             onClick={handleUploadClick}
+            aria-label="Upload new document"
             disabled={uploadMutation.isPending}
           >
             <FileUp className="h-4 w-4 mr-2" />
@@ -161,6 +216,8 @@ export const Sidebar = ({ dealId }: { dealId: number }) => {
             {docs.map((doc) => (
               <div
                 key={doc.id}
+                role="button"
+                aria-label={`View ${doc.name}`}
                 className={`flex justify-between items-center p-2 rounded cursor-pointer ${
                   current?.id === doc.id
                     ? 'bg-secondary/50 border border-secondary'
@@ -178,6 +235,7 @@ export const Sidebar = ({ dealId }: { dealId: number }) => {
                       variant="ghost"
                       size="sm"
                       className="h-6 w-6 p-0"
+                      aria-label={`Delete document: ${doc.name}`}
                       onClick={(e) => e.stopPropagation()}
                     >
                       <Trash2 className="h-3.5 w-3.5 text-destructive" />
