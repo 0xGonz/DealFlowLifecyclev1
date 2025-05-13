@@ -81,7 +81,8 @@ const CapitalCallForm: React.FC<CapitalCallFormProps> = ({ isOpen, onClose, sele
   const form = useForm<CapitalCallFormValues>({
     resolver: zodResolver(capitalCallFormSchema),
     defaultValues: {
-      dueDate: selectedDate ? format(selectedDate, DATE_FORMATS.ISO) : '',
+      // Ensure we only use the date part without time
+      dueDate: selectedDate ? format(selectedDate, DATE_FORMATS.ISO).split('T')[0] : '',
       percentage: undefined,
       amountType: 'percentage',
       dealId: undefined as unknown as number,
@@ -135,9 +136,11 @@ const CapitalCallForm: React.FC<CapitalCallFormProps> = ({ isOpen, onClose, sele
       return;
     }
     
-    // Make sure the user ID is included
+    // Make sure the user ID is included and ensure date has no time portion
     const formData = {
       ...data,
+      // Ensure the dueDate has no time component
+      dueDate: data.dueDate ? data.dueDate.split('T')[0] : data.dueDate,
       createdBy: data.createdBy || user?.id
     };
     
@@ -289,7 +292,16 @@ const CapitalCallForm: React.FC<CapitalCallFormProps> = ({ isOpen, onClose, sele
                 <FormItem>
                   <FormLabel>Due Date</FormLabel>
                   <FormControl>
-                    <Input type="date" {...field} />
+                    <Input 
+                      type="date" 
+                      {...field} 
+                      // Ensure we only use the date part without time
+                      onChange={(e) => {
+                        // Split any potential datetime string and only use the date part
+                        const dateValue = e.target.value.split('T')[0];
+                        field.onChange(dateValue);
+                      }}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
