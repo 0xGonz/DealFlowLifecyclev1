@@ -604,7 +604,7 @@ export default function DealDetail() {
                 Mini-Memos
               </TabsTrigger>
               <TabsTrigger value="capitalcalls" className="text-xs sm:text-sm h-8 sm:h-10 px-2 sm:px-4 flex-1">
-                Capital Calls
+                Calendar
               </TabsTrigger>
             </TabsList>
           </div>
@@ -698,9 +698,9 @@ export default function DealDetail() {
             <div className="mt-4">
               <Card>
                 <CardHeader className="pb-2 sm:pb-4">
-                  <CardTitle className="text-base sm:text-xl">Capital Calls</CardTitle>
+                  <CardTitle className="text-base sm:text-xl">Calendar</CardTitle>
                   <CardDescription className="text-xs sm:text-sm">
-                    Manage capital calls for this investment
+                    Manage scheduled events, capital calls, and closings
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="p-6">
@@ -709,7 +709,7 @@ export default function DealDetail() {
                       <div className="flex justify-between items-center">
                         <div className="text-sm text-muted-foreground p-2 rounded bg-muted/50">
                           <InfoIcon className="h-4 w-4 inline-block mr-2" />
-                          Schedule and track capital calls associated with this deal.
+                          View and manage all scheduled events including capital calls, closings, and meetings.
                         </div>
                       
                       {canCreate('capital-call') && (
@@ -722,7 +722,7 @@ export default function DealDetail() {
                             title={!deal?.allocations?.length ? "Deal must have fund allocations to create capital calls" : "Create a new capital call"}
                           >
                             <DollarSign className="h-3.5 w-3.5 mr-1.5" />
-                            Create Capital Call
+                            Schedule Event
                           </Button>
                           {!deal?.allocations?.length && (
                             <div className="absolute -bottom-10 right-0 w-60 text-xs bg-black text-white p-1.5 rounded shadow-lg z-10 opacity-90 hidden group-hover:block">
@@ -739,7 +739,7 @@ export default function DealDetail() {
                 ) : (
                   <div className="text-center py-8 text-neutral-500">
                     <div className="animate-spin h-8 w-8 border-2 border-primary border-opacity-50 border-t-primary rounded-full mx-auto mb-4"></div>
-                    <p>Loading capital calls...</p>
+                    <p>Loading calendar events...</p>
                   </div>
                 )}
               </CardContent>

@@ -248,7 +248,7 @@ const CapitalCalls = () => {
     <AppLayout>
       <div className="container py-6">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">Capital Calls</h1>
+          <h1 className="text-3xl font-bold">Calendar</h1>
           
           <div className="flex gap-2">
             <Tabs 
@@ -298,15 +298,23 @@ const CapitalCalls = () => {
               <div className="mt-3 text-xs text-neutral-500">
                 <div className="flex items-center gap-2 mb-1">
                   <div className={`w-2 h-2 rounded-full ${CALENDAR_INDICATOR_COLORS.CALL}`}></div>
-                  <span>Call Date</span>
+                  <span>Capital Call</span>
                 </div>
                 <div className="flex items-center gap-2 mb-1">
                   <div className={`w-2 h-2 rounded-full ${CALENDAR_INDICATOR_COLORS.DUE}`}></div>
-                  <span>Due Date</span>
+                  <span>Payment Due</span>
+                </div>
+                <div className="flex items-center gap-2 mb-1">
+                  <div className={`w-2 h-2 rounded-full ${CALENDAR_INDICATOR_COLORS.PAID}`}></div>
+                  <span>Payment Received</span>
+                </div>
+                <div className="flex items-center gap-2 mb-1">
+                  <div className={`w-2 h-2 rounded-full ${CALENDAR_INDICATOR_COLORS.CLOSING}`}></div>
+                  <span>Closing Event</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full ${CALENDAR_INDICATOR_COLORS.PAID}`}></div>
-                  <span>Paid Date</span>
+                  <div className={`w-2 h-2 rounded-full ${CALENDAR_INDICATOR_COLORS.ACTUAL_CLOSING}`}></div>
+                  <span>Completed Event</span>
                 </div>
               </div>
             </CardContent>
@@ -337,8 +345,8 @@ const CapitalCalls = () => {
                 <CardContent className="p-6">
                   <div className="text-center text-neutral-500">
                     {selectedDate 
-                      ? `No capital calls for ${format(selectedDate, DATE_FORMATS.FULL)}` 
-                      : 'Select a date to view capital calls'}
+                      ? `No events scheduled for ${format(selectedDate, DATE_FORMATS.FULL)}` 
+                      : 'Select a date to view scheduled events'}
                   </div>
                 </CardContent>
               </Card>
