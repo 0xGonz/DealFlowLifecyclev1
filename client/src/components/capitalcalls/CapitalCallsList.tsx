@@ -25,9 +25,12 @@ import {
   Edit,
   Trash2,
   MoreHorizontal,
-  CheckCircle2
+  CheckCircle2,
+  CreditCard
 } from 'lucide-react';
 import { EditCapitalCallForm } from '@/components/capitalcalls/EditCapitalCallForm';
+import { CapitalCallPaymentHistory } from '@/components/capitalcalls/CapitalCallPaymentHistory';
+import { CapitalCallPaymentForm } from '@/components/capitalcalls/CapitalCallPaymentForm';
 
 // UI Components
 import {
@@ -49,6 +52,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface CapitalCallsListProps {
   dealId: number;
@@ -92,6 +102,9 @@ export default function CapitalCallsList({ dealId }: CapitalCallsListProps) {
   const { toast } = useToast();
   const [selectedCall, setSelectedCall] = useState<any>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isAddPaymentOpen, setIsAddPaymentOpen] = useState(false);
+  const [showPaymentHistory, setShowPaymentHistory] = useState(false);
+  const [selectedCallForPayment, setSelectedCallForPayment] = useState<any>(null);
   
   // Fetch all funds for reference
   const { data: funds = [] } = useQuery<any[]>({
@@ -154,6 +167,17 @@ export default function CapitalCallsList({ dealId }: CapitalCallsListProps) {
       });
     }
   });
+  
+  // Handle payment actions
+  const handlePaymentClick = (call: any) => {
+    setSelectedCallForPayment(call);
+    setIsAddPaymentOpen(true);
+  };
+  
+  const handleViewPayments = (call: any) => {
+    setSelectedCallForPayment(call);
+    setShowPaymentHistory(true);
+  };
 
   // Function to look up fund name from allocation ID
   const getFundNameByAllocationId = (allocationId: number) => {
@@ -266,6 +290,17 @@ export default function CapitalCallsList({ dealId }: CapitalCallsListProps) {
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">
+                  {call.status !== 'paid' && (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="mr-1 h-8 text-xs"
+                      onClick={() => handlePaymentClick(call)}
+                    >
+                      <CreditCard className="h-3.5 w-3.5 mr-1.5" />
+                      Pay
+                    </Button>
+                  )}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -285,16 +320,30 @@ export default function CapitalCallsList({ dealId }: CapitalCallsListProps) {
                         Edit Capital Call
                       </DropdownMenuItem>
                       {call.status !== 'paid' && (
-                        <DropdownMenuItem
-                          onClick={() => markAsPaidMutation.mutate({ 
-                            id: call.id, 
-                            amount: call.callAmount 
-                          })}
-                        >
-                          <CheckCircle2 className="h-4 w-4 mr-2 text-green-500" />
-                          Mark as Paid
-                        </DropdownMenuItem>
+                        <>
+                          <DropdownMenuItem
+                            onClick={() => handlePaymentClick(call)}
+                          >
+                            <CreditCard className="h-4 w-4 mr-2 text-blue-500" />
+                            Record Payment
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => markAsPaidMutation.mutate({ 
+                              id: call.id, 
+                              amount: call.callAmount 
+                            })}
+                          >
+                            <CheckCircle2 className="h-4 w-4 mr-2 text-green-500" />
+                            Mark as Fully Paid
+                          </DropdownMenuItem>
+                        </>
                       )}
+                      <DropdownMenuItem
+                        onClick={() => handleViewPayments(call)}
+                      >
+                        <Eye className="h-4 w-4 mr-2" />
+                        View Payment History
+                      </DropdownMenuItem>
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
@@ -341,6 +390,55 @@ export default function CapitalCallsList({ dealId }: CapitalCallsListProps) {
           capitalCall={selectedCall}
           dealId={dealId}
         />
+      )}
+
+      {/* Payment Form Modal */}
+      {selectedCallForPayment && (
+        <CapitalCallPaymentForm
+          isOpen={isAddPaymentOpen}
+          onClose={() => {
+            setIsAddPaymentOpen(false);
+            setSelectedCallForPayment(null);
+          }}
+          capitalCallId={selectedCallForPayment.id}
+          callAmount={selectedCallForPayment.callAmount}
+          paidAmount={selectedCallForPayment.paidAmount || 0}
+          onSuccess={() => {
+            queryClient.invalidateQueries({ queryKey: [`/api/capital-calls/deal/${dealId}`] });
+          }}
+        />
+      )}
+
+      {/* Payment History Dialog */}
+      {selectedCallForPayment && (
+        <Dialog 
+          open={showPaymentHistory} 
+          onOpenChange={() => {
+            setShowPaymentHistory(false);
+            setSelectedCallForPayment(null);
+          }}
+        >
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>Payment History</DialogTitle>
+              <DialogDescription>
+                Payment records for capital call on {
+                  selectedCallForPayment.callDate 
+                    ? format(new Date(selectedCallForPayment.callDate), 'MMM d, yyyy') 
+                    : '-'
+                }
+              </DialogDescription>
+            </DialogHeader>
+            <div className="mt-2">
+              <CapitalCallPaymentHistory
+                capitalCallId={selectedCallForPayment.id}
+                callAmount={selectedCallForPayment.callAmount}
+                paidAmount={selectedCallForPayment.paidAmount || 0}
+                status={selectedCallForPayment.status}
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
       )}
     </>
   );
