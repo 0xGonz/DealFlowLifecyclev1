@@ -14,6 +14,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -36,6 +37,7 @@ import { useToast } from "@/hooks/use-toast";
 import { generateDealNotification } from "@/lib/utils/notification-utils";
 import { DEAL_SECTORS } from "@/lib/constants/sectors";
 import { DEAL_STAGES, DealStage, DealStageLabels } from "@/lib/constants/deal-stages";
+import { COMPANY_STAGES, CompanyStage } from "@/lib/constants/company-stages";
 
 // Form schema with validation rules
 const dealFormSchema = z.object({
@@ -48,6 +50,7 @@ const dealFormSchema = z.object({
   // Removed projectedIrr - using targetReturn instead
   projectedMultiple: z.string().optional().or(z.literal("")),
   stage: z.enum(DEAL_STAGES),
+  companyStage: z.enum(Object.keys(COMPANY_STAGES) as [string, ...string[]]).optional(),
   rejectionReason: z.string().optional(),
   tags: z.array(z.string()).optional()
 });
@@ -81,6 +84,7 @@ export default function EditDealModal({ isOpen, onClose, dealId }: EditDealModal
       targetReturn: "",
       projectedMultiple: "",
       stage: "initial_review",
+      companyStage: undefined,
       tags: []
     },
     values: deal ? {
@@ -92,6 +96,7 @@ export default function EditDealModal({ isOpen, onClose, dealId }: EditDealModal
       targetReturn: deal.targetReturn || "",
       projectedMultiple: deal.projectedMultiple || "",
       stage: deal.stage,
+      companyStage: deal.companyStage as CompanyStage | undefined,
       tags: deal.tags || []
     } : undefined
   });
@@ -160,6 +165,8 @@ export default function EditDealModal({ isOpen, onClose, dealId }: EditDealModal
     }
   });
 
+  const isSubmitting = updateDealMutation.isPending;
+  
   const onSubmit = (values: DealFormValues) => {
     updateDealMutation.mutate(values);
   };
@@ -343,6 +350,38 @@ export default function EditDealModal({ isOpen, onClose, dealId }: EditDealModal
                         ))}
                       </RadioGroup>
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="companyStage"
+                render={({ field }) => (
+                  <FormItem className="space-y-1">
+                    <FormLabel>Company Stage</FormLabel>
+                    <Select 
+                      value={field.value || ""} 
+                      onValueChange={field.onChange}
+                      disabled={updateDealMutation.isPending}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select company stage" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {Object.entries(COMPANY_STAGES).map(([key, label]) => (
+                          <SelectItem key={key} value={key}>
+                            {label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      The company's funding/growth stage (Seed, Series A, etc.)
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}

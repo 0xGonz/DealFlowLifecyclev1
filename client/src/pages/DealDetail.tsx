@@ -78,6 +78,7 @@ import { enrichDealWithComputedProps } from "@/lib/utils";
 import { Deal, MiniMemo, User } from "@/lib/types";
 import { DEFAULT_EMPTY_TEXT, DEFAULT_AVATAR_TEXT, COMPANY_LABELS } from "@/lib/constants/display-constants";
 import { DEAL_STAGES } from "@/lib/constants/deal-constants";
+import { COMPANY_STAGES, CompanyStage } from "@/lib/constants/company-stages";
 
 export default function DealDetail() {
   const [match, params] = useRoute("/deals/:id");
@@ -522,7 +523,7 @@ export default function DealDetail() {
                     <div>
                       <p className="text-xs sm:text-sm font-medium">Company Stage</p>
                       <p className="text-xs sm:text-sm text-neutral-600">
-                        {deal?.companyStage || DEFAULT_EMPTY_TEXT}
+                        {deal?.companyStage ? COMPANY_STAGES[deal.companyStage as CompanyStage] : DEFAULT_EMPTY_TEXT}
                       </p>
                     </div>
                   </div>

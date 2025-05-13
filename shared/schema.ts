@@ -45,6 +45,8 @@ export const deals = pgTable("deals", {
   // Adding projected returns fields
   projectedIrr: text("projected_irr"),
   projectedMultiple: text("projected_multiple"),
+  // Adding company stage field to track the company's funding/growth stage
+  companyStage: text("company_stage"), // e.g., "Seed", "Series A", "Series B", etc.
 });
 
 export const insertDealSchema = createInsertSchema(deals).omit({

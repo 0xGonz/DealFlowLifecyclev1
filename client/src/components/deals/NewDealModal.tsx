@@ -14,6 +14,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -38,6 +39,7 @@ import { FileUp, File, Plus, X } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { DEAL_SECTORS } from "@/lib/constants/sectors";
 import { DEAL_STAGES, DealStage, DealStageLabels } from "@/lib/constants/deal-stages";
+import { COMPANY_STAGES, CompanyStage } from "@/lib/constants/company-stages";
 import { Badge } from "@/components/ui/badge";
 
 // Form schema with validation rules
@@ -51,6 +53,7 @@ const dealFormSchema = z.object({
   // Removed projectedIrr - using targetReturn instead
   projectedMultiple: z.string().optional().or(z.literal("")),
   stage: z.enum(DEAL_STAGES),
+  companyStage: z.enum(Object.keys(COMPANY_STAGES) as [string, ...string[]]).optional(),
   tags: z.array(z.string()).optional()
 });
 
@@ -98,6 +101,7 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
       targetReturn: "",
       projectedMultiple: "",
       stage: "initial_review",
+      companyStage: undefined,
       tags: []
     }
   });
@@ -478,6 +482,35 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
                       ))}
                     </RadioGroup>
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="companyStage"
+              render={({ field }) => (
+                <FormItem className="space-y-1">
+                  <FormLabel>Company Stage</FormLabel>
+                  <Select 
+                    onValueChange={field.onChange} 
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select company stage" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {Object.entries(COMPANY_STAGES).map(([key, label]) => (
+                        <SelectItem key={key} value={key}>{label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>
+                    The company's funding/growth stage (Seed, Series A, etc.)
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
