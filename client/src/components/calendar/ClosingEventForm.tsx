@@ -72,16 +72,15 @@ const ClosingEventForm: React.FC<ClosingEventFormProps> = ({ isOpen, onClose, se
     queryKey: ['/api/deals'],
   });
   
-  // Filter deals that are relevant for closing events (e.g., in closing stage)
-  const eligibleDeals = deals.filter(deal => {
-    // Only deals that are in the closing or invested stage should be eligible for closing events
-    return deal.stage === 'closing' || deal.stage === 'invested' || deal.stage === 'closed';
-  });
+  // All deals are eligible for closing events regardless of stage
+  // A closing event represents when the capital is called, not the stage of the deal
+  const eligibleDeals = deals;
   
   const form = useForm<ClosingEventFormValues>({
     resolver: zodResolver(closingEventFormSchema),
     defaultValues: {
-      scheduledDate: selectedDate ? format(selectedDate, DATE_FORMATS.ISO) : '',
+      // Ensure we only use the date part without time
+      scheduledDate: selectedDate ? format(selectedDate, DATE_FORMATS.ISO).split('T')[0] : '',
       eventName: '',
       eventType: CLOSING_EVENT_TYPES.CUSTOM,
       dealId: undefined as unknown as number,
@@ -121,9 +120,11 @@ const ClosingEventForm: React.FC<ClosingEventFormProps> = ({ isOpen, onClose, se
   });
   
   const onSubmit = (data: ClosingEventFormValues) => {
-    // Make sure the user ID is included
+    // Make sure the user ID is included and ensure date has no time portion
     const formData = {
       ...data,
+      // Ensure the scheduledDate has no time component
+      scheduledDate: data.scheduledDate ? data.scheduledDate.split('T')[0] : data.scheduledDate,
       createdBy: data.createdBy || user?.id
     };
     
@@ -227,7 +228,16 @@ const ClosingEventForm: React.FC<ClosingEventFormProps> = ({ isOpen, onClose, se
                 <FormItem>
                   <FormLabel>Scheduled Date</FormLabel>
                   <FormControl>
-                    <Input type="date" {...field} />
+                    <Input 
+                      type="date" 
+                      {...field} 
+                      // Ensure we only use the date part without time
+                      onChange={(e) => {
+                        // Split any potential datetime string and only use the date part
+                        const dateValue = e.target.value.split('T')[0];
+                        field.onChange(dateValue);
+                      }}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

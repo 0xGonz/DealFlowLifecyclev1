@@ -47,10 +47,6 @@ async function main() {
         UPDATE fund_allocations
         SET 
           allocation_date = DATE_TRUNC('day', allocation_date) + INTERVAL '12 hours',
-          invested_date = CASE 
-            WHEN invested_date IS NOT NULL THEN DATE_TRUNC('day', invested_date) + INTERVAL '12 hours'
-            ELSE NULL
-          END,
           closed_date = CASE 
             WHEN closed_date IS NOT NULL THEN DATE_TRUNC('day', closed_date) + INTERVAL '12 hours'
             ELSE NULL
