@@ -104,7 +104,7 @@ const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilt
 const upload = multer({
   storage,
   limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB file size limit
+    fileSize: 50 * 1024 * 1024, // 50MB file size limit
     files: 1                     // Maximum number of files per upload
   },
   fileFilter
@@ -183,6 +183,11 @@ router.get('/:id/download', requireAuth, async (req: Request, res: Response) => 
     
     // Set appropriate content type
     res.setHeader('Content-Type', document.fileType);
+    
+    // Add Cache-Control to prevent stale PDFs from being displayed
+    res.setHeader('Cache-Control', 'no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
     
     // For PDFs, set Content-Disposition to inline (displays in browser)
     if (document.fileType === 'application/pdf' || document.fileName.toLowerCase().endsWith('.pdf')) {
