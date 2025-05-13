@@ -77,6 +77,7 @@ export interface IStorage {
   getFundAllocation(id: number): Promise<FundAllocation | undefined>;
   updateFundAllocation(id: number, allocation: Partial<InsertFundAllocation>): Promise<FundAllocation | undefined>;
   deleteFundAllocation(id: number): Promise<boolean>;
+  getAllFundAllocations?(): Promise<FundAllocation[]>; // Optional helper method
   
   // Capital Calls
   createCapitalCall(capitalCall: InsertCapitalCall): Promise<CapitalCall>;

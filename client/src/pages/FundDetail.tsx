@@ -70,6 +70,7 @@ import { format } from "date-fns";
 import { formatCurrency } from "@/lib/utils";
 import FundSectorDistribution from "@/components/funds/FundSectorDistribution";
 import CalledCapitalRatio from "@/components/funds/CalledCapitalRatio";
+import { FundCommitmentInfo } from "@/components/funds/FundCommitmentInfo";
 // Import local types instead of schema types to ensure consistency
 import { Fund, FundAllocation, Deal } from "@/lib/types";
 
@@ -873,6 +874,21 @@ export default function FundDetail() {
                       </p>
                     </div>
                   </div>
+                </CardContent>
+              </Card>
+            </div>
+            
+            {/* Capital Commitment Section */}
+            <div className="mb-8">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle>Capital Commitment Tracking</CardTitle>
+                  <CardDescription>
+                    Track committed capital, called capital, and remaining commitment
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {fundId && <FundCommitmentInfo fundId={fundId} />}
                 </CardContent>
               </Card>
             </div>
