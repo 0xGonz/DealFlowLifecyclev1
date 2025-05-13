@@ -26,9 +26,10 @@ interface CapitalCallWithFundAllocation extends CapitalCall {
 
 // Define valid status transitions for capital calls
 const VALID_STATUS_TRANSITIONS: Record<CapitalCall['status'], CapitalCall['status'][]> = {
-  'scheduled': ['called', 'defaulted'],
-  'called': ['partial', 'paid', 'defaulted'],
-  'partial': ['paid', 'defaulted'],
+  'scheduled': ['called', 'overdue', 'defaulted'],
+  'called': ['partial', 'paid', 'overdue', 'defaulted'],
+  'partial': ['paid', 'overdue', 'defaulted'],
+  'overdue': ['paid', 'defaulted', 'partial'],
   'paid': [], // Terminal state
   'defaulted': [] // Terminal state
 };
@@ -62,15 +63,17 @@ export class CapitalCallService {
     
     // If it's a single payment, create a paid capital call immediately
     if (capitalCallSchedule === 'single') {
+      const callAmount = allocation.amount;
       const singleCall = await storage.createCapitalCall({
         allocationId: allocation.id,
-        callAmount: allocation.amount,
+        callAmount: callAmount,
         amountType: allocation.amountType,
         callDate: new Date(), // Current date
         dueDate: new Date(), // Current date
         status: 'paid',
-        paidAmount: allocation.amount,
+        paidAmount: callAmount, // Fully paid
         paidDate: new Date(),
+        outstanding: 0, // Nothing left to pay
         notes: 'Single payment allocation - automatically paid'
       });
       
@@ -139,6 +142,8 @@ export class CapitalCallService {
         callDate,
         dueDate,
         status: 'scheduled',
+        paidAmount: 0, // Initially nothing paid
+        outstanding: callAmount, // Full amount outstanding
         notes: `Scheduled payment ${i + 1} of ${callCount}`
       });
       
@@ -183,6 +188,84 @@ export class CapitalCallService {
   }
 
   /**
+   * Add a payment to a capital call
+   */
+  async addPaymentToCapitalCall(
+    capitalCallId: number, 
+    paymentAmount: number, 
+    paymentDate: Date,
+    paymentType: 'wire' | 'check' | 'ach' | 'other' | null = 'wire',
+    notes: string | null = null,
+    createdBy: number
+  ): Promise<CapitalCall | null> {
+    const storage = StorageFactory.getStorage();
+    
+    // Get current capital call
+    const currentCall = await storage.getCapitalCall(capitalCallId);
+    if (!currentCall) {
+      throw new Error('Capital call not found');
+    }
+    
+    // Create payment record
+    await storage.createCapitalCallPayment({
+      capitalCallId,
+      paymentAmount,
+      paymentDate,
+      paymentType,
+      notes,
+      createdBy
+    });
+    
+    // Calculate new outstanding amount
+    const newPaidAmount = (currentCall.paidAmount || 0) + paymentAmount;
+    const newOutstanding = Math.max(0, currentCall.callAmount - newPaidAmount);
+    
+    // Determine new status based on payment amount
+    let newStatus: CapitalCall['status'] = currentCall.status;
+    
+    if (newOutstanding === 0) {
+      newStatus = 'paid';
+    } else if (newPaidAmount > 0 && newOutstanding > 0) {
+      newStatus = 'partial';
+    }
+    
+    // Update capital call with new paid amount and status
+    const updatedCall = await storage.updateCapitalCall(capitalCallId, {
+      ...currentCall,
+      paidAmount: newPaidAmount,
+      outstanding: newOutstanding,
+      status: newStatus,
+      paidDate: paymentDate // Update to the latest payment date
+    });
+    
+    // If call is now fully paid, check if all calls for this allocation are paid
+    if (newStatus === 'paid') {
+      // Get the allocation to update its status if needed
+      const allocation = await storage.getFundAllocation(currentCall.allocationId);
+      
+      if (allocation) {
+        // Check if this is the last unpaid call for this allocation
+        const allCalls = await storage.getCapitalCallsByAllocation(allocation.id);
+        const hasUnpaidCalls = allCalls.some(call => 
+          call.id !== capitalCallId && 
+          call.status !== 'paid' && 
+          call.status !== 'defaulted'
+        );
+        
+        // If all calls are now paid or defaulted, update allocation status to funded
+        if (!hasUnpaidCalls && allocation.status !== 'funded') {
+          await storage.updateFundAllocation(allocation.id, {
+            ...allocation,
+            status: 'funded' as const
+          });
+        }
+      }
+    }
+    
+    return updatedCall || null;
+  }
+
+  /**
    * Update a capital call status with validation of state transitions
    */
   async updateCapitalCallStatus(id: number, newStatus: CapitalCall['status'], paidAmount?: number): Promise<CapitalCall | null> {
@@ -205,13 +288,28 @@ export class CapitalCallService {
       );
     }
     
-    // Additional validations
-    if (newStatus === 'paid' && !paidAmount) {
-      throw new Error('Paid amount is required when marking a capital call as paid');
-    }
+    // Calculate new values based on status change
+    let newPaidAmount = currentCall.paidAmount;
+    let newOutstanding = currentCall.outstanding;
+    let paidDate = currentCall.paidDate;
     
-    if (newStatus === 'partial' && (!paidAmount || paidAmount >= currentCall.callAmount)) {
-      throw new Error('Partial payment amount must be greater than 0 and less than the call amount');
+    // Handle payment-related status changes
+    if (newStatus === 'paid' && paidAmount) {
+      newPaidAmount = paidAmount;
+      newOutstanding = 0;
+      paidDate = new Date();
+    } else if (newStatus === 'partial' && paidAmount) {
+      // Additional validations for partial payments
+      if (!paidAmount || paidAmount >= currentCall.callAmount) {
+        throw new Error('Partial payment amount must be greater than 0 and less than the call amount');
+      }
+      
+      newPaidAmount = paidAmount;
+      newOutstanding = currentCall.callAmount - paidAmount;
+      paidDate = new Date();
+    } else if (newStatus === 'defaulted') {
+      // Defaulted calls have their outstanding amount written off
+      newOutstanding = 0;
     }
     
     // Process the status update with potential side effects
@@ -238,8 +336,15 @@ export class CapitalCallService {
       }
     }
     
-    // Update the capital call status
-    const updatedCall = await storage.updateCapitalCallStatus(id, newStatus, paidAmount);
+    // Update the capital call with all changes
+    const updatedCall = await storage.updateCapitalCall(id, {
+      ...currentCall,
+      status: newStatus,
+      paidAmount: newPaidAmount,
+      outstanding: newOutstanding,
+      paidDate
+    });
+    
     return updatedCall || null;
   }
 

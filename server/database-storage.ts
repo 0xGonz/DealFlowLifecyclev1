@@ -1,7 +1,7 @@
 import { db } from './db';
 import { IStorage } from './storage';
 import { StorageFactory } from './storage-factory';
-import { eq, and, sql, inArray, asc } from 'drizzle-orm';
+import { eq, and, sql, inArray, asc, gte, lte } from 'drizzle-orm';
 import { FundService } from './services/fund.service';
 import {
   User, InsertUser,
@@ -15,10 +15,11 @@ import {
   DealAssignment, InsertDealAssignment,
   Notification, InsertNotification,
   CapitalCall, InsertCapitalCall,
+  CapitalCallPayment, InsertCapitalCallPayment,
   MemoComment, InsertMemoComment,
   ClosingScheduleEvent, InsertClosingScheduleEvent,
   users, deals, timelineEvents, dealStars, miniMemos, documents,
-  funds, fundAllocations, dealAssignments, notifications, capitalCalls, memoComments, closingScheduleEvents
+  funds, fundAllocations, dealAssignments, notifications, capitalCalls, capitalCallPayments, memoComments, closingScheduleEvents
 } from '@shared/schema';
 
 /**
@@ -765,6 +766,81 @@ export class DatabaseStorage implements IStorage {
       .returning();
       
     return updatedCapitalCall || undefined;
+  }
+
+  async updateCapitalCall(id: number, updates: Partial<CapitalCall>): Promise<CapitalCall | undefined> {
+    if (!db) {
+      throw new Error('Database not initialized');
+    }
+    
+    // Ensure we update the timestamp
+    const updateData = {
+      ...updates,
+      updatedAt: new Date()
+    };
+    
+    const [updatedCapitalCall] = await db
+      .update(capitalCalls)
+      .set(updateData)
+      .where(eq(capitalCalls.id, id))
+      .returning();
+      
+    return updatedCapitalCall || undefined;
+  }
+  
+  async getCapitalCallsForCalendar(startDate: Date, endDate: Date): Promise<CapitalCall[]> {
+    if (!db) {
+      throw new Error('Database not initialized');
+    }
+    
+    return await db
+      .select()
+      .from(capitalCalls)
+      .where(
+        and(
+          gte(capitalCalls.callDate, startDate),
+          lte(capitalCalls.callDate, endDate)
+        )
+      );
+  }
+  
+  // Capital Call Payments
+  async createCapitalCallPayment(payment: InsertCapitalCallPayment): Promise<CapitalCallPayment> {
+    if (!db) {
+      throw new Error('Database not initialized');
+    }
+    
+    const [newPayment] = await db
+      .insert(capitalCallPayments)
+      .values(payment)
+      .returning();
+      
+    return newPayment;
+  }
+  
+  async getCapitalCallPayments(capitalCallId: number): Promise<CapitalCallPayment[]> {
+    if (!db) {
+      throw new Error('Database not initialized');
+    }
+    
+    return await db
+      .select()
+      .from(capitalCallPayments)
+      .where(eq(capitalCallPayments.capitalCallId, capitalCallId))
+      .orderBy(capitalCallPayments.paymentDate);
+  }
+  
+  async getCapitalCallPayment(id: number): Promise<CapitalCallPayment | undefined> {
+    if (!db) {
+      throw new Error('Database not initialized');
+    }
+    
+    const [payment] = await db
+      .select()
+      .from(capitalCallPayments)
+      .where(eq(capitalCallPayments.id, id));
+      
+    return payment || undefined;
   }
   
   // Closing Schedule Events

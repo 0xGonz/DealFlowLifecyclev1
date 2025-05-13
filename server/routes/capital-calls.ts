@@ -1,10 +1,11 @@
 import express from 'express';
 import { z } from 'zod';
 import { StorageFactory } from '../storage-factory';
-import { insertCapitalCallSchema, capitalCalls } from '../../shared/schema';
+import { insertCapitalCallSchema, insertCapitalCallPaymentSchema, capitalCalls } from '../../shared/schema';
 import { requireAuth } from '../utils/auth';
 import { requirePermission } from '../utils/permissions';
 import { eq } from 'drizzle-orm';
+import { capitalCallService } from '../services/capital-call.service';
 
 const router = express.Router();
 const storage = StorageFactory.getStorage();
@@ -347,6 +348,127 @@ router.delete('/:id', requireAuth, requirePermission('delete', 'capital-call'), 
     return res.json({ success: true, id });
   } catch (error: any) {
     console.error('Error deleting capital call:', error);
+    return res.status(500).json({ message: error.message || 'Internal server error' });
+  }
+});
+
+// --- Capital Call Payments Routes ---
+
+// Get all payments for a capital call
+router.get('/:id/payments', requireAuth, async (req, res) => {
+  try {
+    const capitalCallId = parseInt(req.params.id);
+    if (isNaN(capitalCallId)) {
+      return res.status(400).json({ message: 'Invalid capital call ID' });
+    }
+
+    // Check if capital call exists
+    const capitalCall = await storage.getCapitalCall(capitalCallId);
+    if (!capitalCall) {
+      return res.status(404).json({ message: 'Capital call not found' });
+    }
+
+    const payments = await storage.getCapitalCallPayments(capitalCallId);
+    return res.json(payments);
+  } catch (error: any) {
+    console.error('Error fetching capital call payments:', error);
+    return res.status(500).json({ message: error.message || 'Internal server error' });
+  }
+});
+
+// Schema for validating a payment
+const createPaymentSchema = insertCapitalCallPaymentSchema.extend({
+  paymentAmount: z.number().positive("Payment amount must be greater than 0"),
+  paymentDate: z.string().or(z.date()),
+  paymentType: z.enum(["wire", "check", "ach", "other"]).nullable(),
+  notes: z.string().nullable().optional()
+});
+
+// Add a payment to a capital call
+router.post('/:id/payments', requireAuth, requirePermission('edit', 'capital-call'), async (req, res) => {
+  try {
+    const capitalCallId = parseInt(req.params.id);
+    if (isNaN(capitalCallId)) {
+      return res.status(400).json({ message: 'Invalid capital call ID' });
+    }
+
+    // Validate the request body
+    const validatedData = createPaymentSchema.parse(req.body);
+
+    // Get the capital call to ensure it exists
+    const capitalCall = await storage.getCapitalCall(capitalCallId);
+    if (!capitalCall) {
+      return res.status(404).json({ message: 'Capital call not found' });
+    }
+
+    // Add the payment using the dedicated service method
+    const updatedCapitalCall = await capitalCallService.addPaymentToCapitalCall(
+      capitalCallId,
+      validatedData.paymentAmount,
+      new Date(validatedData.paymentDate),
+      validatedData.paymentType || 'other',
+      validatedData.notes || null,
+      req.user?.id || 0
+    );
+
+    if (!updatedCapitalCall) {
+      return res.status(500).json({ message: 'Failed to add payment' });
+    }
+
+    // Get all payments for this capital call to include in the response
+    const payments = await storage.getCapitalCallPayments(capitalCallId);
+
+    // Get allocation for timeline event
+    const allocation = await storage.getFundAllocation(capitalCall.allocationId);
+    
+    // Create timeline event for the payment
+    if (allocation) {
+      await storage.createTimelineEvent({
+        dealId: allocation.dealId,
+        eventType: 'capital_call_update',
+        content: `Payment of ${validatedData.paymentAmount} added to capital call`,
+        createdBy: req.user?.id || 0,
+        metadata: {
+          capitalCallId,
+          allocationId: allocation.id,
+          fundId: allocation.fundId,
+          paymentAmount: validatedData.paymentAmount,
+          paymentType: validatedData.paymentType,
+          newStatus: updatedCapitalCall.status,
+          previousStatus: capitalCall.status
+        } as any
+      });
+    }
+
+    return res.status(201).json({
+      capitalCall: updatedCapitalCall,
+      payments
+    });
+  } catch (error: any) {
+    console.error('Error adding payment to capital call:', error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: 'Validation error', errors: error.errors });
+    }
+    return res.status(500).json({ message: error.message || 'Internal server error' });
+  }
+});
+
+// Get details of a specific payment
+router.get('/payments/:paymentId', requireAuth, async (req, res) => {
+  try {
+    const paymentId = parseInt(req.params.paymentId);
+    if (isNaN(paymentId)) {
+      return res.status(400).json({ message: 'Invalid payment ID' });
+    }
+
+    const payment = await storage.getCapitalCallPayment(paymentId);
+    if (!payment) {
+      return res.status(404).json({ message: 'Payment not found' });
+    }
+
+    return res.json(payment);
+  } catch (error: any) {
+    console.error('Error fetching payment:', error);
     return res.status(500).json({ message: error.message || 'Internal server error' });
   }
 });

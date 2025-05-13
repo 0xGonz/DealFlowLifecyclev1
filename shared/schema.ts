@@ -268,9 +268,10 @@ export const capitalCalls = pgTable("capital_calls", {
   amountType: text("amount_type", { enum: ["percentage", "dollar"] }).default("percentage"),
   callDate: timestamp("call_date").notNull().defaultNow(),
   dueDate: timestamp("due_date").notNull(),
-  paidAmount: real("paid_amount").default(0), // Still named paidAmount but now represents percentage (1-100)
-  paidDate: timestamp("paid_date"),
-  status: text("status", { enum: ["scheduled", "called", "partial", "paid", "defaulted"] }).notNull().default("scheduled"),
+  paidAmount: real("paid_amount").default(0), // Amount currently paid
+  paidDate: timestamp("paid_date"), // Date of the last payment
+  outstanding: real("outstanding_amount").notNull(), // Remaining amount to be paid
+  status: text("status", { enum: ["scheduled", "called", "partial", "paid", "defaulted", "overdue"] }).notNull().default("scheduled"),
   notes: text("notes"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
@@ -280,6 +281,23 @@ export const insertCapitalCallSchema = createInsertSchema(capitalCalls).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+});
+
+// Capital Call Payments - Track individual payments against capital calls
+export const capitalCallPayments = pgTable("capital_call_payments", {
+  id: serial("id").primaryKey(),
+  capitalCallId: integer("capital_call_id").notNull().references(() => capitalCalls.id, { onDelete: "cascade" }),
+  paymentAmount: real("payment_amount").notNull(), // Amount of this payment
+  paymentDate: timestamp("payment_date").notNull().defaultNow(),
+  paymentType: text("payment_type", { enum: ["wire", "check", "ach", "other"] }).default("wire"),
+  notes: text("notes"),
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertCapitalCallPaymentSchema = createInsertSchema(capitalCallPayments).omit({
+  id: true,
+  createdAt: true,
 });
 
 // Closing Schedule Events for deals
@@ -335,8 +353,12 @@ export type CapitalCallBase = typeof capitalCalls.$inferSelect;
 export type CapitalCall = CapitalCallBase & {
   dealName?: string;
   fundName?: string;
+  payments?: CapitalCallPayment[];
 };
 export type InsertCapitalCall = z.infer<typeof insertCapitalCallSchema>;
+
+export type CapitalCallPayment = typeof capitalCallPayments.$inferSelect;
+export type InsertCapitalCallPayment = z.infer<typeof insertCapitalCallPaymentSchema>;
 
 export type ClosingScheduleEvent = typeof closingScheduleEvents.$inferSelect;
 export type InsertClosingScheduleEvent = z.infer<typeof insertClosingScheduleEventSchema>;

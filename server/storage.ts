@@ -11,6 +11,7 @@ import {
   Document, InsertDocument,
   MemoComment, InsertMemoComment,
   CapitalCall, InsertCapitalCall,
+  CapitalCallPayment, InsertCapitalCallPayment,
   ClosingScheduleEvent, InsertClosingScheduleEvent
 } from "@shared/schema";
 
@@ -83,8 +84,15 @@ export interface IStorage {
   getAllCapitalCalls(): Promise<CapitalCall[]>;
   getCapitalCallsByAllocation(allocationId: number): Promise<CapitalCall[]>;
   getCapitalCallsByDeal(dealId: number): Promise<CapitalCall[]>;
+  updateCapitalCall(id: number, updates: Partial<CapitalCall>): Promise<CapitalCall | undefined>;
   updateCapitalCallStatus(id: number, status: CapitalCall['status'], paidAmount?: number): Promise<CapitalCall | undefined>;
   updateCapitalCallDates(id: number, callDate: Date, dueDate: Date): Promise<CapitalCall | undefined>;
+  getCapitalCallsForCalendar(startDate: Date, endDate: Date): Promise<CapitalCall[]>;
+  
+  // Capital Call Payments
+  createCapitalCallPayment(payment: InsertCapitalCallPayment): Promise<CapitalCallPayment>;
+  getCapitalCallPayments(capitalCallId: number): Promise<CapitalCallPayment[]>;
+  getCapitalCallPayment(id: number): Promise<CapitalCallPayment | undefined>;
   
   // Deal assignments
   assignUserToDeal(assignment: InsertDealAssignment): Promise<DealAssignment>;
@@ -128,6 +136,7 @@ export class MemStorage implements IStorage {
   private notifications: Map<number, Notification>;
   private memoComments: Map<number, MemoComment>;
   private capitalCalls: Map<number, CapitalCall>;
+  private capitalCallPayments: Map<number, CapitalCallPayment>;
   private closingScheduleEvents: Map<number, ClosingScheduleEvent>;
   
   private userIdCounter: number;
@@ -142,6 +151,7 @@ export class MemStorage implements IStorage {
   private notificationIdCounter: number;
   private commentIdCounter: number;
   private capitalCallIdCounter: number;
+  private capitalCallPaymentIdCounter: number;
   private closingEventIdCounter: number;
 
   constructor() {
@@ -157,6 +167,7 @@ export class MemStorage implements IStorage {
     this.notifications = new Map();
     this.memoComments = new Map();
     this.capitalCalls = new Map();
+    this.capitalCallPayments = new Map();
     this.closingScheduleEvents = new Map();
     
     this.userIdCounter = 1;
@@ -171,6 +182,7 @@ export class MemStorage implements IStorage {
     this.notificationIdCounter = 1;
     this.commentIdCounter = 1;
     this.capitalCallIdCounter = 1;
+    this.capitalCallPaymentIdCounter = 1;
     this.closingEventIdCounter = 1;
   }
 
@@ -853,6 +865,55 @@ export class MemStorage implements IStorage {
     
     this.capitalCalls.set(id, updatedCapitalCall);
     return updatedCapitalCall;
+  }
+  
+  async updateCapitalCall(id: number, updates: Partial<CapitalCall>): Promise<CapitalCall | undefined> {
+    const capitalCall = this.capitalCalls.get(id);
+    if (!capitalCall) return undefined;
+    
+    const updatedCapitalCall: CapitalCall = {
+      ...capitalCall,
+      ...updates,
+      updatedAt: new Date()
+    };
+    
+    this.capitalCalls.set(id, updatedCapitalCall);
+    return updatedCapitalCall;
+  }
+  
+  async getCapitalCallsForCalendar(startDate: Date, endDate: Date): Promise<CapitalCall[]> {
+    // Get all capital calls within the date range
+    return Array.from(this.capitalCalls.values())
+      .filter(call => {
+        const callDate = new Date(call.callDate);
+        return callDate >= startDate && callDate <= endDate;
+      })
+      .sort((a, b) => new Date(a.callDate).getTime() - new Date(b.callDate).getTime());
+  }
+  
+  // Capital Call Payments
+  async createCapitalCallPayment(payment: InsertCapitalCallPayment): Promise<CapitalCallPayment> {
+    const id = this.capitalCallPaymentIdCounter++;
+    const createdAt = new Date();
+    
+    const newPayment: CapitalCallPayment = {
+      ...payment,
+      id,
+      createdAt
+    };
+    
+    this.capitalCallPayments.set(id, newPayment);
+    return newPayment;
+  }
+  
+  async getCapitalCallPayments(capitalCallId: number): Promise<CapitalCallPayment[]> {
+    return Array.from(this.capitalCallPayments.values())
+      .filter(payment => payment.capitalCallId === capitalCallId)
+      .sort((a, b) => new Date(a.paymentDate).getTime() - new Date(b.paymentDate).getTime());
+  }
+  
+  async getCapitalCallPayment(id: number): Promise<CapitalCallPayment | undefined> {
+    return this.capitalCallPayments.get(id);
   }
   
   // Closing Schedule Events
