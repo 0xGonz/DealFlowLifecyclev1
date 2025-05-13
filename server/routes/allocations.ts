@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { insertCapitalCallSchema, insertFundAllocationSchema } from '@shared/schema';
 import { StorageFactory } from '../storage-factory';
 import { synchronizeAllocationDates } from '../utils/date-integration';
+import { capitalCallService } from '../services/capital-call.service';
 import { z } from 'zod';
 
 const router = Router();
@@ -215,23 +216,42 @@ router.post('/', async (req: Request, res: Response) => {
       });
     }
     
-    // If this is a single payment allocation, automatically create a capital call that's marked as paid
-    if (req.body.capitalCallSchedule === 'single') {
-      // Determine the call amount based on amountType
-      const callAmount = allocationData.amountType === 'percentage' ? 100 : allocationData.amount;
-      
-      // Create a paid capital call record
-      await storage.createCapitalCall({
-        allocationId: newAllocation.id,
-        callAmount: callAmount,
-        amountType: allocationData.amountType,
-        callDate: new Date(), // Current date for the call
-        dueDate: req.body.firstCallDate ? new Date(req.body.firstCallDate) : new Date(), // Use firstCallDate if provided
-        paidAmount: callAmount, // Same as call amount since fully paid
-        paidDate: new Date(), // Current date for payment
-        status: 'paid',
-        notes: 'Automatically created for single payment allocation'
-      });
+    // Create appropriate capital calls based on the allocation schedule
+    // Use our enhanced capital call service for better date handling and validation
+    if (req.body.capitalCallSchedule) {
+      try {
+        // Extract all parameters needed for capital call creation
+        const capitalCallSchedule = req.body.capitalCallSchedule;
+        const callFrequency = req.body.callFrequency || 'monthly';
+        const firstCallDate = req.body.firstCallDate ? new Date(req.body.firstCallDate) : new Date();
+        const callCount = req.body.callCount || 1;
+        const callPercentage = req.body.callPercentage || 100;
+        
+        console.log('Creating capital calls with parameters:', {
+          allocationId: newAllocation.id,
+          capitalCallSchedule,
+          callFrequency,
+          firstCallDate,
+          callCount,
+          callPercentage
+        });
+        
+        // Use the enhanced service to create all capital calls in one transaction
+        await capitalCallService.createCapitalCallsForAllocation(
+          newAllocation, 
+          capitalCallSchedule,
+          callFrequency,
+          firstCallDate,
+          callCount,
+          callPercentage
+        );
+        
+        console.log(`Successfully created capital calls for allocation ID ${newAllocation.id}`);
+      } catch (error) {
+        console.error('Error creating capital calls:', error);
+        // We won't fail the entire allocation if capital call creation fails
+        // Just log it for troubleshooting
+      }
     }
     
     // Get all deals to validate allocations
