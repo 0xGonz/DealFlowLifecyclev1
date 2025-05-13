@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { format, isPast, addDays, isToday, startOfWeek, addWeeks, subWeeks } from 'date-fns';
+import { useLocation } from 'wouter';
 import { DATE_FORMATS } from '@/lib/constants/time-constants';
 import { formatCurrency, formatDate } from '@/lib/utils/formatters';
 import { formatAmountByType } from '@/lib/utils/format';
@@ -38,6 +39,7 @@ interface CapitalCall {
   amountType: 'percentage' | 'dollar';
   callDate: string;
   dueDate: string;
+  dealId: number;
   paidAmount: number;
   paidDate: string | null;
   status: typeof CAPITAL_CALL_STATUS[keyof typeof CAPITAL_CALL_STATUS];
@@ -78,6 +80,7 @@ interface ClosingScheduleEvent {
 const CalendarPage = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [activeTab, setActiveTab] = useState<string>(CALENDAR_EVENT_TYPES.ALL);
+  const [, setLocation] = useLocation();
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [eventTypeFilter, setEventTypeFilter] = useState<string>('all');
   
@@ -519,7 +522,14 @@ const CalendarPage = () => {
                           </h3>
                           <div className="space-y-2">
                             {filteredCalls.map(call => (
-                              <Card key={call.id} className="overflow-hidden border-l-4 border-l-blue-500">
+                              <Card 
+                                key={call.id} 
+                                className="overflow-hidden border-l-4 border-l-blue-500 cursor-pointer hover:bg-gray-50" 
+                                onClick={() => {
+                                  // Navigate to deal detail with capital calls tab selected using wouter
+                                  setLocation(`/deals/${call.dealId}?tab=capitalcalls`);
+                                }}
+                              >
                                 <CardContent className="p-3">
                                   <div className="flex items-center justify-between mb-2">
                                     <div className="font-medium">{call.dealName}</div>
