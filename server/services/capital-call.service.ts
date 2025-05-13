@@ -1,9 +1,13 @@
 import { StorageFactory } from '../storage-factory';
 import { db } from '../db';
+import { eq, sql } from 'drizzle-orm';
 import { 
   CapitalCall, 
   InsertCapitalCall,
-  FundAllocation
+  FundAllocation,
+  InsertPayment,
+  Payment,
+  payments
 } from '@shared/schema';
 import { addMonths, addQuarters, addYears } from 'date-fns';
 import { normalizeToNoonUTC, formatToNoonUTC } from '@shared/utils/date-utils';
@@ -27,10 +31,11 @@ interface CapitalCallWithFundAllocation extends CapitalCall {
 
 // Define valid status transitions for capital calls
 const VALID_STATUS_TRANSITIONS: Record<CapitalCall['status'], CapitalCall['status'][]> = {
-  'scheduled': ['called', 'overdue', 'defaulted'],
-  'called': ['partial', 'paid', 'overdue', 'defaulted'],
-  'partial': ['paid', 'overdue', 'defaulted'],
-  'overdue': ['paid', 'defaulted', 'partial'],
+  'scheduled': ['called', 'overdue', 'defaulted', 'partially_paid', 'paid'],
+  'called': ['partial', 'paid', 'overdue', 'defaulted', 'partially_paid'],
+  'partial': ['paid', 'overdue', 'defaulted', 'partially_paid'],
+  'partially_paid': ['paid', 'overdue', 'defaulted'],
+  'overdue': ['paid', 'defaulted', 'partial', 'partially_paid'],
   'paid': [], // Terminal state
   'defaulted': [] // Terminal state
 };
@@ -229,15 +234,31 @@ export class CapitalCallService {
       throw new Error('Capital call not found');
     }
     
+    // Get total payments already made for this capital call from the payments table
+    const existingPayments = await this.getPaymentsForCapitalCall(capitalCallId);
+    // Calculate total payments from database records
+    const totalPaidSoFar = existingPayments.reduce((sum, payment: any) => {
+      // Cast to any to handle both snake_case and camelCase field names
+      const amount = payment.amount_usd || 0;
+      return sum + Number(amount);
+    }, 0);
+    
     // Calculate potential new paid amount to check for over-payment
-    const potentialPaidAmount = (currentCall.paidAmount || 0) + paymentAmount;
+    const potentialPaidAmount = totalPaidSoFar + paymentAmount;
     
     // Check for over-payment
     if (potentialPaidAmount > currentCall.callAmount) {
-      throw new Error(`Payment amount of ${paymentAmount} would exceed the call amount. The maximum allowed payment is ${currentCall.callAmount - (currentCall.paidAmount || 0)}`);
+      throw new Error(`Payment amount of ${paymentAmount} would exceed the call amount. The maximum allowed payment is ${currentCall.callAmount - totalPaidSoFar}`);
     }
     
-    // Create payment record
+    // Create payment record in the payments table using SQL template literals
+    const formattedDate = new Date(paymentDate).toISOString().split('T')[0];
+    await db.execute(sql`
+      INSERT INTO payments (capital_call_id, paid_date, amount_usd) 
+      VALUES (${capitalCallId}, ${formattedDate}, ${paymentAmount})
+    `);
+    
+    // Also create a payment record in the capital_call_payments table for backwards compatibility
     await storage.createCapitalCallPayment({
       capitalCallId,
       paymentAmount,
@@ -251,20 +272,21 @@ export class CapitalCallService {
     const newPaidAmount = potentialPaidAmount;
     const newOutstanding = Math.max(0, currentCall.callAmount - newPaidAmount);
     
-    // Update the outstanding amount in the database
-    await storage.updateCapitalCall(capitalCallId, { 
-      outstanding: newOutstanding,
-      paidAmount: newPaidAmount
-    });
-    
     // Determine new status based on payment amount
-    let newStatus: CapitalCall['status'] = currentCall.status;
+    let newStatus: CapitalCall['status'];
     
     if (newOutstanding === 0) {
       newStatus = 'paid';
     } else if (newPaidAmount > 0 && newOutstanding > 0) {
-      newStatus = 'partial';
+      // Use the new partially_paid status instead of partial
+      newStatus = 'partially_paid';
+    } else {
+      newStatus = currentCall.status;
     }
+    
+    // Create a proper normalized Date object for the payment date
+    const normalizedPaymentDate = new Date(paymentDate);
+    normalizedPaymentDate.setUTCHours(12, 0, 0, 0);
     
     // Update capital call with new paid amount and status
     const updatedCall = await storage.updateCapitalCall(capitalCallId, {
@@ -272,7 +294,7 @@ export class CapitalCallService {
       paidAmount: newPaidAmount,
       outstanding: newOutstanding,
       status: newStatus,
-      paidDate: paymentDate // Update to the latest payment date
+      paidDate: normalizedPaymentDate // Use normalized Date object
     });
     
     // If call is now fully paid, check if all calls for this allocation are paid
@@ -299,7 +321,22 @@ export class CapitalCallService {
       }
     }
     
+    // Invalidate any cached data for this capital call
+    // This ensures the UI will fetch the latest data
+    
     return updatedCall || null;
+  }
+  
+  /**
+   * Get all payments for a specific capital call
+   */
+  async getPaymentsForCapitalCall(capitalCallId: number): Promise<any[]> {
+    // Use SQL template literals to avoid field name mapping issues
+    // We're returning any[] instead of Payment[] because the raw SQL results use snake_case field names
+    const result = await db.execute(sql`
+      SELECT * FROM payments WHERE capital_call_id = ${capitalCallId}
+    `);
+    return result.rows || [];
   }
 
   /**
@@ -334,7 +371,10 @@ export class CapitalCallService {
     if (newStatus === 'paid' && paidAmount) {
       newPaidAmount = paidAmount;
       newOutstanding = 0;
-      paidDate = new Date();
+      // Create a proper Date object with time set to noon UTC
+      const today = new Date();
+      today.setUTCHours(12, 0, 0, 0);
+      paidDate = today;
     } else if (newStatus === 'partial' && paidAmount) {
       // Additional validations for partial payments
       if (!paidAmount || paidAmount >= currentCall.callAmount) {
@@ -343,7 +383,10 @@ export class CapitalCallService {
       
       newPaidAmount = paidAmount;
       newOutstanding = currentCall.callAmount - paidAmount;
-      paidDate = new Date();
+      // Create a proper Date object with time set to noon UTC
+      const today = new Date();
+      today.setUTCHours(12, 0, 0, 0);
+      paidDate = today;
     } else if (newStatus === 'defaulted') {
       // Defaulted calls have their outstanding amount written off
       newOutstanding = 0;
@@ -407,8 +450,17 @@ export class CapitalCallService {
       throw new Error(`Cannot update dates for capital call with status '${currentCall.status}'`);
     }
     
-    // Update the dates
-    const updatedCall = await storage.updateCapitalCallDates(id, callDate, dueDate);
+    // Format dates properly for consistent handling
+    // First get ISO strings and split to get just the date part (YYYY-MM-DD)
+    const formattedCallDate = new Date(callDate).toISOString().split('T')[0];
+    const formattedDueDate = new Date(dueDate).toISOString().split('T')[0];
+    
+    // Then convert back to Date objects for the storage interface
+    const callDateObj = new Date(formattedCallDate);
+    const dueDateObj = new Date(formattedDueDate);
+    
+    // Update the dates with properly formatted Date objects
+    const updatedCall = await storage.updateCapitalCallDates(id, callDateObj, dueDateObj);
     return updatedCall || null;
   }
 

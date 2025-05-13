@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, jsonb, timestamp, real } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, jsonb, timestamp, real, numeric, date } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -271,7 +271,7 @@ export const capitalCalls = pgTable("capital_calls", {
   paidAmount: real("paid_amount").default(0), // Amount currently paid
   paidDate: timestamp("paid_date"), // Date of the last payment
   outstanding: real("outstanding_amount").notNull(), // Remaining amount to be paid
-  status: text("status", { enum: ["scheduled", "called", "partial", "paid", "defaulted", "overdue"] }).notNull().default("scheduled"),
+  status: text("status", { enum: ["scheduled", "called", "partial", "partially_paid", "paid", "defaulted", "overdue"] }).notNull().default("scheduled"),
   notes: text("notes"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
@@ -379,6 +379,21 @@ export type InsertDocument = z.infer<typeof insertDocumentSchema>;
 
 export type MemoComment = typeof memoComments.$inferSelect;
 export type InsertMemoComment = z.infer<typeof insertMemoCommentSchema>;
+
+// Payments table for tracking actual cash flow from capital calls
+export const payments = pgTable("payments", {
+  id: serial("id").primaryKey(),
+  capitalCallId: integer("capital_call_id").notNull().references(() => capitalCalls.id, { onDelete: "cascade" }),
+  paidDate: date("paid_date").notNull(),
+  amountUsd: numeric("amount_usd", { precision: 14, scale: 2 }).notNull(),
+});
+
+export const insertPaymentSchema = createInsertSchema(payments).omit({
+  id: true,
+});
+
+export type Payment = typeof payments.$inferSelect;
+export type InsertPayment = z.infer<typeof insertPaymentSchema>;
 
 // Helper enum for stages display
 export const DealStageLabels: Record<Deal['stage'], string> = {
