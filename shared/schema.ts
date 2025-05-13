@@ -187,7 +187,7 @@ export const fundAllocations = pgTable("fund_allocations", {
   allocationDate: timestamp("allocation_date").notNull().defaultNow(),
   notes: text("notes"),
   // Investment tracking fields
-  status: text("status", { enum: ["committed", "partial", "funded", "unfunded"] }).default("committed"),
+  status: text("status", { enum: ["committed", "funded", "unfunded"] }).default("committed"),
   portfolioWeight: real("portfolio_weight").default(0),
   interestPaid: real("interest_paid").default(0),
   distributionPaid: real("distribution_paid").default(0),
