@@ -215,11 +215,12 @@ const UnifiedEventForm: React.FC<UnifiedEventFormProps> = ({ isOpen, onClose, se
   
   // Filter deals that are relevant based on the event type
   const eligibleDeals = deals.filter(deal => {
-    if (selectedEventType === EventType.CAPITAL_CALL || selectedEventType === EventType.CLOSING_EVENT) {
-      // Only deals that are in the closing or invested stage should be eligible for capital calls/closing events
+    if (selectedEventType === EventType.CAPITAL_CALL) {
+      // Only deals that are in the closing or invested stage should be eligible for capital calls
       return deal.stage === 'closing' || deal.stage === 'invested' || deal.stage === 'closed';
     }
-    // For meetings, any deal is eligible
+    // For closing events and meetings, any deal is eligible regardless of stage
+    // A closing event represents when capital is called, not the stage of the deal
     return true;
   });
 
