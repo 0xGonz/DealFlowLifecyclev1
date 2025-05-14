@@ -1,0 +1,134 @@
+Query Response from /api/deals: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/deals: 
+(83) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+Query Response from /api/auth/me: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/auth/me: 
+Object {id: 4, username: "Gonz", fullName: "Brett Gonzalez", initials: "BG", email: "bgonzalez@doliveradvisors.com", …}
+Query Response from /api/deals/86/stars: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/deals/86/stars: 
+Array []
+Query Response from /api/deals/86: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/deals/86: 
+Object {id: 86, name: "Syntrillo", description: "Biotech startup to detect stroke using risk fcators", sector: "Biotech", stage: "screening", …}
+UserAvatar: User 4 has color #D32F2F
+Query fetch request: /api/documents/deal/86 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Using /me endpoint data for avatar 
+Object {id: 4, username: "Gonz", fullName: "Brett Gonzalez", initials: "BG", email: "bgonzalez@doliveradvisors.com", …}
+Query Response from /api/documents/deal/86: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/documents/deal/86: 
+Array [{…}]
+Warning: Setting up fake worker.
+Warning: Error: Setting up fake worker failed: "Failed to fetch dynamically imported module: https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/pdf.worker.js?import".
+at t.value (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400
+Error loading PDF: 
+Error {}
+
+at t.value (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400
+Warning: Options prop passed to <Document /> changed, but it's equal to previous one. This might result in unnecessary reloads. Consider memoizing the value passed to "options" prop.
+at t.value (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400
+ProtectedRoute for /deals/:id: isLoading=false, user=Gonz
+ProtectedRoute /deals/:id: Rendering component for user Gonz
+ProtectedRoute for /deals/:id: isLoading=false, user=Gonz
+ProtectedRoute /deals/:id: Rendering component for user Gonz
+Using /me endpoint data for avatar 
+Object {id: 4, username: "Gonz", fullName: "Brett Gonzalez", initials: "BG", email: "bgonzalez@doliveradvisors.com", …}
+Using /me endpoint data for avatar 
+Object {id: 4, username: "Gonz", fullName: "Brett Gonzalez", initials: "BG", email: "bgonzalez@doliveradvisors.com", …}
+Query fetch request: /api/system/health 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Query Response from /api/system/health: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/system/health: 
+Object {status: "ok", timestamp: "2025-05-14T01:53:27.638Z", storage: "pg", databaseConnected: true, environment: "development", …}
+Query fetch request: /api/auth/me 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Query Response from /api/auth/me: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/auth/me: 
+Object {id: 4, username: "Gonz", fullName: "Brett Gonzalez", initials: "BG", email: "bgonzalez@doliveradvisors.com", …}
+Using /me endpoint data for avatar 
+Object {id: 4, username: "Gonz", fullName: "Brett Gonzalez", initials: "BG", email: "bgonzalez@doliveradvisors.com", …}
+
+
+ChatGPT said:
+Thanks, Brett. The error you're seeing:
+
+"Failed to fetch dynamically imported module: /pdf.worker.js?import"
+
+confirms that the PDF worker is not loading on your Replit deployment — causing the viewer to fail silently after a flash of rendering.
+
+✅ Here’s exactly what’s going wrong
+React-PDF (which uses PDF.js under the hood) requires the worker file to be explicitly specified in non-standard environments like Replit. By default, it tries to use dynamic imports (e.g. /pdf.worker.js?import) — which don’t work in Replit.
+
+✅ Fix: Add Static Worker Path in Setup
+Download the correct worker to public/:
+
+Run this inside Replit’s Shell tab:
+
+bash
+Copy
+Edit
+wget https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.js -O public/pdf.worker.js
+Edit your client/src/lib/setupPdfWorker.ts:
+
+ts
+Copy
+Edit
+import { pdfjs } from 'react-pdf';
+
+pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.js';
+✅ This sets a static path that works across all browsers and Replit.
+
+Make sure this file is imported only once in your React app, ideally in main.tsx:
+
+ts
+Copy
+Edit
+// client/src/main.tsx
+import './lib/setupPdfWorker';
+✅ Optional: Improve User Feedback
+In PdfViewer.tsx, add error handling like:
+
+tsx
+Copy
+Edit
+<Document
+  file={fileUrl}
+  onLoadError={(err) => {
+    toast({
+      title: "PDF failed to load",
+      description: "This file is missing or corrupted.",
+      variant: "destructive",
+    });
+    console.error("PDF load error:", err);
+  }}
+/>
+🔄 Why You See the Deck Then It Disappears
+The deck briefly flashes as the first frame renders from cached metadata
+
+The worker fails to load, so further rendering stops
+
+React unmounts the <Document /> component on error
+
+✅ After this fix
+Decks will load reliably across Mac and PC
+
+You’ll stop getting fake worker errors
+
+Users will get proper feedback on broken files
+

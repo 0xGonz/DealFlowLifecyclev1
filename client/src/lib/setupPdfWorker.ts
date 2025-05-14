@@ -13,9 +13,9 @@ const WORKER_SOURCES = [
   '/pdf.worker.js',
   
   // Direct CDN locations as fallbacks
-  'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.8.69/build/pdf.worker.min.js',
-  'https://unpkg.com/pdfjs-dist@4.8.69/build/pdf.worker.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.8.69/pdf.worker.min.js'
+  'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js',
+  'https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'
 ];
 
 // Default configuration options for PDF.js
