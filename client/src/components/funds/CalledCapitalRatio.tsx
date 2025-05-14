@@ -85,10 +85,10 @@ const CalledCapitalRatio: React.FC<CalledCapitalRatioProps> = ({
   
   return (
     <Card className="h-full w-full flex flex-col">
-      <CardHeader className="pb-2">
-        <CardTitle>Called vs. Uncalled Capital</CardTitle>
+      <CardHeader className="pb-4">
+        <CardTitle className="mb-4">Called vs. Uncalled Capital</CardTitle>
       </CardHeader>
-      <CardContent className="flex-1 flex flex-col justify-center py-0">
+      <CardContent className="flex-1 flex flex-col justify-center py-4">
         {capitalData && capitalData.length > 0 ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
             {/* Chart Section */}
@@ -101,7 +101,7 @@ const CalledCapitalRatio: React.FC<CalledCapitalRatioProps> = ({
                     uncalled: capitalData[1]?.value || 0,
                     total: totalCapital
                   }]}
-                  margin={{ top: 10, right: 30, left: 20, bottom: 30 }}
+                  margin={{ top: 30, right: 30, left: 20, bottom: 40 }}
                   stackOffset="expand"
                 >
                   <CartesianGrid strokeDasharray="3 3" horizontal={false} vertical={true} />
