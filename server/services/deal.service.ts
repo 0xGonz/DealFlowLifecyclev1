@@ -469,6 +469,38 @@ export class DealService {
       return { status: 'success', data: star };
     }
   }
+
+  /**
+   * Get mini memos for a deal
+   */
+  async getMiniMemosByDeal(dealId: number): Promise<any[]> {
+    const storage = getStorage();
+    return storage.getMiniMemosByDeal(dealId);
+  }
+
+  /**
+   * Create a mini memo
+   */
+  async createMiniMemo(memoData: any): Promise<any> {
+    const storage = getStorage();
+    return storage.createMiniMemo(memoData);
+  }
+
+  /**
+   * Get user by ID for user info in responses
+   */
+  async getUserById(userId: number): Promise<any | undefined> {
+    const storage = getStorage();
+    return storage.getUser(userId);
+  }
+  
+  /**
+   * Get a deal by ID
+   */
+  async getDealById(dealId: number): Promise<any | null> {
+    const storage = getStorage();
+    return storage.getDeal(dealId);
+  }
 }
 
 export const dealService = new DealService();

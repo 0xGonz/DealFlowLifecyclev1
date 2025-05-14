@@ -4,6 +4,7 @@ import {
   insertDealSchema, 
   insertTimelineEventSchema, 
   insertDealStarSchema,
+  insertMiniMemoSchema,
   DealStageLabels
 } from "@shared/schema";
 import { dealService } from "../services";
@@ -345,6 +346,99 @@ export class DealController {
         return res.status(400).json({ message: 'Invalid star data', errors: error.errors });
       }
       res.status(500).json({ message: 'Failed to toggle deal star' });
+    }
+  }
+
+  /**
+   * Get mini memos for a deal
+   */
+  async getDealMemos(req: Request, res: Response) {
+    try {
+      const dealId = Number(req.params.dealId);
+      
+      // Verify deal exists
+      const deal = await dealService.getDealById(dealId);
+      if (!deal) {
+        return res.status(404).json({ message: 'Deal not found' });
+      }
+      
+      // Get all memos for this deal
+      const memos = await dealService.getMiniMemosByDeal(dealId);
+      
+      // Fetch user details for each memo
+      const userIds = Array.from(new Set(memos.map(m => m.userId)));
+      const users = await Promise.all(userIds.map(id => dealService.getUserById(id)));
+      
+      // Attach user details to memos
+      const memosWithUserInfo = memos.map(memo => {
+        const user = users.find(u => u?.id === memo.userId);
+        return {
+          ...memo,
+          user: user ? {
+            id: user.id,
+            fullName: user.fullName,
+            initials: user.initials,
+            avatarColor: user.avatarColor,
+            role: user.role
+          } : null
+        };
+      });
+      
+      res.json(memosWithUserInfo);
+    } catch (error) {
+      console.error('Error fetching mini memos:', error);
+      res.status(500).json({ message: 'Failed to fetch mini memos' });
+    }
+  }
+
+  /**
+   * Create a mini memo for a deal
+   */
+  async createMiniMemo(req: Request, res: Response) {
+    try {
+      const dealId = Number(req.params.dealId);
+      const user = (req as any).user;
+      
+      // User must be authenticated
+      if (!user) {
+        return res.status(401).json({ message: 'Authentication required to create memos' });
+      }
+      
+      // Verify deal exists
+      const deal = await dealService.getDealById(dealId);
+      if (!deal) {
+        return res.status(404).json({ message: 'Deal not found' });
+      }
+      
+      // Validate and prepare memo data
+      const memoData = insertMiniMemoSchema.parse({
+        ...req.body,
+        dealId,
+        userId: user.id
+      });
+      
+      // Create the memo
+      const newMemo = await dealService.createMiniMemo(memoData);
+      
+      // Get user info to return with response
+      const userInfo = await dealService.getUserById(user.id);
+      
+      res.status(201).json({
+        ...newMemo,
+        user: userInfo ? {
+          id: userInfo.id,
+          fullName: userInfo.fullName,
+          initials: userInfo.initials,
+          avatarColor: userInfo.avatarColor,
+          role: userInfo.role
+        } : null
+      });
+    } catch (error) {
+      console.error('Error creating mini memo:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: 'Invalid memo data', errors: error.errors });
+      }
+      res.status(500).json({ message: 'Failed to create mini memo' });
     }
   }
 }
