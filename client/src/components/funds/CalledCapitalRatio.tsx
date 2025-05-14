@@ -4,13 +4,156 @@ import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Cell, CartesianGrid, 
 import { FundAllocation } from "@/lib/types";
 import { formatCurrency } from "@/lib/utils/format";
 
-type CapitalData = {
+// Reusable type for capital data visualization
+export type CapitalDataItem = {
   name: string;
   value: number;
   color: string;
   percentage?: number;
 };
 
+// Reusable vertical stacked bar chart component
+export const VerticalStackedBarChart: React.FC<{
+  data: CapitalDataItem[];
+  totalValue: number;
+  barSize?: number;
+  className?: string;
+}> = ({ data, totalValue, barSize = 80, className = "" }) => {
+  // Transform data for the chart
+  const chartData = [{
+    name: "Capital",
+    // Create dynamic keys based on data item names
+    ...data.reduce((acc, item) => {
+      const key = item.name.toLowerCase().replace(/\s+/g, '_');
+      acc[key] = item.value;
+      return acc;
+    }, {} as Record<string, number>),
+    total: totalValue
+  }];
+
+  return (
+    <div className={`flex flex-col items-center justify-center h-full min-h-[230px] ${className}`}>
+      <ResponsiveContainer width="100%" height="100%" minHeight={230}>
+        <BarChart
+          data={chartData}
+          margin={{ top: 15, right: 30, left: 20, bottom: 20 }}
+          stackOffset="expand"
+        >
+          <CartesianGrid strokeDasharray="3 3" horizontal={false} vertical={true} />
+          <XAxis type="category" dataKey="name" hide={true} />
+          <YAxis 
+            type="number"
+            domain={[0, 1]}
+            tickFormatter={(value) => `${Math.round(value * 100)}%`}
+            ticks={[0, 0.25, 0.5, 0.75, 1]}
+          />
+          <Tooltip 
+            formatter={(value: number, name) => {
+              // Proper formatting for tooltip keys
+              const displayName = name
+                .replace(/_/g, ' ')
+                .split(' ')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(' ');
+              return [`${formatCurrency(value)} (${Math.round((value/totalValue)*100)}%)`, displayName];
+            }}
+            labelFormatter={() => "Capital Distribution"}
+          />
+          {data.map((item, index) => {
+            const dataKey = item.name.toLowerCase().replace(/\s+/g, '_');
+            return (
+              <Bar 
+                key={index}
+                dataKey={dataKey}
+                stackId="a"
+                barSize={barSize}
+                fill={item.color}
+                name={item.name}
+              >
+                <LabelList 
+                  position="center"
+                  formatter={() => item.percentage ? `${item.percentage}%` : ""}
+                  style={{ 
+                    fill: index === 0 ? '#fff' : '#000', 
+                    fontWeight: 'bold' 
+                  }}
+                />
+              </Bar>
+            );
+          })}
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+};
+
+// Reusable capital breakdown stats component
+export const CapitalBreakdownStats: React.FC<{
+  data: CapitalDataItem[];
+  totalValue: number;
+  showSummary?: boolean;
+  className?: string;
+}> = ({ data, totalValue, showSummary = true, className = "" }) => {
+  // Get called percentage for summary display
+  const calledPercentage = totalValue > 0 && data.length > 0
+    ? Math.round((data[0]?.value || 0) / totalValue * 100)
+    : 0;
+
+  return (
+    <div className={`flex flex-col justify-center space-y-5 ${className}`}>
+      {/* Called Rate Summary - only shown if requested */}
+      {showSummary && (
+        <div className="bg-gray-50 rounded-lg p-4 shadow-sm">
+          <p className="text-sm text-neutral-500">Called Rate</p>
+          <div className="flex items-baseline mt-1">
+            <span className="text-3xl font-bold">{calledPercentage}%</span>
+            <span className="ml-2 text-sm text-neutral-500">of total capital</span>
+          </div>
+        </div>
+      )}
+      
+      {/* Capital Breakdown */}
+      <div className="space-y-3">
+        {/* Map through data items */}
+        {data.map((item, index) => (
+          <div key={index} className="flex items-center">
+            <div 
+              className="w-4 h-4 rounded-full mr-3" 
+              style={{ backgroundColor: item.color }}
+            ></div>
+            <div className="flex-1">
+              <p className="text-sm font-medium">{item.name}</p>
+              <p className="text-lg font-semibold">{formatCurrency(item.value)}</p>
+            </div>
+          </div>
+        ))}
+        
+        {/* Total Capital */}
+        <div className="flex items-center pt-2 border-t border-gray-200">
+          <div className="w-4 h-4 rounded-full bg-gray-200 mr-3"></div>
+          <div className="flex-1">
+            <p className="text-sm font-medium">Total Capital</p>
+            <p className="text-lg font-semibold">{formatCurrency(totalValue)}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Empty state component for consistent empty displays
+export const EmptyCapitalData: React.FC<{
+  message?: string;
+}> = ({ message = "No allocation data available to calculate capital ratios." }) => (
+  <div className="flex flex-col items-center justify-center py-8 text-neutral-500">
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-neutral-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    <p>{message}</p>
+  </div>
+);
+
+// Main container component
 interface CalledCapitalRatioProps {
   allocations: FundAllocation[];
   totalFundSize: number;
@@ -29,7 +172,7 @@ const CalledCapitalRatio: React.FC<CalledCapitalRatioProps> = ({
   }, []);
 
   // Calculate called vs uncalled capital based on allocation status
-  const capitalData = React.useMemo((): CapitalData[] => {
+  const capitalData = React.useMemo((): CapitalDataItem[] => {
     // Handle null or undefined allocations to avoid runtime errors
     if (!allocations || allocations.length === 0) {
       return [];
@@ -72,12 +215,12 @@ const CalledCapitalRatio: React.FC<CalledCapitalRatioProps> = ({
   }, [allocations]);
   
   // Calculate percentages for display
-  const totalCapital = capitalData && capitalData.length > 0 ?
-    capitalData.reduce((sum, item) => sum + (item.value || 0), 0) : 0;
-    
-  const calledPercentage = totalCapital > 0 
-    ? Math.round((capitalData[0]?.value || 0) / totalCapital * 100) 
-    : 0;
+  const totalCapital = React.useMemo(() => 
+    capitalData && capitalData.length > 0
+      ? capitalData.reduce((sum, item) => sum + (item.value || 0), 0)
+      : 0,
+    [capitalData]
+  );
 
   // Calculate dynamic sizes based on viewport
   const isSmallScreen = windowWidth < 640;
@@ -91,117 +234,20 @@ const CalledCapitalRatio: React.FC<CalledCapitalRatioProps> = ({
       <CardContent className="flex-1 flex flex-col justify-center py-2">
         {capitalData && capitalData.length > 0 ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
-            {/* Chart Section */}
-            <div className="flex flex-col items-center justify-center h-full min-h-[230px]">
-              <ResponsiveContainer width="100%" height="100%" minHeight={230}>
-                <BarChart
-                  data={[{ 
-                    name: "Capital", 
-                    called: capitalData[0]?.value || 0, 
-                    uncalled: capitalData[1]?.value || 0,
-                    total: totalCapital
-                  }]}
-                  margin={{ top: 15, right: 30, left: 20, bottom: 20 }}
-                  stackOffset="expand"
-                >
-                  <CartesianGrid strokeDasharray="3 3" horizontal={false} vertical={true} />
-                  <XAxis 
-                    type="category"
-                    dataKey="name"
-                    hide={true}
-                  />
-                  <YAxis 
-                    type="number"
-                    domain={[0, 1]}
-                    tickFormatter={(value) => `${Math.round(value * 100)}%`}
-                    ticks={[0, 0.25, 0.5, 0.75, 1]}
-                  />
-                  <Tooltip 
-                    formatter={(value: number, name) => {
-                      if (name === "called") return [`${formatCurrency(value)} (${Math.round((value/totalCapital)*100)}%)`, "Called Capital"];
-                      return [`${formatCurrency(value)} (${Math.round((value/totalCapital)*100)}%)`, "Uncalled Capital"];
-                    }}
-                    labelFormatter={() => "Capital Distribution"}
-                  />
-                  <Bar 
-                    dataKey="called" 
-                    stackId="a"
-                    barSize={80}
-                    fill="#4f46e5"
-                    name="Called Capital"
-                  >
-                    <LabelList 
-                      position="center"
-                      formatter={() => capitalData[0]?.percentage ? `${capitalData[0].percentage}%` : ""}
-                      style={{ fill: '#fff', fontWeight: 'bold' }}
-                    />
-                  </Bar>
-                  <Bar 
-                    dataKey="uncalled" 
-                    stackId="a"
-                    barSize={80}
-                    fill="#a5b4fc"
-                    name="Uncalled Capital"
-                  >
-                    <LabelList 
-                      position="center"
-                      formatter={() => capitalData[1]?.percentage ? `${capitalData[1].percentage}%` : ""}
-                      style={{ fill: '#000', fontWeight: 'bold' }}
-                    />
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+            {/* Chart Section - using modular component */}
+            <VerticalStackedBarChart 
+              data={capitalData} 
+              totalValue={totalCapital} 
+            />
             
-            {/* Stats Section */}
-            <div className="flex flex-col justify-center space-y-5">
-              {/* Called Rate */}
-              <div className="bg-gray-50 rounded-lg p-4 shadow-sm">
-                <p className="text-sm text-neutral-500">Called Rate</p>
-                <div className="flex items-baseline mt-1">
-                  <span className="text-3xl font-bold">{calledPercentage}%</span>
-                  <span className="ml-2 text-sm text-neutral-500">of total capital</span>
-                </div>
-              </div>
-              
-              {/* Capital Breakdown */}
-              <div className="space-y-3">
-                {/* Called Capital */}
-                <div className="flex items-center">
-                  <div className="w-4 h-4 rounded-full bg-indigo-600 mr-3"></div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">Called Capital</p>
-                    <p className="text-lg font-semibold">{formatCurrency(capitalData[0]?.value || 0)}</p>
-                  </div>
-                </div>
-                
-                {/* Uncalled Capital */}
-                <div className="flex items-center">
-                  <div className="w-4 h-4 rounded-full bg-indigo-300 mr-3"></div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">Uncalled Capital</p>
-                    <p className="text-lg font-semibold">{formatCurrency(capitalData[1]?.value || 0)}</p>
-                  </div>
-                </div>
-                
-                {/* Total Capital */}
-                <div className="flex items-center pt-2 border-t border-gray-200">
-                  <div className="w-4 h-4 rounded-full bg-gray-200 mr-3"></div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">Total Capital</p>
-                    <p className="text-lg font-semibold">{formatCurrency(totalCapital)}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+            {/* Stats Section - using modular component */}
+            <CapitalBreakdownStats 
+              data={capitalData} 
+              totalValue={totalCapital} 
+            />
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center py-8 text-neutral-500">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-neutral-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <p>No allocation data available to calculate capital ratios.</p>
-          </div>
+          <EmptyCapitalData />
         )}
       </CardContent>
     </Card>
