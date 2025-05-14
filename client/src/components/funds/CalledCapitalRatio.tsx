@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { ResponsiveContainer, PieChart, Pie, Cell, Legend, Tooltip } from 'recharts';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Cell, CartesianGrid, Tooltip, LabelList } from 'recharts';
 import { FundAllocation } from "@/lib/types";
 import { formatCurrency } from "@/lib/utils/format";
 
@@ -8,6 +8,7 @@ type CapitalData = {
   name: string;
   value: number;
   color: string;
+  percentage?: number;
 };
 
 interface CalledCapitalRatioProps {
@@ -52,9 +53,21 @@ const CalledCapitalRatio: React.FC<CalledCapitalRatioProps> = ({
       return [];
     }
     
+    const totalAmount = calledAmount + uncalledAmount;
+    
     return [
-      { name: "Called Capital", value: calledAmount, color: "#4f46e5" },
-      { name: "Uncalled Capital", value: uncalledAmount, color: "#a5b4fc" }
+      { 
+        name: "Called Capital", 
+        value: calledAmount, 
+        color: "#4f46e5",
+        percentage: Math.round((calledAmount / totalAmount) * 100)
+      },
+      { 
+        name: "Uncalled Capital", 
+        value: uncalledAmount, 
+        color: "#a5b4fc",
+        percentage: Math.round((uncalledAmount / totalAmount) * 100)
+      }
     ];
   }, [allocations]);
   
@@ -69,12 +82,7 @@ const CalledCapitalRatio: React.FC<CalledCapitalRatioProps> = ({
   // Calculate dynamic sizes based on viewport
   const isSmallScreen = windowWidth < 640;
   const isMediumScreen = windowWidth >= 640 && windowWidth < 1024;
-  const isLargeScreen = windowWidth >= 1024;
-
-  // Dynamic radius sizing based on container size
-  const innerRadius = isSmallScreen ? 45 : isMediumScreen ? 50 : 55;
-  const outerRadius = isSmallScreen ? 70 : isMediumScreen ? 80 : 85;
-    
+  
   return (
     <Card className="h-full w-full flex flex-col">
       <CardHeader className="pb-2">
@@ -86,34 +94,63 @@ const CalledCapitalRatio: React.FC<CalledCapitalRatioProps> = ({
             {/* Chart Section */}
             <div className="flex flex-col items-center justify-center h-full min-h-[230px]">
               <ResponsiveContainer width="100%" height="100%" minHeight={230}>
-                <PieChart>
-                  <Pie
-                    data={capitalData}
-                    cx="50%"
-                    cy="50%"
-                    startAngle={90}
-                    endAngle={-270}
-                    innerRadius={innerRadius}
-                    outerRadius={outerRadius}
-                    paddingAngle={2}
-                    dataKey="value"
-                    label={({ name, percent }) => `${Math.round(percent * 100)}%`}
-                    labelLine={false}
-                  >
-                    {capitalData.map((entry, index) => (
-                      <Cell 
-                        key={`cell-${index}`} 
-                        fill={entry.color} 
-                        stroke={entry.color}
-                        strokeWidth={1}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip 
-                    formatter={(value: number) => [`${formatCurrency(value)}`, `Amount`]}
-                    labelFormatter={(label: string) => label}
+                <BarChart
+                  data={[{ 
+                    name: "Capital", 
+                    called: capitalData[0]?.value || 0, 
+                    uncalled: capitalData[1]?.value || 0,
+                    total: totalCapital
+                  }]}
+                  layout="vertical"
+                  margin={{ top: 20, right: 50, left: 20, bottom: 10 }}
+                  stackOffset="expand"
+                >
+                  <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
+                  <XAxis 
+                    type="number"
+                    domain={[0, 1]}
+                    tickFormatter={(value) => `${Math.round(value * 100)}%`}
+                    ticks={[0, 0.25, 0.5, 0.75, 1]}
                   />
-                </PieChart>
+                  <YAxis 
+                    type="category" 
+                    dataKey="name" 
+                    width={70}
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <Tooltip 
+                    formatter={(value: number, name) => {
+                      if (name === "called") return [`${formatCurrency(value)} (${Math.round((value/totalCapital)*100)}%)`, "Called Capital"];
+                      return [`${formatCurrency(value)} (${Math.round((value/totalCapital)*100)}%)`, "Uncalled Capital"];
+                    }}
+                    labelFormatter={() => "Capital Distribution"}
+                  />
+                  <Bar 
+                    dataKey="called" 
+                    stackId="a"
+                    barSize={40}
+                    fill="#4f46e5"
+                  >
+                    <LabelList 
+                      position="center"
+                      formatter={() => capitalData[0]?.percentage ? `${capitalData[0].percentage}%` : ""}
+                      style={{ fill: '#fff', fontWeight: 'bold' }}
+                    />
+                  </Bar>
+                  <Bar 
+                    dataKey="uncalled" 
+                    stackId="a"
+                    barSize={40}
+                    fill="#a5b4fc"
+                  >
+                    <LabelList 
+                      position="center"
+                      formatter={() => capitalData[1]?.percentage ? `${capitalData[1].percentage}%` : ""}
+                      style={{ fill: '#000', fontWeight: 'bold' }}
+                    />
+                  </Bar>
+                </BarChart>
               </ResponsiveContainer>
             </div>
             

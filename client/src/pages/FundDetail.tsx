@@ -350,14 +350,19 @@ export default function FundDetail() {
       });
     },
     onSuccess: (_, variables) => {
-      let statusLabel = variables.status;
-      // Format the status label for display (replace underscores with spaces and capitalize words)
-      if (statusLabel === "partially_paid") {
-        statusLabel = "partially paid";
-      }
+      // Create a mapping of status to display string
+      const statusDisplayMap = {
+        "funded": "funded",
+        "unfunded": "unfunded", 
+        "committed": "committed",
+        "partially_paid": "partially paid"
+      };
+      
+      // Get a user-friendly display version using the map
+      const displayStatus = statusDisplayMap[variables.status] || variables.status;
         
       toast({
-        title: `Allocation marked as ${statusLabel}`,
+        title: `Allocation marked as ${displayStatus}`,
         description: "The allocation status has been updated successfully.",
       });
       
