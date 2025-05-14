@@ -238,11 +238,16 @@ export const meetings = pgTable("meetings", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
-export const insertMeetingSchema = createInsertSchema(meetings).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
+export const insertMeetingSchema = createInsertSchema(meetings)
+  .omit({
+    id: true,
+    createdAt: true,
+    updatedAt: true,
+  })
+  .extend({
+    // Convert ISO string dates to Date objects for Zod validation
+    date: z.string().transform(val => new Date(val)),
+  });
 
 export const notifications = pgTable("notifications", {
   id: serial("id").primaryKey(),
