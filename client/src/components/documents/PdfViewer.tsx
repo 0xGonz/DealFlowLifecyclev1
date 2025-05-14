@@ -4,7 +4,7 @@ import { useDocs, DocMeta } from '@/context/DocumentsContext';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Download, RotateCw, FileText, X } from 'lucide-react';
-import { resetPdfWorker } from '@/lib/setupPdfWorker';
+import { getWorkerStatus } from '@/lib/setupPdfWorker';
 import '@/styles/pdf-layers.css';
 
 export const PdfViewer = () => {
@@ -47,8 +47,8 @@ export const PdfViewer = () => {
     setUseFallbackViewer(false);
     setRetryCount(prev => prev + 1);
     
-    // Reset PDF.js worker before retrying
-    resetPdfWorker();
+    // Log PDF worker status for debugging
+    console.log('PDF Worker Status:', getWorkerStatus());
     
     toast({
       title: "Retrying PDF load",

@@ -4,7 +4,7 @@ import { Download, FileText, RefreshCw } from 'lucide-react';
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Document as PDFDocument, Page as PDFPage } from 'react-pdf';
-import { resetPdfWorker } from '@/lib/setupPdfWorker';
+import { getWorkerStatus } from '@/lib/setupPdfWorker';
 
 interface EmbeddedPDFViewerProps {
   documentId: number;
@@ -65,8 +65,8 @@ export default function EmbeddedPDFViewer({ documentId, documentName }: Embedded
   const handlePdfError = (error: Error) => {
     console.error('PDF viewer error:', error);
     
-    // Reset the worker first - this sometimes helps
-    resetPdfWorker();
+    // Log the worker status for debugging
+    console.log('PDF Worker Status:', getWorkerStatus());
     
     setPdfFailed(true);
     
@@ -95,7 +95,10 @@ export default function EmbeddedPDFViewer({ documentId, documentName }: Embedded
   const handleRetry = () => {
     setPdfFailed(false);
     setUseDirectUrl(false);
-    resetPdfWorker();
+    
+    // Log PDF worker status for debugging
+    console.log('PDF Worker Status:', getWorkerStatus());
+    
     toast({
       title: "Retrying Document",
       description: "Attempting to load the document again.",
