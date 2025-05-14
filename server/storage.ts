@@ -21,6 +21,8 @@ import {
 
 // Interface for storage operations
 export interface IStorage {
+  // Get database client for direct SQL queries
+  getDbClient(): any;
   // User operations
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
@@ -138,6 +140,12 @@ export class MemStorage implements IStorage {
   private capitalCalls: Map<number, CapitalCall>;
   private capitalCallPayments: Map<number, CapitalCallPayment>;
   private closingScheduleEvents: Map<number, ClosingScheduleEvent>;
+  
+  // Method to return the database client (or null for MemStorage)
+  getDbClient(): any {
+    console.warn('getDbClient called on MemStorage - no database available');
+    return null;
+  }
   
   private userIdCounter: number;
   private dealIdCounter: number;

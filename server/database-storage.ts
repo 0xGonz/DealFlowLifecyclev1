@@ -26,6 +26,13 @@ import {
  * PostgreSQL database implementation of the storage interface
  */
 export class DatabaseStorage implements IStorage {
+  /**
+   * Get the database client for direct SQL queries
+   */
+  getDbClient(): any {
+    return db;
+  }
+  
   // User operations
   // Track database errors
   private dbErrors = 0;

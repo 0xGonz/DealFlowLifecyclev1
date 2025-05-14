@@ -11,6 +11,8 @@ export interface FundWithAllocations extends Fund {
   committedCapital: number;
   totalFundSize: number;
   allocationCount: number;
+  calledCapital: number;
+  uncalledCapital: number;
 }
 
 /**
@@ -25,6 +27,63 @@ function getStorage(): IStorage {
  */
 export class FundService {
   /**
+   * Calculate the called capital for a fund based on actual payment records
+   * This is the sum of all payments made against capital calls for the fund's allocations
+   */
+  async calculateCalledCapital(fundId: number): Promise<number> {
+    const storage = getStorage();
+    const db = storage.getDbClient();
+    
+    // Use SQL query to join allocations, capital calls, and payments
+    // This ensures we're calculating based on actual payment records
+    const result = await db.execute(`
+      SELECT SUM(p.amount_usd) as called_capital
+      FROM fund_allocations fa
+      JOIN capital_calls cc ON fa.id = cc.allocation_id
+      JOIN payments p ON cc.id = p.capital_call_id
+      WHERE fa.fund_id = ${fundId}
+    `);
+    
+    // Extract and return the called capital, defaulting to 0 if null
+    const calledCapital = result.rows[0]?.called_capital || 0;
+    return Number(calledCapital);
+  }
+  
+  /**
+   * Calculate the uncalled capital for a fund based on capital calls and payment records
+   * This is the sum of all capital call amounts minus the sum of payments
+   */
+  async calculateUncalledCapital(fundId: number): Promise<number> {
+    const storage = getStorage();
+    const db = storage.getDbClient();
+    
+    // Query to calculate total committed minus total paid
+    const result = await db.execute(`
+      WITH allocation_totals AS (
+        SELECT 
+          SUM(fa.amount) as total_committed
+        FROM fund_allocations fa
+        WHERE fa.fund_id = ${fundId} AND fa.status != 'written_off'
+      ),
+      payment_totals AS (
+        SELECT 
+          SUM(p.amount_usd) as total_paid
+        FROM fund_allocations fa
+        JOIN capital_calls cc ON fa.id = cc.allocation_id
+        JOIN payments p ON cc.id = p.capital_call_id
+        WHERE fa.fund_id = ${fundId}
+      )
+      SELECT 
+        COALESCE(a.total_committed, 0) - COALESCE(p.total_paid, 0) as uncalled_capital
+      FROM allocation_totals a, payment_totals p
+    `);
+    
+    // Extract and return the uncalled capital, defaulting to 0 if null
+    const uncalledCapital = result.rows[0]?.uncalled_capital || 0;
+    return Math.max(0, Number(uncalledCapital)); // Ensure non-negative 
+  }
+  
+  /**
    * Get all funds with allocation statistics
    */
   async getAllFundsWithAllocations(): Promise<FundWithAllocations[]> {
@@ -36,7 +95,7 @@ export class FundService {
       funds.map(async (fund: Fund) => {
         const allocations = await storage.getAllocationsByFund(fund.id);
         
-        // Calculate statistics
+        // Calculate statistics based on actual payments
         let committedCapital = 0;
         
         if (allocations && allocations.length > 0) {
@@ -45,11 +104,17 @@ export class FundService {
           }, 0);
         }
         
+        // Calculate called and uncalled capital using payment data
+        const calledCapital = await this.calculateCalledCapital(fund.id);
+        const uncalledCapital = await this.calculateUncalledCapital(fund.id);
+        
         return {
           ...fund,
           committedCapital,
           totalFundSize: fund.aum || 0,
-          allocationCount: allocations.length
+          allocationCount: allocations.length,
+          calledCapital,
+          uncalledCapital
         };
       })
     );
@@ -112,7 +177,7 @@ export class FundService {
     // Get allocations for this fund
     const allocations = await storage.getAllocationsByFund(fundId);
     
-    // Calculate statistics
+    // Calculate statistics based on actual payments
     let committedCapital = 0;
     
     if (allocations && allocations.length > 0) {
@@ -121,11 +186,26 @@ export class FundService {
       }, 0);
     }
     
+    // Get called and uncalled capital based on actual payment data
+    // This is more accurate than using allocation status
+    const calledCapital = await this.calculateCalledCapital(fundId);
+    const uncalledCapital = await this.calculateUncalledCapital(fundId);
+    
+    // Recalculate AUM based on actual payments
+    const aum = calledCapital;
+    
+    // Update fund's AUM if it's different
+    if (fund.aum !== aum) {
+      await storage.updateFund(fundId, { aum });
+    }
+    
     return {
       ...fund,
       committedCapital,
-      totalFundSize: fund.aum || 0,
-      allocationCount: allocations.length
+      totalFundSize: aum,  // Use the fresh calculation
+      allocationCount: allocations.length,
+      calledCapital,     // Include the calculated called capital
+      uncalledCapital    // Include the calculated uncalled capital
     };
   }
 

@@ -901,7 +901,9 @@ export default function FundDetail() {
               {/* Called Capital Ratio */}
               <CalledCapitalRatio 
                 allocations={allocations || []} 
-                totalFundSize={fund?.aum || 0} 
+                totalFundSize={fund?.aum || 0}
+                calledCapital={fund?.calledCapital}
+                uncalledCapital={fund?.uncalledCapital}
               />
             </div>
             

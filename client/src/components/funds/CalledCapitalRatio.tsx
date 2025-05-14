@@ -157,11 +157,15 @@ export const EmptyCapitalData: React.FC<{
 interface CalledCapitalRatioProps {
   allocations: FundAllocation[];
   totalFundSize: number;
+  calledCapital?: number;  // Optional server-calculated value
+  uncalledCapital?: number; // Optional server-calculated value
 }
 
 const CalledCapitalRatio: React.FC<CalledCapitalRatioProps> = ({ 
   allocations,
-  totalFundSize
+  totalFundSize,
+  calledCapital,
+  uncalledCapital
 }) => {
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
@@ -171,25 +175,34 @@ const CalledCapitalRatio: React.FC<CalledCapitalRatioProps> = ({
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Calculate called vs uncalled capital based on allocation status
+  // Calculate called vs uncalled capital based on actual payment data
   const capitalData = React.useMemo((): CapitalDataItem[] => {
     // Handle null or undefined allocations to avoid runtime errors
     if (!allocations || allocations.length === 0) {
       return [];
     }
     
-    // All 'funded' allocations are counted as called capital
-    const calledAmount = allocations
-      .filter(allocation => allocation && allocation.status === 'funded')
-      .reduce((sum, allocation) => sum + (allocation.amount || 0), 0);
+    // Use server-provided values when available, otherwise fall back to calculated values
+    let calledAmount: number;
+    let uncalledAmount: number;
     
-    // Get all committed allocations (excluding funded ones)
-    const committedAmount = allocations
-      .filter(allocation => allocation && allocation.status === 'committed')
-      .reduce((sum, allocation) => sum + (allocation.amount || 0), 0);
+    if (calledCapital !== undefined && uncalledCapital !== undefined) {
+      // Use the server-calculated values (based on actual payments) when available
+      calledAmount = calledCapital;
+      uncalledAmount = uncalledCapital;
+    } else {
+      // Fallback calculation based on allocation status
+      // This is less accurate but serves as a backup when server values aren't provided
+      calledAmount = allocations
+        .filter(allocation => allocation && allocation.status === 'funded')
+        .reduce((sum, allocation) => sum + (allocation.amount || 0), 0);
       
-    // Calculate uncalled as the total committed but not funded
-    const uncalledAmount = committedAmount;
+      const committedAmount = allocations
+        .filter(allocation => allocation && allocation.status === 'committed')
+        .reduce((sum, allocation) => sum + (allocation.amount || 0), 0);
+        
+      uncalledAmount = committedAmount;
+    }
     
     // In case there are no allocations yet
     if (calledAmount === 0 && uncalledAmount === 0) {
