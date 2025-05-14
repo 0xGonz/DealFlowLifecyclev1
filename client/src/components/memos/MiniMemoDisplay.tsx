@@ -129,12 +129,12 @@ export function MiniMemoDisplay({
       {hasAssessment ? (
         <Tabs defaultValue="thesis" className="w-full mt-3">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="thesis">Thesis</TabsTrigger>
-            <TabsTrigger value="assessment">Assessment</TabsTrigger>
-            <TabsTrigger value="diligence">Due Diligence</TabsTrigger>
+            <TabsTrigger value="thesis" onClick={(e) => e.stopPropagation()}>Thesis</TabsTrigger>
+            <TabsTrigger value="assessment" onClick={(e) => e.stopPropagation()}>Assessment</TabsTrigger>
+            <TabsTrigger value="diligence" onClick={(e) => e.stopPropagation()}>Due Diligence</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="thesis" className="space-y-3 mt-3">
+          <TabsContent value="thesis" className="space-y-3 mt-3" onClick={(e) => e.stopPropagation()}>
             <div>
               <h4 className="text-xs sm:text-sm font-medium text-neutral-700">Investment Thesis</h4>
               <p className="text-xs sm:text-sm text-neutral-600 mt-1 whitespace-pre-line">{memo.thesis}</p>
@@ -153,7 +153,7 @@ export function MiniMemoDisplay({
             )}
           </TabsContent>
           
-          <TabsContent value="assessment" className="space-y-3 mt-3">
+          <TabsContent value="assessment" className="space-y-3 mt-3" onClick={(e) => e.stopPropagation()}>
             <div className="grid grid-cols-2 gap-3">
               {memo.marketRiskScore && (
                 <div className="p-2 border rounded-md bg-gray-50">
@@ -239,7 +239,7 @@ export function MiniMemoDisplay({
             </div>
           </TabsContent>
           
-          <TabsContent value="diligence" className="space-y-3 mt-3">
+          <TabsContent value="diligence" className="space-y-3 mt-3" onClick={(e) => e.stopPropagation()}>
             <div className="p-3 border rounded-md bg-gray-50">
               <div className="flex items-center justify-between mb-2">
                 <h4 className="text-xs sm:text-sm font-medium">Due Diligence Progress</h4>
