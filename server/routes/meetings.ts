@@ -4,7 +4,8 @@ import {
   createMeeting,
   getMeetingById,
   updateMeeting,
-  deleteMeeting
+  deleteMeeting,
+  getMeetingsByDeal
 } from '../controllers/meeting.controller';
 import { requireAuth } from '../utils/auth';
 
@@ -15,6 +16,9 @@ router.get('/', requireAuth, getMeetings);
 
 // POST /api/meetings - Create a new meeting
 router.post('/', requireAuth, createMeeting);
+
+// GET /api/meetings/deal/:dealId - Get meetings for a specific deal
+router.get('/deal/:dealId', requireAuth, getMeetingsByDeal);
 
 // GET /api/meetings/:id - Get a meeting by ID
 router.get('/:id', requireAuth, getMeetingById);

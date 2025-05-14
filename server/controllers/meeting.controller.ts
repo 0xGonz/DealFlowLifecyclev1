@@ -192,3 +192,40 @@ export const deleteMeeting = [
     }
   }
 ];
+
+// GET /api/meetings/deal/:dealId - Get meetings for a specific deal
+export const getMeetingsByDeal = [
+  requireAuth,
+  async (req: Request, res: Response) => {
+    try {
+      const dealId = parseInt(req.params.dealId);
+      if (isNaN(dealId)) {
+        return res.status(400).json({ error: 'Invalid deal ID' });
+      }
+      
+      const dealMeetings = await db.query.meetings.findMany({
+        where: eq(meetings.dealId, dealId),
+        orderBy: (meetings, { desc }) => [desc(meetings.date)],
+      });
+      
+      // Get the deal name for all meetings
+      const [deal] = await db.query.deals.findMany({
+        where: eq(deals.id, dealId),
+        columns: {
+          name: true,
+        }
+      });
+      
+      // Add deal name to each meeting
+      const meetingsWithDealName = dealMeetings.map(meeting => ({
+        ...meeting,
+        dealName: deal?.name || 'Unknown Deal',
+      }));
+      
+      return res.status(200).json(meetingsWithDealName);
+    } catch (error) {
+      console.error(`Error fetching meetings for deal ${req.params.dealId}:`, error);
+      return res.status(500).json({ error: 'Failed to fetch meetings for this deal' });
+    }
+  }
+];
