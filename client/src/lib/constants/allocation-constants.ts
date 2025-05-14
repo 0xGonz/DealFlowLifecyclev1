@@ -6,6 +6,7 @@ export const ALLOCATION_STATUS = {
   COMMITTED: 'committed',
   INVESTED: 'invested',
   FUNDED: 'funded',  // Added funded status for fully paid single allocations
+  PARTIALLY_PAID: 'partially_paid', // New status for partially paid allocations
   PARTIALLY_CLOSED: 'partially_closed',
   CLOSED: 'closed',
   WRITTEN_OFF: 'written_off'

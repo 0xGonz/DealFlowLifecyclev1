@@ -99,7 +99,7 @@ export default function FundDetail() {
     securityType: string;
     allocationDate: string;
     notes: string;
-    status: "committed" | "funded" | "unfunded";
+    status: "committed" | "funded" | "unfunded" | "partially_paid";
     portfolioWeight: number;
     interestPaid: number;
     distributionPaid: number;
@@ -344,15 +344,17 @@ export default function FundDetail() {
   
   // Mark allocation status mutation
   const updateAllocationStatusMutation = useMutation({
-    mutationFn: async ({ allocationId, status }: { allocationId: number; status: "funded" | "unfunded" | "committed" }) => {
+    mutationFn: async ({ allocationId, status }: { allocationId: number; status: "funded" | "unfunded" | "committed" | "partially_paid" }) => {
       return apiRequest("PATCH", `/api/allocations/${allocationId}`, {
         status
       });
     },
     onSuccess: (_, variables) => {
-      const statusLabel = 
-        variables.status === "funded" ? "funded" : 
-        variables.status === "unfunded" ? "unfunded" : "committed";
+      let statusLabel = variables.status;
+      // Format the status label for display (replace underscores with spaces and capitalize words)
+      if (statusLabel === "partially_paid") {
+        statusLabel = "partially paid";
+      }
         
       toast({
         title: `Allocation marked as ${statusLabel}`,
@@ -375,6 +377,11 @@ export default function FundDetail() {
   // Handler for marking allocation as funded
   const handleMarkAsFunded = (allocation: FundAllocation) => {
     updateAllocationStatusMutation.mutate({ allocationId: allocation.id, status: "funded" });
+  };
+  
+  // Handler for marking allocation as partially paid
+  const handleMarkAsPartiallyPaid = (allocation: FundAllocation) => {
+    updateAllocationStatusMutation.mutate({ allocationId: allocation.id, status: "partially_paid" });
   };
   
   // Handler for marking allocation as unfunded
@@ -488,6 +495,7 @@ export default function FundDetail() {
                       <SelectContent>
                         <SelectItem value="committed">Committed</SelectItem>
                         <SelectItem value="funded">Funded</SelectItem>
+                        <SelectItem value="partially_paid">Partially Paid</SelectItem>
                         <SelectItem value="unfunded">Unfunded</SelectItem>
                       </SelectContent>
                     </Select>
@@ -977,9 +985,12 @@ export default function FundDetail() {
                                       ${allocation.status === "funded" ? "bg-emerald-100 text-emerald-800" : ""}
                                       ${allocation.status === "committed" ? "bg-blue-100 text-blue-800" : ""}
                                       ${allocation.status === "unfunded" ? "bg-amber-100 text-amber-800" : ""}
+                                      ${allocation.status === "partially_paid" ? "bg-purple-100 text-purple-800" : ""}
                                     `}
                                   >
-                                    {allocation.status.charAt(0).toUpperCase() + allocation.status.slice(1)}
+                                    {allocation.status === "partially_paid" 
+                                      ? "Partially Paid" 
+                                      : allocation.status.charAt(0).toUpperCase() + allocation.status.slice(1)}
                                   </Badge>
                                 )}
                               </TableCell>
@@ -1061,6 +1072,18 @@ export default function FundDetail() {
                                       >
                                         <CheckCircle className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-2" />
                                         {allocation.status === 'funded' ? 'Already Funded' : 'Mark as Funded'}
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem 
+                                        disabled={allocation.status === 'partially_paid'}
+                                        className={`text-xs sm:text-sm ${allocation.status === 'partially_paid' ? "text-gray-400" : "text-purple-600"}`}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          allocation.status !== 'partially_paid' && 
+                                          handleMarkAsPartiallyPaid(allocation);
+                                        }}
+                                      >
+                                        <CreditCard className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-2" />
+                                        {allocation.status === 'partially_paid' ? 'Already Partially Paid' : 'Mark as Partially Paid'}
                                       </DropdownMenuItem>
                                       <DropdownMenuItem 
                                         disabled={allocation.status === 'unfunded'}

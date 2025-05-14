@@ -119,7 +119,7 @@ export interface FundAllocation {
   securityType: string;
   allocationDate: string | Date;
   notes?: string | null;
-  status: "committed" | "funded" | "unfunded";
+  status: "committed" | "funded" | "unfunded" | "partially_paid";
   portfolioWeight: number;
   interestPaid: number;
   distributionPaid: number;
