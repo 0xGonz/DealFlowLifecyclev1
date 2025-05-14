@@ -101,23 +101,20 @@ const CalledCapitalRatio: React.FC<CalledCapitalRatioProps> = ({
                     uncalled: capitalData[1]?.value || 0,
                     total: totalCapital
                   }]}
-                  layout="vertical"
-                  margin={{ top: 20, right: 50, left: 20, bottom: 10 }}
+                  margin={{ top: 10, right: 30, left: 20, bottom: 30 }}
                   stackOffset="expand"
                 >
-                  <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
+                  <CartesianGrid strokeDasharray="3 3" horizontal={false} vertical={true} />
                   <XAxis 
+                    type="category"
+                    dataKey="name"
+                    hide={true}
+                  />
+                  <YAxis 
                     type="number"
                     domain={[0, 1]}
                     tickFormatter={(value) => `${Math.round(value * 100)}%`}
                     ticks={[0, 0.25, 0.5, 0.75, 1]}
-                  />
-                  <YAxis 
-                    type="category" 
-                    dataKey="name" 
-                    width={70}
-                    tickLine={false}
-                    axisLine={false}
                   />
                   <Tooltip 
                     formatter={(value: number, name) => {
@@ -129,8 +126,9 @@ const CalledCapitalRatio: React.FC<CalledCapitalRatioProps> = ({
                   <Bar 
                     dataKey="called" 
                     stackId="a"
-                    barSize={40}
+                    barSize={80}
                     fill="#4f46e5"
+                    name="Called Capital"
                   >
                     <LabelList 
                       position="center"
@@ -141,8 +139,9 @@ const CalledCapitalRatio: React.FC<CalledCapitalRatioProps> = ({
                   <Bar 
                     dataKey="uncalled" 
                     stackId="a"
-                    barSize={40}
+                    barSize={80}
                     fill="#a5b4fc"
+                    name="Uncalled Capital"
                   >
                     <LabelList 
                       position="center"
