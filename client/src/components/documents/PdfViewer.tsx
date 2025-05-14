@@ -72,10 +72,12 @@ export const PdfViewer = () => {
     console.error('Error loading PDF:', err);
     setIsLoading(false);
     
-    // Check if this is a MissingPDFException
+    // Check if this is a MissingPDFException or worker error
     const isMissingPdfError = 
       err.message?.toLowerCase().includes('missingpdfexception') || 
-      (err as any)?.name === 'MissingPDFException';
+      (err as any)?.name === 'MissingPDFException' ||
+      err.message?.includes('worker') ||
+      err.message?.includes('Failed to fetch');
     
     if (current) {
       // First, verify the document exists and is accessible
@@ -83,7 +85,11 @@ export const PdfViewer = () => {
         const response = await fetch(current.downloadUrl, { 
           method: 'HEAD', 
           credentials: 'include',
-          cache: 'no-store' // Avoid caching issues
+          cache: 'no-store',
+          headers: {
+            'Pragma': 'no-cache',
+            'Cache-Control': 'no-cache'
+          }
         });
         
         if (response.status === 404) {
@@ -95,17 +101,25 @@ export const PdfViewer = () => {
           
           toast({
             title: "Document Missing",
-            description: "Document file not found on server. Try uploading again.",
+            description: "Document file not found on server. Please re-upload the document.",
             variant: "destructive"
           });
         } else if (response.ok) {
           // Document exists but PDF.js couldn't load it
           // Try the fallback viewer instead
           if (isMissingPdfError || retryCount >= 1) {
+            toast({
+              title: "Using Basic Viewer",
+              description: "Document found but using more compatible viewer.",
+            });
             switchToFallbackViewer();
           } else {
             // First failure, set error but offer retry
             setError(new Error("PDF viewer couldn't load the document. Try the fallback viewer or retry."));
+            toast({
+              title: "PDF Viewer Error",
+              description: "Had trouble loading the document. Try using the basic viewer instead.",
+            });
           }
         } else {
           // Server error or auth issue
@@ -120,6 +134,11 @@ export const PdfViewer = () => {
       } catch (fetchErr) {
         // Network error checking document
         setError(new Error("Network error checking document. Please check your connection."));
+        toast({
+          title: "Connection Error",
+          description: "Network error when checking document. Please check your connection.",
+          variant: "destructive"
+        });
       }
     } else {
       // No current document

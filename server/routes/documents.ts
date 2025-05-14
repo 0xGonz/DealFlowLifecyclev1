@@ -67,17 +67,23 @@ const sanitizeFilename = (filename: string): string => {
     .toLowerCase();                  // Convert to lowercase for consistency
 };
 
+// Setup constants for our upload paths
+const PERSIST_PATH = path.join(process.cwd(), 'data', 'uploads');
+const PUBLIC_PATH = path.join(process.cwd(), 'public', 'uploads');
+
 // Set up multer storage directly in project root (persisted in Replit)
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    // Use process.cwd() to ensure we're in the project root directory
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads');
-    // Ensure the upload directory exists
-    if (!fs.existsSync(uploadDir)){
-      fs.mkdirSync(uploadDir, { recursive: true });
+    // Use the persistent data directory for uploads
+    // Ensure the upload directories exist
+    if (!fs.existsSync(PERSIST_PATH)){
+      fs.mkdirSync(PERSIST_PATH, { recursive: true });
     }
-    console.log(`Storing uploaded file in: ${uploadDir}`);
-    cb(null, uploadDir);
+    if (!fs.existsSync(PUBLIC_PATH)){
+      fs.mkdirSync(PUBLIC_PATH, { recursive: true });
+    }
+    console.log(`Storing uploaded file in: ${PERSIST_PATH}`);
+    cb(null, PERSIST_PATH);
   },
   filename: (req, file, cb) => {
     // Generate a unique filename to prevent overwriting
@@ -198,96 +204,120 @@ router.get('/:id/download', requireAuth, async (req: Request, res: Response) => 
       res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(document.fileName)}"`);
     }
     
-    // Try to serve the actual file if it exists in the uploads directory
-    const actualFilePath = path.join(process.cwd(), 'public', document.filePath);
-    
-    // Log the path we're trying to serve from
-    console.log(`Attempting to serve document from: ${actualFilePath}`);
-    
-    // Check if the actual file exists first
-    if (fs.existsSync(actualFilePath)) {
-      console.log(`Serving actual file from: ${actualFilePath}`);
-      // Stream the file instead of loading it into memory
-      const fileStream = fs.createReadStream(actualFilePath);
-      fileStream.pipe(res);
+    // Try to serve the file from different possible locations
+    const filePaths = [
+      // First try the persistent data directory (most reliable)
+      path.join(PERSIST_PATH, path.basename(document.filePath)),
       
-      // Handle stream errors
-      fileStream.on('error', (err) => {
-        console.error('Error streaming document:', err);
-        res.status(500).json({ 
-          error: 'Stream error',
-          message: 'Error accessing the document file'
-        });
-      });
-      return;
-    }
-    
-    // If the file doesn't exist in the expected location, check for it in the uploads directory directly
-    // This is a simpler approach than before and avoids special-casing specific documents
-    const uploadsDir = path.join(process.cwd(), 'public/uploads');
-    
-    console.log(`Document not found at expected path: ${actualFilePath}`);
-    console.log(`Looking for documents containing the filename "${document.fileName}" in ${uploadsDir}`);
-    
-    try {
-      // List files in uploads directory
-      const files = fs.readdirSync(uploadsDir);
+      // Then try the original path as stored in the database
+      path.join(process.cwd(), 'public', document.filePath),
       
-      // Look for files that might match by containing the original filename
-      // This handles cases where filename got mangled but is still recognizable
-      const possibleMatches = files.filter(file => {
-        // Check if this file contains the document filename (case insensitive)
-        const docNameLower = document.fileName.toLowerCase();
-        const fileLower = file.toLowerCase();
-        
-        // Check for exact match first
-        if (fileLower === docNameLower) return true;
-        
-        // Look for UUID pattern followed by the filename
-        const uuidPattern = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
-        if (fileLower.replace(uuidPattern, '').includes(docNameLower)) return true;
-        
-        // Look for files with sanitized version of the name
-        const sanitizedName = sanitizeFilename(document.fileName);
-        if (fileLower.includes(sanitizedName)) return true;
-        
-        return false;
-      });
-      
-      console.log(`Found ${possibleMatches.length} potential matching files`);
-      
-      // If we found possible matches, try serving the first one
-      if (possibleMatches.length > 0) {
-        const matchPath = path.join(uploadsDir, possibleMatches[0]);
-        console.log(`Serving document from matched file: ${matchPath}`);
-        
-        const fileStream = fs.createReadStream(matchPath);
+      // Finally try the public uploads directory as a fallback
+      path.join(PUBLIC_PATH, path.basename(document.filePath)),
+    ];
+    
+    console.log(`Attempting to serve document: ${document.fileName}`);
+    console.log(`Checking these locations: ${JSON.stringify(filePaths)}`);
+    
+    // Try each path in order until we find one that exists
+    for (const filePath of filePaths) {
+      if (fs.existsSync(filePath)) {
+        console.log(`✅ Found and serving file from: ${filePath}`);
+        // Stream the file instead of loading it into memory
+        const fileStream = fs.createReadStream(filePath);
         fileStream.pipe(res);
         
         // Handle stream errors
         fileStream.on('error', (err) => {
-          console.error('Error streaming document from matched file:', err);
+          console.error('Error streaming document:', err);
           res.status(500).json({ 
             error: 'Stream error',
-            message: 'Error accessing the matched document file'
+            message: 'Error accessing the document file'
           });
         });
         return;
       }
-    } catch (err) {
-      console.error('Error searching uploads directory:', err);
     }
     
-    // No file found - log detailed information and return a clean 404 error
-    console.log(`No file found for: ${document.fileName} at ${document.filePath}. Returning 404.`);
+    // If no exact match was found, try to find similar files by name
+    // This is a fallback approach for files that might have been renamed
+    const allUploadDirs = [PERSIST_PATH, PUBLIC_PATH];
+    let fileFound = false;
+    
+    for (const uploadsDir of allUploadDirs) {
+      if (fileFound) break;
+      
+      console.log(`Looking for similar documents in: ${uploadsDir}`);
+      
+      if (!fs.existsSync(uploadsDir)) {
+        console.log(`Directory does not exist: ${uploadsDir}`);
+        continue;
+      }
+    
+      try {
+        // List files in uploads directory
+        const files = fs.readdirSync(uploadsDir);
+      
+        // Look for files that might match by containing the original filename
+        // This handles cases where filename got mangled but is still recognizable
+        const possibleMatches = files.filter(file => {
+          // Check if this file contains the document filename (case insensitive)
+          const docNameLower = document.fileName.toLowerCase();
+          const fileLower = file.toLowerCase();
+          
+          // Check for exact match first
+          if (fileLower === docNameLower) return true;
+          
+          // Look for UUID pattern followed by the filename
+          const uuidPattern = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
+          if (fileLower.replace(uuidPattern, '').includes(docNameLower)) return true;
+          
+          // Look for files with sanitized version of the name
+          const sanitizedName = sanitizeFilename(document.fileName);
+          if (fileLower.includes(sanitizedName)) return true;
+          
+          return false;
+        });
+        
+        console.log(`Found ${possibleMatches.length} potential matching files`);
+        
+        // If we found possible matches, try serving the first one
+        if (possibleMatches.length > 0) {
+          const matchPath = path.join(uploadsDir, possibleMatches[0]);
+          console.log(`Serving document from matched file: ${matchPath}`);
+          
+          const fileStream = fs.createReadStream(matchPath);
+          fileStream.pipe(res);
+          
+          // Handle stream errors
+          fileStream.on('error', (err) => {
+            console.error('Error streaming document from matched file:', err);
+            res.status(500).json({ 
+              error: 'Stream error',
+              message: 'Error accessing the matched document file'
+            });
+          });
+          
+          fileFound = true;
+          return;
+        }
+      } catch (err) {
+        console.error('Error searching uploads directory:', err);
+      }
+    }
+    
+    // If we've gone through all fallbacks and still haven't found the file
+    console.log(`No file found for: ${document.fileName}. Returning 404.`);
     console.log(`Document record from database:`, document);
-    console.log(`Uploads directory content:`, fs.existsSync(uploadsDir) ? fs.readdirSync(uploadsDir) : 'Directory not found');
+    console.log(`Checked these paths:`, filePaths);
+    console.log(`Persistent directory content:`, fs.existsSync(PERSIST_PATH) ? fs.readdirSync(PERSIST_PATH) : 'Directory not found');
+    console.log(`Public directory content:`, fs.existsSync(PUBLIC_PATH) ? fs.readdirSync(PUBLIC_PATH) : 'Directory not found');
     
     return res.status(404).json({ 
       error: 'File not found',
       message: 'The requested document file could not be found on the server. Please re-upload the document.' 
     });
-
+    
   } catch (error) {
     console.error('Error downloading document:', error);
     return res.status(500).json({ message: 'Failed to download document' });
@@ -440,10 +470,26 @@ router.post('/upload', requireAuth, requirePermission('create', 'document'), (re
     console.log(`Original file saved at: ${req.file.path}`);
     console.log(`Absolute path for verification: ${path.join(process.cwd(), 'public', filePath)}`);
     
-    // Verify the file exists on disk before saving to database
-    const actualFilePath = path.join(process.cwd(), 'public', filePath);
-    if (!fs.existsSync(actualFilePath)) {
-      console.error(`WARNING: File does not exist at ${actualFilePath} after upload`);
+    // Ensure we have a copy in the public directory for web access
+    const persistFilePath = req.file.path; // This is already in the persistent directory
+    const publicFilePath = path.join(PUBLIC_PATH, path.basename(req.file.path));
+    
+    // Copy from persistent storage to public directory for redundancy
+    try {
+      if (fs.existsSync(persistFilePath)) {
+        fs.copyFileSync(persistFilePath, publicFilePath);
+        console.log(`File backup created successfully in public directory: ${publicFilePath}`);
+      }
+    } catch (copyErr) {
+      console.error('Error creating backup copy in public directory:', copyErr);
+      // We'll continue even if the copy fails - we still have the original in persistent storage
+    }
+    
+    // Verify at least one copy of the file exists before saving to database
+    if (!fs.existsSync(persistFilePath) && !fs.existsSync(publicFilePath)) {
+      console.error(`WARNING: File does not exist at either location after upload:`);
+      console.error(`- Persistent path: ${persistFilePath}`);
+      console.error(`- Public path: ${publicFilePath}`);
       return res.status(500).json({
         error: 'Upload failed',
         message: 'File was not properly saved to disk. Please try again.'
