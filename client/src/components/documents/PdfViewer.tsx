@@ -80,81 +80,110 @@ export const PdfViewer = () => {
     setIsLoading(false);
     setError(err);
     
-    // Check if this is a MissingPDFException or worker error
-    const isMissingPdfError = 
-      err.message?.toLowerCase().includes('missingpdfexception') || 
-      (err as any)?.name === 'MissingPDFException' ||
-      err.message?.includes('worker') ||
-      err.message?.includes('Failed to fetch');
-    
     // Log worker status to help with debugging
     const workerStatus = getWorkerStatus();
     console.log('PDF.js worker status:', workerStatus);
     
+    // Identify specific error types for better handling
+    const isMissingPdfError = 
+      err.message?.toLowerCase().includes('missingpdfexception') || 
+      (err as any)?.name === 'MissingPDFException';
+      
+    const isWorkerError = 
+      err.message?.includes('worker') ||
+      err.message?.includes('Cannot add property') ||
+      err.message?.includes('extensible');
+      
+    const isNetworkError = 
+      err.message?.includes('Failed to fetch') ||
+      err.message?.includes('NetworkError');
+    
     if (current) {
-      // First, verify the document exists and is accessible
-      try {
-        const response = await fetch(current.downloadUrl, { 
-          method: 'HEAD', 
-          credentials: 'include',
-          cache: 'no-store',
-          headers: {
-            'Pragma': 'no-cache',
-            'Cache-Control': 'no-cache'
-          }
+      // For worker configuration errors, immediately switch to fallback
+      if (isWorkerError) {
+        console.log('Detected PDF.js worker configuration error, switching to fallback viewer');
+        toast({
+          title: "PDF Viewer Compatibility Issue",
+          description: "Using basic viewer for better compatibility with your browser.",
         });
-        
-        if (response.status === 404) {
-          // Document is genuinely missing
-          const notFoundError = new Error(
-            'The document file could not be found. It may have been deleted or not properly saved.'
-          );
-          setError(notFoundError);
-          
-          toast({
-            title: "Document Missing",
-            description: "Document file not found on server. Please re-upload the document.",
-            variant: "destructive"
+        switchToFallbackViewer();
+        return;
+      }
+      
+      // For missing PDF errors or network errors, verify the document actually exists
+      if (isMissingPdfError || isNetworkError) {
+        try {
+          const response = await fetch(current.downloadUrl, { 
+            method: 'HEAD', 
+            credentials: 'include',
+            cache: 'no-store',
+            headers: {
+              'Pragma': 'no-cache',
+              'Cache-Control': 'no-cache'
+            }
           });
-        } else if (response.ok) {
-          // Document exists but PDF.js couldn't load it
-          // Try the fallback viewer instead
-          if (isMissingPdfError || retryCount >= 1) {
+          
+          if (response.status === 404) {
+            // Document is genuinely missing on the server
+            const notFoundError = new Error(
+              'The document file could not be found. It may have been deleted or not properly saved.'
+            );
+            setError(notFoundError);
+            
             toast({
-              title: "Using Basic Viewer",
-              description: "Document found but using more compatible viewer.",
+              title: "Document Missing",
+              description: "Document file not found on server. Please re-upload the document.",
+              variant: "destructive"
             });
-            switchToFallbackViewer();
+          } else if (response.ok) {
+            // Document exists but PDF.js couldn't load it properly
+            // Try the fallback viewer for better compatibility
+            if (retryCount >= 1 || isMissingPdfError) {
+              toast({
+                title: "Using Basic Viewer",
+                description: "Document found but using more compatible viewer.",
+              });
+              switchToFallbackViewer();
+            } else {
+              // First failure, set error but offer retry options
+              setError(new Error("PDF viewer couldn't load the document. Try the fallback viewer or retry."));
+              toast({
+                title: "PDF Viewer Error",
+                description: "Had trouble loading the document. Try using the basic viewer instead.",
+              });
+            }
           } else {
-            // First failure, set error but offer retry
-            setError(new Error("PDF viewer couldn't load the document. Try the fallback viewer or retry."));
+            // Server error or authentication issue
+            setError(new Error(`Server error (${response.status}). Try refreshing the page.`));
+            
             toast({
-              title: "PDF Viewer Error",
-              description: "Had trouble loading the document. Try using the basic viewer instead.",
+              title: "Server Error",
+              description: `Error ${response.status} accessing document. Try again later.`,
+              variant: "destructive"
             });
           }
-        } else {
-          // Server error or auth issue
-          setError(new Error(`Server error (${response.status}). Try refreshing the page.`));
-          
+        } catch (fetchErr) {
+          // Network error checking document
+          console.error('Network error verifying document existence:', fetchErr);
+          setError(new Error("Network error checking document. Please check your connection."));
           toast({
-            title: "Server Error",
-            description: `Error ${response.status} accessing document. Try again later.`,
+            title: "Connection Error",
+            description: "Network error when checking document. Please check your connection.",
             variant: "destructive"
           });
         }
-      } catch (fetchErr) {
-        // Network error checking document
-        setError(new Error("Network error checking document. Please check your connection."));
+      } else {
+        // For other types of errors, give standard options
+        setError(new Error(`Error loading document: ${err.message || 'Unknown error'}`));
         toast({
-          title: "Connection Error",
-          description: "Network error when checking document. Please check your connection.",
+          title: "Document Error",
+          description: "There was a problem displaying this document. Try the basic viewer.",
           variant: "destructive"
         });
       }
     } else {
       // No current document
-      setError(err);
+      setError(new Error("No document selected"));
     }
   }, [current, toast, retryCount, switchToFallbackViewer]);
 
