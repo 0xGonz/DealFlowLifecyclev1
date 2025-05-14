@@ -92,6 +92,7 @@ export default function DealDetail() {
   const [isMemoDetailOpen, setIsMemoDetailOpen] = useState(false);
   const [isAllocateModalOpen, setIsAllocateModalOpen] = useState(false);
   const [isCapitalCallFormOpen, setIsCapitalCallFormOpen] = useState(false);
+  const [isMeetingFormOpen, setIsMeetingFormOpen] = useState(false);
   
   // Get the active tab from URL query parameter
   const getActiveTab = () => {
@@ -762,6 +763,16 @@ export default function DealDetail() {
 
         </Tabs>
       </div>
+
+      {/* Meeting form modal */}
+      {isMeetingFormOpen && dealId && (
+        <CreateMeetingForm
+          dealId={Number(dealId)}
+          isOpen={isMeetingFormOpen}
+          onClose={() => setIsMeetingFormOpen(false)}
+        />
+      )}
+
     </AppLayout>
   );
 }
