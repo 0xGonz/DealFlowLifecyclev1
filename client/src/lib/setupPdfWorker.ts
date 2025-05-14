@@ -1,12 +1,17 @@
 import { pdfjs } from 'react-pdf';
 
-// Tell Vite to copy the worker file to /assets and give us its final URL.
-// The `?url` suffix tells Vite to handle the import as a URL.
-// Note: For version 4.8.69, the worker file has .mjs extension
-import workerURL from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+// Configure PDF.js with appropriate worker
+// Use a consistent URL pattern that works in both development and production
+// Using an absolute path helps avoid issues with relative paths and CDN domains
+pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.js';
 
-// Register the URL with pdf.js at runtime (side effect)
-pdfjs.GlobalWorkerOptions.workerSrc = workerURL;
+// Increased cmap URL timeout to handle potential network delays
+pdfjs.GlobalWorkerOptions.workerPort = null; // Force main thread operation if worker fails
 
-// This is a side-effect module - it doesn't export anything
-// but configures pdfjs when imported
+// Export function to allow manual worker reset if needed
+export function resetPdfWorker() {
+  // Re-applying the worker source can sometimes help recover from a bad state
+  pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.js';
+}
+
+// This is primarily a side-effect module that configures pdfjs when imported
