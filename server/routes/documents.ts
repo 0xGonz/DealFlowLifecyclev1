@@ -511,7 +511,9 @@ router.post('/upload', requireAuth, requirePermission('create', 'document'), (re
     
     // Construct a consistent relative path with no leading slash
     // This path will be used to locate the file for download
+    // Extract just the filename without any directory info
     const baseFilename = path.basename(req.file.path);
+    // Store the path without leading slash to ensure proper path resolution
     const filePath = `uploads/${baseFilename}`;
     
     console.log(`Saving document with filePath: ${filePath}`);

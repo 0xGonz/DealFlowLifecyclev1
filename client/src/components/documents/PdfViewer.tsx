@@ -200,10 +200,11 @@ export const PdfViewer = () => {
                 size="sm"
                 onClick={goToPreviousPage}
                 disabled={pageNumber <= 1 || isLoading}
+                aria-label="Previous page"
               >
                 Previous
               </Button>
-              <span className="text-sm">
+              <span className="text-sm" aria-live="polite">
                 {isLoading ? 'Loading...' : `Page ${pageNumber} of ${numPages}`}
               </span>
               <Button
@@ -211,6 +212,7 @@ export const PdfViewer = () => {
                 size="sm"
                 onClick={goToNextPage}
                 disabled={pageNumber >= numPages || isLoading}
+                aria-label="Next page"
               >
                 Next
               </Button>
@@ -224,11 +226,23 @@ export const PdfViewer = () => {
         <div className="flex items-center gap-2">
           {!useFallbackViewer && (
             <>
-              <Button variant="outline" size="sm" onClick={zoomOut} disabled={isLoading}>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={zoomOut} 
+                disabled={isLoading}
+                aria-label="Zoom out"
+              >
                 -
               </Button>
-              <span className="text-sm">{Math.round(scale * 100)}%</span>
-              <Button variant="outline" size="sm" onClick={zoomIn} disabled={isLoading}>
+              <span className="text-sm" aria-live="polite">{Math.round(scale * 100)}%</span>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={zoomIn} 
+                disabled={isLoading}
+                aria-label="Zoom in"
+              >
                 +
               </Button>
             </>
@@ -241,6 +255,7 @@ export const PdfViewer = () => {
               size="sm" 
               onClick={switchToFallbackViewer}
               className="ml-2"
+              aria-label="Switch to basic document viewer"
             >
               <FileText className="h-4 w-4 mr-1" />
               Basic Viewer
@@ -253,6 +268,7 @@ export const PdfViewer = () => {
               size="sm" 
               onClick={handleRetryPdfJs}
               className="ml-2"
+              aria-label="Try PDF viewer again"
             >
               <RotateCw className="h-4 w-4 mr-1" />
               Try PDF Viewer
@@ -267,7 +283,11 @@ export const PdfViewer = () => {
             rel="noopener noreferrer"
             className="ml-2"
           >
-            <Button variant="outline" size="sm">
+            <Button 
+              variant="outline" 
+              size="sm"
+              aria-label="Download document"
+            >
               <Download className="h-4 w-4 mr-1" />
               Download
             </Button>
@@ -288,6 +308,7 @@ export const PdfViewer = () => {
                 variant="outline" 
                 size="sm" 
                 onClick={handleRetryPdfJs}
+                aria-label="Retry loading PDF"
               >
                 <RotateCw className="h-4 w-4 mr-1" />
                 Retry
@@ -297,6 +318,7 @@ export const PdfViewer = () => {
                 variant="default" 
                 size="sm" 
                 onClick={switchToFallbackViewer}
+                aria-label="Use basic document viewer"
               >
                 <FileText className="h-4 w-4 mr-1" />
                 Use Basic Viewer
