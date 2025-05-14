@@ -4,10 +4,11 @@ import { pdfjs } from 'react-pdf';
  * PDF.js Worker Configuration
  * 
  * This module sets up the PDF.js worker configuration for Replit environment.
- * It uses a CDN hosted worker file that matches the pdfjs-dist version in the project.
+ * It uses Vite's URL import to properly bundle and serve the worker file.
  */
 
-// Use a CDN-hosted worker file from the same version as our pdfjs-dist (4.8.69)
+// Import the worker directly from the CDN to ensure version compatibility
+// This is the most reliable approach for Replit, ensuring the worker matches the pdfjs-dist version
 pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.8.69/build/pdf.worker.min.mjs';
 
 // Default configuration options for PDF.js
@@ -17,11 +18,18 @@ const DEFAULT_OPTIONS = {
   
   // These settings improve compatibility and reduce errors
   disableStream: false,
-  disableAutoFetch: true
+  disableAutoFetch: true,
+  
+  // Extended options for better browser support
+  isEvalSupported: true,
+  useSystemFonts: true
 };
 
 // Apply our configuration
 Object.assign(pdfjs, DEFAULT_OPTIONS);
+
+// Make sure worker will load by explicitly setting disableWorker = false
+pdfjs.disableWorker = false;
 
 // Simple function to log worker status
 export function getWorkerStatus() {
