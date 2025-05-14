@@ -36,12 +36,13 @@ export class FundService {
     
     // Use SQL query to join allocations, capital calls, and payments
     // This ensures we're calculating based on actual payment records
+    // and only counts payments for allocations that are marked as funded
     const result = await db.execute(`
       SELECT SUM(p.amount_usd) as called_capital
       FROM fund_allocations fa
       JOIN capital_calls cc ON fa.id = cc.allocation_id
       JOIN payments p ON cc.id = p.capital_call_id
-      WHERE fa.fund_id = ${fundId}
+      WHERE fa.fund_id = ${fundId} AND fa.status = 'funded'
     `);
     
     // Extract and return the called capital, defaulting to 0 if null
@@ -57,25 +58,25 @@ export class FundService {
     const storage = getStorage();
     const db = storage.getDbClient();
     
-    // Query to calculate total committed minus total paid
+    // Query to calculate uncalled capital based on capital calls that aren't fully paid
+    // This implementation fixes the issue with funded allocations showing as uncalled
     const result = await db.execute(`
-      WITH allocation_totals AS (
+      WITH committed_capital AS (
         SELECT 
           SUM(fa.amount) as total_committed
         FROM fund_allocations fa
-        WHERE fa.fund_id = ${fundId} AND fa.status != 'written_off'
+        WHERE fa.fund_id = ${fundId} AND fa.status != 'written_off' AND fa.status != 'funded'
       ),
-      payment_totals AS (
+      outstanding_calls AS (
         SELECT 
-          SUM(p.amount_usd) as total_paid
+          SUM(cc.outstanding) as total_outstanding
         FROM fund_allocations fa
         JOIN capital_calls cc ON fa.id = cc.allocation_id
-        JOIN payments p ON cc.id = p.capital_call_id
-        WHERE fa.fund_id = ${fundId}
+        WHERE fa.fund_id = ${fundId} AND cc.status != 'paid' AND cc.status != 'defaulted'
       )
       SELECT 
-        COALESCE(a.total_committed, 0) - COALESCE(p.total_paid, 0) as uncalled_capital
-      FROM allocation_totals a, payment_totals p
+        COALESCE(c.total_committed, 0) as uncalled_capital
+      FROM committed_capital c
     `);
     
     // Extract and return the uncalled capital, defaulting to 0 if null
@@ -124,18 +125,12 @@ export class FundService {
 
   /**
    * Calculate Fund AUM from fund allocations
-   * This centralized method ensures consistent AUM calculation
+   * This centralized method ensures consistent AUM calculation based on payments
    */
   async calculateFundAUM(fundId: number): Promise<number> {
-    const storage = getStorage();
-    const allocations = await storage.getAllocationsByFund(fundId);
-    
-    // Sum up all 'funded' allocations for the AUM
-    const aum = allocations
-      .filter(allocation => allocation.status === 'funded')
-      .reduce((sum, allocation) => sum + Number(allocation.amount || 0), 0);
-    
-    return aum;
+    // Use called capital as the AUM since it represents actual money invested
+    const calledCapital = await this.calculateCalledCapital(fundId);
+    return calledCapital;
   }
   
   /**
@@ -191,12 +186,13 @@ export class FundService {
     const calledCapital = await this.calculateCalledCapital(fundId);
     const uncalledCapital = await this.calculateUncalledCapital(fundId);
     
-    // Recalculate AUM based on actual payments
+    // Recalculate AUM based on actual payments - AUM should equal called capital
     const aum = calledCapital;
     
-    // Update fund's AUM if it's different
+    // Update fund's AUM if it's different to maintain consistency
     if (fund.aum !== aum) {
       await storage.updateFund(fundId, { aum });
+      console.log(`Updated fund ${fundId} AUM from ${fund.aum} to ${aum}`);
     }
     
     return {
