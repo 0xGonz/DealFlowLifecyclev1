@@ -7,22 +7,13 @@ import { pdfjs } from 'react-pdf';
  * It uses a CDN hosted worker file that matches the pdfjs-dist version in the project.
  */
 
-// Use a CDN-hosted worker file from the same version as our pdfjs-dist (4.8.69)
+// Set the worker source to a CDN-hosted file from the same version as our pdfjs-dist (4.8.69)
 // This is the most reliable approach for Replit deployment
 pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.8.69/build/pdf.worker.min.mjs';
 
-// Default configuration options for PDF.js
-const DEFAULT_OPTIONS = {
-  // Enforce using the worker (don't fall back to main thread)
-  disableWorker: false,
-  
-  // These settings improve compatibility and reduce errors
-  disableStream: false,
-  disableAutoFetch: true
-};
-
-// Apply our configuration
-Object.assign(pdfjs, DEFAULT_OPTIONS);
+// In PDF.js v4+, we cannot modify the frozen pdfjs object with Object.assign
+// Instead, we configure the viewer with these options when we render <Document>
+// These are provided in the useMemo of PdfViewer.tsx
 
 // Simple function to log worker status
 export function getWorkerStatus() {
