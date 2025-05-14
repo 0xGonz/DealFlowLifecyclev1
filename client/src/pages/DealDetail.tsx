@@ -14,6 +14,8 @@ import { MiniMemoDisplay } from "@/components/memos/MiniMemoDisplay";
 import { MemoDetailDialog } from "@/components/memos/MemoDetailDialog";
 import { CreateCapitalCallForm } from "@/components/capitalcalls/CreateCapitalCallForm";
 import CapitalCallsList from "@/components/capitalcalls/CapitalCallsList";
+import MeetingsList from "@/components/meetings/MeetingsList";
+import { CreateMeetingForm } from "@/components/meetings/CreateMeetingForm";
 import { UserAvatar } from "@/components/common/UserAvatar";
 import { 
   Card, 
@@ -735,7 +737,17 @@ export default function DealDetail() {
                     </div>
                     
                     {/* Display capital calls */}
-                    <CapitalCallsList dealId={Number(dealId)} />
+                    <div className="mb-8">
+                      <CapitalCallsList dealId={Number(dealId)} />
+                    </div>
+                    
+                    {/* Display scheduled meetings */}
+                    <div className="mb-6 mt-10 border-t pt-6">
+                      <MeetingsList 
+                        dealId={Number(dealId)} 
+                        onCreateMeeting={() => setIsMeetingFormOpen(true)}
+                      />
+                    </div>
                   </div>
                 ) : (
                   <div className="text-center py-8 text-neutral-500">
