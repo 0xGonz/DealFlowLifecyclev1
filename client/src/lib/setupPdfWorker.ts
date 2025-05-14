@@ -7,8 +7,8 @@ import { pdfjs } from 'react-pdf';
  * It uses a CDN hosted worker file that matches the pdfjs-dist version in the project.
  */
 
-// Use the CDN-hosted worker file that matches our version (4.8.69)
-pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.8.69/legacy/build/pdf.worker.min.js';
+// Use a CDN-hosted worker file from the same version as our pdfjs-dist (4.8.69)
+pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.8.69/build/pdf.worker.min.mjs';
 
 // Default configuration options for PDF.js
 const DEFAULT_OPTIONS = {
@@ -28,6 +28,7 @@ export function getWorkerStatus() {
   return {
     workerSrc: pdfjs.GlobalWorkerOptions.workerSrc,
     isConfigured: !!pdfjs.GlobalWorkerOptions.workerSrc,
-    version: '4.8.69' // Track the version for easier debugging
+    version: '4.8.69', // Track the version for easier debugging
+    isViteBundled: true // Track if we're using Vite's bundling
   };
 }

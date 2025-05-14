@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { Document, Page } from 'react-pdf';
 import { useDocs, DocMeta } from '@/context/DocumentsContext';
 import { Button } from '@/components/ui/button';
@@ -18,6 +18,13 @@ export const PdfViewer = () => {
   const [useFallbackViewer, setUseFallbackViewer] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  
+  // Memoize PDF options to prevent unnecessary re-renders
+  const pdfOptions = useMemo(() => ({
+    cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.8.69/cmaps/',
+    cMapPacked: true,
+    standardFontDataUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.8.69/standard_fonts/',
+  }), []);
 
   // Reset state when document changes
   useEffect(() => {
@@ -71,6 +78,7 @@ export const PdfViewer = () => {
   const onDocumentLoadError = useCallback(async (err: Error) => {
     console.error('Error loading PDF:', err);
     setIsLoading(false);
+    setError(err);
     
     // Check if this is a MissingPDFException or worker error
     const isMissingPdfError = 
@@ -78,6 +86,10 @@ export const PdfViewer = () => {
       (err as any)?.name === 'MissingPDFException' ||
       err.message?.includes('worker') ||
       err.message?.includes('Failed to fetch');
+    
+    // Log worker status to help with debugging
+    const workerStatus = getWorkerStatus();
+    console.log('PDF.js worker status:', workerStatus);
     
     if (current) {
       // First, verify the document exists and is accessible
@@ -304,11 +316,7 @@ export const PdfViewer = () => {
                 <div className="animate-pulse">Loading document...</div>
               </div>
             }
-            options={{
-              cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.8.69/cmaps/',
-              cMapPacked: true,
-              standardFontDataUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.8.69/standard_fonts/',
-            }}
+            options={pdfOptions}
           >
             <Page
               key={`page_${pageNumber}_scale_${scale}`} 
