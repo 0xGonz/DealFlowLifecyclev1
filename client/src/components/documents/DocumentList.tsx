@@ -199,11 +199,45 @@ export default function DocumentList({ dealId }: DocumentListProps) {
   };
   
   const handleViewDocument = (document: Document) => {
-    // Just set the selected document, don't open any pop-up
-    setSelectedDocument(document);
-    
-    // Don't open the PDF viewer modal or download the file
-    // The document will be displayed in the iframe below
+    // Pre-check if document exists before setting it as selected
+    // This helps avoid errors with the PDF viewer
+    if (document.fileType === 'application/pdf' || document.fileName.toLowerCase().endsWith('.pdf')) {
+      fetch(`/api/documents/${document.id}/download`, { 
+        method: 'HEAD',
+        credentials: 'include'
+      })
+      .then(response => {
+        if (response.ok) {
+          // Document exists, safe to select it
+          setSelectedDocument(document);
+        } else if (response.status === 404) {
+          // Document is missing, show helpful error
+          toast({
+            title: 'Document file not found',
+            description: 'The file may have been deleted or not properly saved. Try re-uploading the document.',
+            variant: 'destructive'
+          });
+          // Still set as selected so user can see the error state in the viewer
+          setSelectedDocument(document);
+        } else {
+          // Other server error
+          toast({
+            title: 'Error accessing document',
+            description: `Server returned error ${response.status}. Try again later.`,
+            variant: 'destructive'
+          });
+          setSelectedDocument(document);
+        }
+      })
+      .catch(error => {
+        // Network error
+        console.error('Error checking document existence:', error);
+        setSelectedDocument(document);
+      });
+    } else {
+      // For non-PDF documents, just select without pre-check
+      setSelectedDocument(document);
+    }
   };
 
   if (isLoading) {

@@ -218,7 +218,7 @@ router.get('/:id/download', requireAuth, async (req: Request, res: Response) => 
       res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(document.fileName)}"`);
     }
     
-    // Try to serve the file from different possible locations
+    // Check file existence before attempting to serve
     // First normalize the filePath - handle both with and without leading slash
     const normalizedPath = document.filePath.startsWith('/') 
       ? document.filePath.substring(1) // Remove leading slash if present
@@ -226,6 +226,7 @@ router.get('/:id/download', requireAuth, async (req: Request, res: Response) => 
     
     const baseFilename = path.basename(normalizedPath);
     
+    // Define all possible locations where the file might be stored
     const filePaths = [
       // First try the persistent data directory (most reliable)
       path.join(PERSIST_PATH, baseFilename),
@@ -233,8 +234,14 @@ router.get('/:id/download', requireAuth, async (req: Request, res: Response) => 
       // Then try the public directory with normalized path
       path.join(process.cwd(), 'public', normalizedPath),
       
-      // Finally try the public uploads directory as a fallback
+      // Try the public uploads directory as a fallback
       path.join(PUBLIC_PATH, baseFilename),
+      
+      // Also try with the full original path from the database (legacy format)
+      path.resolve(document.filePath),
+      
+      // Try root-relative path
+      path.join(process.cwd(), normalizedPath)
     ];
     
     console.log(`Attempting to serve document: ${document.fileName}`);
@@ -361,9 +368,20 @@ router.get('/:id/download', requireAuth, async (req: Request, res: Response) => 
     console.log(`Persistent directory content:`, fs.existsSync(PERSIST_PATH) ? fs.readdirSync(PERSIST_PATH) : 'Directory not found');
     console.log(`Public directory content:`, fs.existsSync(PUBLIC_PATH) ? fs.readdirSync(PUBLIC_PATH) : 'Directory not found');
     
+    // Return a 404 error with detailed information for easier debugging
+    // This helps the client side distinguish between different types of errors
     return res.status(404).json({ 
-      error: 'File not found',
-      message: 'The requested document file could not be found on the server. Please re-upload the document.' 
+      error: 'FILE_NOT_FOUND',
+      message: 'The requested document file could not be found on the server. Please re-upload the document.',
+      details: {
+        documentId: document.id,
+        fileName: document.fileName,
+        filePath: document.filePath,
+        uploadedAt: document.uploadedAt,
+        checkedPaths: filePaths,
+        // Include a hint that this might be due to Replit's ephemeral storage
+        note: 'File may have been lost due to ephemeral storage. Consider re-uploading the document.'
+      }
     });
     
   } catch (error) {
