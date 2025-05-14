@@ -4,12 +4,11 @@ import { pdfjs } from 'react-pdf';
  * PDF.js Worker Configuration
  * 
  * This module sets up the PDF.js worker configuration for Replit environment.
- * It uses a static path to the worker file which is stored in the public directory.
+ * It uses a CDN hosted worker file that matches the pdfjs-dist version in the project.
  */
 
-// Set a simple static path to the worker
-// This is the most reliable approach in Replit's environment
-pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.js';
+// Use the CDN-hosted worker file that matches our version (4.8.69)
+pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.8.69/legacy/build/pdf.worker.min.js';
 
 // Default configuration options for PDF.js
 const DEFAULT_OPTIONS = {
@@ -28,6 +27,7 @@ Object.assign(pdfjs, DEFAULT_OPTIONS);
 export function getWorkerStatus() {
   return {
     workerSrc: pdfjs.GlobalWorkerOptions.workerSrc,
-    isConfigured: !!pdfjs.GlobalWorkerOptions.workerSrc
+    isConfigured: !!pdfjs.GlobalWorkerOptions.workerSrc,
+    version: '4.8.69' // Track the version for easier debugging
   };
 }
