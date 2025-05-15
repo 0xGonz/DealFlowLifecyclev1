@@ -15,6 +15,7 @@ import { MemoDetailDialog } from "@/components/memos/MemoDetailDialog";
 import { CreateCapitalCallForm } from "@/components/capitalcalls/CreateCapitalCallForm";
 import CapitalCallsList from "@/components/capitalcalls/CapitalCallsList";
 import MeetingsList from "@/components/meetings/MeetingsList";
+import ClosingEventsList from "@/components/closings/ClosingEventsList";
 import { CreateMeetingForm } from "@/components/meetings/CreateMeetingForm";
 import { UserAvatar } from "@/components/common/UserAvatar";
 import { 
@@ -740,6 +741,13 @@ export default function DealDetail() {
                     {/* Display capital calls */}
                     <div className="mb-8">
                       <CapitalCallsList dealId={Number(dealId)} />
+                    </div>
+                    
+                    {/* Display closing events */}
+                    <div className="mb-8 mt-10 border-t pt-6">
+                      <ClosingEventsList
+                        dealId={Number(dealId)}
+                      />
                     </div>
                     
                     {/* Display scheduled meetings */}
