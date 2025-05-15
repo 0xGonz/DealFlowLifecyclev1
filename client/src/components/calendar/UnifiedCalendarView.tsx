@@ -5,11 +5,11 @@ import {
   Card,
   CardContent
 } from '@/components/ui/card';
-import { Calendar, DollarSign, Clock, Users, Calendar as CalendarIcon } from 'lucide-react';
+import { Calendar, DollarSign, Clock, Users, Calendar as CalendarIcon, FileText, Percent } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface UnifiedCalendarViewProps {
   dealId: number;
@@ -26,10 +26,14 @@ interface CalendarEvent {
   type: EventType;
   status?: string;
   allocation?: string;
-  amount?: number | string;
+  amountValue?: number | string;
+  amountType?: string;
+  notes?: string;
+  attendees?: string;
   dealName?: string;
   icon: React.ReactNode;
   color: string;
+  detailItems?: {label: string; value: string}[];
 }
 
 export default function UnifiedCalendarView({ 
@@ -37,8 +41,6 @@ export default function UnifiedCalendarView({
   onCreateCapitalCall, 
   onCreateMeeting 
 }: UnifiedCalendarViewProps) {
-  const [view, setView] = React.useState<'all' | 'capital-calls' | 'meetings' | 'closings'>('all');
-  
   // Fetch capital calls
   const { data: capitalCalls = [] } = useQuery<any[]>({
     queryKey: [`/api/capital-calls/deal/${dealId}`],
@@ -69,10 +71,16 @@ export default function UnifiedCalendarView({
         date: call.dueDate,
         type: 'capital-call',
         allocation: call.fundName,
-        amount: call.callAmount,
+        amountValue: call.callAmount,
+        amountType: 'currency',
         status: call.status,
         icon: <DollarSign className="h-4 w-4" />,
-        color: 'bg-green-100 border-green-600'
+        color: 'bg-green-100 border-green-600',
+        detailItems: [
+          { label: 'Fund', value: call.fundName || 'N/A' },
+          { label: 'Amount', value: `$${Number(call.callAmount || 0).toLocaleString()}` },
+          { label: 'Status', value: call.status ? call.status.charAt(0).toUpperCase() + call.status.slice(1) : 'N/A' }
+        ]
       });
     });
     
@@ -83,40 +91,51 @@ export default function UnifiedCalendarView({
         title: meeting.title,
         date: meeting.date,
         type: 'meeting',
+        attendees: meeting.attendees,
+        notes: meeting.notes,
         icon: <Users className="h-4 w-4" />,
-        color: 'bg-blue-100 border-blue-600'
+        color: 'bg-blue-100 border-blue-600',
+        detailItems: [
+          { label: 'Attendees', value: meeting.attendees || 'None specified' },
+          { label: 'Notes', value: meeting.notes || 'No notes recorded' }
+        ]
       });
     });
     
     // Add closing events
     (closingEvents as any[]).forEach((event) => {
+      const isPercentage = event.amountType === 'percentage';
       events.push({
         id: event.id,
         title: event.eventName,
         date: event.scheduledDate,
         type: 'closing',
         status: event.status,
-        amount: event.targetAmount,
+        amountValue: event.targetAmount,
+        amountType: event.amountType,
+        notes: event.notes,
         icon: <Calendar className="h-4 w-4" />,
-        color: 'bg-purple-100 border-purple-600'
+        color: 'bg-purple-100 border-purple-600',
+        detailItems: [
+          { label: 'Amount', value: isPercentage 
+            ? `${event.targetAmount}%` 
+            : `$${Number(event.targetAmount || 0).toLocaleString()}` 
+          },
+          { label: 'Status', value: event.status ? event.status.charAt(0).toUpperCase() + event.status.slice(1) : 'N/A' },
+          { label: 'Notes', value: event.notes || 'No notes recorded' }
+        ]
       });
     });
     
-    // Sort by date (most recent first)
+    // Sort by date (earliest first)
     return events.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   }, [capitalCalls, meetings, closingEvents]);
-  
-  // Filter events based on the selected view
-  const filteredEvents = React.useMemo(() => {
-    if (view === 'all') return allEvents;
-    return allEvents.filter(event => event.type === view.replace(/-s$/, '') as EventType);
-  }, [allEvents, view]);
   
   // Group events by month for better visualization
   const eventsByMonth = React.useMemo(() => {
     const grouped: Record<string, CalendarEvent[]> = {};
     
-    filteredEvents.forEach(event => {
+    allEvents.forEach(event => {
       const date = new Date(event.date);
       const monthYear = format(date, 'MMMM yyyy');
       
@@ -128,47 +147,38 @@ export default function UnifiedCalendarView({
     });
     
     return grouped;
-  }, [filteredEvents]);
+  }, [allEvents]);
   
-  // Calculate counts for the view tabs
-  const counts = React.useMemo(() => ({
-    all: allEvents.length,
-    'capital-calls': allEvents.filter(e => e.type === 'capital-call').length,
+  // Event type counts for summary
+  const counts = {
+    capitalCalls: allEvents.filter(e => e.type === 'capital-call').length,
     meetings: allEvents.filter(e => e.type === 'meeting').length,
     closings: allEvents.filter(e => e.type === 'closing').length,
-  }), [allEvents]);
+  };
   
   return (
-    <div className="space-y-4">
-      <Tabs 
-        defaultValue="all" 
-        value={view} 
-        onValueChange={(value) => setView(value as any)}
-        className="w-full"
-      >
-        <TabsList className="grid grid-cols-4 mb-4">
-          <TabsTrigger value="all" className="text-xs">
-            <CalendarIcon className="h-3.5 w-3.5 mr-1" />
-            All {counts.all > 0 && <span className="ml-1 text-xs">({counts.all})</span>}
-          </TabsTrigger>
-          <TabsTrigger value="capital-calls" className="text-xs">
-            <DollarSign className="h-3.5 w-3.5 mr-1" />
-            Capital Calls {counts['capital-calls'] > 0 && <span className="ml-1 text-xs">({counts['capital-calls']})</span>}
-          </TabsTrigger>
-          <TabsTrigger value="meetings" className="text-xs">
-            <Users className="h-3.5 w-3.5 mr-1" />
-            Meetings {counts.meetings > 0 && <span className="ml-1 text-xs">({counts.meetings})</span>}
-          </TabsTrigger>
-          <TabsTrigger value="closings" className="text-xs">
-            <Calendar className="h-3.5 w-3.5 mr-1" />
-            Closings {counts.closings > 0 && <span className="ml-1 text-xs">({counts.closings})</span>}
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
+    <div className="space-y-6">
+      <div className="bg-muted/40 p-3 rounded-lg">
+        <h3 className="text-sm font-medium mb-2">Calendar Summary</h3>
+        <div className="flex flex-wrap gap-3">
+          <Badge variant="outline" className="flex items-center gap-1.5 py-1">
+            <DollarSign className="h-3.5 w-3.5" />
+            <span>{counts.capitalCalls} Capital Call{counts.capitalCalls !== 1 && 's'}</span>
+          </Badge>
+          <Badge variant="outline" className="flex items-center gap-1.5 py-1">
+            <Users className="h-3.5 w-3.5" />
+            <span>{counts.meetings} Meeting{counts.meetings !== 1 && 's'}</span>
+          </Badge>
+          <Badge variant="outline" className="flex items-center gap-1.5 py-1">
+            <Calendar className="h-3.5 w-3.5" />
+            <span>{counts.closings} Closing Event{counts.closings !== 1 && 's'}</span>
+          </Badge>
+        </div>
+      </div>
       
       <div className="flex justify-end gap-2">
         {onCreateCapitalCall && (
-          <Button size="sm" variant="outline" onClick={onCreateCapitalCall}>
+          <Button size="sm" onClick={onCreateCapitalCall}>
             <DollarSign className="h-3.5 w-3.5 mr-1.5" />
             Schedule Call
           </Button>
@@ -185,39 +195,63 @@ export default function UnifiedCalendarView({
         {Object.keys(eventsByMonth).length > 0 ? (
           Object.entries(eventsByMonth).map(([month, events]) => (
             <div key={month} className="space-y-2">
-              <h3 className="text-lg font-medium">{month}</h3>
-              <div className="space-y-3">
+              <h3 className="text-lg font-medium mb-3 border-b pb-1">{month}</h3>
+              <div className="space-y-4">
                 {events.map(event => (
-                  <Card key={`${event.type}-${event.id}`} className={`overflow-hidden border-l-4 ${event.color}`}>
+                  <Card key={`${event.type}-${event.id}`} className={`overflow-hidden border-l-4 ${event.color} hover:shadow-md transition-shadow`}>
                     <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="p-1.5 bg-white rounded-full border">
-                            {event.icon}
-                          </div>
-                          <div>
-                            <div className="font-medium">{event.title}</div>
-                            <div className="text-xs text-muted-foreground">
-                              {format(new Date(event.date), 'EEEE, MMMM d, yyyy')}
+                      <div className="flex flex-col space-y-3">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 bg-white rounded-full border shadow-sm">
+                              {event.icon}
+                            </div>
+                            <div>
+                              <div className="font-medium text-base">{event.title}</div>
+                              <div className="text-xs text-muted-foreground">
+                                {format(new Date(event.date), 'EEEE, MMMM d, yyyy')}
+                              </div>
                             </div>
                           </div>
+                          <div className="flex items-center gap-2">
+                            {event.status && (
+                              <Badge variant={
+                                event.status === 'completed' ? 'default' : 
+                                event.status === 'scheduled' ? 'secondary' : 
+                                event.status === 'delayed' ? 'outline' : 'destructive'
+                              } className="text-xs">
+                                {event.status.charAt(0).toUpperCase() + event.status.slice(1)}
+                              </Badge>
+                            )}
+                            
+                            {event.amountValue && (
+                              <Badge className={`flex items-center gap-1 ${event.amountType === 'percentage' ? 'bg-amber-100 text-amber-800 hover:bg-amber-200' : 'bg-green-100 text-green-800 hover:bg-green-200'}`}>
+                                {event.amountType === 'percentage' ? (
+                                  <>
+                                    <Percent className="h-3 w-3" />
+                                    {event.amountValue}%
+                                  </>
+                                ) : (
+                                  <>
+                                    <DollarSign className="h-3 w-3" />
+                                    {Number(event.amountValue).toLocaleString()}
+                                  </>
+                                )}
+                              </Badge>
+                            )}
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          {event.status && (
-                            <Badge variant={
-                              event.status === 'completed' ? 'default' : 
-                              event.status === 'scheduled' ? 'secondary' : 
-                              event.status === 'delayed' ? 'outline' : 'destructive'
-                            } className="text-xs">
-                              {event.status.charAt(0).toUpperCase() + event.status.slice(1)}
-                            </Badge>
-                          )}
-                          {event.amount && (
-                            <div className="text-sm font-medium">
-                              {typeof event.amount === 'number' ? `$${event.amount.toLocaleString()}` : event.amount}
-                            </div>
-                          )}
-                        </div>
+                        
+                        {event.detailItems && event.detailItems.length > 0 && (
+                          <div className="bg-muted/40 rounded-md p-2 mt-2 text-sm grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1">
+                            {event.detailItems.map((item, i) => (
+                              <div key={i} className="flex items-start gap-2">
+                                <span className="font-medium text-xs min-w-[70px]">{item.label}:</span>
+                                <span className="text-xs overflow-hidden text-ellipsis">{item.value}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -228,11 +262,9 @@ export default function UnifiedCalendarView({
         ) : (
           <div className="text-center py-12 text-muted-foreground">
             <CalendarIcon className="h-12 w-12 mx-auto mb-4 opacity-20" />
-            <h3 className="text-lg font-medium mb-1">No events</h3>
+            <h3 className="text-lg font-medium mb-1">No events scheduled</h3>
             <p className="text-sm">
-              {view === 'all' 
-                ? 'No calendar events have been scheduled for this deal.' 
-                : `No ${view.replace(/-$/, '')} have been scheduled for this deal.`}
+              No calendar events have been scheduled for this deal yet.
             </p>
           </div>
         )}
