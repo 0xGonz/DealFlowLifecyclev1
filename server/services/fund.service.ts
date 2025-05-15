@@ -58,25 +58,15 @@ export class FundService {
     const storage = getStorage();
     const db = storage.getDbClient();
     
-    // Query to calculate uncalled capital based on capital calls that aren't fully paid
+    // Query to calculate uncalled capital based on allocations that aren't fully funded yet
     // This implementation fixes the issue with funded allocations showing as uncalled
     const result = await db.execute(`
-      WITH committed_capital AS (
-        SELECT 
-          SUM(fa.amount) as total_committed
-        FROM fund_allocations fa
-        WHERE fa.fund_id = ${fundId} AND fa.status != 'written_off' AND fa.status != 'funded'
-      ),
-      outstanding_calls AS (
-        SELECT 
-          SUM(cc.outstanding) as total_outstanding
-        FROM fund_allocations fa
-        JOIN capital_calls cc ON fa.id = cc.allocation_id
-        WHERE fa.fund_id = ${fundId} AND cc.status != 'paid' AND cc.status != 'defaulted'
-      )
       SELECT 
-        COALESCE(c.total_committed, 0) as uncalled_capital
-      FROM committed_capital c
+        SUM(fa.amount) as uncalled_capital
+      FROM fund_allocations fa
+      WHERE fa.fund_id = ${fundId} 
+        AND fa.status != 'written_off' 
+        AND fa.status != 'funded'
     `);
     
     // Extract and return the uncalled capital, defaulting to 0 if null
@@ -94,29 +84,42 @@ export class FundService {
     // Get allocations for each fund
     const fundAllocations = await Promise.all(
       funds.map(async (fund: Fund) => {
-        const allocations = await storage.getAllocationsByFund(fund.id);
-        
-        // Calculate statistics based on actual payments
-        let committedCapital = 0;
-        
-        if (allocations && allocations.length > 0) {
-          committedCapital = allocations.reduce((sum: number, allocation: FundAllocation) => {
-            return sum + Number(allocation.amount || 0);
-          }, 0);
+        try {
+          const allocations = await storage.getAllocationsByFund(fund.id);
+          
+          // Calculate statistics based on actual payments
+          let committedCapital = 0;
+          
+          if (allocations && allocations.length > 0) {
+            committedCapital = allocations.reduce((sum: number, allocation: FundAllocation) => {
+              return sum + Number(allocation.amount || 0);
+            }, 0);
+          }
+          
+          // Calculate called and uncalled capital using payment data
+          const calledCapital = await this.calculateCalledCapital(fund.id);
+          const uncalledCapital = await this.calculateUncalledCapital(fund.id);
+          
+          return {
+            ...fund,
+            committedCapital,
+            totalFundSize: fund.aum || 0,
+            allocationCount: allocations.length,
+            calledCapital,
+            uncalledCapital
+          };
+        } catch (error) {
+          console.error(`Error calculating statistics for fund ${fund.id}:`, error);
+          // Return fund with default values in case of error
+          return {
+            ...fund,
+            committedCapital: 0,
+            totalFundSize: fund.aum || 0,
+            allocationCount: 0,
+            calledCapital: 0,
+            uncalledCapital: 0
+          };
         }
-        
-        // Calculate called and uncalled capital using payment data
-        const calledCapital = await this.calculateCalledCapital(fund.id);
-        const uncalledCapital = await this.calculateUncalledCapital(fund.id);
-        
-        return {
-          ...fund,
-          committedCapital,
-          totalFundSize: fund.aum || 0,
-          allocationCount: allocations.length,
-          calledCapital,
-          uncalledCapital
-        };
       })
     );
     
