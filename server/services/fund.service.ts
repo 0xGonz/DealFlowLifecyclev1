@@ -13,6 +13,7 @@ export interface FundWithAllocations extends Fund {
   allocationCount: number;
   calledCapital: number;
   uncalledCapital: number;
+  allocations?: FundAllocation[]; // Optional allocations with enriched data
 }
 
 /**
@@ -34,15 +35,32 @@ export class FundService {
     const storage = getStorage();
     const db = storage.getDbClient();
     
-    // Use SQL query to join allocations, capital calls, and payments
-    // This ensures we're calculating based on actual payment records
-    // and only counts payments for allocations that are marked as funded
+    // Calculate called capital as the sum of all paid capital calls
+    // and amounts that have been paid for partially paid capital calls
     const result = await db.execute(`
-      SELECT SUM(p.amount_usd) as called_capital
-      FROM fund_allocations fa
-      JOIN capital_calls cc ON fa.id = cc.allocation_id
-      JOIN payments p ON cc.id = p.capital_call_id
-      WHERE fa.fund_id = ${fundId} AND fa.status = 'funded'
+      WITH funded_allocations AS (
+        SELECT 
+          id, amount
+        FROM fund_allocations
+        WHERE fund_id = ${fundId} AND status = 'funded'
+      ),
+      paid_capital_calls AS (
+        SELECT 
+          SUM(cc.call_amount) as total_paid
+        FROM capital_calls cc
+        JOIN funded_allocations fa ON cc.allocation_id = fa.id
+        WHERE cc.status = 'paid'
+      ),
+      partial_payments AS (
+        SELECT 
+          SUM(cc.paid_amount) as total_partial
+        FROM capital_calls cc
+        JOIN funded_allocations fa ON cc.allocation_id = fa.id
+        WHERE cc.status = 'partial' OR cc.status = 'partially_paid'
+      )
+      SELECT 
+        COALESCE(p.total_paid, 0) + COALESCE(pp.total_partial, 0) as called_capital
+      FROM paid_capital_calls p, partial_payments pp
     `);
     
     // Extract and return the called capital, defaulting to 0 if null
@@ -58,15 +76,36 @@ export class FundService {
     const storage = getStorage();
     const db = storage.getDbClient();
     
-    // Query to calculate uncalled capital based on allocations that aren't fully funded yet
-    // This implementation fixes the issue with funded allocations showing as uncalled
+    // Query to calculate uncalled capital based on committed allocations and active capital calls
     const result = await db.execute(`
+      WITH committed_allocations AS (
+        SELECT 
+          fa.id as allocation_id,
+          fa.amount as allocation_amount
+        FROM fund_allocations fa
+        WHERE fa.fund_id = ${fundId} 
+          AND fa.status != 'written_off' 
+          AND fa.status != 'funded'
+      ),
+      outstanding_calls AS (
+        SELECT 
+          cc.allocation_id,
+          SUM(cc.outstanding_amount) as total_outstanding
+        FROM capital_calls cc
+        JOIN committed_allocations ca ON cc.allocation_id = ca.allocation_id
+        WHERE cc.status != 'paid' AND cc.status != 'defaulted'
+        GROUP BY cc.allocation_id
+      ),
+      uncalled_by_allocation AS (
+        SELECT
+          ca.allocation_id,
+          ca.allocation_amount - COALESCE(oc.total_outstanding, 0) as remaining_commitment
+        FROM committed_allocations ca
+        LEFT JOIN outstanding_calls oc ON ca.allocation_id = oc.allocation_id
+      )
       SELECT 
-        SUM(fa.amount) as uncalled_capital
-      FROM fund_allocations fa
-      WHERE fa.fund_id = ${fundId} 
-        AND fa.status != 'written_off' 
-        AND fa.status != 'funded'
+        SUM(remaining_commitment) as uncalled_capital
+      FROM uncalled_by_allocation
     `);
     
     // Extract and return the uncalled capital, defaulting to 0 if null
@@ -172,12 +211,36 @@ export class FundService {
       return null;
     }
     
-    // Get allocations for this fund
-    const allocations = await storage.getAllocationsByFund(fundId);
+    // Get allocations for this fund with deal names and sectors
+    let allocations = await storage.getAllocationsByFund(fundId);
     
-    // Calculate statistics based on actual payments
+    // Enrich allocations with deal information for better asset-side identification
+    if (allocations && allocations.length > 0) {
+      const enrichedAllocations = await Promise.all(
+        allocations.map(async (allocation: FundAllocation) => {
+          try {
+            if (allocation.dealId) {
+              const deal = await storage.getDeal(allocation.dealId);
+              if (deal) {
+                return {
+                  ...allocation,
+                  dealName: deal.name || 'Unknown Deal',
+                  dealSector: deal.sector || ''
+                };
+              }
+            }
+            return allocation;
+          } catch (error) {
+            console.warn(`Could not fetch deal info for allocation ${allocation.id}, dealId: ${allocation.dealId}`);
+            return allocation;
+          }
+        })
+      );
+      allocations = enrichedAllocations;
+    }
+    
+    // Calculate committed capital based on all allocations
     let committedCapital = 0;
-    
     if (allocations && allocations.length > 0) {
       committedCapital = allocations.reduce((sum: number, allocation: FundAllocation) => {
         return sum + Number(allocation.amount || 0);
@@ -201,10 +264,11 @@ export class FundService {
     return {
       ...fund,
       committedCapital,
-      totalFundSize: aum,  // Use the fresh calculation
+      totalFundSize: committedCapital || 0,  // Use committed capital as total fund size
       allocationCount: allocations.length,
       calledCapital,     // Include the calculated called capital
-      uncalledCapital    // Include the calculated uncalled capital
+      uncalledCapital,   // Include the calculated uncalled capital
+      allocations        // Include enriched allocations for UI display
     };
   }
 

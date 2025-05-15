@@ -277,7 +277,7 @@ export const capitalCalls = pgTable("capital_calls", {
   dueDate: timestamp("due_date").notNull(),
   paidAmount: real("paid_amount").default(0), // Amount currently paid
   paidDate: timestamp("paid_date"), // Date of the last payment
-  outstanding: real("outstanding_amount").notNull(), // Remaining amount to be paid
+  outstanding_amount: real("outstanding_amount").notNull(), // Remaining amount to be paid
   status: text("status", { enum: ["scheduled", "called", "partial", "partially_paid", "paid", "defaulted", "overdue"] }).notNull().default("scheduled"),
   notes: text("notes"),
   createdAt: timestamp("created_at").notNull().defaultNow(),

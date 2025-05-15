@@ -97,7 +97,7 @@ export class CapitalCallService {
         status: 'paid',
         paidAmount: callAmount, // Fully paid
         paidDate: normalizedDate, // Use the normalized date
-        outstanding: 0, // Nothing left to pay
+        outstanding_amount: 0, // Nothing left to pay
         notes: 'Single payment allocation - automatically paid'
       });
       
@@ -171,7 +171,7 @@ export class CapitalCallService {
         dueDate: normalizedDueDate, // Use normalized due date
         status: 'scheduled',
         paidAmount: 0, // Initially nothing paid
-        outstanding: callAmount, // Full amount outstanding
+        outstanding_amount: callAmount, // Full amount outstanding - match DB column name
         notes: `Scheduled payment ${i + 1} of ${callCount}`
       });
       
@@ -292,7 +292,7 @@ export class CapitalCallService {
     const updatedCall = await storage.updateCapitalCall(capitalCallId, {
       ...currentCall,
       paidAmount: newPaidAmount,
-      outstanding: newOutstanding,
+      outstanding_amount: newOutstanding, // Match the DB column name
       status: newStatus,
       paidDate: normalizedPaymentDate // Use normalized Date object
     });
@@ -364,7 +364,7 @@ export class CapitalCallService {
     
     // Calculate new values based on status change
     let newPaidAmount = currentCall.paidAmount;
-    let newOutstanding = currentCall.outstanding;
+    let newOutstanding = currentCall.outstanding_amount;
     let paidDate = currentCall.paidDate;
     
     // Handle payment-related status changes
@@ -421,7 +421,7 @@ export class CapitalCallService {
       ...currentCall,
       status: newStatus,
       paidAmount: newPaidAmount,
-      outstanding: newOutstanding,
+      outstanding_amount: newOutstanding,
       paidDate
     });
     
@@ -553,7 +553,7 @@ export class CapitalCallService {
           deal_name: 'Unknown Deal',
           allocation_amount: 0,
           // Allow for client-side calculation by including both fields
-          outstanding: call.outstanding || Math.max(0, call.callAmount - (call.paidAmount || 0)),
+          outstanding_amount: call.outstanding_amount || Math.max(0, call.callAmount - (call.paidAmount || 0)),
           dealId: 0,
           fundId: 0
         };
@@ -573,7 +573,7 @@ export class CapitalCallService {
         dealName: deal.name,
         fundName: fund.name,
         // Ensure outstanding amount is calculated if not available
-        outstanding: call.outstanding || Math.max(0, call.callAmount - (call.paidAmount || 0))
+        outstanding_amount: call.outstanding_amount || Math.max(0, call.callAmount - (call.paidAmount || 0))
       };
     });
     
