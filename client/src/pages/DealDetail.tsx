@@ -16,6 +16,7 @@ import { CreateCapitalCallForm } from "@/components/capitalcalls/CreateCapitalCa
 import CapitalCallsList from "@/components/capitalcalls/CapitalCallsList";
 import MeetingsList from "@/components/meetings/MeetingsList";
 import ClosingEventsList from "@/components/closings/ClosingEventsList";
+import UnifiedCalendarView from "@/components/calendar/UnifiedCalendarView";
 import { CreateMeetingForm } from "@/components/meetings/CreateMeetingForm";
 import { UserAvatar } from "@/components/common/UserAvatar";
 import { 
@@ -99,7 +100,7 @@ export default function DealDetail() {
   const getActiveTab = () => {
     const searchParams = new URLSearchParams(window.location.search);
     const tab = searchParams.get('tab');
-    return tab === 'timeline' || tab === 'memos' || tab === 'documents' || tab === 'capitalcalls'
+    return tab === 'timeline' || tab === 'memos' || tab === 'documents' || tab === 'calendar'
       ? tab 
       : 'documents'; // Default tab
   };
@@ -608,7 +609,7 @@ export default function DealDetail() {
               <TabsTrigger value="memos" className="text-xs sm:text-sm h-8 sm:h-10 px-2 sm:px-4 flex-1">
                 Mini-Memos
               </TabsTrigger>
-              <TabsTrigger value="capitalcalls" className="text-xs sm:text-sm h-8 sm:h-10 px-2 sm:px-4 flex-1">
+              <TabsTrigger value="calendar" className="text-xs sm:text-sm h-8 sm:h-10 px-2 sm:px-4 flex-1">
                 Calendar
               </TabsTrigger>
             </TabsList>
@@ -699,73 +700,30 @@ export default function DealDetail() {
             </div>
           </TabsContent>
           
-          <TabsContent value="capitalcalls">
+          <TabsContent value="calendar">
             <div className="mt-4">
               <Card>
                 <CardHeader className="pb-2 sm:pb-4">
                   <CardTitle className="text-base sm:text-xl">Calendar</CardTitle>
                   <CardDescription className="text-xs sm:text-sm">
-                    Manage scheduled events, capital calls, and closings
+                    View and manage all scheduled events in one place
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="p-6">
                   {deal?.id ? (
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center">
-                        <div className="text-sm text-muted-foreground p-2 rounded bg-muted/50">
-                          <InfoIcon className="h-4 w-4 inline-block mr-2" />
-                          View and manage all scheduled events including capital calls, closings, and meetings.
-                        </div>
-                      
-                      {canCreate('capital-call') && (
-                        <div className="relative ml-auto group">
-                          <Button 
-                            size="sm" 
-                            onClick={() => setIsCapitalCallFormOpen(true)}
-                            disabled={!deal?.allocations?.length}
-                            className={!deal?.allocations?.length ? "cursor-not-allowed opacity-70" : ""}
-                            title={!deal?.allocations?.length ? "Deal must have fund allocations to create capital calls" : "Create a new capital call"}
-                          >
-                            <DollarSign className="h-3.5 w-3.5 mr-1.5" />
-                            Schedule Event
-                          </Button>
-                          {!deal?.allocations?.length && (
-                            <div className="absolute -bottom-10 right-0 w-60 text-xs bg-black text-white p-1.5 rounded shadow-lg z-10 opacity-90 hidden group-hover:block">
-                              First allocate this deal to a fund in the Allocations tab
-                            </div>
-                          )}
-                        </div>
-                      )}
+                    <UnifiedCalendarView 
+                      dealId={Number(dealId)} 
+                      onCreateCapitalCall={() => canCreate('capital-call') && deal?.allocations?.length && setIsCapitalCallFormOpen(true)}
+                      onCreateMeeting={() => setIsMeetingFormOpen(true)}
+                    />
+                  ) : (
+                    <div className="text-center py-8 text-neutral-500">
+                      <div className="animate-spin h-8 w-8 border-2 border-primary border-opacity-50 border-t-primary rounded-full mx-auto mb-4"></div>
+                      <p>Loading calendar events...</p>
                     </div>
-                    
-                    {/* Display capital calls */}
-                    <div className="mb-8">
-                      <CapitalCallsList dealId={Number(dealId)} />
-                    </div>
-                    
-                    {/* Display closing events */}
-                    <div className="mb-8 mt-10 border-t pt-6">
-                      <ClosingEventsList
-                        dealId={Number(dealId)}
-                      />
-                    </div>
-                    
-                    {/* Display scheduled meetings */}
-                    <div className="mb-6 mt-10 border-t pt-6">
-                      <MeetingsList 
-                        dealId={Number(dealId)} 
-                        onCreateMeeting={() => setIsMeetingFormOpen(true)}
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-neutral-500">
-                    <div className="animate-spin h-8 w-8 border-2 border-primary border-opacity-50 border-t-primary rounded-full mx-auto mb-4"></div>
-                    <p>Loading calendar events...</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                  )}
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
 
