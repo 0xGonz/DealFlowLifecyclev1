@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import { calendarService } from '../services/calendar.service';
-import { z } from 'zod';
 import { asyncHandler } from '../utils/errorHandlers';
 
 /**
@@ -12,43 +11,28 @@ export class CalendarController {
    * Supports optional date range filtering
    */
   getAllEvents = asyncHandler(async (req: Request, res: Response) => {
-    try {
-      // Parse and validate query parameters
-      const querySchema = z.object({
-        startDate: z.string().optional(),
-        endDate: z.string().optional()
-      });
-
-      const { startDate, endDate } = querySchema.parse(req.query);
-      const dateRange = startDate || endDate ? { startDate, endDate } : undefined;
-
-      // Fetch aggregated events using calendar service
-      const events = await calendarService.getAllEvents(dateRange);
-      
-      return res.json(events);
-    } catch (error) {
-      console.error('Error fetching calendar events:', error);
-      return res.status(500).json({ 
-        message: 'Failed to fetch calendar events',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
-    }
+    // Extract date range from query parameters if provided
+    const { startDate, endDate } = req.query;
+    
+    // Get events from service with optional date filtering
+    const dateRange = startDate || endDate 
+      ? { 
+          startDate: startDate as string | undefined, 
+          endDate: endDate as string | undefined 
+        } 
+      : undefined;
+    
+    const events = await calendarService.getAllEvents(dateRange);
+    
+    res.status(200).json(events);
   });
 
   /**
    * Get event counts by type for summary/dashboard
    */
   getEventCounts = asyncHandler(async (req: Request, res: Response) => {
-    try {
-      const counts = await calendarService.getEventCounts();
-      return res.json(counts);
-    } catch (error) {
-      console.error('Error fetching event counts:', error);
-      return res.status(500).json({ 
-        message: 'Failed to fetch event counts',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
-    }
+    const counts = await calendarService.getEventCounts();
+    res.status(200).json(counts);
   });
 }
 

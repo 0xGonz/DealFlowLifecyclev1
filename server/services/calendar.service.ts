@@ -2,6 +2,7 @@ import { db } from '../db';
 import { closingScheduleEvents, capitalCalls, meetings, funds, fundAllocations, deals } from '@shared/schema';
 import { eq, and, gte, lte, desc, asc, sql } from 'drizzle-orm';
 import { addHours } from 'date-fns';
+import { SQL } from 'drizzle-orm';
 
 /**
  * Unified calendar service providing aggregated event data
@@ -19,54 +20,54 @@ export class CalendarService {
       const endDate = dateRange?.endDate ? new Date(dateRange.endDate) : undefined;
 
       // 1. Fetch meetings
-      const meetingsQuery = db.select({
+      let meetingsQuery = db.select({
         id: meetings.id,
         title: meetings.title,
         description: meetings.notes,
         startDate: meetings.date,
         endDate: meetings.date, // Using the same date as end date since meetings don't have duration
         dealId: meetings.dealId,
-        eventType: this.sql`'meeting'`.as('eventType'),
-        status: this.sql`'scheduled'`.as('status'), // Default status since meetings don't have status
-        metadata: this.sql`json_build_object(
-          'attendees', meetings.attendees,
-          'notes', meetings.notes,
-          'createdBy', meetings.createdBy
+        eventType: sql`'meeting'`.as('eventType'),
+        status: sql`'scheduled'`.as('status'), // Default status since meetings don't have status
+        metadata: sql`json_build_object(
+          'attendees', ${meetings.attendees},
+          'notes', ${meetings.notes},
+          'createdBy', ${meetings.createdBy}
         )`.as('metadata'),
       })
       .from(meetings)
       .leftJoin(deals, eq(meetings.dealId, deals.id));
 
       // Add date range filter if provided
-      if (startDate && endDate) {
-        meetingsQuery.where(
-          and(
-            gte(meetings.date, startDate),
-            lte(meetings.date, endDate)
-          )
-        );
-      }
+      const meetingsBaseQuery = startDate && endDate 
+        ? meetingsQuery.where(
+            and(
+              gte(meetings.date, startDate),
+              lte(meetings.date, endDate)
+            )
+          ) 
+        : meetingsQuery;
 
       const meetingEvents = await meetingsQuery;
 
       // 2. Fetch capital calls
       let capitalCallsQuery = db.select({
         id: capitalCalls.id,
-        title: this.sql`CONCAT('Capital Call: ', deals.name)`.as('title'),
+        title: sql`CONCAT('Capital Call: ', ${deals.name})`.as('title'),
         description: capitalCalls.notes,
         startDate: capitalCalls.dueDate,
         endDate: capitalCalls.dueDate, // End date same as due date for capital calls
         dealId: fundAllocations.dealId,
-        eventType: this.sql`'capital_call'`.as('eventType'),
+        eventType: sql`'capital_call'`.as('eventType'),
         status: capitalCalls.status,
-        metadata: this.sql`json_build_object(
-          'callAmount', capitalCalls.callAmount,
-          'amountType', capitalCalls.amountType,
-          'paidAmount', capitalCalls.paidAmount,
-          'fundName', funds.name,
-          'fundId', funds.id,
-          'outstanding_amount', capitalCalls.outstanding_amount,
-          'allocationId', capitalCalls.allocationId
+        metadata: sql`json_build_object(
+          'callAmount', ${capitalCalls.callAmount},
+          'amountType', ${capitalCalls.amountType},
+          'paidAmount', ${capitalCalls.paidAmount},
+          'fundName', ${funds.name},
+          'fundId', ${funds.id},
+          'outstanding_amount', ${capitalCalls.outstanding_amount},
+          'allocationId', ${capitalCalls.allocationId}
         )`.as('metadata'),
       })
       .from(capitalCalls)
@@ -89,20 +90,20 @@ export class CalendarService {
       // 3. Fetch closing schedules
       let closingSchedulesQuery = db.select({
         id: closingScheduleEvents.id,
-        title: this.sql`CONCAT(closingScheduleEvents.eventName, ': ', deals.name)`.as('title'),
+        title: sql`CONCAT(${closingScheduleEvents.eventName}, ': ', ${deals.name})`.as('title'),
         description: closingScheduleEvents.notes,
         startDate: closingScheduleEvents.scheduledDate,
         endDate: closingScheduleEvents.scheduledDate, // End date same as scheduled date
         dealId: closingScheduleEvents.dealId,
-        eventType: this.sql`CONCAT('closing_', closingScheduleEvents.eventType)`.as('eventType'),
+        eventType: sql`CONCAT('closing_', ${closingScheduleEvents.eventType})`.as('eventType'),
         status: closingScheduleEvents.status,
-        metadata: this.sql`json_build_object(
-          'targetAmount', closingScheduleEvents.targetAmount,
-          'amountType', closingScheduleEvents.amountType,
-          'actualAmount', closingScheduleEvents.actualAmount,
-          'actualDate', closingScheduleEvents.actualDate,
-          'eventName', closingScheduleEvents.eventName,
-          'dealName', deals.name
+        metadata: sql`json_build_object(
+          'targetAmount', ${closingScheduleEvents.targetAmount},
+          'amountType', ${closingScheduleEvents.amountType},
+          'actualAmount', ${closingScheduleEvents.actualAmount},
+          'actualDate', ${closingScheduleEvents.actualDate},
+          'eventName', ${closingScheduleEvents.eventName},
+          'dealName', ${deals.name}
         )`.as('metadata'),
       })
       .from(closingScheduleEvents)
@@ -166,19 +167,19 @@ export class CalendarService {
 
       // Count upcoming meetings
       const [meetingsCount] = await db
-        .select({ count: this.sql`count(*)`.as('count') })
+        .select({ count: sql`count(*)`.as('count') })
         .from(meetings)
         .where(gte(meetings.date, today));
 
       // Count upcoming capital calls
       const [capitalCallsCount] = await db
-        .select({ count: this.sql`count(*)`.as('count') })
+        .select({ count: sql`count(*)`.as('count') })
         .from(capitalCalls)
         .where(gte(capitalCalls.dueDate, today));
 
       // Count upcoming closing events
       const [closingsCount] = await db
-        .select({ count: this.sql`count(*)`.as('count') })
+        .select({ count: sql`count(*)`.as('count') })
         .from(closingScheduleEvents)
         .where(gte(closingScheduleEvents.scheduledDate, today));
 
