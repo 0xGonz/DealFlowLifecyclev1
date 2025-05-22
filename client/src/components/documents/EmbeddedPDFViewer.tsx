@@ -265,7 +265,7 @@ export default function EmbeddedPDFViewer({ documentId, documentName }: Embedded
               sandbox="allow-same-origin allow-scripts allow-forms"
             />
           ) : (
-            {/* Fallback: Error state with detailed message */}
+            // Fallback: Error state with detailed message
             <div className="w-full h-full flex flex-col items-center justify-center p-8 bg-neutral-50">
               <div className="max-w-md text-center">
                 <FileText className="h-12 w-12 text-neutral-400 mx-auto mb-4" />

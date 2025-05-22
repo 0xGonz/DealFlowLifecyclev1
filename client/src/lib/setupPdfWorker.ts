@@ -15,12 +15,12 @@ const PDFJS_VERSION = '4.8.69';
 
 // Set up worker fallbacks in order of preference
 const workerSources = [
-  // Primary: locally served worker (now properly configured for Replit)
-  '/pdfjs/pdf.worker.min.js',
-  // Backup CDN source - jsdelivr
-  `https://cdn.jsdelivr.net/npm/pdfjs-dist@${PDFJS_VERSION}/build/pdf.worker.min.mjs`,
+  // Primary: jsdelivr CDN - most reliable
+  `https://cdn.jsdelivr.net/npm/pdfjs-dist@${PDFJS_VERSION}/build/pdf.worker.min.js`,
   // Backup CDN source - unpkg
-  `https://unpkg.com/pdfjs-dist@${PDFJS_VERSION}/build/pdf.worker.min.js`
+  `https://unpkg.com/pdfjs-dist@${PDFJS_VERSION}/build/pdf.worker.min.js`,
+  // Local fallback (if we ever bundle it locally)
+  '/pdf.worker.js'
 ];
 
 // Try to set the worker source from our list
