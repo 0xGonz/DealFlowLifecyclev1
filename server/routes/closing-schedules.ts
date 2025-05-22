@@ -230,7 +230,7 @@ router.patch('/:id/date', requireAuth, requirePermission('edit', 'closingEvent')
 // Delete a closing schedule event - rewritten to use async/await
 router.delete('/:id', requireAuth, requirePermission('delete', 'closingEvent'), async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    console.log(`DELETE request to /api/closing-schedules/${req.params.id}`);
+    console.log('DELETE request to /api/closing-schedules/' + req.params.id);
     
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
