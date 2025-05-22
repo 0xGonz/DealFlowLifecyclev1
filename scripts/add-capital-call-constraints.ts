@@ -1,6 +1,5 @@
-import { db, pool } from '../server/db';
-import path from 'path';
-import * as fs from 'fs';
+import { db } from '../server/db';
+import { sql } from 'drizzle-orm';
 
 /**
  * This script adds:
@@ -12,18 +11,16 @@ async function main() {
     console.log('Connecting to the database...');
     
     // First, check if call_pct column exists in capital_calls
-    const callPctCheckResult = await pool.query(`
+    const callPctCheckResult = await db.execute(sql`
       SELECT column_name 
       FROM information_schema.columns 
       WHERE table_name = 'capital_calls' AND column_name = 'call_pct'
     `);
-    
-    const callPctCheck = callPctCheckResult.rows;
 
-    if (callPctCheck.length === 0) {
+    if (callPctCheckResult.rows.length === 0) {
       console.log('Adding call_pct column to capital_calls table...');
       // Add call_pct column if it doesn't exist
-      await pool.query(`
+      await db.execute(sql`
         ALTER TABLE capital_calls 
         ADD COLUMN call_pct real
       `);
@@ -33,17 +30,15 @@ async function main() {
     }
     
     // Check if the constraint already exists
-    const constraintCheckResult = await pool.query(`
+    const constraintCheckResult = await db.execute(sql`
       SELECT constraint_name
       FROM information_schema.table_constraints
       WHERE table_name = 'capital_calls' AND constraint_name = 'capital_calls_call_pct_check'
     `);
     
-    const constraintCheck = constraintCheckResult.rows;
-    
-    if (constraintCheck.length === 0) {
+    if (constraintCheckResult.rows.length === 0) {
       console.log('Adding CHECK constraint for call_pct...');
-      await pool.query(`
+      await db.execute(sql`
         ALTER TABLE capital_calls
         ADD CONSTRAINT capital_calls_call_pct_check 
         CHECK (call_pct > 0 AND call_pct <= 100)
@@ -54,17 +49,15 @@ async function main() {
     }
     
     // Check if the unique index already exists
-    const indexCheckResult = await pool.query(`
+    const indexCheckResult = await db.execute(sql`
       SELECT indexname
       FROM pg_indexes
       WHERE tablename = 'capital_calls' AND indexname = 'unique_investment_due_date'
     `);
     
-    const indexCheck = indexCheckResult.rows;
-    
-    if (indexCheck.length === 0) {
+    if (indexCheckResult.length === 0) {
       console.log('Adding unique index on (allocation_id, due_date)...');
-      await pool.query(`
+      await db.execute(sql`
         CREATE UNIQUE INDEX unique_investment_due_date
         ON capital_calls (allocation_id, due_date)
       `);
@@ -75,7 +68,7 @@ async function main() {
     
     // Populate the call_pct column for existing rows with amountType = percentage
     console.log('Populating call_pct for existing percentage-based calls...');
-    await pool.query(`
+    await db.execute(sql`
       UPDATE capital_calls
       SET call_pct = call_amount
       WHERE amount_type = 'percentage' AND call_pct IS NULL
@@ -83,7 +76,7 @@ async function main() {
     
     // For dollar-based calls, calculate the percentage based on allocation amount
     console.log('Calculating call_pct for dollar-based calls...');
-    await pool.query(`
+    await db.execute(sql`
       UPDATE capital_calls c
       SET call_pct = (c.call_amount / a.amount) * 100
       FROM fund_allocations a
@@ -97,8 +90,6 @@ async function main() {
   } catch (error) {
     console.error('Error during migration:', error);
     process.exit(1);
-  } finally {
-    await pool.end();
   }
 }
 

@@ -1,5 +1,5 @@
-import { db, pool } from '../server/db';
-import path from 'path';
+import { db } from '../server/db';
+import { sql } from 'drizzle-orm';
 
 /**
  * This script adds the amount_type column to capital_calls table
@@ -10,23 +10,20 @@ import path from 'path';
 async function main() {
   try {
     console.log('Connecting to the database...');
-    // We're using the existing pool from server/db.ts
 
     console.log('Checking if amount_type column exists in capital_calls table...');
     
     // First, check if amount_type column exists in capital_calls
-    const amountTypeCheckResult = await pool.query(`
+    const amountTypeCheckResult = await db.execute(sql`
       SELECT column_name 
       FROM information_schema.columns 
       WHERE table_name = 'capital_calls' AND column_name = 'amount_type'
     `);
-    
-    const amountTypeCheck = amountTypeCheckResult.rows;
 
-    if (amountTypeCheck.length === 0) {
+    if (amountTypeCheckResult.rows.length === 0) {
       console.log('Adding amount_type column to capital_calls table...');
       // Add amount_type column if it doesn't exist
-      await pool.query(`
+      await db.execute(sql`
         ALTER TABLE capital_calls 
         ADD COLUMN amount_type text DEFAULT 'percentage'
       `);
@@ -38,18 +35,16 @@ async function main() {
     console.log('Checking if closing_schedule_events table exists...');
     
     // Check if closing_schedule_events table exists
-    const tableCheckResult = await pool.query(`
+    const tableCheckResult = await db.execute(sql`
       SELECT table_name 
       FROM information_schema.tables 
       WHERE table_name = 'closing_schedule_events'
     `);
-    
-    const tableCheck = tableCheckResult.rows;
 
-    if (tableCheck.length === 0) {
+    if (tableCheckResult.rows.length === 0) {
       console.log('Creating closing_schedule_events table...');
       // Create closing_schedule_events table if it doesn't exist
-      await pool.query(`
+      await db.execute(sql`
         CREATE TABLE closing_schedule_events (
           id serial PRIMARY KEY,
           deal_id integer NOT NULL REFERENCES deals(id) ON DELETE CASCADE,
@@ -73,15 +68,8 @@ async function main() {
     }
 
     console.log('Migration completed successfully!');
-    await pool.end(); // Close the pool connection
-    process.exit(0);
   } catch (error) {
     console.error('Error during migration:', error);
-    try {
-      await pool.end(); // Try to close the pool even on error
-    } catch (e) {
-      console.error('Error closing pool:', e);
-    }
     process.exit(1);
   }
 }
