@@ -2,7 +2,6 @@ import { db } from '../db';
 import { closingScheduleEvents, capitalCalls, meetings, funds, fundAllocations, deals } from '@shared/schema';
 import { eq, and, gte, lte, desc, asc, sql } from 'drizzle-orm';
 import { addHours } from 'date-fns';
-import { SQL } from 'drizzle-orm';
 
 /**
  * Unified calendar service providing aggregated event data
@@ -20,104 +19,155 @@ export class CalendarService {
       const endDate = dateRange?.endDate ? new Date(dateRange.endDate) : undefined;
 
       // 1. Fetch meetings
-      let meetingsQuery = db.select({
-        id: meetings.id,
-        title: meetings.title,
-        description: meetings.notes,
-        startDate: meetings.date,
-        endDate: meetings.date, // Using the same date as end date since meetings don't have duration
-        dealId: meetings.dealId,
-        eventType: sql`'meeting'`.as('eventType'),
-        status: sql`'scheduled'`.as('status'), // Default status since meetings don't have status
-        metadata: sql`json_build_object(
-          'attendees', ${meetings.attendees},
-          'notes', ${meetings.notes},
-          'createdBy', ${meetings.createdBy}
-        )`.as('metadata'),
-      })
-      .from(meetings)
-      .leftJoin(deals, eq(meetings.dealId, deals.id));
-
-      // Add date range filter if provided
-      const meetingsBaseQuery = startDate && endDate 
-        ? meetingsQuery.where(
+      const meetingsQuery = startDate && endDate 
+        ? db.select({
+            id: meetings.id,
+            title: meetings.title,
+            description: meetings.notes,
+            startDate: meetings.date,
+            endDate: meetings.date,
+            dealId: meetings.dealId,
+            eventType: sql`'meeting'`.as('eventType'),
+            status: sql`'scheduled'`.as('status'),
+            metadata: sql`json_build_object(
+              'attendees', ${meetings.attendees},
+              'notes', ${meetings.notes},
+              'createdBy', ${meetings.createdBy}
+            )`.as('metadata'),
+          })
+          .from(meetings)
+          .leftJoin(deals, eq(meetings.dealId, deals.id))
+          .where(
             and(
               gte(meetings.date, startDate),
               lte(meetings.date, endDate)
             )
-          ) 
-        : meetingsQuery;
+          )
+        : db.select({
+            id: meetings.id,
+            title: meetings.title,
+            description: meetings.notes,
+            startDate: meetings.date,
+            endDate: meetings.date,
+            dealId: meetings.dealId,
+            eventType: sql`'meeting'`.as('eventType'),
+            status: sql`'scheduled'`.as('status'),
+            metadata: sql`json_build_object(
+              'attendees', ${meetings.attendees},
+              'notes', ${meetings.notes},
+              'createdBy', ${meetings.createdBy}
+            )`.as('metadata'),
+          })
+          .from(meetings)
+          .leftJoin(deals, eq(meetings.dealId, deals.id));
 
       const meetingEvents = await meetingsQuery;
 
       // 2. Fetch capital calls
-      let capitalCallsQuery = db.select({
-        id: capitalCalls.id,
-        title: sql`CONCAT('Capital Call: ', ${deals.name})`.as('title'),
-        description: capitalCalls.notes,
-        startDate: capitalCalls.dueDate,
-        endDate: capitalCalls.dueDate, // End date same as due date for capital calls
-        dealId: fundAllocations.dealId,
-        eventType: sql`'capital_call'`.as('eventType'),
-        status: capitalCalls.status,
-        metadata: sql`json_build_object(
-          'callAmount', ${capitalCalls.callAmount},
-          'amountType', ${capitalCalls.amountType},
-          'paidAmount', ${capitalCalls.paidAmount},
-          'fundName', ${funds.name},
-          'fundId', ${funds.id},
-          'outstanding_amount', ${capitalCalls.outstanding_amount},
-          'allocationId', ${capitalCalls.allocationId}
-        )`.as('metadata'),
-      })
-      .from(capitalCalls)
-      .leftJoin(fundAllocations, eq(capitalCalls.allocationId, fundAllocations.id))
-      .leftJoin(deals, eq(fundAllocations.dealId, deals.id))
-      .leftJoin(funds, eq(fundAllocations.fundId, funds.id));
-
-      // Add date range filter if provided
-      if (startDate && endDate) {
-        capitalCallsQuery = capitalCallsQuery.where(
-          and(
-            gte(capitalCalls.dueDate, startDate),
-            lte(capitalCalls.dueDate, endDate)
+      const capitalCallsQuery = startDate && endDate 
+        ? db.select({
+            id: capitalCalls.id,
+            title: sql`CONCAT('Capital Call: ', ${deals.name})`.as('title'),
+            description: capitalCalls.notes,
+            startDate: capitalCalls.dueDate,
+            endDate: capitalCalls.dueDate, 
+            dealId: fundAllocations.dealId,
+            eventType: sql`'capital_call'`.as('eventType'),
+            status: capitalCalls.status,
+            metadata: sql`json_build_object(
+              'callAmount', ${capitalCalls.callAmount},
+              'amountType', ${capitalCalls.amountType},
+              'paidAmount', ${capitalCalls.paidAmount},
+              'fundName', ${funds.name},
+              'fundId', ${funds.id},
+              'outstanding_amount', ${capitalCalls.outstanding_amount},
+              'allocationId', ${capitalCalls.allocationId}
+            )`.as('metadata'),
+          })
+          .from(capitalCalls)
+          .leftJoin(fundAllocations, eq(capitalCalls.allocationId, fundAllocations.id))
+          .leftJoin(deals, eq(fundAllocations.dealId, deals.id))
+          .leftJoin(funds, eq(fundAllocations.fundId, funds.id))
+          .where(
+            and(
+              gte(capitalCalls.dueDate, startDate),
+              lte(capitalCalls.dueDate, endDate)
+            )
           )
-        );
-      }
+        : db.select({
+            id: capitalCalls.id,
+            title: sql`CONCAT('Capital Call: ', ${deals.name})`.as('title'),
+            description: capitalCalls.notes,
+            startDate: capitalCalls.dueDate,
+            endDate: capitalCalls.dueDate,
+            dealId: fundAllocations.dealId,
+            eventType: sql`'capital_call'`.as('eventType'),
+            status: capitalCalls.status,
+            metadata: sql`json_build_object(
+              'callAmount', ${capitalCalls.callAmount},
+              'amountType', ${capitalCalls.amountType},
+              'paidAmount', ${capitalCalls.paidAmount},
+              'fundName', ${funds.name},
+              'fundId', ${funds.id},
+              'outstanding_amount', ${capitalCalls.outstanding_amount},
+              'allocationId', ${capitalCalls.allocationId}
+            )`.as('metadata'),
+          })
+          .from(capitalCalls)
+          .leftJoin(fundAllocations, eq(capitalCalls.allocationId, fundAllocations.id))
+          .leftJoin(deals, eq(fundAllocations.dealId, deals.id))
+          .leftJoin(funds, eq(fundAllocations.fundId, funds.id));
 
       const capitalCallEvents = await capitalCallsQuery;
 
       // 3. Fetch closing schedules
-      let closingSchedulesQuery = db.select({
-        id: closingScheduleEvents.id,
-        title: sql`CONCAT(${closingScheduleEvents.eventName}, ': ', ${deals.name})`.as('title'),
-        description: closingScheduleEvents.notes,
-        startDate: closingScheduleEvents.scheduledDate,
-        endDate: closingScheduleEvents.scheduledDate, // End date same as scheduled date
-        dealId: closingScheduleEvents.dealId,
-        eventType: sql`CONCAT('closing_', ${closingScheduleEvents.eventType})`.as('eventType'),
-        status: closingScheduleEvents.status,
-        metadata: sql`json_build_object(
-          'targetAmount', ${closingScheduleEvents.targetAmount},
-          'amountType', ${closingScheduleEvents.amountType},
-          'actualAmount', ${closingScheduleEvents.actualAmount},
-          'actualDate', ${closingScheduleEvents.actualDate},
-          'eventName', ${closingScheduleEvents.eventName},
-          'dealName', ${deals.name}
-        )`.as('metadata'),
-      })
-      .from(closingScheduleEvents)
-      .leftJoin(deals, eq(closingScheduleEvents.dealId, deals.id));
-
-      // Add date range filter if provided
-      if (startDate && endDate) {
-        closingSchedulesQuery = closingSchedulesQuery.where(
-          and(
-            gte(closingScheduleEvents.scheduledDate, startDate),
-            lte(closingScheduleEvents.scheduledDate, endDate)
+      const closingSchedulesQuery = startDate && endDate 
+        ? db.select({
+            id: closingScheduleEvents.id,
+            title: sql`CONCAT(${closingScheduleEvents.eventName}, ': ', ${deals.name})`.as('title'),
+            description: closingScheduleEvents.notes,
+            startDate: closingScheduleEvents.scheduledDate,
+            endDate: closingScheduleEvents.scheduledDate,
+            dealId: closingScheduleEvents.dealId,
+            eventType: sql`CONCAT('closing_', ${closingScheduleEvents.eventType})`.as('eventType'),
+            status: closingScheduleEvents.status,
+            metadata: sql`json_build_object(
+              'targetAmount', ${closingScheduleEvents.targetAmount},
+              'amountType', ${closingScheduleEvents.amountType},
+              'actualAmount', ${closingScheduleEvents.actualAmount},
+              'actualDate', ${closingScheduleEvents.actualDate},
+              'eventName', ${closingScheduleEvents.eventName},
+              'dealName', ${deals.name}
+            )`.as('metadata'),
+          })
+          .from(closingScheduleEvents)
+          .leftJoin(deals, eq(closingScheduleEvents.dealId, deals.id))
+          .where(
+            and(
+              gte(closingScheduleEvents.scheduledDate, startDate),
+              lte(closingScheduleEvents.scheduledDate, endDate)
+            )
           )
-        );
-      }
+        : db.select({
+            id: closingScheduleEvents.id,
+            title: sql`CONCAT(${closingScheduleEvents.eventName}, ': ', ${deals.name})`.as('title'),
+            description: closingScheduleEvents.notes,
+            startDate: closingScheduleEvents.scheduledDate,
+            endDate: closingScheduleEvents.scheduledDate,
+            dealId: closingScheduleEvents.dealId, 
+            eventType: sql`CONCAT('closing_', ${closingScheduleEvents.eventType})`.as('eventType'),
+            status: closingScheduleEvents.status,
+            metadata: sql`json_build_object(
+              'targetAmount', ${closingScheduleEvents.targetAmount},
+              'amountType', ${closingScheduleEvents.amountType},
+              'actualAmount', ${closingScheduleEvents.actualAmount},
+              'actualDate', ${closingScheduleEvents.actualDate},
+              'eventName', ${closingScheduleEvents.eventName},
+              'dealName', ${deals.name}
+            )`.as('metadata'),
+          })
+          .from(closingScheduleEvents)
+          .leftJoin(deals, eq(closingScheduleEvents.dealId, deals.id));
 
       const closingScheduleEventData = await closingSchedulesQuery;
 
