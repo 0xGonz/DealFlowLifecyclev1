@@ -11,7 +11,7 @@ import { pdfjs } from 'react-pdf';
  */
 
 // Define the current PDF.js version we're targeting
-const PDFJS_VERSION = '4.8.69'; 
+const PDFJS_VERSION = '3.11.174'; 
 
 // Use a simpler approach - let PDF.js use its built-in worker handling
 // This avoids external CDN dependency issues

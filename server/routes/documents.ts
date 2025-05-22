@@ -81,27 +81,14 @@ try {
   console.error('Error creating upload directories:', error);
 }
 
-// Set up multer storage with deal-specific organization
+// Set up multer storage - simplified to use general uploads directory
+// We'll organize files after upload since req.body isn't available during destination callback
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    // Get deal ID from request body or params
-    const dealId = req.body.dealId || req.params.dealId;
-    
-    if (!dealId) {
-      return cb(new Error('Deal ID is required for file upload'), '');
-    }
-    
-    // Create deal-specific directory path in public uploads
-    const dealPath = path.join(UPLOAD_PATH, `deal-${dealId}`);
-    
-    // Ensure the deal-specific directory exists
-    if (!fs.existsSync(dealPath)){
-      fs.mkdirSync(dealPath, { recursive: true });
-      console.log(`Created deal directory: ${dealPath}`);
-    }
-    
-    console.log(`Storing uploaded file for deal ${dealId} in: ${dealPath}`);
-    cb(null, dealPath);
+    // Always use the main uploads directory
+    // We'll handle deal-specific organization after the upload
+    console.log(`Storing uploaded file in: ${UPLOAD_PATH}`);
+    cb(null, UPLOAD_PATH);
   },
   filename: (req, file, cb) => {
     // Generate a unique filename to prevent overwriting
