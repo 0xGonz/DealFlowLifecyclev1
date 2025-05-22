@@ -16,10 +16,10 @@ const PDFJS_VERSION = '4.8.69';
 // Use a simpler approach - let PDF.js use its built-in worker handling
 // This avoids external CDN dependency issues
 const workerSources = [
-  // Use the bundled worker from node_modules - most reliable
-  `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${PDFJS_VERSION}/pdf.worker.min.js`,
-  // Fallback to older stable version that definitely exists
-  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'
+  // Use the stable older version that works reliably
+  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',
+  // Alternative CDN fallback
+  'https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js'
 ];
 
 // Try to set the worker source from our list
