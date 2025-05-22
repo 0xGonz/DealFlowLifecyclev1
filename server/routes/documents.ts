@@ -67,19 +67,15 @@ const sanitizeFilename = (filename: string): string => {
     .toLowerCase();                  // Convert to lowercase for consistency
 };
 
-// Setup constants for our upload paths
-const PERSIST_PATH = path.join(process.cwd(), 'data', 'uploads');
-const PUBLIC_PATH = path.join(process.cwd(), 'public', 'uploads');
+// Setup constants for our upload paths - using public path for immediate accessibility
+const UPLOAD_PATH = path.join(process.cwd(), 'public', 'uploads');
+const PUBLIC_PATH = UPLOAD_PATH; // Keep for backwards compatibility
 
 // Ensure upload directories exist at server startup
 try {
-  if (!fs.existsSync(PERSIST_PATH)) {
-    fs.mkdirSync(PERSIST_PATH, { recursive: true });
-    console.log(`Created persistent uploads directory: ${PERSIST_PATH}`);
-  }
-  if (!fs.existsSync(PUBLIC_PATH)) {
-    fs.mkdirSync(PUBLIC_PATH, { recursive: true });
-    console.log(`Created public uploads directory: ${PUBLIC_PATH}`);
+  if (!fs.existsSync(UPLOAD_PATH)) {
+    fs.mkdirSync(UPLOAD_PATH, { recursive: true });
+    console.log(`Created uploads directory: ${UPLOAD_PATH}`);
   }
 } catch (error) {
   console.error('Error creating upload directories:', error);
@@ -95,8 +91,8 @@ const storage = multer.diskStorage({
       return cb(new Error('Deal ID is required for file upload'), '');
     }
     
-    // Create deal-specific directory path
-    const dealPath = path.join(PERSIST_PATH, `deal-${dealId}`);
+    // Create deal-specific directory path in public uploads
+    const dealPath = path.join(UPLOAD_PATH, `deal-${dealId}`);
     
     // Ensure the deal-specific directory exists
     if (!fs.existsSync(dealPath)){
@@ -235,14 +231,14 @@ router.get('/:id/download', requireAuth, async (req: Request, res: Response) => 
     const baseFilename = path.basename(normalizedPath);
     
     // Define all possible locations where the file might be stored
-    const dealSpecificPath = path.join(PERSIST_PATH, `deal-${document.dealId}`, baseFilename);
+    const dealSpecificPath = path.join(UPLOAD_PATH, `deal-${document.dealId}`, baseFilename);
     
     const filePaths = [
       // First try the deal-specific directory (new organized structure)
       dealSpecificPath,
       
       // Then try the general persistent directory (legacy files)
-      path.join(PERSIST_PATH, baseFilename),
+      path.join(UPLOAD_PATH, baseFilename),
       
       // Try the public directory with normalized path (legacy)
       path.join(process.cwd(), 'public', normalizedPath),
@@ -282,12 +278,12 @@ router.get('/:id/download', requireAuth, async (req: Request, res: Response) => 
     
     // If no exact match was found, try to find similar files by name
     // This is a streamlined fallback approach for files that might have been renamed
-    const allUploadDirs = [PERSIST_PATH, PUBLIC_PATH];
+    const allUploadDirs = [UPLOAD_PATH, PUBLIC_PATH];
     
     // Early exit with clear error messaging if directories don't exist
     const dirsExist = allUploadDirs.filter(dir => fs.existsSync(dir));
     if (dirsExist.length === 0) {
-      console.error(`No upload directories exist. PERSIST_PATH: ${PERSIST_PATH}, PUBLIC_PATH: ${PUBLIC_PATH}`);
+      console.error(`No upload directories exist. UPLOAD_PATH: ${UPLOAD_PATH}, PUBLIC_PATH: ${PUBLIC_PATH}`);
       return res.status(500).json({
         error: 'Server configuration error',
         message: 'Document storage directories are not properly configured.'
@@ -378,7 +374,7 @@ router.get('/:id/download', requireAuth, async (req: Request, res: Response) => 
     console.log(`No file found for: ${document.fileName}. Returning 404.`);
     console.log(`Document record from database:`, document);
     console.log(`Checked these paths:`, filePaths);
-    console.log(`Persistent directory content:`, fs.existsSync(PERSIST_PATH) ? fs.readdirSync(PERSIST_PATH) : 'Directory not found');
+    console.log(`Persistent directory content:`, fs.existsSync(UPLOAD_PATH) ? fs.readdirSync(UPLOAD_PATH) : 'Directory not found');
     console.log(`Public directory content:`, fs.existsSync(PUBLIC_PATH) ? fs.readdirSync(PUBLIC_PATH) : 'Directory not found');
     
     // Return a 404 error with detailed information for easier debugging
@@ -552,9 +548,9 @@ router.post('/upload', requireAuth, requirePermission('create', 'document'), (re
     
     // Ensure both upload directories exist
     try {
-      if (!fs.existsSync(PERSIST_PATH)) {
-        fs.mkdirSync(PERSIST_PATH, { recursive: true });
-        console.log(`Created persistent uploads directory: ${PERSIST_PATH}`);
+      if (!fs.existsSync(UPLOAD_PATH)) {
+        fs.mkdirSync(UPLOAD_PATH, { recursive: true });
+        console.log(`Created persistent uploads directory: ${UPLOAD_PATH}`);
       }
       if (!fs.existsSync(PUBLIC_PATH)) {
         fs.mkdirSync(PUBLIC_PATH, { recursive: true });
