@@ -182,6 +182,12 @@ async function initialize() {
     console.log('Created uploads directory:', uploadDir);
   }
 
+  // Serve uploads and pdfjs dirs explicitly before other routes
+  const rootPublic = path.resolve(process.cwd(), 'public');
+  app.use('/uploads', express.static(path.join(rootPublic, 'uploads')));
+  app.use('/pdfjs', express.static(path.join(rootPublic, 'pdfjs')));
+  console.log('Configured static file serving for uploads and PDF.js worker');
+
   // Initialize background job queues
   try {
     initJobQueues();

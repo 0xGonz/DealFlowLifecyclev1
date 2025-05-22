@@ -242,7 +242,7 @@ export default function EmbeddedPDFViewer({ documentId, documentName }: Embedded
             <div className="w-full h-full">
               <div id={`pdf-container-${documentId}`} className="w-full h-full">
                 <PDFDocument
-                  file={documentUrl}
+                  file={{ url: documentUrl, withCredentials: true }}
                   onLoadError={handlePdfError}
                   className="pdf-document w-full h-full"
                 >

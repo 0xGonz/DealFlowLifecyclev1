@@ -266,7 +266,7 @@ export default function EnhancedPDFViewer({ isOpen, onClose, documentId, documen
               {/* Main PDF viewer with rotation */}
               <div id="enhanced-pdf-viewer" style={{ transform: `rotate(${rotation}deg)` }} className="transition-transform duration-300">
                 <PDFDocument
-                  file={documentUrl}
+                  file={{ url: documentUrl, withCredentials: true }}
                   onLoadSuccess={onDocumentLoadSuccess}
                   onLoadError={(error) => {
                     // First try standard error handling
