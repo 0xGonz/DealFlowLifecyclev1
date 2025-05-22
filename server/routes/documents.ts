@@ -85,19 +85,27 @@ try {
   console.error('Error creating upload directories:', error);
 }
 
-// Set up multer storage directly in project root (persisted in Replit)
+// Set up multer storage with deal-specific organization
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    // Use the persistent data directory for uploads
-    // Ensure the upload directories exist
-    if (!fs.existsSync(PERSIST_PATH)){
-      fs.mkdirSync(PERSIST_PATH, { recursive: true });
+    // Get deal ID from request body or params
+    const dealId = req.body.dealId || req.params.dealId;
+    
+    if (!dealId) {
+      return cb(new Error('Deal ID is required for file upload'), '');
     }
-    if (!fs.existsSync(PUBLIC_PATH)){
-      fs.mkdirSync(PUBLIC_PATH, { recursive: true });
+    
+    // Create deal-specific directory path
+    const dealPath = path.join(PERSIST_PATH, `deal-${dealId}`);
+    
+    // Ensure the deal-specific directory exists
+    if (!fs.existsSync(dealPath)){
+      fs.mkdirSync(dealPath, { recursive: true });
+      console.log(`Created deal directory: ${dealPath}`);
     }
-    console.log(`Storing uploaded file in: ${PERSIST_PATH}`);
-    cb(null, PERSIST_PATH);
+    
+    console.log(`Storing uploaded file for deal ${dealId} in: ${dealPath}`);
+    cb(null, dealPath);
   },
   filename: (req, file, cb) => {
     // Generate a unique filename to prevent overwriting
@@ -227,20 +235,25 @@ router.get('/:id/download', requireAuth, async (req: Request, res: Response) => 
     const baseFilename = path.basename(normalizedPath);
     
     // Define all possible locations where the file might be stored
+    const dealSpecificPath = path.join(PERSIST_PATH, `deal-${document.dealId}`, baseFilename);
+    
     const filePaths = [
-      // First try the persistent data directory (most reliable)
+      // First try the deal-specific directory (new organized structure)
+      dealSpecificPath,
+      
+      // Then try the general persistent directory (legacy files)
       path.join(PERSIST_PATH, baseFilename),
       
-      // Then try the public directory with normalized path
+      // Try the public directory with normalized path (legacy)
       path.join(process.cwd(), 'public', normalizedPath),
       
-      // Try the public uploads directory as a fallback
+      // Try the public uploads directory as a fallback (legacy)
       path.join(PUBLIC_PATH, baseFilename),
       
       // Also try with the full original path from the database (legacy format)
       path.resolve(document.filePath),
       
-      // Try root-relative path
+      // Try root-relative path (legacy)
       path.join(process.cwd(), normalizedPath)
     ];
     
