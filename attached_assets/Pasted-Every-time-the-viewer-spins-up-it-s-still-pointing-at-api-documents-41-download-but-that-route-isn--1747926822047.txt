@@ -1,0 +1,93 @@
+Every time the viewer spins up it’s still pointing at /api/documents/41/download but that route isn’t actually returning a PDF—so you get a 404 HTML page (hence the “Unexpected identifier ‘found’” when PDF.js tries to parse it).
+
+You have two really easy options from here:
+
+1) The absolute simplest: let the browser render it
+Add a “download” endpoint (if you haven’t already) that actually serves the file from disk. For example, in your Express server:
+
+ts
+Copy
+Edit
+// server/index.ts (or wherever your routes live)
+import express from 'express';
+import path from 'path';
+const app = express();
+
+// Make sure this path matches where you store uploaded PDFs
+const uploadsDir = path.resolve(__dirname, '../public/uploads');
+
+app.get(
+  '/api/documents/:id/download',
+  /* your auth middleware here */,
+  async (req, res) => {
+    const id = Number(req.params.id);
+    const doc = await db('documents').where({ id }).first();
+    if (!doc) {
+      return res.status(404).send('Not found');
+    }
+    const filePath = path.join(uploadsDir, doc.filename);
+    res.sendFile(filePath, err => {
+      if (err) res.status(err.status).end();
+    });
+  }
+);
+In your React component, ditch all the PDF.js/worker business and just embed it:
+
+jsx
+Copy
+Edit
+function DealDocumentViewer({ docId }) {
+  const url = `/api/documents/${docId}/download`;
+  return (
+    <iframe
+      src={url}
+      width="100%"
+      height="800px"
+      style={{ border: 0 }}
+      title="Deal Document"
+    />
+  );
+}
+That gives you a full, scrollable PDF in every modern browser—no worker errors, no React‐PDF config.
+
+2) If you really want a React toolbar/UI
+Use react-pdf-viewer, which bundles its own worker and never asks you to configure workerSrc:
+
+Install it:
+
+bash
+Copy
+Edit
+npm install @react-pdf-viewer/core @react-pdf-viewer/default-layout
+Wire it up:
+
+jsx
+Copy
+Edit
+import { Viewer } from '@react-pdf-viewer/core';
+import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
+import '@react-pdf-viewer/core/lib/styles/index.css';
+import '@react-pdf-viewer/default-layout/lib/styles/index.css';
+
+function DealDocumentViewer({ docId }) {
+  const defaultLayoutPluginInstance = defaultLayoutPlugin();
+  const fileUrl = `/api/documents/${docId}/download`;
+
+  return (
+    <div style={{ height: '750px' }}>
+      <Viewer
+        fileUrl={fileUrl}
+        plugins={[defaultLayoutPluginInstance]}
+      />
+    </div>
+  );
+}
+Because react-pdf-viewer pulls in its own worker under the hood, you’ll never hit that “fake worker” fallback or 404.
+
+TL;DR
+
+Option 1: Serve /api/documents/:id/download correctly and embed with an <iframe>.
+
+Option 2: Serve the same endpoint but swap your PDF.js code for react-pdf-viewer, which auto-bundles the worker.
+
+Either one will get your PDFs rendering instantly—no more “found” parsing errors.
