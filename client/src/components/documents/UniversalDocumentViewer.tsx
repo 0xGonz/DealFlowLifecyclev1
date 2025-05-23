@@ -159,20 +159,27 @@ export default function UniversalDocumentViewer({ documentId, documentName, file
       
       case 'excel':
         return (
-          <div className="w-full h-full flex flex-col items-center justify-center p-8 bg-neutral-50">
-            <FileSpreadsheet className="h-16 w-16 text-green-600 mb-4" />
-            <h3 className="text-lg font-medium text-neutral-900 mb-2">Excel Spreadsheet</h3>
-            <p className="text-sm text-neutral-600 mb-4 text-center max-w-md">
-              This is an Excel file containing financial models or data. Download to view in Excel or similar applications.
-            </p>
-            <div className="flex gap-2">
-              <Button onClick={handleDownload} disabled={isLoading}>
+          <div className="w-full h-full flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b bg-green-50">
+              <div className="flex items-center gap-2">
+                <FileSpreadsheet className="h-5 w-5 text-green-600" />
+                <h3 className="text-lg font-medium text-neutral-900">Excel Spreadsheet Preview</h3>
+              </div>
+              <Button onClick={handleDownload} disabled={isLoading} size="sm">
                 <Download className="h-4 w-4 mr-2" />
-                {isLoading ? 'Downloading...' : 'Download Excel File'}
+                Download Excel
               </Button>
             </div>
-            <div className="mt-4 text-xs text-neutral-500">
-              💡 Future: AI analysis will extract key financial metrics from this file
+            <div className="flex-1 flex items-center justify-center p-8">
+              <iframe 
+                src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(window.location.origin + documentUrl)}`}
+                className="w-full h-full border-0 rounded"
+                title={documentName}
+                style={{ minHeight: '600px' }}
+              />
+            </div>
+            <div className="p-2 text-xs text-neutral-500 bg-blue-50 text-center">
+              💡 AI-Ready: This financial model will be available for AI analysis and insights
             </div>
           </div>
         );
