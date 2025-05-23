@@ -29,14 +29,8 @@ router.get('/stats', requireAuth, async (req: Request, res: Response) => {
     const investedDeals = deals ? deals.filter(deal => deal.stage === 'invested').length : 0;
     const investmentRate = totalDeals > 0 ? Math.round((investedDeals / totalDeals) * 100) : 0;
     
-    // Calculate total AUM efficiently with single batch query
-    let totalAum = 0;
-    if (funds && funds.length > 0) {
-      // Get all allocations in a single optimized query instead of N+1 queries
-      const fundIds = funds.map(fund => fund.id);
-      const allAllocations = await storage.getAllocationsBatch(fundIds);
-      totalAum = allAllocations.reduce((sum, allocation) => sum + allocation.amount, 0);
-    }
+    // Calculate total AUM from funds data
+    const totalAum = funds ? funds.reduce((sum, fund) => sum + (fund.aum || 0), 0) : 0;
     
     // Calculate trends based on real data patterns
     // Simulate historical data comparison by creating relative change values
