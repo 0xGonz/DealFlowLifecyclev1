@@ -13,33 +13,25 @@ import { pdfjs } from 'react-pdf';
 // Define the current PDF.js version we're targeting - must match the installed pdfjs-dist
 const PDFJS_VERSION = '4.10.38'; 
 
-// Use CDN first since local worker is causing MIME type issues
+// Use local worker first - CDNs are blocked in this environment
 const workerSources = [
-  // Use CDN version that matches our installed version
-  `https://unpkg.com/pdfjs-dist@${PDFJS_VERSION}/build/pdf.worker.min.js`,
-  // Stable CDN fallback
-  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.js',
-  // Local file as last resort
-  '/pdf.worker.min.js'
+  // Use local worker that's already in public folder
+  '/pdf.worker.min.js',
+  '/pdf.worker.js',
+  // Only try CDN as absolute last resort (likely blocked)
+  `https://unpkg.com/pdfjs-dist@${PDFJS_VERSION}/build/pdf.worker.min.js`
 ];
 
 // Try to set the worker source from our list
 let workerConfigured = false;
 let selectedSource = '';
 
-// In a try-catch in case PDF.js has any issues with the configuration
-try {
-  // Start with the first (preferred) worker source
-  selectedSource = workerSources[0];
-  pdfjs.GlobalWorkerOptions.workerSrc = selectedSource;
-  workerConfigured = true;
-  
-  console.log('PDF.js worker configured with:', selectedSource);
+// Configure the worker synchronously to avoid loading issues
+selectedSource = workerSources[0]; // Use local worker first
+pdfjs.GlobalWorkerOptions.workerSrc = selectedSource;
+workerConfigured = true;
 
-} catch (error) {
-  console.error('Error configuring PDF.js worker:', error);
-  workerConfigured = false;
-}
+console.log('PDF.js worker configured with local file:', selectedSource);
 
 // Export functions to help components check and manage the worker configuration
 export function getWorkerStatus() {
