@@ -370,7 +370,7 @@ router.get('/:id/download', requireAuth, async (req: Request, res: Response) => 
     console.log(`Document record from database:`, document);
     console.log(`Checked these paths:`, filePaths);
     console.log(`Persistent directory content:`, fs.existsSync(UPLOAD_PATH) ? fs.readdirSync(UPLOAD_PATH) : 'Directory not found');
-    console.log(`Public directory content:`, fs.existsSync(PUBLIC_PATH) ? fs.readdirSync(PUBLIC_PATH) : 'Directory not found');
+    console.log(`Upload directory content:`, fs.existsSync(UPLOAD_PATH) ? fs.readdirSync(UPLOAD_PATH) : 'Directory not found');
     
     // Return a 404 error with detailed information for easier debugging
     // This helps the client side distinguish between different types of errors
