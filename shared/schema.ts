@@ -55,18 +55,20 @@ export const insertDealSchema = createInsertSchema(deals).omit({
   updatedAt: true,
 });
 
-// Timeline events for deals
+// Documents - Investment documents (pitch decks, financial models, legal docs)
 export const documents = pgTable("documents", {
   id: serial("id").primaryKey(),
   dealId: integer("deal_id").notNull().references(() => deals.id, { onDelete: "cascade" }),
   fileName: text("file_name").notNull(),
-  fileType: text("file_type").notNull(), // e.g., "pdf", "pptx", etc.
+  fileType: text("file_type").notNull(),
   fileSize: integer("file_size").notNull(),
   filePath: text("file_path").notNull(),
   uploadedBy: integer("uploaded_by").notNull().references(() => users.id),
   uploadedAt: timestamp("uploaded_at").defaultNow().notNull(),
   description: text("description"),
-  documentType: text("document_type").notNull(), // e.g., "pitch_deck", "financial_model", etc.
+  documentType: text("document_type", { 
+    enum: ["pitch_deck", "financial_model", "legal_document", "diligence_report", "other"] 
+  }).notNull().default("other"),
 });
 
 export const insertDocumentSchema = createInsertSchema(documents).omit({
@@ -74,6 +76,7 @@ export const insertDocumentSchema = createInsertSchema(documents).omit({
   uploadedAt: true,
 });
 
+// Timeline events for deals
 export const timelineEvents = pgTable("timeline_events", {
   id: serial("id").primaryKey(),
   dealId: integer("deal_id").notNull(),
@@ -265,27 +268,6 @@ export const notifications = pgTable("notifications", {
 export const insertNotificationSchema = createInsertSchema(notifications).omit({
   id: true,
   createdAt: true,
-});
-
-// Documents - Investment documents (pitch decks, financial models, legal docs)
-export const documents = pgTable("documents", {
-  id: serial("id").primaryKey(),
-  dealId: integer("deal_id").notNull().references(() => deals.id, { onDelete: "cascade" }),
-  fileName: text("file_name").notNull(),
-  fileType: text("file_type").notNull(),
-  fileSize: integer("file_size").notNull(),
-  filePath: text("file_path").notNull(),
-  uploadedBy: integer("uploaded_by").notNull().references(() => users.id),
-  uploadedAt: timestamp("uploaded_at").notNull().defaultNow(),
-  description: text("description"),
-  documentType: text("document_type", { 
-    enum: ["pitch_deck", "financial_model", "legal_document", "diligence_report", "other"] 
-  }).notNull().default("other"),
-});
-
-export const insertDocumentSchema = createInsertSchema(documents).omit({
-  id: true,
-  uploadedAt: true,
 });
 
 // Capital Calls - Track capital calls for investments
