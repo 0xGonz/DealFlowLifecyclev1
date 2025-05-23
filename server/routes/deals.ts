@@ -35,11 +35,45 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
       deals = await dealService.getAllDeals();
     }
     
-    // For each deal, get the assignments and stars
-    const dealsWithExtras = await Promise.all(deals.map(async (deal) => {
-      const assignments = await storage.getDealAssignments(deal.id);
-      const stars = await storage.getDealStars(deal.id);
-      const miniMemos = await storage.getMiniMemosByDeal(deal.id);
+    // Optimize: Get all supplementary data in 3 batch queries instead of N+1 queries
+    const dealIds = deals.map(d => d.id);
+    const [allAssignments, allStars, allMiniMemos] = await Promise.all([
+      storage.getDealAssignmentsBatch(dealIds),
+      storage.getDealStarsBatch(dealIds),
+      storage.getMiniMemosBatch(dealIds)
+    ]);
+    
+    // Group data by dealId for efficient lookup
+    const assignmentsByDeal = new Map();
+    const starsByDeal = new Map();
+    const memosByDeal = new Map();
+    
+    allAssignments.forEach(assignment => {
+      if (!assignmentsByDeal.has(assignment.dealId)) {
+        assignmentsByDeal.set(assignment.dealId, []);
+      }
+      assignmentsByDeal.get(assignment.dealId).push(assignment);
+    });
+    
+    allStars.forEach(star => {
+      if (!starsByDeal.has(star.dealId)) {
+        starsByDeal.set(star.dealId, []);
+      }
+      starsByDeal.get(star.dealId).push(star);
+    });
+    
+    allMiniMemos.forEach(memo => {
+      if (!memosByDeal.has(memo.dealId)) {
+        memosByDeal.set(memo.dealId, []);
+      }
+      memosByDeal.get(memo.dealId).push(memo);
+    });
+    
+    // Build enhanced deals with optimized data lookup
+    const dealsWithExtras = deals.map(deal => {
+      const assignments = assignmentsByDeal.get(deal.id) || [];
+      const stars = starsByDeal.get(deal.id) || [];
+      const miniMemos = memosByDeal.get(deal.id) || [];
       
       // Calculate score from mini memos
       let score = 0;
@@ -54,7 +88,7 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
         starCount: stars.length,
         score
       };
-    }));
+    });
     
     res.json(dealsWithExtras);
   } catch (error) {

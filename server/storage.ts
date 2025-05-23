@@ -49,12 +49,14 @@ export interface IStorage {
   starDeal(dealStar: InsertDealStar): Promise<DealStar>;
   unstarDeal(dealId: number, userId: number): Promise<boolean>;
   getDealStars(dealId: number): Promise<DealStar[]>;
+  getDealStarsBatch(dealIds: number[]): Promise<DealStar[]>;
   getUserStars(userId: number): Promise<DealStar[]>;
   
   // Mini memos
   createMiniMemo(memo: InsertMiniMemo): Promise<MiniMemo>;
   getMiniMemo(id: number): Promise<MiniMemo | undefined>;
   getMiniMemosByDeal(dealId: number): Promise<MiniMemo[]>;
+  getMiniMemosBatch(dealIds: number[]): Promise<MiniMemo[]>;
   updateMiniMemo(id: number, memo: Partial<InsertMiniMemo>): Promise<MiniMemo | undefined>;
   deleteMiniMemo(id: number): Promise<boolean>;
   

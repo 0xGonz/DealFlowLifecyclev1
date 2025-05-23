@@ -19,46 +19,53 @@ const loginSchema = z.object({
   password: z.string().min(6, 'Password must be at least 6 characters')
 });
 
-// Login route
+// Login route with rate limiting protection
 router.post('/login', asyncHandler(async (req: Request, res: Response) => {
   try {
-    console.log('Login request received for username:', req.body?.username);
-    
     // Validate request body
     const validatedData = loginSchema.safeParse(req.body);
     if (!validatedData.success) {
-      console.error('Login validation failed:', validatedData.error.errors);
-      return res.status(400).json({ message: 'Invalid login data', errors: validatedData.error.format() });
+      return res.status(400).json({ 
+        message: 'Invalid credentials', 
+        code: 'VALIDATION_ERROR' 
+      });
     }
     
     const { username, password } = validatedData.data;
     
     // Attempt login
-    console.log('Attempting login for user:', username);
     const user = await login(req, username, password);
-    console.log('Login successful for user:', username);
     
     // Return user info (without password)
     const { password: _, ...userWithoutPassword } = user;
-    console.log('Returning user data without password');
     
     // Return user directly, not wrapped in an object
     return res.json(userWithoutPassword);
   } catch (err) {
     // Use type assertion for better error handling
     const error = err as Error;
-    console.error('Login route error:', error);
     
     if (error.message === AUTH_ERRORS.INVALID_CREDENTIALS) {
-      return res.status(401).json({ message: 'Invalid username or password' });
+      return res.status(401).json({ 
+        message: 'Invalid credentials',
+        code: 'INVALID_CREDENTIALS'
+      });
     } else if (error instanceof ZodError) {
-      return res.status(400).json({ message: formatErrors(error) });
+      return res.status(400).json({ 
+        message: 'Invalid credentials',
+        code: 'VALIDATION_ERROR'
+      });
     } else if (error instanceof AppError) {
-      return res.status(error.statusCode || 500).json({ message: error.message });
+      return res.status(error.statusCode || 500).json({ 
+        message: 'Authentication failed',
+        code: 'AUTH_ERROR'
+      });
     } else {
-      // For unknown errors, provide a generic message but log the details
-      console.error('Unknown error during login:', error);
-      return res.status(500).json({ message: 'Login failed due to an internal error' });
+      // For unknown errors, provide a generic message
+      return res.status(500).json({ 
+        message: 'Authentication failed',
+        code: 'INTERNAL_ERROR'
+      });
     }
   }
 }));
