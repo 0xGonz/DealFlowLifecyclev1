@@ -10,16 +10,15 @@ import { pdfjs } from 'react-pdf';
  * the configuration. Instead, we must use the standard workerSrc configuration.
  */
 
-// Define the current PDF.js version we're targeting
-const PDFJS_VERSION = '3.11.174'; 
+// Define the current PDF.js version we're targeting - must match the installed pdfjs-dist
+const PDFJS_VERSION = '4.10.38'; 
 
-// Use a simpler approach - let PDF.js use its built-in worker handling
-// This avoids external CDN dependency issues
+// Use the exact version that matches our installed pdfjs-dist package
 const workerSources = [
-  // Use the stable older version that works reliably
-  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',
-  // Alternative CDN fallback
-  'https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js'
+  // Primary CDN source matching our pdfjs-dist version
+  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.js',
+  // Fallback to unpkg with same version
+  'https://unpkg.com/pdfjs-dist@4.10.38/build/pdf.worker.min.js'
 ];
 
 // Try to set the worker source from our list
