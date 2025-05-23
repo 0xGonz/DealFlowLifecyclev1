@@ -22,6 +22,7 @@ import multer from 'multer';
 // Import the central authentication middleware
 import { requireAuth as centralRequireAuth } from '../utils/auth';
 import { requirePermission } from '../utils/permissions';
+import { DataExtractor } from '../services/data-extractor';
 
 // Use the central authentication middleware to ensure consistency
 const requireAuth = centralRequireAuth;
@@ -642,6 +643,84 @@ router.delete('/:id', requireAuth, requirePermission('delete', 'document'), asyn
   } catch (error) {
     console.error('Error deleting document:', error);
     return res.status(500).json({ message: 'Failed to delete document' });
+  }
+});
+
+// Extract structured data from Excel/CSV files for AI analysis
+router.get('/:id/extract-data', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ message: 'Invalid document ID' });
+    }
+    
+    console.log(`🤖 AI Data extraction request for document ID: ${id}`);
+    
+    const storage = StorageFactory.getStorage();
+    const document = await storage.getDocument(id);
+    if (!document) {
+      console.log(`❌ Document ${id} not found for data extraction`);
+      return res.status(404).json({ message: 'Document not found' });
+    }
+    
+    console.log(`✅ Found document ${id}: ${document.fileName} (Type: ${document.fileType})`);
+    
+    // Check if this is a supported file type for data extraction
+    const extension = path.extname(document.fileName).toLowerCase();
+    if (!['.xlsx', '.xls', '.xlsm', '.csv'].includes(extension)) {
+      return res.status(400).json({ 
+        message: `Data extraction not supported for ${extension} files. Supported formats: Excel (.xlsx, .xls, .xlsm) and CSV (.csv)` 
+      });
+    }
+    
+    // Use the same file resolution logic as download
+    const UPLOAD_PATH = process.env.UPLOAD_PATH || './uploads';
+    const possiblePaths = [
+      path.resolve(UPLOAD_PATH, 'deals', document.dealId.toString(), document.fileName),
+      path.resolve(UPLOAD_PATH, document.dealId.toString(), document.fileName),
+      path.resolve(UPLOAD_PATH, document.fileName),
+      path.resolve(document.filePath)
+    ];
+    
+    let actualFilePath = null;
+    for (const testPath of possiblePaths) {
+      if (fs.existsSync(testPath)) {
+        actualFilePath = testPath;
+        break;
+      }
+    }
+    
+    if (!actualFilePath) {
+      console.log(`❌ File not found in any expected location for document ${id}`);
+      return res.status(404).json({ message: 'Document file not found on server' });
+    }
+    
+    console.log(`📂 Extracting data from: ${actualFilePath}`);
+    
+    // Extract structured data using our DataExtractor service
+    const extractedData = await DataExtractor.extractData(actualFilePath, document.fileName);
+    
+    // Return both raw data and AI-formatted version
+    const response = {
+      document: {
+        id: document.id,
+        fileName: document.fileName,
+        dealId: document.dealId,
+        documentType: document.documentType
+      },
+      extractedData,
+      aiFormattedData: DataExtractor.formatForAI(extractedData)
+    };
+    
+    console.log(`✅ Successfully extracted data from ${document.fileName}: ${extractedData.metadata.totalRows} rows, ${extractedData.metadata.totalColumns} columns`);
+    
+    return res.json(response);
+  } catch (error) {
+    console.error('Error extracting document data:', error);
+    return res.status(500).json({ 
+      message: 'Failed to extract document data', 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
   }
 });
 
