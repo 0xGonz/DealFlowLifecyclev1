@@ -14,11 +14,14 @@ import { pdfjs } from 'react-pdf';
 const PDFJS_VERSION = '4.10.38'; 
 
 // Use the exact version that matches our installed pdfjs-dist package
+// Replit environments sometimes block external CDNs, so use bundled approach
 const workerSources = [
-  // Primary CDN source matching our pdfjs-dist version
-  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.js',
-  // Fallback to unpkg with same version
-  'https://unpkg.com/pdfjs-dist@4.10.38/build/pdf.worker.min.js'
+  // Try the bundled version first (most reliable in Replit)
+  '/pdf.worker.js',
+  // Fallback to stable CDNJS version that usually works
+  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',
+  // Alternative fallback
+  'https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js'
 ];
 
 // Try to set the worker source from our list
