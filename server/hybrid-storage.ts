@@ -549,6 +549,14 @@ export class HybridStorage implements IStorage {
     );
   }
 
+  async getAllocationsBatch(fundIds: number[]): Promise<any[]> {
+    return this.withFailover(
+      'getAllocationsBatch',
+      () => this.dbStorage.getAllocationsBatch(fundIds),
+      () => this.memStorage.getAllocationsBatch(fundIds)
+    );
+  }
+
   async getFundAllocation(id: number): Promise<any | undefined> {
     return this.withFailover(
       'getFundAllocation',

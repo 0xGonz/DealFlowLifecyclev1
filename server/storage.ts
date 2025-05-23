@@ -634,6 +634,10 @@ export class MemStorage implements IStorage {
   async getAllocationsByFund(fundId: number): Promise<FundAllocation[]> {
     return Array.from(this.fundAllocations.values()).filter(alloc => alloc.fundId === fundId);
   }
+
+  async getAllocationsBatch(fundIds: number[]): Promise<FundAllocation[]> {
+    return Array.from(this.fundAllocations.values()).filter(alloc => fundIds.includes(alloc.fundId));
+  }
   
   async getAllocationsByDeal(dealId: number): Promise<FundAllocation[]> {
     return Array.from(this.fundAllocations.values()).filter(alloc => alloc.dealId === dealId);

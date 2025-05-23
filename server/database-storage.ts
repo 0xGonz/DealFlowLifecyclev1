@@ -491,6 +491,14 @@ export class DatabaseStorage implements IStorage {
       .from(fundAllocations)
       .where(eq(fundAllocations.fundId, fundId));
   }
+
+  async getAllocationsBatch(fundIds: number[]): Promise<FundAllocation[]> {
+    if (fundIds.length === 0) return [];
+    return await db
+      .select()
+      .from(fundAllocations)
+      .where(inArray(fundAllocations.fundId, fundIds));
+  }
   
   async getAllocationsByDeal(dealId: number): Promise<FundAllocation[]> {
     return await db
