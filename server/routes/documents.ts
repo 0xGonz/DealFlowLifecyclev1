@@ -67,36 +67,47 @@ const sanitizeFilename = (filename: string): string => {
     .toLowerCase();                  // Convert to lowercase for consistency
 };
 
-// Setup constants for our upload paths - using public path for immediate accessibility
+// Setup constants for standardized file storage
 const UPLOAD_PATH = path.join(process.cwd(), 'public', 'uploads');
-const PUBLIC_PATH = UPLOAD_PATH; // Keep for backwards compatibility
 
 // Ensure upload directories exist at server startup
 try {
   if (!fs.existsSync(UPLOAD_PATH)) {
     fs.mkdirSync(UPLOAD_PATH, { recursive: true });
-    console.log(`Created uploads directory: ${UPLOAD_PATH}`);
+    console.log(`✅ Created uploads directory: ${UPLOAD_PATH}`);
   }
 } catch (error) {
-  console.error('Error creating upload directories:', error);
+  console.error('❌ Error creating upload directories:', error);
 }
 
-// Set up multer storage - simplified to use general uploads directory
-// We'll organize files after upload since req.body isn't available during destination callback
+// Helper function to get standardized file path
+const getStandardizedFilePath = (dealId: number, filename: string): string => {
+  const dealFolder = path.join(UPLOAD_PATH, `deal-${dealId}`);
+  
+  // Ensure deal folder exists
+  if (!fs.existsSync(dealFolder)) {
+    fs.mkdirSync(dealFolder, { recursive: true });
+  }
+  
+  return path.join(dealFolder, filename);
+};
+
+// Helper function to get relative path for database storage
+const getRelativeFilePath = (dealId: number, filename: string): string => {
+  return `uploads/deal-${dealId}/${filename}`;
+};
+
+// Set up multer storage with standardized organization
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    // Always use the main uploads directory
-    // We'll handle deal-specific organization after the upload
-    console.log(`Storing uploaded file in: ${UPLOAD_PATH}`);
+    // Use temporary directory first, we'll move to deal-specific folder after validation
     cb(null, UPLOAD_PATH);
   },
   filename: (req, file, cb) => {
-    // Generate a unique filename to prevent overwriting
+    // Generate a unique filename to prevent conflicts
     const uniqueId = crypto.randomUUID();
-    // Sanitize the original filename before appending to UUID
     const sanitizedFilename = sanitizeFilename(file.originalname);
     const finalFilename = `${uniqueId}-${sanitizedFilename}`;
-    console.log(`Generated filename for upload: ${finalFilename}`);
     cb(null, finalFilename);
   }
 });
@@ -227,23 +238,14 @@ router.get('/:id/download', requireAuth, async (req: Request, res: Response) => 
     const dealSpecificPath = path.join(UPLOAD_PATH, `deal-${document.dealId}`, baseFilename);
     
     const filePaths = [
-      // First try the deal-specific directory (new organized structure)
+      // First try the deal-specific directory (standardized structure)
       dealSpecificPath,
       
-      // Then try the general persistent directory (legacy files)
+      // Then try the general uploads directory (legacy files)
       path.join(UPLOAD_PATH, baseFilename),
       
-      // Try the public directory with normalized path (legacy)
-      path.join(process.cwd(), 'public', normalizedPath),
-      
-      // Try the public uploads directory as a fallback (legacy)
-      path.join(PUBLIC_PATH, baseFilename),
-      
-      // Also try with the full original path from the database (legacy format)
-      path.resolve(document.filePath),
-      
-      // Try root-relative path (legacy)
-      path.join(process.cwd(), normalizedPath)
+      // Try absolute path resolution (legacy)
+      path.resolve(process.cwd(), 'public', normalizedPath)
     ];
     
     console.log(`Attempting to serve document: ${document.fileName}`);
@@ -271,12 +273,12 @@ router.get('/:id/download', requireAuth, async (req: Request, res: Response) => 
     
     // If no exact match was found, try to find similar files by name
     // This is a streamlined fallback approach for files that might have been renamed
-    const allUploadDirs = [UPLOAD_PATH, PUBLIC_PATH];
+    const allUploadDirs = [UPLOAD_PATH];
     
     // Early exit with clear error messaging if directories don't exist
     const dirsExist = allUploadDirs.filter(dir => fs.existsSync(dir));
     if (dirsExist.length === 0) {
-      console.error(`No upload directories exist. UPLOAD_PATH: ${UPLOAD_PATH}, PUBLIC_PATH: ${PUBLIC_PATH}`);
+      console.error(`No upload directories exist. UPLOAD_PATH: ${UPLOAD_PATH}`);
       return res.status(500).json({
         error: 'Server configuration error',
         message: 'Document storage directories are not properly configured.'

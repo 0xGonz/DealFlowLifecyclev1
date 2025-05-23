@@ -23,7 +23,7 @@ export const deals = pgTable("deals", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   description: text("description").default(""), // Allow empty description
-  sector: text("industry").default(""), // Allow empty sector
+  sector: text("sector").default(""), // Allow empty sector
   stage: text("stage", { 
     enum: ["initial_review", "screening", "diligence", "ic_review", "closing", "closed", "invested", "rejected"]
   }).notNull().default("initial_review"),
@@ -63,7 +63,7 @@ export const documents = pgTable("documents", {
   fileType: text("file_type").notNull(),
   fileSize: integer("file_size").notNull(),
   filePath: text("file_path").notNull(),
-  uploadedBy: integer("uploaded_by").notNull().references(() => users.id),
+  uploadedBy: integer("uploaded_by").notNull().references(() => users.id, { onDelete: "restrict" }),
   uploadedAt: timestamp("uploaded_at").defaultNow().notNull(),
   description: text("description"),
   documentType: text("document_type", { 
