@@ -547,27 +547,31 @@ router.post('/upload', requireAuth, requirePermission('create', 'document'), (re
         fs.mkdirSync(UPLOAD_PATH, { recursive: true });
         console.log(`Created persistent uploads directory: ${UPLOAD_PATH}`);
       }
-      if (!fs.existsSync(PUBLIC_PATH)) {
-        fs.mkdirSync(PUBLIC_PATH, { recursive: true });
-        console.log(`Created public uploads directory: ${PUBLIC_PATH}`);
-      }
+      // Deal-specific folder management handled in helper functions
     } catch (dirErr) {
       console.error('Error ensuring upload directories exist:', dirErr);
     }
     
-    // Ensure we have a copy in the public directory for web access
-    const persistFilePath = req.file.path; // This is already in the persistent directory
-    const publicFilePath = path.join(PUBLIC_PATH, baseFilename);
+    // Move file to standardized deal-specific directory
+    const tempFilePath = req.file.path;
+    const finalFilePath = getStandardizedFilePath(dealId, baseFilename);
     
-    // Copy from persistent storage to public directory for redundancy
+    // Move file to final standardized location with transaction safety
     try {
-      if (fs.existsSync(persistFilePath)) {
-        fs.copyFileSync(persistFilePath, publicFilePath);
-        console.log(`File backup created successfully in public directory: ${publicFilePath}`);
+      if (fs.existsSync(tempFilePath)) {
+        fs.renameSync(tempFilePath, finalFilePath);
+        console.log(`✅ File moved to standardized location: ${finalFilePath}`);
       }
-    } catch (copyErr) {
-      console.error('Error creating backup copy in public directory:', copyErr);
-      // We'll continue even if the copy fails - we still have the original in persistent storage
+    } catch (moveErr) {
+      console.error('❌ Error moving file to final location:', moveErr);
+      // Clean up temp file on failure
+      if (fs.existsSync(tempFilePath)) {
+        fs.unlinkSync(tempFilePath);
+      }
+      return res.status(500).json({
+        error: 'FILE_STORAGE_ERROR',
+        message: 'Failed to organize uploaded file'
+      });
     }
     
     // Verify at least one copy of the file exists before saving to database
