@@ -16,6 +16,30 @@ export interface DealContext {
   extractedData: any[];
   allocations: any[];
   activities: any[];
+  calendar: {
+    meetings: {
+      total: number;
+      past: number;
+      upcoming: number;
+      nextMeeting: any;
+      allMeetings: any[];
+    };
+    capitalCalls: {
+      total: number;
+      completed: number;
+      pending: number;
+      nextCall: any;
+      allCalls: any[];
+    };
+    closings: {
+      total: number;
+      nextClosing: any;
+      allClosings: any[];
+    };
+    timeline: {
+      recentActivity: any[];
+    };
+  };
 }
 
 export interface AnalysisResponse {
@@ -53,6 +77,9 @@ export class AIAnalyzer {
     
     // Get activities manually for now (will add proper method later)
     const dealActivities: any[] = [];
+    
+    // Get comprehensive calendar context for this deal
+    const calendar = await AIAnalyzer.extractCalendarContext(dealId, storage);
     
     // Extract data from Excel/CSV documents
     const extractedData: any[] = [];
@@ -101,15 +128,121 @@ export class AIAnalyzer {
       documents,
       extractedData,
       allocations,
-      activities: dealActivities
+      activities: dealActivities,
+      calendar
     };
+  }
+
+  /**
+   * Extract comprehensive calendar and timeline context for a specific deal
+   */
+  static async extractCalendarContext(dealId: number, storage: any) {
+    try {
+      console.log(`📅 Extracting calendar context for deal ${dealId}`);
+      
+      // Get calendar-related data for this specific deal
+      const [meetings, capitalCalls, closingSchedules] = await Promise.all([
+        storage.getMeetingsByDeal?.(dealId).catch(() => []) || [],
+        storage.getCapitalCallsByDeal?.(dealId).catch(() => []) || [],
+        storage.getClosingSchedulesByDeal?.(dealId).catch(() => []) || []
+      ]);
+
+      const now = new Date();
+      
+      // Analyze meetings
+      const pastMeetings = meetings.filter((m: any) => new Date(m.date || m.scheduledDate) <= now);
+      const upcomingMeetings = meetings
+        .filter((m: any) => new Date(m.date || m.scheduledDate) > now)
+        .sort((a: any, b: any) => 
+          new Date(a.date || a.scheduledDate).getTime() - new Date(b.date || b.scheduledDate).getTime()
+        );
+      
+      // Analyze capital calls
+      const completedCapitalCalls = capitalCalls.filter((cc: any) => cc.status === 'completed' || cc.status === 'paid');
+      const pendingCapitalCalls = capitalCalls.filter((cc: any) => cc.status === 'pending' || cc.status === 'issued');
+      const upcomingCapitalCalls = capitalCalls
+        .filter((cc: any) => new Date(cc.dueDate || cc.callDate) > now)
+        .sort((a: any, b: any) => 
+          new Date(a.dueDate || a.callDate).getTime() - new Date(b.dueDate || b.callDate).getTime()
+        );
+      
+      // Analyze closings
+      const upcomingClosings = closingSchedules
+        .filter((cs: any) => new Date(cs.expectedDate || cs.targetDate) > now)
+        .sort((a: any, b: any) => 
+          new Date(a.expectedDate || a.targetDate).getTime() - new Date(b.expectedDate || b.targetDate).getTime()
+        );
+
+      // Create comprehensive timeline of recent activity (last 90 days)
+      const recentCutoff = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
+      const recentActivity = [
+        ...meetings.map((m: any) => ({
+          ...m,
+          type: 'meeting',
+          date: m.date || m.scheduledDate,
+          title: m.title || m.subject || 'Meeting'
+        })),
+        ...capitalCalls.map((cc: any) => ({
+          ...cc,
+          type: 'capital_call',
+          date: cc.dueDate || cc.callDate,
+          title: `Capital Call - $${cc.amount?.toLocaleString()}`
+        })),
+        ...closingSchedules.map((cs: any) => ({
+          ...cs,
+          type: 'closing',
+          date: cs.expectedDate || cs.targetDate,
+          title: cs.milestone || 'Closing Event'
+        }))
+      ]
+      .filter((item: any) => item.date && new Date(item.date) >= recentCutoff)
+      .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+      const calendarContext = {
+        meetings: {
+          total: meetings.length,
+          past: pastMeetings.length,
+          upcoming: upcomingMeetings.length,
+          nextMeeting: upcomingMeetings[0] || null,
+          allMeetings: meetings
+        },
+        capitalCalls: {
+          total: capitalCalls.length,
+          completed: completedCapitalCalls.length,
+          pending: pendingCapitalCalls.length,
+          nextCall: upcomingCapitalCalls[0] || null,
+          allCalls: capitalCalls
+        },
+        closings: {
+          total: closingSchedules.length,
+          nextClosing: upcomingClosings[0] || null,
+          allClosings: closingSchedules
+        },
+        timeline: {
+          recentActivity: recentActivity.slice(0, 20) // Limit to 20 most recent
+        }
+      };
+
+      console.log(`📅 Calendar context extracted: ${meetings.length} meetings, ${capitalCalls.length} capital calls, ${closingSchedules.length} closings`);
+      return calendarContext;
+
+    } catch (error) {
+      console.warn('Error extracting calendar context:', error);
+      // Return empty context if calendar data unavailable
+      return {
+        meetings: { total: 0, past: 0, upcoming: 0, nextMeeting: null, allMeetings: [] },
+        capitalCalls: { total: 0, completed: 0, pending: 0, nextCall: null, allCalls: [] },
+        closings: { total: 0, nextClosing: null, allClosings: [] },
+        timeline: { recentActivity: [] }
+      };
+    }
   }
 
   /**
    * Format deal context into a comprehensive prompt for AI analysis
    */
   static formatDealContextForAI(context: DealContext): string {
-    const { deal, memos, documents, extractedData, allocations, activities } = context;
+    const { deal, memos, documents, extractedData, allocations, activities, calendar } = context;
     
     let prompt = `# DEAL ANALYSIS CONTEXT\n\n`;
     
@@ -183,6 +316,65 @@ export class AIAnalyzer {
       });
     }
 
+    // Calendar & Timeline Intelligence
+    if (calendar) {
+      prompt += `## CALENDAR & TIMELINE INTELLIGENCE\n`;
+      
+      // Meeting Analysis
+      prompt += `### MEETINGS\n`;
+      prompt += `**Total Meetings:** ${calendar.meetings.total}\n`;
+      prompt += `**Past Meetings:** ${calendar.meetings.past}\n`;
+      prompt += `**Upcoming Meetings:** ${calendar.meetings.upcoming}\n`;
+      if (calendar.meetings.nextMeeting) {
+        const nextMeeting = calendar.meetings.nextMeeting;
+        prompt += `**Next Meeting:** ${nextMeeting.title || nextMeeting.subject || 'Meeting'} on ${new Date(nextMeeting.date || nextMeeting.scheduledDate).toLocaleDateString()}\n`;
+        if (nextMeeting.description) prompt += `**Meeting Details:** ${nextMeeting.description}\n`;
+      }
+      prompt += `\n`;
+
+      // Capital Calls Analysis
+      prompt += `### CAPITAL CALLS\n`;
+      prompt += `**Total Capital Calls:** ${calendar.capitalCalls.total}\n`;
+      prompt += `**Completed Calls:** ${calendar.capitalCalls.completed}\n`;
+      prompt += `**Pending Calls:** ${calendar.capitalCalls.pending}\n`;
+      if (calendar.capitalCalls.nextCall) {
+        const nextCall = calendar.capitalCalls.nextCall;
+        prompt += `**Next Capital Call:** $${nextCall.amount?.toLocaleString()} due ${new Date(nextCall.dueDate || nextCall.callDate).toLocaleDateString()}\n`;
+        if (nextCall.purpose) prompt += `**Call Purpose:** ${nextCall.purpose}\n`;
+      }
+      if (calendar.capitalCalls.allCalls.length > 0) {
+        const totalCalled = calendar.capitalCalls.allCalls
+          .filter((cc: any) => cc.status === 'completed' || cc.status === 'paid')
+          .reduce((sum: number, cc: any) => sum + (cc.amount || 0), 0);
+        if (totalCalled > 0) prompt += `**Total Capital Called:** $${totalCalled.toLocaleString()}\n`;
+      }
+      prompt += `\n`;
+
+      // Closing Schedule Analysis
+      prompt += `### CLOSING SCHEDULE\n`;
+      prompt += `**Total Closing Events:** ${calendar.closings.total}\n`;
+      if (calendar.closings.nextClosing) {
+        const nextClosing = calendar.closings.nextClosing;
+        prompt += `**Next Closing:** ${nextClosing.milestone || 'Closing Event'} on ${new Date(nextClosing.expectedDate || nextClosing.targetDate).toLocaleDateString()}\n`;
+        if (nextClosing.description) prompt += `**Closing Details:** ${nextClosing.description}\n`;
+      }
+      prompt += `\n`;
+
+      // Recent Timeline Activity
+      if (calendar.timeline.recentActivity.length > 0) {
+        prompt += `### RECENT TIMELINE ACTIVITY (Last 90 Days)\n`;
+        calendar.timeline.recentActivity.slice(0, 10).forEach((activity: any, index: number) => {
+          const activityDate = new Date(activity.date).toLocaleDateString();
+          const activityType = activity.type.replace('_', ' ').toUpperCase();
+          prompt += `**${activityDate}** - ${activityType}: ${activity.title}\n`;
+          if (activity.description || activity.notes) {
+            prompt += `  Details: ${activity.description || activity.notes}\n`;
+          }
+        });
+        prompt += `\n`;
+      }
+    }
+
     // Recent Activities
     if (activities.length > 0) {
       prompt += `## RECENT ACTIVITIES (${Math.min(activities.length, 10)})\n`;
@@ -215,16 +407,25 @@ export class AIAnalyzer {
       const dealPrompt = this.formatDealContextForAI(context);
       
       // Prepare the system message for investment analysis
-      const systemMessage = `You are an expert investment analyst with deep knowledge of private equity, venture capital, and institutional investing. You analyze deals comprehensively based on provided data.
+      const systemMessage = `You are an expert investment analyst with deep knowledge of private equity, venture capital, and institutional investing. You analyze deals comprehensively based on provided data and have full calendar intelligence.
 
 Key responsibilities:
 - Provide detailed investment analysis based ONLY on the provided deal data
+- Answer calendar-related questions about meetings, closings, and capital calls for this specific deal
 - Identify strengths, weaknesses, opportunities, and risks
 - Analyze financial metrics and projections when available
 - Evaluate team, market, and competitive positioning
 - Assess valuation and return potential
 - Highlight key concerns or red flags
 - Suggest areas for further due diligence
+- Provide timeline insights including next meetings, capital calls, and closing events
+
+Calendar Intelligence Capabilities:
+- Answer questions like "How many meetings have we had?" or "When is the next closing?"
+- Provide insights on capital call timing and amounts
+- Analyze meeting frequency and engagement patterns
+- Identify upcoming critical dates and milestones
+- Track deal progression through calendar events
 
 Always base your analysis on the actual data provided. If information is missing, clearly state what additional data would be helpful for a complete analysis.`;
 
