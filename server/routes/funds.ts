@@ -22,9 +22,22 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
     const deals = await storage.getDeals();
     const validDealIds = deals.map(deal => deal.id);
     
+    // Optimize: Get all allocations in batch query instead of N+1 queries
+    const fundIds = funds.map(fund => fund.id);
+    const allAllocations = await storage.getAllocationsBatch(fundIds);
+    
+    // Group allocations by fundId for efficient lookup
+    const allocationsByFund = new Map();
+    allAllocations.forEach(allocation => {
+      if (!allocationsByFund.has(allocation.fundId)) {
+        allocationsByFund.set(allocation.fundId, []);
+      }
+      allocationsByFund.get(allocation.fundId).push(allocation);
+    });
+    
     // For each fund, recalculate Called Capital and portfolio weights based only on allocations to valid deals
-    const fundsWithCorrectAum = await Promise.all(funds.map(async (fund) => {
-      const allocations = await storage.getAllocationsByFund(fund.id);
+    const fundsWithCorrectAum = funds.map((fund) => {
+      const allocations = allocationsByFund.get(fund.id) || [];
       
       // Filter out allocations to non-existent deals
       const validAllocations = allocations.filter(allocation => validDealIds.includes(allocation.dealId));

@@ -5,19 +5,18 @@ import { requireAuth } from "../utils/auth";
 
 const router = Router();
 
-// Get dashboard stats
+// Get dashboard stats - optimized for performance
 router.get('/stats', requireAuth, async (req: Request, res: Response) => {
   try {
-    console.log('Dashboard stats: Getting storage instance');
     const storage = StorageFactory.getStorage();
-    console.log('Dashboard stats: Fetching deals');
-    const deals = await storage.getDeals();
-    console.log(`Dashboard stats: Retrieved ${deals ? deals.length : 0} deals`);
-    console.log('Dashboard stats: Fetching funds');
-    const funds = await storage.getFunds();
-    console.log(`Dashboard stats: Retrieved ${funds ? funds.length : 0} funds`);
     
-    // Calculate dashboard stats
+    // Fetch all data in parallel for optimal performance
+    const [deals, funds] = await Promise.all([
+      storage.getDeals(),
+      storage.getFunds()
+    ]);
+    
+    // Calculate dashboard stats efficiently
     const totalDeals = deals ? deals.length : 0;
     const activeDeals = deals ? deals.filter(deal => deal.stage !== 'closed' && deal.stage !== 'rejected').length : 0;
     const activePipelinePercent = totalDeals > 0 ? Math.round((activeDeals / totalDeals) * 100) : 0;
@@ -30,16 +29,13 @@ router.get('/stats', requireAuth, async (req: Request, res: Response) => {
     const investedDeals = deals ? deals.filter(deal => deal.stage === 'invested').length : 0;
     const investmentRate = totalDeals > 0 ? Math.round((investedDeals / totalDeals) * 100) : 0;
     
-    // Calculate total AUM based on actual allocations
+    // Calculate total AUM efficiently with single batch query
     let totalAum = 0;
     if (funds && funds.length > 0) {
-      const storage = StorageFactory.getStorage();
-      // Get all allocations for all funds
-      const allAllocations = await Promise.all(funds.map(fund => 
-        storage.getAllocationsByFund(fund.id)
-      ));
-      // Flatten the array of allocations and sum them up
-      totalAum = allAllocations.flat().reduce((sum, allocation) => sum + allocation.amount, 0);
+      // Get all allocations in a single optimized query instead of N+1 queries
+      const fundIds = funds.map(fund => fund.id);
+      const allAllocations = await storage.getAllocationsBatch(fundIds);
+      totalAum = allAllocations.reduce((sum, allocation) => sum + allocation.amount, 0);
     }
     
     // Calculate trends based on real data patterns
