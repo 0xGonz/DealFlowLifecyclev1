@@ -154,13 +154,10 @@ const SimpleDocumentViewer = ({ documentId, documentName, fileType }: SimpleDocu
     <Card className="w-full h-full flex flex-col">
       <CardHeader className="flex-shrink-0 pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
             <Icon className="w-5 h-5 text-blue-600" />
-            <div>
-              <div className="font-semibold">{documentName}</div>
-              <div className="text-sm text-gray-500 font-normal">{getFileTypeLabel()}</div>
-            </div>
-          </CardTitle>
+            <span className="font-semibold">{documentName}</span>
+          </div>
           
           <div className="flex items-center gap-2">
             {/* PDF Controls */}
