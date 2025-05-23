@@ -3,6 +3,8 @@ import React, { createContext, useContext, useState, Dispatch, SetStateAction } 
 export interface DocMeta {
   id: number;
   name: string;
+  fileName: string;
+  fileType: string;
   downloadUrl: string;
 }
 
