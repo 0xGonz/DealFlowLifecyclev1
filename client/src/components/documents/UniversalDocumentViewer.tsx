@@ -13,6 +13,8 @@ interface UniversalDocumentViewerProps {
 
 // Document type detection and configuration
 const getDocumentConfig = (fileName: string, fileType?: string) => {
+  if (!fileName) return { type: 'document', extensions: [], icon: FileText, canPreview: false, viewerType: 'download', color: 'text-gray-600', aiCategory: 'document', description: 'Document' };
+  
   const extension = fileName.toLowerCase().split('.').pop() || '';
   const name = fileName.toLowerCase();
   
