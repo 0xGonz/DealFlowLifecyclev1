@@ -78,6 +78,7 @@ export interface IStorage {
   createFundAllocation(allocation: InsertFundAllocation): Promise<FundAllocation>;
   getAllocationsByFund(fundId: number): Promise<FundAllocation[]>;
   getAllocationsByDeal(dealId: number): Promise<FundAllocation[]>;
+  getAllocationsBatch(fundIds: number[]): Promise<FundAllocation[]>;
   getFundAllocation(id: number): Promise<FundAllocation | undefined>;
   updateFundAllocation(id: number, allocation: Partial<InsertFundAllocation>): Promise<FundAllocation | undefined>;
   deleteFundAllocation(id: number): Promise<boolean>;

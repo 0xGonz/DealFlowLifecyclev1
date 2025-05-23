@@ -65,7 +65,7 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
         totalFundSize: totalFundSize,
         allocationCount: validAllocations.length
       };
-    }));
+    });
     
     res.json(fundsWithCorrectAum);
   } catch (error) {
