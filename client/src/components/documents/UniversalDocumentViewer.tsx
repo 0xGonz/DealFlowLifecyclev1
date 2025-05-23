@@ -20,12 +20,12 @@ const getDocumentConfig = (fileName: string, fileType?: string) => {
   
   // Investment document categories for AI analysis
   const configs = {
-    // Spreadsheets - Critical for financial analysis
+    // Spreadsheets - Critical for financial analysis (Download only due to external service limitations)
     excel: {
       extensions: ['xlsx', 'xls', 'xlsm'],
       icon: FileSpreadsheet,
-      canPreview: true,
-      viewerType: 'excel',
+      canPreview: false,
+      viewerType: 'download',
       color: 'text-green-600',
       aiCategory: 'financial-model',
       description: 'Financial Model/Spreadsheet'
