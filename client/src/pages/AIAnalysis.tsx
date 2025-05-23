@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Bot, Send, FileText, Database, TrendingUp, Loader2, Brain, Search, Sparkles } from 'lucide-react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useToast } from "@/hooks/use-toast";
+import FormattedText from "@/components/common/FormattedText";
 import AppLayout from "@/components/layout/AppLayout";
 
 interface Deal {
@@ -290,9 +291,10 @@ export default function AIAnalysis() {
                           </div>
                         )}
                         
-                        <div className="whitespace-pre-wrap text-sm leading-relaxed">
-                          {message.content}
-                        </div>
+                        <FormattedText 
+                          content={message.content}
+                          className="text-sm leading-relaxed"
+                        />
                         
                         {message.context && (
                           <div className="mt-4 pt-4 border-t border-gray-200">
