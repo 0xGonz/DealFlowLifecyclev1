@@ -3,18 +3,18 @@
  * Implements enterprise-grade modularity and separation of concerns
  */
 
-// Core business logic services
-export { DealService } from './deal.service';
-export { FundService } from './fund.service';
+// Core business logic services (temporarily commented out for deployment)
+// export { DealService } from './deal.service';
+// export { FundService } from './fund.service';
 // TODO: Implement these services
 // export { DocumentService } from './document.service';
 // export { NotificationService } from './notification.service';
 // export { AnalyticsService } from './analytics.service';
 
 // Infrastructure services
-export { CacheService } from './cache.service';
+export { AuthorizationService } from './authorization.service';
 export { ValidationService } from './validation.service';
-// export { AuditService } from './audit.service';
+export { CacheService } from './cache.service';
 export { MetricsService } from './metrics.service';
 
 // TODO: Implement these services
