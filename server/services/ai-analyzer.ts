@@ -239,6 +239,13 @@ export class AIAnalyzer {
   }
 
   /**
+   * Get deal context for API endpoints
+   */
+  async getDealContext(dealId: number): Promise<DealContext> {
+    return await AIAnalyzer.extractDealContext(dealId);
+  }
+
+  /**
    * Format deal context into a comprehensive prompt for AI analysis
    */
   static formatDealContextForAI(context: DealContext): string {

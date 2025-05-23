@@ -10,6 +10,31 @@ const analysisRequestSchema = z.object({
   query: z.string().optional()
 });
 
+// Get deal context for AI analysis
+router.get('/deals/:dealId/context', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const dealId = parseInt(req.params.dealId);
+    if (isNaN(dealId)) {
+      return res.status(400).json({ message: 'Invalid deal ID' });
+    }
+
+    const context = await AIAnalyzer.extractDealContext(dealId);
+    
+    res.json({
+      success: true,
+      dealId,
+      context,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Error getting deal context:', error);
+    res.status(500).json({ 
+      message: 'Failed to get deal context',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 // Get comprehensive AI analysis for a specific deal
 router.post('/deals/:dealId/analyze', requireAuth, async (req: Request, res: Response) => {
   try {
