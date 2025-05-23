@@ -5,11 +5,10 @@ import { useEffect } from 'react';
 interface Document {
   id: number;
   fileName: string;
+  fileType: string;
   fileSize: number;
   documentType: string;
-  createdAt: string;
-  documentUrl: string;
-  downloadUrl: string;
+  uploadedAt: string;
 }
 
 /**
@@ -28,10 +27,12 @@ export function useDealDocuments(dealId: number) {
   // Update docs state when data changes
   useEffect(() => {
     if (data && Array.isArray(data)) {
-      // Convert API data to DocMeta format
+      // Convert API data to DocMeta format with proper file type info
       const docMetas: DocMeta[] = data.map(doc => ({
         id: doc.id,
         name: doc.fileName,
+        fileName: doc.fileName,
+        fileType: doc.fileType,
         downloadUrl: `/api/documents/${doc.id}/download`,
       }));
       
