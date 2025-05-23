@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Download, FileText, FileSpreadsheet, Eye, ExternalLink } from 'lucide-react';
+import { Download, FileText, FileSpreadsheet, Eye, ZoomIn, ZoomOut, RotateCw } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 
@@ -12,6 +12,9 @@ interface SimpleDocumentViewerProps {
 
 const SimpleDocumentViewer = ({ documentId, documentName, fileType }: SimpleDocumentViewerProps) => {
   const { toast } = useToast();
+  const [zoom, setZoom] = useState(100);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const getFileIcon = () => {
     if (!fileType) return FileText;
@@ -32,83 +35,186 @@ const SimpleDocumentViewer = ({ documentId, documentName, fileType }: SimpleDocu
 
   const handleDownload = () => {
     const downloadUrl = `/api/documents/${documentId}/download`;
-    window.open(downloadUrl, '_blank');
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = documentName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
     toast({
       title: "Download Started",
       description: `Downloading ${documentName}`,
     });
   };
 
-  const handleViewInBrowser = () => {
-    const viewUrl = `/api/documents/${documentId}/download`;
-    window.open(viewUrl, '_blank');
-    toast({
-      title: "Opening Document",
-      description: `Opening ${documentName} in new tab`,
-    });
+  const handleZoomIn = () => setZoom(prev => Math.min(prev + 25, 200));
+  const handleZoomOut = () => setZoom(prev => Math.max(prev - 25, 50));
+
+  const renderDocumentViewer = () => {
+    const documentUrl = `/api/documents/${documentId}/download`;
+    const fileName = documentName.toLowerCase();
+
+    // PDF Viewer
+    if (fileName.includes('.pdf')) {
+      return (
+        <div className="w-full h-full bg-gray-100 rounded-lg overflow-hidden">
+          <iframe
+            src={`${documentUrl}#zoom=${zoom}`}
+            className="w-full h-full border-0"
+            title={documentName}
+            onLoad={() => setLoading(false)}
+            onError={() => {
+              setError('Failed to load PDF document');
+              setLoading(false);
+            }}
+          />
+        </div>
+      );
+    }
+
+    // Excel/Spreadsheet Viewer
+    if (fileName.includes('.xlsx') || fileName.includes('.xls') || fileName.includes('.csv')) {
+      const viewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(window.location.origin + documentUrl)}`;
+      
+      return (
+        <div className="w-full h-full bg-gray-50 rounded-lg overflow-hidden">
+          <iframe
+            src={viewerUrl}
+            className="w-full h-full border-0"
+            title={documentName}
+            onLoad={() => setLoading(false)}
+            onError={() => {
+              setError('Failed to load spreadsheet document');
+              setLoading(false);
+            }}
+          />
+        </div>
+      );
+    }
+
+    // Word Document Viewer
+    if (fileName.includes('.docx') || fileName.includes('.doc')) {
+      const viewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(window.location.origin + documentUrl)}`;
+      
+      return (
+        <div className="w-full h-full bg-gray-50 rounded-lg overflow-hidden">
+          <iframe
+            src={viewerUrl}
+            className="w-full h-full border-0"
+            title={documentName}
+            onLoad={() => setLoading(false)}
+            onError={() => {
+              setError('Failed to load Word document');
+              setLoading(false);
+            }}
+          />
+        </div>
+      );
+    }
+
+    // PowerPoint Viewer
+    if (fileName.includes('.pptx') || fileName.includes('.ppt')) {
+      const viewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(window.location.origin + documentUrl)}`;
+      
+      return (
+        <div className="w-full h-full bg-gray-50 rounded-lg overflow-hidden">
+          <iframe
+            src={viewerUrl}
+            className="w-full h-full border-0"
+            title={documentName}
+            onLoad={() => setLoading(false)}
+            onError={() => {
+              setError('Failed to load PowerPoint document');
+              setLoading(false);
+            }}
+          />
+        </div>
+      );
+    }
+
+    // Fallback for other file types
+    return (
+      <div className="w-full h-full bg-gray-50 rounded-lg flex items-center justify-center">
+        <div className="text-center">
+          <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-600 mb-4">Preview not available for this file type</p>
+          <Button onClick={handleDownload} variant="outline">
+            <Download className="w-4 h-4 mr-2" />
+            Download to View
+          </Button>
+        </div>
+      </div>
+    );
   };
 
   const Icon = getFileIcon();
 
   return (
-    <Card className="w-full h-full">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Icon className="w-5 h-5 text-blue-600" />
-          Document Viewer
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Document Info */}
-        <div className="text-center space-y-4">
-          <div className="mx-auto w-16 h-16 bg-blue-50 rounded-lg flex items-center justify-center">
-            <Icon className="w-8 h-8 text-blue-600" />
-          </div>
-          
-          <div>
-            <h3 className="font-semibold text-lg text-gray-900 mb-1">
-              {documentName}
-            </h3>
-            <p className="text-sm text-gray-500">
-              {getFileTypeLabel()}
-            </p>
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="space-y-3">
-          <Button 
-            onClick={handleViewInBrowser}
-            className="w-full flex items-center gap-2"
-            variant="default"
-          >
-            <ExternalLink className="w-4 h-4" />
-            Open in New Tab
-          </Button>
-          
-          <Button 
-            onClick={handleDownload}
-            className="w-full flex items-center gap-2"
-            variant="outline"
-          >
-            <Download className="w-4 h-4" />
-            Download Document
-          </Button>
-        </div>
-
-        {/* Investment Analysis Ready Note */}
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-          <div className="flex items-start gap-2">
-            <Eye className="w-4 h-4 text-green-600 mt-0.5" />
+    <Card className="w-full h-full flex flex-col">
+      <CardHeader className="flex-shrink-0 pb-3">
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <Icon className="w-5 h-5 text-blue-600" />
             <div>
-              <p className="text-sm font-medium text-green-800">
-                Ready for Analysis
-              </p>
-              <p className="text-xs text-green-700 mt-1">
-                This document is accessible and ready for your investment team's review and analysis.
-              </p>
+              <div className="font-semibold">{documentName}</div>
+              <div className="text-sm text-gray-500 font-normal">{getFileTypeLabel()}</div>
             </div>
+          </CardTitle>
+          
+          <div className="flex items-center gap-2">
+            {/* PDF Controls */}
+            {documentName.toLowerCase().includes('.pdf') && (
+              <>
+                <Button variant="outline" size="sm" onClick={handleZoomOut}>
+                  <ZoomOut className="w-4 h-4" />
+                </Button>
+                <span className="text-sm text-gray-600 px-2">{zoom}%</span>
+                <Button variant="outline" size="sm" onClick={handleZoomIn}>
+                  <ZoomIn className="w-4 h-4" />
+                </Button>
+              </>
+            )}
+            
+            {/* AI Ready Indicator */}
+            <div className="flex items-center gap-1 bg-green-50 border border-green-200 rounded px-2 py-1">
+              <Eye className="w-3 h-3 text-green-600" />
+              <span className="text-xs text-green-700 font-medium">AI Ready</span>
+            </div>
+            
+            {/* Download Button */}
+            <Button variant="outline" size="sm" onClick={handleDownload}>
+              <Download className="w-4 h-4" />
+            </Button>
           </div>
+        </div>
+      </CardHeader>
+      
+      <CardContent className="flex-1 p-4 min-h-0">
+        <div className="w-full h-full relative">
+          {loading && (
+            <div className="absolute inset-0 bg-gray-50 rounded-lg flex items-center justify-center z-10">
+              <div className="text-center">
+                <div className="animate-spin w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full mx-auto mb-2"></div>
+                <p className="text-gray-600">Loading document...</p>
+              </div>
+            </div>
+          )}
+          
+          {error && (
+            <div className="absolute inset-0 bg-red-50 rounded-lg flex items-center justify-center z-10">
+              <div className="text-center">
+                <FileText className="w-16 h-16 text-red-400 mx-auto mb-4" />
+                <p className="text-red-600 mb-4">{error}</p>
+                <Button onClick={handleDownload} variant="outline">
+                  <Download className="w-4 h-4 mr-2" />
+                  Download Instead
+                </Button>
+              </div>
+            </div>
+          )}
+          
+          {renderDocumentViewer()}
         </div>
       </CardContent>
     </Card>
