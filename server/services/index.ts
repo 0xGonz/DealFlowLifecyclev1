@@ -6,21 +6,38 @@
 // Core business logic services
 export { DealService } from './deal.service';
 export { FundService } from './fund.service';
-export { DocumentService } from './document.service';
-export { UserService } from './user.service';
-export { NotificationService } from './notification.service';
-export { AnalyticsService } from './analytics.service';
+// TODO: Implement these services
+// export { DocumentService } from './document.service';
+// export { NotificationService } from './notification.service';
+// export { AnalyticsService } from './analytics.service';
 
 // Infrastructure services
 export { CacheService } from './cache.service';
 export { ValidationService } from './validation.service';
-export { AuditService } from './audit.service';
+// export { AuditService } from './audit.service';
 export { MetricsService } from './metrics.service';
-export { LoggingService } from './logging.service';
 
-// Security services
-export { AuthorizationService } from './authorization.service';
-export { EncryptionService } from './encryption.service';
+// TODO: Implement these services
+// export { EncryptionService } from './encryption.service';
+
+// Temporary LoggingService implementation
+export class LoggingService {
+  static info(message: string, meta?: any) {
+    console.log(`[INFO] ${message}`, meta || '');
+  }
+
+  static error(message: string, error?: any) {
+    console.error(`[ERROR] ${message}`, error || '');
+  }
+
+  static warn(message: string, meta?: any) {
+    console.warn(`[WARN] ${message}`, meta || '');
+  }
+
+  static debug(message: string, meta?: any) {
+    console.debug(`[DEBUG] ${message}`, meta || '');
+  }
+}
 
 /**
  * Service factory for dependency injection
