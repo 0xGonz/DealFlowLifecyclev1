@@ -267,6 +267,27 @@ export const insertNotificationSchema = createInsertSchema(notifications).omit({
   createdAt: true,
 });
 
+// Documents - Investment documents (pitch decks, financial models, legal docs)
+export const documents = pgTable("documents", {
+  id: serial("id").primaryKey(),
+  dealId: integer("deal_id").notNull().references(() => deals.id, { onDelete: "cascade" }),
+  fileName: text("file_name").notNull(),
+  fileType: text("file_type").notNull(),
+  fileSize: integer("file_size").notNull(),
+  filePath: text("file_path").notNull(),
+  uploadedBy: integer("uploaded_by").notNull().references(() => users.id),
+  uploadedAt: timestamp("uploaded_at").notNull().defaultNow(),
+  description: text("description"),
+  documentType: text("document_type", { 
+    enum: ["pitch_deck", "financial_model", "legal_document", "diligence_report", "other"] 
+  }).notNull().default("other"),
+});
+
+export const insertDocumentSchema = createInsertSchema(documents).omit({
+  id: true,
+  uploadedAt: true,
+});
+
 // Capital Calls - Track capital calls for investments
 export const capitalCalls = pgTable("capital_calls", {
   id: serial("id").primaryKey(),
