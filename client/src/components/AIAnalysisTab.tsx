@@ -36,14 +36,14 @@ export default function AIAnalysisTab({ dealId, dealName }: AIAnalysisTabProps) 
 
   // Get deal context to show available data
   const { data: contextData, isLoading: contextLoading } = useQuery({
-    queryKey: ['/api/ai/deals', dealId, 'context'],
+    queryKey: ['/api/v1/ai/deals', dealId, 'context'],
     enabled: !!dealId
   });
 
   // AI Analysis mutation
   const aiAnalysisMutation = useMutation({
     mutationFn: async ({ query }: { query?: string }) => {
-      const response = await fetch(`/api/ai/deals/${dealId}/analyze`, {
+      const response = await fetch(`/api/v1/ai/deals/${dealId}/analyze`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
