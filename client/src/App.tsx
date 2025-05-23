@@ -14,6 +14,7 @@ import Calendar from "@/pages/Calendar";
 import Settings from "@/pages/Settings";
 import Users from "@/pages/Users";
 import AuthPage from "@/pages/auth-page";
+import AIAnalysis from "@/pages/AIAnalysis";
 import StarTest from "@/pages/StarTest";
 import CapitalCalls from "@/pages/CapitalCalls";
 import CapitalCallsByAllocation from "@/pages/CapitalCallsByAllocation";
@@ -32,6 +33,7 @@ function Router() {
       <ProtectedRoute path="/funds/:id" component={FundDetail} />
       <ProtectedRoute path="/deals/:id" component={DealDetail} />
       <ProtectedRoute path="/calendar" component={Calendar} />
+      <ProtectedRoute path="/ai-analysis" component={AIAnalysis} />
       <ProtectedRoute path="/capital-calls" component={CapitalCalls} />
       <ProtectedRoute path="/capital-calls/allocation/:id" component={CapitalCallsByAllocation} />
       <ProtectedRoute path="/settings" component={Settings} />
