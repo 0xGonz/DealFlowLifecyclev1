@@ -43,16 +43,25 @@ export default function AIAnalysisTab({ dealId, dealName }: AIAnalysisTabProps) 
   // AI Analysis mutation
   const aiAnalysisMutation = useMutation({
     mutationFn: async ({ query }: { query?: string }) => {
-      return apiRequest(`/api/ai/deals/${dealId}/analyze`, {
+      const response = await fetch(`/api/ai/deals/${dealId}/analyze`, {
         method: 'POST',
-        body: { query }
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ query })
       });
+      
+      if (!response.ok) {
+        throw new Error('Failed to analyze deal');
+      }
+      
+      return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       const aiMessage: AnalysisMessage = {
         id: `ai-${Date.now()}`,
         type: data.query ? 'ai' : 'analysis',
-        content: data.analysis,
+        content: data.response || data.analysis,
         timestamp: new Date(),
         context: data.context
       };
@@ -145,37 +154,17 @@ export default function AIAnalysisTab({ dealId, dealName }: AIAnalysisTabProps) 
         </div>
 
         {/* Data Context Summary */}
-        {contextData?.summary && (
+        {contextData && (
           <div className="mt-4 p-3 bg-white rounded-lg border">
             <div className="flex items-center gap-2 mb-2">
               <Database className="h-4 w-4 text-gray-500" />
               <span className="text-sm font-medium text-gray-700">Available Data Sources</span>
             </div>
             <div className="flex flex-wrap gap-2">
-              {contextData.summary.dataAvailable.memos > 0 && (
-                <Badge variant="secondary" className="text-xs">
-                  <FileText className="h-3 w-3 mr-1" />
-                  {contextData.summary.dataAvailable.memos} Memos
-                </Badge>
-              )}
-              {contextData.summary.dataAvailable.documents > 0 && (
-                <Badge variant="secondary" className="text-xs">
-                  <FileText className="h-3 w-3 mr-1" />
-                  {contextData.summary.dataAvailable.documents} Documents
-                </Badge>
-              )}
-              {contextData.summary.dataAvailable.extractedDataFiles > 0 && (
-                <Badge variant="secondary" className="text-xs">
-                  <Database className="h-3 w-3 mr-1" />
-                  {contextData.summary.dataAvailable.extractedDataFiles} Data Files
-                </Badge>
-              )}
-              {contextData.summary.dataAvailable.allocations > 0 && (
-                <Badge variant="secondary" className="text-xs">
-                  <TrendingUp className="h-3 w-3 mr-1" />
-                  {contextData.summary.dataAvailable.allocations} Allocations
-                </Badge>
-              )}
+              <Badge variant="secondary" className="text-xs">
+                <FileText className="h-3 w-3 mr-1" />
+                Deal Data Available
+              </Badge>
             </div>
           </div>
         )}

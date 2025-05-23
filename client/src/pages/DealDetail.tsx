@@ -19,6 +19,7 @@ import ClosingEventsList from "@/components/closings/ClosingEventsList";
 import UnifiedCalendarView from "@/components/calendar/UnifiedCalendarView";
 import { CreateMeetingForm } from "@/components/meetings/CreateMeetingForm";
 import { UserAvatar } from "@/components/common/UserAvatar";
+import AIAnalysisTab from "@/components/AIAnalysisTab";
 import { 
   Card, 
   CardHeader, 
@@ -100,7 +101,7 @@ export default function DealDetail() {
   const getActiveTab = () => {
     const searchParams = new URLSearchParams(window.location.search);
     const tab = searchParams.get('tab');
-    return tab === 'timeline' || tab === 'memos' || tab === 'documents' || tab === 'calendar'
+    return tab === 'timeline' || tab === 'memos' || tab === 'documents' || tab === 'calendar' || tab === 'ai-analysis'
       ? tab 
       : 'documents'; // Default tab
   };
@@ -612,6 +613,9 @@ export default function DealDetail() {
               <TabsTrigger value="calendar" className="text-xs sm:text-sm h-8 sm:h-10 px-2 sm:px-4 flex-1">
                 Calendar
               </TabsTrigger>
+              <TabsTrigger value="ai-analysis" className="text-xs sm:text-sm h-8 sm:h-10 px-2 sm:px-4 flex-1">
+                AI Analysis
+              </TabsTrigger>
             </TabsList>
           </div>
           
@@ -721,6 +725,21 @@ export default function DealDetail() {
                       <div className="animate-spin h-8 w-8 border-2 border-primary border-opacity-50 border-t-primary rounded-full mx-auto mb-4"></div>
                       <p>Loading calendar events...</p>
                     </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="ai-analysis">
+            <div className="mt-4">
+              <Card className="h-[calc(100vh-230px)]">
+                <CardContent className="h-full p-0">
+                  {deal && (
+                    <AIAnalysisTab 
+                      dealId={deal.id} 
+                      dealName={deal.name}
+                    />
                   )}
                 </CardContent>
               </Card>
