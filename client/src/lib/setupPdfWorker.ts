@@ -26,12 +26,18 @@ const workerSources = [
 let workerConfigured = false;
 let selectedSource = '';
 
-// Configure the worker synchronously to avoid loading issues
-selectedSource = workerSources[0]; // Use local worker first
-pdfjs.GlobalWorkerOptions.workerSrc = selectedSource;
-workerConfigured = true;
-
-console.log('PDF.js worker configured with local file:', selectedSource);
+// Try to configure the worker but fallback gracefully if it fails
+try {
+  selectedSource = workerSources[0]; // Use local worker first
+  pdfjs.GlobalWorkerOptions.workerSrc = selectedSource;
+  workerConfigured = true;
+  console.log('PDF.js worker configured with local file:', selectedSource);
+} catch (error) {
+  console.warn('PDF worker configuration failed, using fallback mode:', error);
+  // Don't set any worker source to avoid the loop
+  workerConfigured = false;
+  selectedSource = 'fallback-mode';
+}
 
 // Export functions to help components check and manage the worker configuration
 export function getWorkerStatus() {
