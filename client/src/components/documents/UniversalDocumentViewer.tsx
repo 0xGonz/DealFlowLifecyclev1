@@ -272,35 +272,8 @@ export default function UniversalDocumentViewer({ documentId, documentName, file
   };
 
   return (
-    <Card className="w-full h-full border-0 rounded-lg overflow-hidden bg-white">
-      {/* Header with document info and AI-ready metadata */}
-      <div className="flex items-center justify-between p-3 border-b bg-gray-50">
-        <div className="flex items-center gap-2">
-          <IconComponent className={`h-5 w-5 ${docConfig.color}`} />
-          <div>
-            <div className="font-medium text-sm truncate max-w-[300px]" title={documentName}>
-              {documentName}
-            </div>
-            <div className="text-xs text-neutral-500">
-              {docConfig.description} • AI Category: {docConfig.aiCategory}
-            </div>
-          </div>
-        </div>
-        
-        <div className="flex items-center gap-2">
-          <div className="text-xs text-neutral-500 bg-blue-100 px-2 py-1 rounded">
-            AI Ready
-          </div>
-          <Button variant="ghost" size="sm" onClick={handleDownload}>
-            <Download className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-      
-      {/* Document viewer */}
-      <div className="flex-1" style={{ height: 'calc(100% - 60px)' }}>
-        {renderViewer()}
-      </div>
-    </Card>
+    <div className="w-full h-full">
+      {renderViewer()}
+    </div>
   );
 }
