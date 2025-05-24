@@ -276,7 +276,7 @@ export default function AIAnalysis() {
                       <div
                         className={`max-w-[85%] p-5 rounded-2xl ${
                           message.type === 'user'
-                            ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
+                            ? 'bg-emerald-600 text-white'
                             : message.type === 'analysis'
                             ? 'bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200'
                             : 'bg-gray-50 border border-gray-200'
