@@ -294,7 +294,7 @@ export default function AIAnalysis() {
                         
                         <FormattedText 
                           content={message.content}
-                          className="text-sm leading-relaxed"
+                          className="text-sm"
                         />
                         
                         {message.context && (
