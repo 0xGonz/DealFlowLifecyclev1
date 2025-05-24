@@ -9,6 +9,7 @@ import { Bot, Send, FileText, Database, TrendingUp, Loader2, Brain, MessageSquar
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from "@/hooks/use-toast";
+import FormattedText from "@/components/common/FormattedText";
 
 interface AIAnalysisTabProps {
   dealId: number;
@@ -228,8 +229,8 @@ export default function AIAnalysisTab({ dealId, dealName }: AIAnalysisTabProps) 
                     </div>
                   )}
                   
-                  <div className="whitespace-pre-wrap text-sm leading-relaxed">
-                    {message.content}
+                  <div className="text-sm leading-relaxed">
+                    <FormattedText content={message.content} />
                   </div>
                   
                   {message.context && (
