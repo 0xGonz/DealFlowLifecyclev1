@@ -169,54 +169,7 @@ export default function AIAnalysisTab({ dealId, dealName }: AIAnalysisTabProps) 
           </Button>
         </div>
 
-        {/* Documents Section */}
-        {documents && documents.length > 0 && (
-          <div className="mt-4 p-3 bg-white rounded-lg border">
-            <div className="flex items-center gap-2 mb-3">
-              <FileText className="h-4 w-4 text-gray-500" />
-              <span className="text-sm font-medium text-gray-700">Deal Documents</span>
-              <Badge variant="outline" className="text-xs">{documents.length}</Badge>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {documents.map((document: any) => (
-                <div
-                  key={document.id}
-                  onClick={() => {
-                    const userMessage = {
-                      id: Date.now().toString(),
-                      type: 'user' as const,
-                      content: `Analyze document: ${document.fileName}`,
-                      timestamp: new Date()
-                    };
-                    setMessages(prev => [...prev, userMessage]);
-                    setInputValue(`Please analyze the document "${document.fileName}" in detail. Focus on key financial metrics, investment terms, risks, opportunities, and strategic implications.`);
-                  }}
-                  className="flex items-center gap-2 p-2 border rounded-lg cursor-pointer hover:bg-gray-50 hover:border-blue-300 transition-colors"
-                >
-                  {document.fileName.toLowerCase().includes('.pdf') ? (
-                    <FileText className="h-4 w-4 text-red-500 flex-shrink-0" />
-                  ) : (
-                    <FileSpreadsheet className="h-4 w-4 text-green-500 flex-shrink-0" />
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-gray-900 truncate">{document.fileName}</p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Badge variant="secondary" className="text-xs">
-                        {document.fileName.toLowerCase().includes('term sheet') ? 'Term Sheet' :
-                         document.fileName.toLowerCase().includes('pitch') ? 'Pitch Deck' :
-                         document.fileName.toLowerCase().includes('.pdf') ? 'PDF' : 'Spreadsheet'}
-                      </Badge>
-                      <span className="text-xs text-gray-500">
-                        {Math.round(document.fileSize / 1024)} KB
-                      </span>
-                    </div>
-                  </div>
-                  <Eye className="h-4 w-4 text-gray-400" />
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+
 
         {/* Data Context Summary */}
         {contextData && (
@@ -267,6 +220,38 @@ export default function AIAnalysisTab({ dealId, dealName }: AIAnalysisTabProps) 
                 >
                   Investment Thesis
                 </Button>
+                
+                {/* Simple Document Icons */}
+                {documents && documents.length > 0 && documents.map((document: any) => (
+                  <Button
+                    key={document.id}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const userMessage = {
+                        id: Date.now().toString(),
+                        type: 'user' as const,
+                        content: `Analyze document: ${document.fileName}`,
+                        timestamp: new Date()
+                      };
+                      setMessages(prev => [...prev, userMessage]);
+                      setInputValue(`Please analyze the document "${document.fileName}" in detail. Focus on key financial metrics, investment terms, risks, opportunities, and strategic implications.`);
+                    }}
+                    className="flex items-center gap-1"
+                    title={document.fileName}
+                  >
+                    {document.fileName.toLowerCase().includes('.pdf') ? (
+                      <FileText className="h-3 w-3 text-red-500" />
+                    ) : (
+                      <FileSpreadsheet className="h-3 w-3 text-green-500" />
+                    )}
+                    <span className="text-xs">
+                      {document.fileName.length > 12 ? 
+                        document.fileName.substring(0, 12) + '...' : 
+                        document.fileName}
+                    </span>
+                  </Button>
+                ))}
               </div>
             </div>
           ) : (
