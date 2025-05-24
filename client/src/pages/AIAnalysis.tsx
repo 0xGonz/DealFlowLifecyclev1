@@ -276,11 +276,12 @@ export default function AIAnalysis() {
                       <div
                         className={`max-w-[85%] p-5 rounded-2xl ${
                           message.type === 'user'
-                            ? 'bg-emerald-600 text-white'
+                            ? 'text-white'
                             : message.type === 'analysis'
                             ? 'bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200'
                             : 'bg-gray-50 border border-gray-200'
                         }`}
+                        style={message.type === 'user' ? { backgroundColor: 'hsl(var(--primary))' } : {}}
                       >
                         {message.type !== 'user' && (
                           <div className="flex items-center gap-2 mb-3">
