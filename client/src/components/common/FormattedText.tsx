@@ -58,7 +58,8 @@ export function FormattedText({ content, className = '' }: FormattedTextProps) {
 
   return (
     <div 
-      className={`prose prose-sm max-w-none [&>*]:text-inherit ${className}`}
+      className={`prose prose-sm max-w-none prose-invert ${className}`}
+      style={{ color: 'inherit' }}
       dangerouslySetInnerHTML={{ 
         __html: formatText(content) 
       }}

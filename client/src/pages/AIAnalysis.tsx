@@ -274,7 +274,7 @@ export default function AIAnalysis() {
                       className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
                     >
                       <div
-                        className={`max-w-[85%] p-5 rounded-2xl ${
+                        className={`max-w-[80%] p-4 rounded-lg ${
                           message.type === 'user'
                             ? 'text-white'
                             : message.type === 'analysis'
@@ -284,9 +284,9 @@ export default function AIAnalysis() {
                         style={message.type === 'user' ? { backgroundColor: 'hsl(var(--primary))' } : {}}
                       >
                         {message.type !== 'user' && (
-                          <div className="flex items-center gap-2 mb-3">
-                            <Bot className="h-5 w-5 text-blue-600" />
-                            <span className="text-sm font-medium text-gray-700">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Bot className="h-4 w-4 text-blue-600" />
+                            <span className="text-xs font-medium text-gray-600">
                               {message.type === 'analysis' ? 'AI Investment Analysis' : 'AI Assistant'}
                             </span>
                           </div>
