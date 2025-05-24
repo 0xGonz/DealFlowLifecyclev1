@@ -22,21 +22,21 @@ export function FormattedText({ content, className = '' }: FormattedTextProps) {
     formatted = formatted.replace(/\*([^*]+)\*/g, '<em class="italic text-gray-800">$1</em>');
     
     // Convert bullet points (- item -> <li>)
-    formatted = formatted.replace(/^- (.+)$/gm, '<li class="text-gray-700 mb-1">$1</li>');
+    formatted = formatted.replace(/^- (.+)$/gm, '<li class="text-gray-700 mb-1" style="list-style: none; margin-left: 0; padding-left: 0;">• $1</li>');
     
     // Wrap consecutive <li> elements in <ul>
     formatted = formatted.replace(/(<li[^>]*>.*?<\/li>\s*)+/gs, (match) => {
-      return `<ul class="list-disc list-inside space-y-1 my-2">${match}</ul>`;
+      return `<ul class="space-y-1 my-2" style="margin-left: 0; padding-left: 0;">${match}</ul>`;
     });
     
     // Convert numbered lists (1. item -> <li>)
-    formatted = formatted.replace(/^\d+\. (.+)$/gm, '<li class="text-gray-700 mb-1">$1</li>');
+    formatted = formatted.replace(/^\d+\. (.+)$/gm, '<li class="text-gray-700 mb-1" style="list-style: none; margin-left: 0; padding-left: 0;">• $1</li>');
     
     // Wrap consecutive numbered <li> elements in <ol>
     formatted = formatted.replace(/(<li[^>]*>.*?<\/li>\s*)+/gs, (match) => {
       // Only convert to <ol> if it wasn't already wrapped in <ul>
       if (!match.includes('<ul')) {
-        return `<ol class="list-decimal list-inside space-y-1 my-2">${match}</ol>`;
+        return `<ol class="space-y-1 my-2" style="margin-left: 0; padding-left: 0;">${match}</ol>`;
       }
       return match;
     });
@@ -58,7 +58,7 @@ export function FormattedText({ content, className = '' }: FormattedTextProps) {
 
   return (
     <div 
-      className={`prose prose-sm max-w-none prose-invert ${className}`}
+      className={`max-w-none ${className}`}
       style={{ color: 'inherit' }}
       dangerouslySetInnerHTML={{ 
         __html: formatText(content) 
