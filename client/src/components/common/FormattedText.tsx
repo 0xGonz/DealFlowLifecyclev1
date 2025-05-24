@@ -43,14 +43,14 @@ export function FormattedText({ content, className = '' }: FormattedTextProps) {
     
     // Clean up excessive line breaks and convert remaining ones
     formatted = formatted.replace(/\n{3,}/g, '\n\n'); // Reduce multiple line breaks
-    formatted = formatted.replace(/\n\n/g, '</p><p class="mb-2">');
+    formatted = formatted.replace(/\n\n/g, '</p><p class="mb-1">');
     formatted = formatted.replace(/\n/g, '<br>');
     
     // Wrap in paragraph tags if not already wrapped in HTML
     if (formatted && !formatted.includes('<')) {
-      formatted = `<p class="mb-2">${formatted}</p>`;
+      formatted = `<p class="mb-1">${formatted}</p>`;
     } else if (formatted && !formatted.startsWith('<')) {
-      formatted = `<p class="mb-2">${formatted}</p>`;
+      formatted = `<p class="mb-1">${formatted}</p>`;
     }
     
     return formatted;
