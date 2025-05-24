@@ -617,9 +617,7 @@ export default function DealDetail() {
               <TabsTrigger value="ai-analysis" className="text-xs sm:text-sm h-8 sm:h-10 px-2 sm:px-4 flex-1">
                 AI Analysis
               </TabsTrigger>
-              <TabsTrigger value="document-analysis" className="text-xs sm:text-sm h-8 sm:h-10 px-2 sm:px-4 flex-1">
-                Document Analysis
-              </TabsTrigger>
+
             </TabsList>
           </div>
           
@@ -750,16 +748,7 @@ export default function DealDetail() {
             </div>
           </TabsContent>
 
-          <TabsContent value="document-analysis">
-            <div className="mt-4">
-              {deal && (
-                <DocumentAnalysisPanel 
-                  dealId={Number(dealId)} 
-                  dealName={deal.name} 
-                />
-              )}
-            </div>
-          </TabsContent>
+
 
         </Tabs>
       </div>
