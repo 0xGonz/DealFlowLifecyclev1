@@ -28,14 +28,14 @@ export function DocumentAnalysisPanel({ dealId, dealName }: DocumentAnalysisPane
 
   // Fetch documents for this deal
   const { data: documents = [], isLoading: documentsLoading } = useQuery({
-    queryKey: ['/api/documents/deal', dealId],
+    queryKey: [`/api/documents/deal/${dealId}`],
     enabled: !!dealId
   });
 
   // AI analysis mutation for specific documents
   const analyzeDocumentMutation = useMutation({
     mutationFn: async (documentId: number) => {
-      const response = await fetch(`/api/v1/ai/deals/${dealId}/analyze`, {
+      const response = await fetch(`/api/v1/ai-analysis/deals/${dealId}/analyze`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
