@@ -20,6 +20,7 @@ import UnifiedCalendarView from "@/components/calendar/UnifiedCalendarView";
 import { CreateMeetingForm } from "@/components/meetings/CreateMeetingForm";
 import { UserAvatar } from "@/components/common/UserAvatar";
 import AIAnalysisTab from "@/components/AIAnalysisTab";
+import { DocumentAnalysisPanel } from "@/components/DocumentAnalysisPanel";
 import { 
   Card, 
   CardHeader, 
@@ -616,6 +617,9 @@ export default function DealDetail() {
               <TabsTrigger value="ai-analysis" className="text-xs sm:text-sm h-8 sm:h-10 px-2 sm:px-4 flex-1">
                 AI Analysis
               </TabsTrigger>
+              <TabsTrigger value="document-analysis" className="text-xs sm:text-sm h-8 sm:h-10 px-2 sm:px-4 flex-1">
+                Document Analysis
+              </TabsTrigger>
             </TabsList>
           </div>
           
@@ -743,6 +747,17 @@ export default function DealDetail() {
                   )}
                 </CardContent>
               </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="document-analysis">
+            <div className="mt-4">
+              {deal && (
+                <DocumentAnalysisPanel 
+                  dealId={Number(dealId)} 
+                  dealName={deal.name} 
+                />
+              )}
             </div>
           </TabsContent>
 
