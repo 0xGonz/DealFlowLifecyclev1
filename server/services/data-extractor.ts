@@ -2,10 +2,12 @@ import * as XLSX from 'xlsx';
 import * as fs from 'fs';
 import * as path from 'path';
 import csv from 'csv-parser';
+const pdfParse = require('pdf-parse');
 
 export interface ExtractedData {
   sheets?: { [sheetName: string]: any[] };
   data?: any[];
+  text?: string; // For PDF text content
   metadata: {
     fileName: string;
     fileType: string;
@@ -13,6 +15,7 @@ export interface ExtractedData {
     totalRows: number;
     totalColumns: number;
     sheetNames?: string[];
+    pageCount?: number; // For PDFs
   };
 }
 
@@ -101,6 +104,31 @@ export class DataExtractor {
   }
 
   /**
+   * Extract text from PDF files
+   */
+  static async extractPdfData(filePath: string, fileName: string): Promise<ExtractedData> {
+    try {
+      const dataBuffer = fs.readFileSync(filePath);
+      const pdfData = await pdfParse(dataBuffer);
+      
+      return {
+        text: pdfData.text,
+        metadata: {
+          fileName,
+          fileType: 'pdf',
+          extractedAt: new Date(),
+          totalRows: 0, // PDFs don't have rows
+          totalColumns: 0, // PDFs don't have columns
+          pageCount: pdfData.numpages
+        }
+      };
+    } catch (error) {
+      console.error(`Error extracting PDF data from ${fileName}:`, error);
+      throw new Error(`Failed to extract PDF data: ${error.message}`);
+    }
+  }
+
+  /**
    * Main extraction method that determines file type and calls appropriate extractor
    */
   static async extractData(filePath: string, fileName: string): Promise<ExtractedData> {
@@ -110,6 +138,8 @@ export class DataExtractor {
       return this.extractExcelData(filePath, fileName);
     } else if (extension === '.csv') {
       return this.extractCSVData(filePath, fileName);
+    } else if (extension === '.pdf') {
+      return this.extractPdfData(filePath, fileName);
     } else {
       throw new Error(`Unsupported file type: ${extension}`);
     }
