@@ -58,7 +58,7 @@ export function FormattedText({ content, className = '' }: FormattedTextProps) {
 
   return (
     <div 
-      className={`prose prose-sm max-w-none ${className}`}
+      className={`prose prose-sm max-w-none [&>*]:text-inherit ${className}`}
       dangerouslySetInnerHTML={{ 
         __html: formatText(content) 
       }}
