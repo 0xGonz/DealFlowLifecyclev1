@@ -147,9 +147,9 @@ export default function AIAnalysis() {
 
   return (
     <AppLayout>
-      <div className="container mx-auto p-6 max-w-7xl">
+      <div className="p-8">
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-6">
           <div className="flex items-center gap-4 mb-4">
             <div className="p-3 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl">
               <Brain className="h-8 w-8 text-white" />
