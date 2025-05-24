@@ -26,7 +26,7 @@ export function FormattedText({ content, className = '' }: FormattedTextProps) {
     
     // Wrap consecutive <li> elements in <ul>
     formatted = formatted.replace(/(<li[^>]*>.*?<\/li>\s*)+/gs, (match) => {
-      return `<ul class="list-disc list-inside space-y-1 my-2 ml-4">${match}</ul>`;
+      return `<ul class="list-disc list-inside space-y-1 my-2">${match}</ul>`;
     });
     
     // Convert numbered lists (1. item -> <li>)
@@ -36,7 +36,7 @@ export function FormattedText({ content, className = '' }: FormattedTextProps) {
     formatted = formatted.replace(/(<li[^>]*>.*?<\/li>\s*)+/gs, (match) => {
       // Only convert to <ol> if it wasn't already wrapped in <ul>
       if (!match.includes('<ul')) {
-        return `<ol class="list-decimal list-inside space-y-1 my-2 ml-4">${match}</ol>`;
+        return `<ol class="list-decimal list-inside space-y-1 my-2">${match}</ol>`;
       }
       return match;
     });
