@@ -28,6 +28,7 @@ export function UserAvatar({ user, size = 'md', className = '' }: UserAvatarProp
       // If this is the current user, use /api/auth/me for most accurate data
       try {
         const res = await fetch('/api/auth/me');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const meData = await res.json();
         if (meData && meData.id === user?.id) {
           console.log('Using /me endpoint data for avatar', meData);
