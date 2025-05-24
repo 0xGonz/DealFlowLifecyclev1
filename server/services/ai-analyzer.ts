@@ -168,9 +168,9 @@ export class AIAnalyzer {
       
       // Analyze closings
       const upcomingClosings = closingSchedules
-        .filter((cs: any) => new Date(cs.expectedDate || cs.targetDate) > now)
+        .filter((cs: any) => new Date(cs.scheduledDate) > now)
         .sort((a: any, b: any) => 
-          new Date(a.expectedDate || a.targetDate).getTime() - new Date(b.expectedDate || b.targetDate).getTime()
+          new Date(a.scheduledDate).getTime() - new Date(b.scheduledDate).getTime()
         );
 
       // Create comprehensive timeline of recent activity (last 90 days)
@@ -191,8 +191,8 @@ export class AIAnalyzer {
         ...closingSchedules.map((cs: any) => ({
           ...cs,
           type: 'closing',
-          date: cs.expectedDate || cs.targetDate,
-          title: cs.milestone || 'Closing Event'
+          date: cs.scheduledDate,
+          title: cs.eventName || 'Closing Event'
         }))
       ]
       .filter((item: any) => item.date && new Date(item.date) >= recentCutoff)
