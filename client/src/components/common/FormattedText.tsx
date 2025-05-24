@@ -21,25 +21,11 @@ export function FormattedText({ content, className = '' }: FormattedTextProps) {
     // Convert italic text (*text* -> <em>)
     formatted = formatted.replace(/\*([^*]+)\*/g, '<em class="italic text-gray-800">$1</em>');
     
-    // Convert bullet points (- item -> <li>)
-    formatted = formatted.replace(/^- (.+)$/gm, '<li class="text-gray-700 mb-1" style="list-style: none; margin-left: 0; padding-left: 0;">• $1</li>');
+    // Convert bullet points (- item -> simple div)
+    formatted = formatted.replace(/^- (.+)$/gm, '<div class="text-gray-700 mb-1">• $1</div>');
     
-    // Wrap consecutive <li> elements in <ul>
-    formatted = formatted.replace(/(<li[^>]*>.*?<\/li>\s*)+/gs, (match) => {
-      return `<ul class="space-y-1 my-2" style="margin-left: 0; padding-left: 0;">${match}</ul>`;
-    });
-    
-    // Convert numbered lists (1. item -> <li>)
-    formatted = formatted.replace(/^\d+\. (.+)$/gm, '<li class="text-gray-700 mb-1" style="list-style: none; margin-left: 0; padding-left: 0;">• $1</li>');
-    
-    // Wrap consecutive numbered <li> elements in <ol>
-    formatted = formatted.replace(/(<li[^>]*>.*?<\/li>\s*)+/gs, (match) => {
-      // Only convert to <ol> if it wasn't already wrapped in <ul>
-      if (!match.includes('<ul')) {
-        return `<ol class="space-y-1 my-2" style="margin-left: 0; padding-left: 0;">${match}</ol>`;
-      }
-      return match;
-    });
+    // Convert numbered lists (1. item -> simple div)
+    formatted = formatted.replace(/^\d+\. (.+)$/gm, '<div class="text-gray-700 mb-1">• $1</div>');
     
     // Clean up excessive line breaks and convert remaining ones
     formatted = formatted.replace(/\n{3,}/g, '\n\n'); // Reduce multiple line breaks
