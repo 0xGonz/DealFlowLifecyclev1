@@ -292,10 +292,11 @@ export default function AIAnalysis() {
                           </div>
                         )}
                         
-                        <FormattedText 
-                          content={message.content}
-                          className="text-sm"
-                        />
+                        <div className={`text-sm ${message.type === 'user' ? 'text-white' : ''}`}>
+                          <FormattedText 
+                            content={message.content}
+                          />
+                        </div>
                         
                         {message.context && (
                           <div className="mt-4 pt-4 border-t border-gray-200">

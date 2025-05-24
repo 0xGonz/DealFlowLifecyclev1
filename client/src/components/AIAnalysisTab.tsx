@@ -230,7 +230,7 @@ export default function AIAnalysisTab({ dealId, dealName }: AIAnalysisTabProps) 
                     </div>
                   )}
                   
-                  <div className="text-sm leading-relaxed">
+                  <div className={`text-sm ${message.type === 'user' ? 'text-white' : ''}`}>
                     <FormattedText content={message.content} />
                   </div>
                   
