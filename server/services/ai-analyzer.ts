@@ -81,30 +81,31 @@ export class AIAnalyzer {
     // Get comprehensive calendar context for this deal
     const calendar = await AIAnalyzer.extractCalendarContext(dealId, storage);
     
-    // Extract data from Excel/CSV documents
+    // Extract data from ALL document types (Excel/CSV/PDF)
     const extractedData: any[] = [];
     for (const doc of documents) {
       const extension = path.extname(doc.fileName).toLowerCase();
-      if (['.xlsx', '.xls', '.xlsm', '.csv'].includes(extension)) {
-        try {
-          // Find the actual file path
-          const UPLOAD_PATH = process.env.UPLOAD_PATH || './uploads';
-          const possiblePaths = [
-            path.resolve(UPLOAD_PATH, 'deals', dealId.toString(), doc.fileName),
-            path.resolve(UPLOAD_PATH, dealId.toString(), doc.fileName),
-            path.resolve(UPLOAD_PATH, doc.fileName),
-            path.resolve(doc.filePath)
-          ];
-          
-          let actualFilePath = null;
-          for (const testPath of possiblePaths) {
-            if (fs.existsSync(testPath)) {
-              actualFilePath = testPath;
-              break;
-            }
+      try {
+        // Find the actual file path
+        const UPLOAD_PATH = process.env.UPLOAD_PATH || './uploads';
+        const possiblePaths = [
+          path.resolve(UPLOAD_PATH, 'deals', dealId.toString(), doc.fileName),
+          path.resolve(UPLOAD_PATH, dealId.toString(), doc.fileName),
+          path.resolve(UPLOAD_PATH, doc.fileName),
+          path.resolve(doc.filePath)
+        ];
+        
+        let actualFilePath = null;
+        for (const testPath of possiblePaths) {
+          if (fs.existsSync(testPath)) {
+            actualFilePath = testPath;
+            break;
           }
-          
-          if (actualFilePath) {
+        }
+        
+        if (actualFilePath) {
+          if (['.xlsx', '.xls', '.xlsm', '.csv'].includes(extension)) {
+            // Extract structured data from Excel/CSV
             const data = await DataExtractor.extractData(actualFilePath, doc.fileName);
             extractedData.push({
               documentId: doc.id,
@@ -113,10 +114,24 @@ export class AIAnalyzer {
               extractedData: data
             });
             console.log(`📊 Extracted data from ${doc.fileName}: ${data.metadata.totalRows} rows`);
+          } else if (extension === '.pdf') {
+            // Extract text content from PDF documents
+            const pdfParse = await import('pdf-parse');
+            const pdfBuffer = fs.readFileSync(actualFilePath);
+            const pdfData = await pdfParse.default(pdfBuffer);
+            
+            extractedData.push({
+              documentId: doc.id,
+              fileName: doc.fileName,
+              documentType: doc.documentType,
+              textContent: pdfData.text,
+              pages: pdfData.numpages
+            });
+            console.log(`📄 Extracted text from PDF ${doc.fileName}: ${pdfData.numpages} pages`);
           }
-        } catch (error) {
-          console.error(`Failed to extract data from ${doc.fileName}:`, error);
         }
+      } catch (error) {
+        console.error(`Failed to extract data from ${doc.fileName}:`, error);
       }
     }
     
@@ -299,13 +314,22 @@ export class AIAnalyzer {
       });
     }
 
-    // Extracted Financial Data
+    // Extracted Document Content and Financial Data
     if (extractedData.length > 0) {
-      prompt += `## FINANCIAL DATA EXTRACTED FROM DOCUMENTS\n`;
+      prompt += `## DOCUMENT CONTENT AND DATA\n`;
       extractedData.forEach((data, index) => {
-        prompt += `### Data from ${data.fileName} (${data.documentType})\n`;
-        prompt += DataExtractor.formatForAI(data.extractedData);
-        prompt += `\n`;
+        if (data.textContent) {
+          // PDF document content
+          prompt += `### ${data.fileName} (PDF Document)\n`;
+          prompt += `**Type:** ${data.documentType}\n`;
+          prompt += `**Pages:** ${data.pages}\n`;
+          prompt += `**Content:**\n${data.textContent}\n\n`;
+        } else if (data.extractedData) {
+          // Excel/CSV financial data
+          prompt += `### Data from ${data.fileName} (${data.documentType})\n`;
+          prompt += DataExtractor.formatForAI(data.extractedData);
+          prompt += `\n`;
+        }
       });
     }
 
