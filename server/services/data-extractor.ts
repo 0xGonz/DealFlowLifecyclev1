@@ -152,10 +152,20 @@ export class DataExtractor {
   static formatForAI(extractedData: ExtractedData): string {
     let formatted = `File: ${extractedData.metadata.fileName}\n`;
     formatted += `Type: ${extractedData.metadata.fileType.toUpperCase()}\n`;
-    formatted += `Rows: ${extractedData.metadata.totalRows}, Columns: ${extractedData.metadata.totalColumns}\n`;
+    
+    if (extractedData.metadata.fileType === 'pdf') {
+      formatted += `Pages: ${extractedData.metadata.pageCount || 0}\n`;
+    } else {
+      formatted += `Rows: ${extractedData.metadata.totalRows}, Columns: ${extractedData.metadata.totalColumns}\n`;
+    }
+    
     formatted += `Extracted: ${extractedData.metadata.extractedAt.toISOString()}\n\n`;
 
-    if (extractedData.sheets) {
+    if (extractedData.text) {
+      // PDF file with text content
+      formatted += '=== DOCUMENT CONTENT ===\n';
+      formatted += this.formatPdfForAI(extractedData.text);
+    } else if (extractedData.sheets) {
       // Excel file with multiple sheets
       for (const [sheetName, sheetData] of Object.entries(extractedData.sheets)) {
         formatted += `=== SHEET: ${sheetName} ===\n`;
@@ -169,6 +179,26 @@ export class DataExtractor {
     }
 
     return formatted;
+  }
+
+  /**
+   * Format PDF text for AI consumption
+   */
+  static formatPdfForAI(text: string): string {
+    if (!text || text.trim().length === 0) return 'No text content available\n';
+    
+    // Clean up the text for better AI processing
+    let formatted = text
+      .replace(/\s+/g, ' ') // Replace multiple spaces with single space
+      .replace(/\n\s*\n/g, '\n\n') // Clean up multiple line breaks
+      .trim();
+    
+    // Limit text length for AI processing (keep first 5000 characters)
+    if (formatted.length > 5000) {
+      formatted = formatted.substring(0, 5000) + '\n... (content truncated)';
+    }
+    
+    return formatted + '\n';
   }
 
   /**
