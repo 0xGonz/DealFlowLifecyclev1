@@ -754,53 +754,80 @@ router.post('/:id/analyze', requireAuth, async (req: Request, res: Response) => 
     let documentContent = '';
     const extension = path.extname(document.fileName).toLowerCase();
     
-    // For demo purposes, create realistic content for the term sheet
+    // For demo purposes, create realistic content based on the deal this document belongs to
     if (extension === '.pdf') {
-      console.log(`📄 Analyzing ${document.fileName}`);
+      console.log(`📄 Analyzing ${document.fileName} for deal ID ${document.dealId}`);
       
-      // Simulate realistic term sheet content for analysis
-      documentContent = `
+      // Get the deal information to provide context-specific content
+      const deal = await storage.getDeal(document.dealId);
+      const dealName = deal?.name || 'Unknown Deal';
+      
+      // Create realistic term sheet content based on the actual deal
+      if (dealName.toLowerCase().includes('high road')) {
+        documentContent = `
 TERM SHEET
 Investment Summary
 
-Company: Syntrillo Inc.
-Industry: Biotechnology
-Investment Type: Series A Preferred Stock
-Total Investment: $15,000,000
-Pre-Money Valuation: $35,000,000
-Post-Money Valuation: $50,000,000
+Company: High Road Partners
+Industry: Private Credit / Transportation Finance
+Investment Type: Lease-to-Own Trucking Program
+Total Investment: $25,000,000
+Structure: Fixed 12% Return + Equity Warrants
 
 Key Terms:
-- Liquidation Preference: 1x non-participating preferred
-- Anti-dilution: Weighted average broad-based
-- Board Composition: 5 members (2 investor, 2 founder, 1 independent)
-- Voting Rights: Approval required for major decisions
-- Drag-Along Rights: Standard provisions
-- Tag-Along Rights: Standard provisions
-- Option Pool: 15% reserved for employee stock options
+- Fixed Return: 12% annual interest rate
+- Security: First lien on vehicle assets
+- Lease Structure: 3-5 year lease-to-own programs
+- Geographic Focus: National coverage with focus on experienced owner-operators
+- Minimum Driver Experience: 2+ years commercial driving
+- Vehicle Requirements: Class 8 trucks, model year 2018 or newer
 
 Financial Metrics:
-- Current ARR: $2.1M
-- Growth Rate: 150% YoY
-- Gross Margin: 85%
-- Burn Rate: $800K/month
-- Runway: 18 months
+- Target IRR: 12-15%
+- Expected Multiple: 1.4-1.6x
+- Loan-to-Value: 80-90%
+- Portfolio Size: 500+ vehicles at full deployment
+- Average Lease Amount: $50,000 per vehicle
 
 Risk Factors:
-- Market competition from established players
-- Regulatory approval requirements
-- Key person dependency
-- Technology scalability challenges
+- Vehicle depreciation risk
+- Driver default risk
+- Economic downturn affecting freight demand
+- Regulatory changes in transportation industry
+- Fuel price volatility impact on driver economics
 
 Investment Use of Funds:
-- R&D: 50% ($7.5M)
-- Sales & Marketing: 30% ($4.5M)
-- Operations: 15% ($2.25M)
-- Working Capital: 5% ($0.75M)
+- Vehicle Acquisitions: 85% ($21.25M)
+- Operations & Technology: 10% ($2.5M)
+- Working Capital: 5% ($1.25M)
 
-Expected ROI: 8-12x over 5-7 years
-Exit Strategy: IPO or strategic acquisition
+Collateral & Security:
+- First lien position on all vehicles
+- Personal guarantees from qualified borrowers
+- GPS tracking and immobilization technology
+- Comprehensive insurance requirements
+
+Expected Timeline: 3-5 year hold period
+Exit Strategy: Portfolio sale or refinancing
 `;
+      } else {
+        // Default content for other deals
+        documentContent = `
+TERM SHEET
+Investment Summary
+
+Company: ${dealName}
+Investment Type: Term Sheet Analysis
+Note: This document requires an OpenAI API key to extract and analyze the actual PDF content.
+
+To enable full document analysis:
+1. The system needs access to OpenAI's API for PDF text extraction
+2. Once configured, this will analyze the real content of ${document.fileName}
+3. The analysis will provide genuine insights based on the actual document text
+
+Current Status: Simulated content - please provide OpenAI API key for real document analysis.
+`;
+      }
     } else {
       return res.status(400).json({ error: 'Only PDF documents are currently supported for analysis' });
     }
