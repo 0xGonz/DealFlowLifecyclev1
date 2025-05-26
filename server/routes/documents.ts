@@ -754,79 +754,21 @@ router.post('/:id/analyze', requireAuth, async (req: Request, res: Response) => 
     let documentContent = '';
     const extension = path.extname(document.fileName).toLowerCase();
     
-    // For demo purposes, create realistic content based on the deal this document belongs to
+    // Extract content from the actual PDF file
     if (extension === '.pdf') {
-      console.log(`📄 Analyzing ${document.fileName} for deal ID ${document.dealId}`);
-      
-      // Get the deal information to provide context-specific content
-      const deal = await storage.getDeal(document.dealId);
-      const dealName = deal?.name || 'Unknown Deal';
-      
-      // Create realistic term sheet content based on the actual deal
-      if (dealName.toLowerCase().includes('high road')) {
-        documentContent = `
-TERM SHEET
-Investment Summary
-
-Company: High Road Partners
-Industry: Private Credit / Transportation Finance
-Investment Type: Lease-to-Own Trucking Program
-Total Investment: $25,000,000
-Structure: Fixed 12% Return + Equity Warrants
-
-Key Terms:
-- Fixed Return: 12% annual interest rate
-- Security: First lien on vehicle assets
-- Lease Structure: 3-5 year lease-to-own programs
-- Geographic Focus: National coverage with focus on experienced owner-operators
-- Minimum Driver Experience: 2+ years commercial driving
-- Vehicle Requirements: Class 8 trucks, model year 2018 or newer
-
-Financial Metrics:
-- Target IRR: 12-15%
-- Expected Multiple: 1.4-1.6x
-- Loan-to-Value: 80-90%
-- Portfolio Size: 500+ vehicles at full deployment
-- Average Lease Amount: $50,000 per vehicle
-
-Risk Factors:
-- Vehicle depreciation risk
-- Driver default risk
-- Economic downturn affecting freight demand
-- Regulatory changes in transportation industry
-- Fuel price volatility impact on driver economics
-
-Investment Use of Funds:
-- Vehicle Acquisitions: 85% ($21.25M)
-- Operations & Technology: 10% ($2.5M)
-- Working Capital: 5% ($1.25M)
-
-Collateral & Security:
-- First lien position on all vehicles
-- Personal guarantees from qualified borrowers
-- GPS tracking and immobilization technology
-- Comprehensive insurance requirements
-
-Expected Timeline: 3-5 year hold period
-Exit Strategy: Portfolio sale or refinancing
-`;
-      } else {
-        // Default content for other deals
-        documentContent = `
-TERM SHEET
-Investment Summary
-
-Company: ${dealName}
-Investment Type: Term Sheet Analysis
-Note: This document requires an OpenAI API key to extract and analyze the actual PDF content.
-
-To enable full document analysis:
-1. The system needs access to OpenAI's API for PDF text extraction
-2. Once configured, this will analyze the real content of ${document.fileName}
-3. The analysis will provide genuine insights based on the actual document text
-
-Current Status: Simulated content - please provide OpenAI API key for real document analysis.
-`;
+      try {
+        console.log(`📄 Extracting content from ${document.fileName}`);
+        const pdfParse = require('pdf-parse');
+        const pdfBuffer = fs.readFileSync(actualFilePath);
+        const pdfData = await pdfParse(pdfBuffer);
+        documentContent = pdfData.text;
+        console.log(`✅ Extracted ${pdfData.text.length} characters from PDF`);
+      } catch (error) {
+        console.error('Error reading PDF:', error);
+        // Fallback: Get deal information for context
+        const deal = await storage.getDeal(document.dealId);
+        const dealName = deal?.name || 'Unknown Deal';
+        documentContent = `Unable to extract content from PDF file. This appears to be a ${document.fileName} document for ${dealName}. The document analysis would require successful PDF parsing to provide detailed insights.`;
       }
     } else {
       return res.status(400).json({ error: 'Only PDF documents are currently supported for analysis' });
