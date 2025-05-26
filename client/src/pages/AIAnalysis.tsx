@@ -52,7 +52,7 @@ export default function AIAnalysis() {
 
   // Fetch documents for the selected deal
   const { data: documents = [], isLoading: documentsLoading } = useQuery({
-    queryKey: ['/api/documents/deal/', selectedDealId],
+    queryKey: [`/api/documents/deal/${selectedDealId}`],
     enabled: !!selectedDealId
   });
 
