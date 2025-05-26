@@ -2,7 +2,7 @@ import * as XLSX from 'xlsx';
 import * as fs from 'fs';
 import * as path from 'path';
 import csv from 'csv-parser';
-const pdfParse = require('pdf-parse');
+// PDF parsing will be imported dynamically when needed
 
 export interface ExtractedData {
   sheets?: { [sheetName: string]: any[] };
