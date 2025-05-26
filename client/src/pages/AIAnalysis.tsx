@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Bot, Send, FileText, Database, TrendingUp, Loader2, Brain, Search, Sparkles } from 'lucide-react';
+import { Bot, Send, FileText, Database, TrendingUp, Loader2, Brain, Search, Sparkles, BarChart3 } from 'lucide-react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useToast } from "@/hooks/use-toast";
 import FormattedText from "@/components/common/FormattedText";
@@ -47,6 +47,12 @@ export default function AIAnalysis() {
   // Get deal context when a deal is selected
   const { data: contextData, isLoading: contextLoading } = useQuery({
     queryKey: ['/api/v1/ai/deals', selectedDealId, 'context'],
+    enabled: !!selectedDealId
+  });
+
+  // Fetch documents for the selected deal
+  const { data: documents = [], isLoading: documentsLoading } = useQuery({
+    queryKey: ['/api/documents/deal/', selectedDealId],
     enabled: !!selectedDealId
   });
 
@@ -241,30 +247,251 @@ export default function AIAnalysis() {
                       Ask me anything about {selectedDeal?.name} or generate a comprehensive investment analysis based on all available data.
                     </p>
                     <div className="flex flex-wrap gap-3 justify-center">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => setInputValue("What are the key investment risks in this deal?")}
-                        className="hover:bg-blue-50 hover:border-blue-300"
-                      >
-                        Key Risks
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => setInputValue("Analyze the financial projections and metrics")}
-                        className="hover:bg-purple-50 hover:border-purple-300"
-                      >
-                        Financial Analysis
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => setInputValue("What's the investment thesis and market opportunity?")}
-                        className="hover:bg-green-50 hover:border-green-300"
-                      >
-                        Investment Thesis
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => setInputValue("What are the key investment risks in this deal?")}
+                          className="hover:bg-blue-50 hover:border-blue-300"
+                        >
+                          Key Risks
+                        </Button>
+                        {documents.length > 0 && documents.map((document: any) => (
+                          <Button
+                            key={document.id}
+                            variant="outline"
+                            size="sm"
+                            onClick={async () => {
+                              const userMessage = {
+                                id: Date.now().toString(),
+                                type: 'user' as const,
+                                content: `Analyze document: ${document.fileName}`,
+                                timestamp: new Date()
+                              };
+                              setMessages(prev => [...prev, userMessage]);
+
+                              try {
+                                const response = await fetch(`/api/v1/document-analysis/deals/${selectedDealId}/documents/${document.id}/analyze`, {
+                                  method: 'POST',
+                                  headers: {
+                                    'Content-Type': 'application/json'
+                                  },
+                                  body: JSON.stringify({ 
+                                    query: `Please analyze the document "${document.fileName}" in detail. Focus on key financial metrics, investment terms, risks, opportunities, and strategic implications.`
+                                  })
+                                });
+                                
+                                if (!response.ok) {
+                                  throw new Error('Failed to analyze document');
+                                }
+                                
+                                const data = await response.json();
+                                
+                                const aiMessage = {
+                                  id: (Date.now() + 1).toString(),
+                                  type: 'ai' as const,
+                                  content: data.response || data.analysis,
+                                  timestamp: new Date(),
+                                  context: {
+                                    dataSourcesUsed: [`Document: ${document.fileName}`],
+                                    dealName: selectedDeal?.name || 'Unknown'
+                                  }
+                                };
+
+                                setMessages(prev => [...prev, aiMessage]);
+                                
+                                toast({
+                                  title: "Document Analysis Complete",
+                                  description: `Generated analysis for ${document.fileName}`,
+                                });
+                                
+                              } catch (error) {
+                                console.error('Document analysis error:', error);
+                                toast({
+                                  title: "Analysis Failed",
+                                  description: "Failed to analyze document",
+                                  variant: "destructive"
+                                });
+                              }
+                            }}
+                            className="flex items-center gap-1"
+                            title={document.fileName}
+                          >
+                            {document.fileName.toLowerCase().includes('.pdf') ? (
+                              <FileText className="h-3 w-3" />
+                            ) : document.fileName.toLowerCase().includes('.xlsx') || document.fileName.toLowerCase().includes('.xls') ? (
+                              <BarChart3 className="h-3 w-3" />
+                            ) : (
+                              <FileText className="h-3 w-3" />
+                            )}
+                            <span className="max-w-[120px] truncate">{document.fileName}</span>
+                          </Button>
+                        ))}
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => setInputValue("Analyze the financial projections and metrics")}
+                          className="hover:bg-purple-50 hover:border-purple-300"
+                        >
+                          Financial Analysis
+                        </Button>
+                        {documents.length > 0 && documents.map((document: any) => (
+                          <Button
+                            key={`fin-${document.id}`}
+                            variant="outline"
+                            size="sm"
+                            onClick={async () => {
+                              const userMessage = {
+                                id: Date.now().toString(),
+                                type: 'user' as const,
+                                content: `Financial analysis of document: ${document.fileName}`,
+                                timestamp: new Date()
+                              };
+                              setMessages(prev => [...prev, userMessage]);
+
+                              try {
+                                const response = await fetch(`/api/v1/document-analysis/deals/${selectedDealId}/documents/${document.id}/analyze`, {
+                                  method: 'POST',
+                                  headers: {
+                                    'Content-Type': 'application/json'
+                                  },
+                                  body: JSON.stringify({ 
+                                    query: `Please provide a detailed financial analysis of "${document.fileName}". Focus on revenue projections, profitability metrics, cash flow analysis, key financial ratios, and investment returns.`
+                                  })
+                                });
+                                
+                                if (!response.ok) {
+                                  throw new Error('Failed to analyze document');
+                                }
+                                
+                                const data = await response.json();
+                                
+                                const aiMessage = {
+                                  id: (Date.now() + 1).toString(),
+                                  type: 'ai' as const,
+                                  content: data.response || data.analysis,
+                                  timestamp: new Date(),
+                                  context: {
+                                    dataSourcesUsed: [`Document: ${document.fileName}`],
+                                    dealName: selectedDeal?.name || 'Unknown'
+                                  }
+                                };
+
+                                setMessages(prev => [...prev, aiMessage]);
+                                
+                                toast({
+                                  title: "Financial Analysis Complete",
+                                  description: `Generated financial analysis for ${document.fileName}`,
+                                });
+                                
+                              } catch (error) {
+                                console.error('Document analysis error:', error);
+                                toast({
+                                  title: "Analysis Failed",
+                                  description: "Failed to analyze document",
+                                  variant: "destructive"
+                                });
+                              }
+                            }}
+                            className="flex items-center gap-1"
+                            title={document.fileName}
+                          >
+                            {document.fileName.toLowerCase().includes('.pdf') ? (
+                              <FileText className="h-3 w-3" />
+                            ) : document.fileName.toLowerCase().includes('.xlsx') || document.fileName.toLowerCase().includes('.xls') ? (
+                              <BarChart3 className="h-3 w-3" />
+                            ) : (
+                              <FileText className="h-3 w-3" />
+                            )}
+                            <span className="max-w-[120px] truncate">{document.fileName}</span>
+                          </Button>
+                        ))}
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => setInputValue("What's the investment thesis and market opportunity?")}
+                          className="hover:bg-green-50 hover:border-green-300"
+                        >
+                          Investment Thesis
+                        </Button>
+                        {documents.length > 0 && documents.map((document: any) => (
+                          <Button
+                            key={`thesis-${document.id}`}
+                            variant="outline"
+                            size="sm"
+                            onClick={async () => {
+                              const userMessage = {
+                                id: Date.now().toString(),
+                                type: 'user' as const,
+                                content: `Investment thesis analysis of document: ${document.fileName}`,
+                                timestamp: new Date()
+                              };
+                              setMessages(prev => [...prev, userMessage]);
+
+                              try {
+                                const response = await fetch(`/api/v1/document-analysis/deals/${selectedDealId}/documents/${document.id}/analyze`, {
+                                  method: 'POST',
+                                  headers: {
+                                    'Content-Type': 'application/json'
+                                  },
+                                  body: JSON.stringify({ 
+                                    query: `Please analyze the investment thesis and strategic opportunity described in "${document.fileName}". Focus on market opportunity, competitive advantages, business model, growth potential, and strategic value proposition.`
+                                  })
+                                });
+                                
+                                if (!response.ok) {
+                                  throw new Error('Failed to analyze document');
+                                }
+                                
+                                const data = await response.json();
+                                
+                                const aiMessage = {
+                                  id: (Date.now() + 1).toString(),
+                                  type: 'ai' as const,
+                                  content: data.response || data.analysis,
+                                  timestamp: new Date(),
+                                  context: {
+                                    dataSourcesUsed: [`Document: ${document.fileName}`],
+                                    dealName: selectedDeal?.name || 'Unknown'
+                                  }
+                                };
+
+                                setMessages(prev => [...prev, aiMessage]);
+                                
+                                toast({
+                                  title: "Investment Thesis Analysis Complete",
+                                  description: `Generated investment thesis analysis for ${document.fileName}`,
+                                });
+                                
+                              } catch (error) {
+                                console.error('Document analysis error:', error);
+                                toast({
+                                  title: "Analysis Failed",
+                                  description: "Failed to analyze document",
+                                  variant: "destructive"
+                                });
+                              }
+                            }}
+                            className="flex items-center gap-1"
+                            title={document.fileName}
+                          >
+                            {document.fileName.toLowerCase().includes('.pdf') ? (
+                              <FileText className="h-3 w-3" />
+                            ) : document.fileName.toLowerCase().includes('.xlsx') || document.fileName.toLowerCase().includes('.xls') ? (
+                              <BarChart3 className="h-3 w-3" />
+                            ) : (
+                              <FileText className="h-3 w-3" />
+                            )}
+                            <span className="max-w-[120px] truncate">{document.fileName}</span>
+                          </Button>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 ) : (
