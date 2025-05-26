@@ -256,12 +256,12 @@ export default function AIAnalysis() {
                         >
                           Key Risks
                         </Button>
-                        {documents.length > 0 && documents.map((document: any) => (
+                        {documents.length > 0 && (
                           <Button
-                            key={document.id}
                             variant="outline"
                             size="sm"
                             onClick={async () => {
+                              const document = documents[0];
                               const userMessage = {
                                 id: Date.now().toString(),
                                 type: 'user' as const,
@@ -277,7 +277,7 @@ export default function AIAnalysis() {
                                     'Content-Type': 'application/json'
                                   },
                                   body: JSON.stringify({ 
-                                    query: `Please analyze the document "${document.fileName}" in detail. Focus on key financial metrics, investment terms, risks, opportunities, and strategic implications.`
+                                    query: `Please analyze the document "${document.fileName}" focusing specifically on key investment risks. Identify potential risk factors, challenges, and concerns that could impact the investment.`
                                   })
                                 });
                                 
@@ -301,8 +301,8 @@ export default function AIAnalysis() {
                                 setMessages(prev => [...prev, aiMessage]);
                                 
                                 toast({
-                                  title: "Document Analysis Complete",
-                                  description: `Generated analysis for ${document.fileName}`,
+                                  title: "Risk Analysis Complete",
+                                  description: `Generated risk analysis for ${document.fileName}`,
                                 });
                                 
                               } catch (error) {
@@ -315,18 +315,18 @@ export default function AIAnalysis() {
                               }
                             }}
                             className="flex items-center gap-1"
-                            title={document.fileName}
+                            title={documents[0]?.fileName}
                           >
-                            {document.fileName.toLowerCase().includes('.pdf') ? (
+                            {documents[0]?.fileName.toLowerCase().includes('.pdf') ? (
                               <FileText className="h-3 w-3" />
-                            ) : document.fileName.toLowerCase().includes('.xlsx') || document.fileName.toLowerCase().includes('.xls') ? (
+                            ) : documents[0]?.fileName.toLowerCase().includes('.xlsx') || documents[0]?.fileName.toLowerCase().includes('.xls') ? (
                               <BarChart3 className="h-3 w-3" />
                             ) : (
                               <FileText className="h-3 w-3" />
                             )}
-                            <span className="max-w-[120px] truncate">{document.fileName}</span>
+                            <span className="max-w-[120px] truncate">{documents[0]?.fileName}</span>
                           </Button>
-                        ))}
+                        )}
                       </div>
                       
                       <div className="flex items-center gap-2">
@@ -338,12 +338,12 @@ export default function AIAnalysis() {
                         >
                           Financial Analysis
                         </Button>
-                        {documents.length > 0 && documents.map((document: any) => (
+                        {documents.length > 0 && (
                           <Button
-                            key={`fin-${document.id}`}
                             variant="outline"
                             size="sm"
                             onClick={async () => {
+                              const document = documents[0];
                               const userMessage = {
                                 id: Date.now().toString(),
                                 type: 'user' as const,
@@ -397,18 +397,18 @@ export default function AIAnalysis() {
                               }
                             }}
                             className="flex items-center gap-1"
-                            title={document.fileName}
+                            title={documents[0]?.fileName}
                           >
-                            {document.fileName.toLowerCase().includes('.pdf') ? (
+                            {documents[0]?.fileName.toLowerCase().includes('.pdf') ? (
                               <FileText className="h-3 w-3" />
-                            ) : document.fileName.toLowerCase().includes('.xlsx') || document.fileName.toLowerCase().includes('.xls') ? (
+                            ) : documents[0]?.fileName.toLowerCase().includes('.xlsx') || documents[0]?.fileName.toLowerCase().includes('.xls') ? (
                               <BarChart3 className="h-3 w-3" />
                             ) : (
                               <FileText className="h-3 w-3" />
                             )}
-                            <span className="max-w-[120px] truncate">{document.fileName}</span>
+                            <span className="max-w-[120px] truncate">{documents[0]?.fileName}</span>
                           </Button>
-                        ))}
+                        )}
                       </div>
                       
                       <div className="flex items-center gap-2">
@@ -420,12 +420,12 @@ export default function AIAnalysis() {
                         >
                           Investment Thesis
                         </Button>
-                        {documents.length > 0 && documents.map((document: any) => (
+                        {documents.length > 0 && (
                           <Button
-                            key={`thesis-${document.id}`}
                             variant="outline"
                             size="sm"
                             onClick={async () => {
+                              const document = documents[0];
                               const userMessage = {
                                 id: Date.now().toString(),
                                 type: 'user' as const,
@@ -479,18 +479,18 @@ export default function AIAnalysis() {
                               }
                             }}
                             className="flex items-center gap-1"
-                            title={document.fileName}
+                            title={documents[0]?.fileName}
                           >
-                            {document.fileName.toLowerCase().includes('.pdf') ? (
+                            {documents[0]?.fileName.toLowerCase().includes('.pdf') ? (
                               <FileText className="h-3 w-3" />
-                            ) : document.fileName.toLowerCase().includes('.xlsx') || document.fileName.toLowerCase().includes('.xls') ? (
+                            ) : documents[0]?.fileName.toLowerCase().includes('.xlsx') || documents[0]?.fileName.toLowerCase().includes('.xls') ? (
                               <BarChart3 className="h-3 w-3" />
                             ) : (
                               <FileText className="h-3 w-3" />
                             )}
-                            <span className="max-w-[120px] truncate">{document.fileName}</span>
+                            <span className="max-w-[120px] truncate">{documents[0]?.fileName}</span>
                           </Button>
-                        ))}
+                        )}
                       </div>
                     </div>
                   </div>
