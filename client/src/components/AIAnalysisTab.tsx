@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -6,25 +6,13 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Bot, Send, FileText, Database, TrendingUp, Loader2, Brain, MessageSquare, FileSpreadsheet, Eye } from 'lucide-react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
-import { useToast } from "@/hooks/use-toast";
+import { useQuery } from '@tanstack/react-query';
 import FormattedText from "@/components/common/FormattedText";
+import { useAIAnalysis, AnalysisMessage } from "@/hooks/useAIAnalysis";
 
 interface AIAnalysisTabProps {
   dealId: number;
   dealName: string;
-}
-
-interface AnalysisMessage {
-  id: string;
-  type: 'user' | 'ai' | 'analysis';
-  content: string;
-  timestamp: Date;
-  context?: {
-    dataSourcesUsed: string[];
-    dealName: string;
-  };
 }
 
 interface Document {
@@ -37,13 +25,25 @@ interface Document {
 }
 
 export default function AIAnalysisTab({ dealId, dealName }: AIAnalysisTabProps) {
-  const [messages, setMessages] = useState<AnalysisMessage[]>([]);
-  const [inputValue, setInputValue] = useState('');
-  const [isGeneratingAnalysis, setIsGeneratingAnalysis] = useState(false);
   const [loadingDocumentId, setLoadingDocumentId] = useState<number | null>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
+
+  // Use the shared AI Analysis hook
+  const {
+    messages,
+    inputValue,
+    setInputValue,
+    sendMessage,
+    generateAnalysis,
+    clearMessages,
+    messagesEndRef,
+    isGeneratingAnalysis,
+    contextData,
+    contextLoading
+  } = useAIAnalysis({
+    dealId,
+    dealName,
+    persistMessages: true
+  });
 
   // Get deal context to show available data
   const { data: contextData, isLoading: contextLoading } = useQuery({
