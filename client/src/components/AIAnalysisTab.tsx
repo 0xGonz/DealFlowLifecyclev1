@@ -227,7 +227,7 @@ export default function AIAnalysisTab({ dealId, dealName }: AIAnalysisTabProps) 
                     key={document.id}
                     variant="outline"
                     size="sm"
-                    onClick={() => {
+                    onClick={async () => {
                       const userMessage = {
                         id: Date.now().toString(),
                         type: 'user' as const,
@@ -235,7 +235,50 @@ export default function AIAnalysisTab({ dealId, dealName }: AIAnalysisTabProps) 
                         timestamp: new Date()
                       };
                       setMessages(prev => [...prev, userMessage]);
-                      setInputValue(`Please analyze the document "${document.fileName}" in detail. Focus on key financial metrics, investment terms, risks, opportunities, and strategic implications.`);
+
+                      try {
+                        const response = await fetch(`/api/v1/document-analysis/deals/${dealId}/documents/${document.id}/analyze`, {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json'
+                          },
+                          body: JSON.stringify({ 
+                            query: `Please analyze the document "${document.fileName}" in detail. Focus on key financial metrics, investment terms, risks, opportunities, and strategic implications.`
+                          })
+                        });
+                        
+                        if (!response.ok) {
+                          throw new Error('Failed to analyze document');
+                        }
+                        
+                        const data = await response.json();
+                        
+                        const aiMessage = {
+                          id: (Date.now() + 1).toString(),
+                          type: 'ai' as const,
+                          content: data.response || data.analysis,
+                          timestamp: new Date(),
+                          context: {
+                            dataSourcesUsed: [`Document: ${document.fileName}`],
+                            dealName: dealName
+                          }
+                        };
+
+                        setMessages(prev => [...prev, aiMessage]);
+                        
+                        toast({
+                          title: "Document Analysis Complete",
+                          description: `Generated analysis for ${document.fileName}`,
+                        });
+                        
+                      } catch (error) {
+                        console.error('Document analysis error:', error);
+                        toast({
+                          title: "Analysis Failed",
+                          description: "Failed to analyze document",
+                          variant: "destructive"
+                        });
+                      }
                     }}
                     className="flex items-center gap-1"
                     title={document.fileName}
