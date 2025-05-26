@@ -45,326 +45,149 @@ export default function AIAnalysisTab({ dealId, dealName }: AIAnalysisTabProps) 
     persistMessages: true
   });
 
-  // Get deal context to show available data
-  const { data: contextData, isLoading: contextLoading } = useQuery({
-    queryKey: ['/api/ai-analysis/deals', dealId, 'context'],
-    enabled: !!dealId
-  });
-
   // Fetch documents for this deal
   const { data: documents = [], isLoading: documentsLoading } = useQuery({
     queryKey: [`/api/documents/deal/${dealId}`],
     enabled: !!dealId
   });
 
-  // AI Analysis mutation
-  const aiAnalysisMutation = useMutation({
-    mutationFn: async ({ query }: { query?: string }) => {
-      const response = await fetch(`/api/ai-analysis/deals/${dealId}/analyze`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ query })
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to analyze deal');
-      }
-      
-      return response.json();
-    },
-    onSuccess: (data: any) => {
-      const aiMessage: AnalysisMessage = {
-        id: `ai-${Date.now()}`,
-        type: data.query ? 'ai' : 'analysis',
-        content: data.response || data.analysis,
-        timestamp: new Date(),
-        context: data.context
-      };
-      setMessages(prev => [...prev, aiMessage]);
-      setIsGeneratingAnalysis(false);
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Analysis Failed",
-        description: error.message || "Failed to generate AI analysis",
-        variant: "destructive"
-      });
-      setIsGeneratingAnalysis(false);
-    }
-  });
-
-  // Auto-scroll to bottom when messages change
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
   const handleSendMessage = () => {
-    if (!inputValue.trim() || aiAnalysisMutation.isPending) return;
-
-    // Add user message
-    const userMessage: AnalysisMessage = {
-      id: `user-${Date.now()}`,
-      type: 'user',
-      content: inputValue.trim(),
-      timestamp: new Date()
-    };
-    setMessages(prev => [...prev, userMessage]);
-
-    // Send to AI
-    aiAnalysisMutation.mutate({ query: inputValue.trim() });
-    setInputValue('');
+    if (!inputValue.trim() || isGeneratingAnalysis) return;
+    sendMessage();
   };
 
   const handleGenerateAnalysis = () => {
-    if (aiAnalysisMutation.isPending) return;
-
-    setIsGeneratingAnalysis(true);
-    
-    const analysisMessage: AnalysisMessage = {
-      id: `analysis-request-${Date.now()}`,
-      type: 'user',
-      content: 'Generate comprehensive investment analysis',
-      timestamp: new Date()
-    };
-    setMessages(prev => [...prev, analysisMessage]);
-
-    // Generate comprehensive analysis without specific query
-    aiAnalysisMutation.mutate({});
+    generateAnalysis();
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
+  const handleDocumentAnalysis = async (document: Document) => {
+    setLoadingDocumentId(document.id);
+    
+    const analysisQuery = `Please analyze the document "${document.fileName}" in detail. Focus on key financial metrics, investment terms, risks, opportunities, and strategic implications.`;
+    await sendMessage(analysisQuery);
+    
+    setLoadingDocumentId(null);
   };
 
   return (
-    <div className="flex flex-col h-full max-h-[800px]">
+    <div className="h-full flex flex-col">
       {/* Header */}
-      <div className="p-6 border-b bg-gradient-to-r from-blue-50 to-purple-50">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Brain className="h-6 w-6 text-blue-600" />
-            </div>
-            <div>
-              <h3 className="text-xl font-semibold text-gray-900">AI Analysis</h3>
-              <p className="text-sm text-gray-600">Ask questions about {dealName}</p>
-            </div>
-          </div>
-          
+      <div className="flex items-center justify-between p-4 border-b">
+        <div className="flex items-center gap-2">
+          <Brain className="h-5 w-5 text-blue-600" />
+          <h3 className="font-semibold">AI Analysis</h3>
+          <Badge variant="secondary">{dealName}</Badge>
+        </div>
+        <div className="flex gap-2">
           <Button 
             onClick={handleGenerateAnalysis}
-            disabled={aiAnalysisMutation.isPending || isGeneratingAnalysis}
-            className="bg-blue-600 hover:bg-blue-700"
+            disabled={isGeneratingAnalysis}
+            variant="outline"
+            size="sm"
           >
-            {(aiAnalysisMutation.isPending || isGeneratingAnalysis) ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            {isGeneratingAnalysis ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Analyzing...
+              </>
             ) : (
-              <TrendingUp className="h-4 w-4 mr-2" />
+              <>
+                <Brain className="h-4 w-4 mr-2" />
+                Investment Thesis
+              </>
             )}
-            Generate Analysis
           </Button>
         </div>
-
-
-
-        {/* Data Context Summary */}
-        {contextData && (
-          <div className="mt-4 p-3 bg-white rounded-lg border">
-            <div className="flex items-center gap-2 mb-2">
-              <Database className="h-4 w-4 text-gray-500" />
-              <span className="text-sm font-medium text-gray-700">Available Data Sources</span>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Badge variant="secondary" className="text-xs">
-                <FileText className="h-3 w-3 mr-1" />
-                Deal Data Available
-              </Badge>
-            </div>
-          </div>
-        )}
       </div>
+
+      {/* Context Panel */}
+      {contextData && (
+        <div className="p-4 bg-gray-50 border-b">
+          <div className="flex items-center gap-2 mb-2">
+            <Database className="h-4 w-4" />
+            <span className="text-sm font-medium">Available Data Sources</span>
+          </div>
+          <div className="flex flex-wrap gap-1">
+            {contextData.dataTypes?.map((type: string) => (
+              <Badge key={type} variant="outline" className="text-xs">
+                {type}
+              </Badge>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Documents Section */}
+      {documents && documents.length > 0 && (
+        <div className="p-4 border-b">
+          <h4 className="text-sm font-medium text-gray-700 mb-2">Analyze Documents:</h4>
+          <div className="flex flex-wrap gap-2">
+            {documents.map((document: Document) => (
+              <Button
+                key={document.id}
+                variant="outline"
+                size="sm"
+                onClick={() => handleDocumentAnalysis(document)}
+                disabled={isGeneratingAnalysis || loadingDocumentId === document.id}
+                className="flex items-center gap-2"
+                title={document.fileName}
+              >
+                {loadingDocumentId === document.id ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : document.fileName.toLowerCase().includes('.pdf') ? (
+                  <FileText className="h-3 w-3" />
+                ) : document.fileName.toLowerCase().includes('.xlsx') || document.fileName.toLowerCase().includes('.xls') ? (
+                  <FileSpreadsheet className="h-3 w-3" />
+                ) : (
+                  <FileText className="h-3 w-3" />
+                )}
+                <span className="max-w-[120px] truncate">{document.fileName}</span>
+              </Button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Messages Area */}
       <ScrollArea className="flex-1 p-4">
         <div className="space-y-4">
           {messages.length === 0 ? (
-            <div className="text-center py-12">
-              <Bot className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h4 className="text-lg font-medium text-gray-900 mb-2">AI Analysis Ready</h4>
-              <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                Ask me anything about this deal or generate a comprehensive investment analysis based on all available data.
-              </p>
-              <div className="flex flex-wrap gap-2 justify-center">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => setInputValue("What are the key risks in this investment?")}
-                >
-                  Key Risks
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => setInputValue("Analyze the financial projections")}
-                >
-                  Financial Analysis
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => setInputValue("What's the investment thesis?")}
-                >
-                  Investment Thesis
-                </Button>
-                
-                {/* Simple Document Icons */}
-                {documents && documents.length > 0 && documents.map((document: any) => (
-                  <Button
-                    key={document.id}
-                    variant="outline"
-                    size="sm"
-                    disabled={loadingDocumentId === document.id}
-                    onClick={async () => {
-                      setLoadingDocumentId(document.id);
-                      
-                      const userMessage = {
-                        id: Date.now().toString(),
-                        type: 'user' as const,
-                        content: `Analyze document: ${document.fileName}`,
-                        timestamp: new Date()
-                      };
-                      setMessages(prev => [...prev, userMessage]);
-
-                      try {
-                        const response = await fetch(`/api/documents/${document.id}/analyze`, {
-                          method: 'POST',
-                          headers: {
-                            'Content-Type': 'application/json'
-                          },
-                          body: JSON.stringify({ 
-                            query: `Please analyze the document "${document.fileName}" in detail. Focus on key financial metrics, investment terms, risks, opportunities, and strategic implications.`
-                          })
-                        });
-                        
-                        if (!response.ok) {
-                          throw new Error('Failed to analyze document');
-                        }
-                        
-                        const data = await response.json();
-                        
-                        const aiMessage = {
-                          id: (Date.now() + 1).toString(),
-                          type: 'ai' as const,
-                          content: data.response || data.analysis,
-                          timestamp: new Date(),
-                          context: {
-                            dataSourcesUsed: [`Document: ${document.fileName}`],
-                            dealName: dealName
-                          }
-                        };
-
-                        setMessages(prev => [...prev, aiMessage]);
-                        
-                        toast({
-                          title: "Document Analysis Complete",
-                          description: `Generated analysis for ${document.fileName}`,
-                        });
-                        
-                      } catch (error) {
-                        console.error('Document analysis error:', error);
-                        toast({
-                          title: "Analysis Failed",
-                          description: "Failed to analyze document",
-                          variant: "destructive"
-                        });
-                      } finally {
-                        setLoadingDocumentId(null);
-                      }
-                    }}
-                    className="flex items-center gap-1"
-                    title={document.fileName}
-                  >
-                    {loadingDocumentId === document.id ? (
-                      <Loader2 className="h-3 w-3 animate-spin text-blue-500" />
-                    ) : document.fileName.toLowerCase().includes('.pdf') ? (
-                      <FileText className="h-3 w-3 text-red-500" />
-                    ) : (
-                      <FileSpreadsheet className="h-3 w-3 text-green-500" />
-                    )}
-                    <span className="text-xs">
-                      {loadingDocumentId === document.id ? (
-                        "Analyzing..."
-                      ) : document.fileName.length > 12 ? (
-                        document.fileName.substring(0, 12) + '...'
-                      ) : (
-                        document.fileName
-                      )}
-                    </span>
-                  </Button>
-                ))}
-              </div>
+            <div className="text-center py-8">
+              <Bot className="h-12 w-12 mx-auto text-blue-300 mb-4" />
+              <h3 className="text-lg font-medium text-gray-700 mb-2">Ready for Analysis</h3>
+              <p className="text-gray-500">Ask questions about {dealName} or generate a comprehensive analysis</p>
             </div>
           ) : (
-            messages.map((message) => (
-              <div
-                key={message.id}
-                className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
-                <div
-                  className={`max-w-[80%] p-4 rounded-lg ${
-                    message.type === 'user'
-                      ? 'text-white'
-                      : message.type === 'analysis'
-                      ? 'bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200'
-                      : 'bg-gray-50 border'
-                  }`}
-                  style={message.type === 'user' ? { backgroundColor: 'hsl(var(--primary))' } : {}}
-                >
-                  {message.type !== 'user' && (
-                    <div className="flex items-center gap-2 mb-2">
-                      <Bot className="h-4 w-4 text-blue-600" />
-                      <span className="text-xs font-medium text-gray-600">
-                        {message.type === 'analysis' ? 'AI Investment Analysis' : 'AI Assistant'}
-                      </span>
-                    </div>
-                  )}
-                  
-                  <div className={`text-sm ${message.type === 'user' ? 'text-white' : ''}`}>
+            messages.map((message: AnalysisMessage) => (
+              <div key={message.id} className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
+                <div className={`max-w-[80%] p-3 rounded-lg ${
+                  message.type === 'user' 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-gray-100 text-gray-900'
+                }`}>
+                  {message.type === 'user' ? (
+                    <p>{message.content}</p>
+                  ) : (
                     <FormattedText content={message.content} />
-                  </div>
-                  
+                  )}
                   {message.context && (
-                    <div className="mt-3 pt-3 border-t border-gray-200">
-                      <div className="flex items-center gap-2 text-xs text-gray-500">
-                        <Database className="h-3 w-3" />
-                        <span>Sources: {message.context.dataSourcesUsed.join(', ')}</span>
-                      </div>
+                    <div className="mt-2 pt-2 border-t border-gray-200/20">
+                      <p className="text-xs opacity-75">
+                        Sources: {message.context.dataSourcesUsed.join(', ')}
+                      </p>
                     </div>
                   )}
-                  
-                  <div className="mt-2 text-xs opacity-60">
-                    {message.timestamp.toLocaleTimeString()}
-                  </div>
                 </div>
               </div>
             ))
           )}
           
-          {aiAnalysisMutation.isPending && (
+          {isGeneratingAnalysis && (
             <div className="flex justify-start">
-              <div className="bg-gray-50 border p-4 rounded-lg max-w-[80%]">
-                <div className="flex items-center gap-2 mb-2">
-                  <Bot className="h-4 w-4 text-blue-600" />
-                  <span className="text-xs font-medium text-gray-600">AI Assistant</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600">
+              <div className="bg-gray-100 p-3 rounded-lg">
+                <div className="flex items-center gap-2">
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Analyzing deal data...
+                  <span>Analyzing...</span>
                 </div>
               </div>
             </div>
@@ -374,27 +197,28 @@ export default function AIAnalysisTab({ dealId, dealName }: AIAnalysisTabProps) 
       </ScrollArea>
 
       {/* Input Area */}
-      <div className="p-4 border-t bg-gray-50">
+      <div className="border-t p-4">
         <div className="flex gap-2">
           <Textarea
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Ask me anything about this deal..."
-            className="flex-1 min-h-[44px] max-h-32 resize-none"
-            disabled={aiAnalysisMutation.isPending}
+            placeholder={`Ask a question about ${dealName}...`}
+            className="flex-1 min-h-[44px] max-h-32"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSendMessage();
+              }
+            }}
           />
-          <Button
+          <Button 
             onClick={handleSendMessage}
-            disabled={!inputValue.trim() || aiAnalysisMutation.isPending}
-            className="px-3"
+            disabled={!inputValue.trim() || isGeneratingAnalysis}
+            size="lg"
           >
             <Send className="h-4 w-4" />
           </Button>
         </div>
-        <p className="text-xs text-gray-500 mt-2">
-          AI analysis is based on this deal's memos, documents, and financial data only.
-        </p>
       </div>
     </div>
   );
