@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
-import { StorageFactory } from '../../storage';
+import { StorageFactory } from '../../storage-factory';
 import { requireAuth } from '../../utils/auth';
-import { AIAnalyzer } from '../../services/ai-analyzer';
+import OpenAI from 'openai';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -21,7 +21,7 @@ router.post('/deals/:dealId/documents/:documentId/analyze', requireAuth, async (
     
     // Get the specific document
     const documents = await storage.getDocumentsByDeal(parseInt(dealId));
-    const document = documents.find(doc => doc.id === parseInt(documentId));
+    const document = documents.find((doc: any) => doc.id === parseInt(documentId));
     
     if (!document) {
       return res.status(404).json({ error: 'Document not found' });
@@ -87,8 +87,28 @@ Please provide a detailed analysis of this document, focusing on:
 
 Base your analysis ONLY on the actual content of this document. Do not reference external deal data unless it's mentioned in the document itself.`;
 
-    // Get AI analysis
-    const analysis = await AIAnalyzer.generateAnalysis(analysisPrompt);
+    // Get AI analysis using OpenAI
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      messages: [
+        {
+          role: "system",
+          content: "You are an expert investment analyst specializing in document analysis for private equity and venture capital investments."
+        },
+        {
+          role: "user",
+          content: analysisPrompt
+        }
+      ],
+      max_tokens: 2000,
+      temperature: 0.3
+    });
+
+    const analysis = response.choices[0].message.content;
     
     console.log(`✅ Generated document analysis for ${document.fileName}`);
     
