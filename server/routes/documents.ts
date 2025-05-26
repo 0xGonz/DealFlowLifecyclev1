@@ -757,7 +757,7 @@ router.post('/:id/analyze', requireAuth, async (req: Request, res: Response) => 
     // Extract content based on file type
     if (extension === '.pdf') {
       try {
-        const pdfParse = (await import('pdf-parse')).default;
+        const pdfParse = require('pdf-parse');
         const pdfBuffer = fs.readFileSync(actualFilePath);
         const pdfData = await pdfParse(pdfBuffer);
         documentContent = pdfData.text;
