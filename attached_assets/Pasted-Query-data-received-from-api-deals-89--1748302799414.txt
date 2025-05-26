@@ -1,0 +1,86 @@
+Query data received from /api/deals: 
+(89) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+Query Response from /api/auth/me: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/auth/me: 
+Object {id: 4, username: "Gonz", fullName: "Brett Gonzalez", initials: "BG", email: "bgonzalez@doliveradvisors.com", …}
+Query Response from /api/deals/84/stars: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/deals/84/stars: 
+Array [{…}]
+Query Response from /api/deals/84: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/deals/84: 
+Object {id: 84, name: "High Road Partners", description: "Lease to own trucking paying 12% fixed with warrants ", sector: "Private Credit", stage: "closing", …}
+UserAvatar: User 1 has color #4f46e5
+UserAvatar: User 5 has color #6B7280
+UserAvatar: User 4 has color #D32F2F
+Query fetch request: /api/documents/deal/84 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Query Response from /api/documents/deal/84: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/documents/deal/84: 
+Array [{…}]
+Direct user fetch for avatar ID 1: 
+Object {id: 1, username: "admin", fullName: "Admin User", initials: "AU", email: "admin@example.com", …}
+Using /me endpoint data for avatar 
+Object {id: 4, username: "Gonz", fullName: "Brett Gonzalez", initials: "BG", email: "bgonzalez@doliveradvisors.com", …}
+Direct user fetch for avatar ID 5: 
+Object {id: 5, username: "intern", fullName: "Intern User", initials: "IU", email: "intern@doliveradvisors.com", …}
+Query fetch request: /api/v1/ai/deals 
+Object {queryKey: Array(3), unauthorizedBehavior: "returnNull"}
+Query Response from /api/v1/ai/deals: 
+Object {status: 404, statusText: "Not Found", ok: false}
+Error response from /api/v1/ai/deals: 
+Object {status: 404, text: "{"message":"Route not found: GET /api/v1/ai/deals"}"}
+
+at t.value (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400
+Exception during query fetch to /api/v1/ai/deals: 
+TypeError {message: "Failed to execute 'text' on 'Response': body stream already read"}
+
+at t.value (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400
+Query fetch request: /api/v1/ai/deals 
+Object {queryKey: Array(3), unauthorizedBehavior: "returnNull"}
+Query Response from /api/v1/ai/deals: 
+Object {status: 404, statusText: "Not Found", ok: false}
+Error response from /api/v1/ai/deals: 
+Object {status: 404, text: "{"message":"Route not found: GET /api/v1/ai/deals"}"}
+status: 404
+text: "{"message":"Route not found: GET /api/v1/ai/deals"}"
+[[Prototype]]: Object
+
+Exception during query fetch to /api/v1/ai/deals: 
+TypeError {message: "Failed to execute 'text' on 'Response': body stream already read"}
+
+at t.value (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400
+Direct user fetch for avatar ID 1: 
+Object {id: 1, username: "admin", fullName: "Admin User", initials: "AU", email: "admin@example.com", …}
+Using /me endpoint data for avatar 
+Object {id: 4, username: "Gonz", fullName: "Brett Gonzalez", initials: "BG", email: "bgonzalez@doliveradvisors.com", …}
+Direct user fetch for avatar ID 5: 
+Object {id: 5, username: "intern", fullName: "Intern User", initials: "IU", email: "intern@doliveradvisors.com", …}
+Using /me endpoint data for avatar 
+Object {id: 4, username: "Gonz", fullName: "Brett Gonzalez", initials: "BG", email: "bgonzalez@doliveradvisors.com", …}
+Direct user fetch for avatar ID 1: 
+Object {id: 1, username: "admin", fullName: "Admin User", initials: "AU", email: "admin@example.com", …}
+Direct user fetch for avatar ID 5: 
+Object {id: 5, username: "intern", fullName: "Intern User", initials: "IU", email: "intern@doliveradvisors.com", …}
+ProtectedRoute for /deals/:id: isLoading=false, user=Gonz
+ProtectedRoute /deals/:id: Rendering component for user Gonz
+Query fetch request: /api/system/health 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Query Response from /api/system/health: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/system/health: 
+Object {status: "ok", timestamp: "2025-05-26T23:38:58.746Z", storage: "pg", databaseConnected: true, environment: "development", …}
+ProtectedRoute for /deals/:id: isLoading=false, user=Gonz
+ProtectedRoute /deals/:id: Rendering component for user Gonz
