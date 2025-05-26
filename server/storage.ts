@@ -23,11 +23,12 @@ import {
 export interface IStorage {
   // Get database client for direct SQL queries
   getDbClient(): any;
-  // User operations
-  getUser(id: number): Promise<User | undefined>;
+  // User operations (updated for Replit Auth)
+  getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
+  upsertUser(user: UpsertUser): Promise<User>;
   createUser(user: InsertUser): Promise<User>;
-  updateUser(id: number, user: Partial<InsertUser>): Promise<User | undefined>;
+  updateUser(id: string, user: Partial<InsertUser>): Promise<User | undefined>;
   deleteUser(id: number): Promise<boolean>;
   getUsers(): Promise<User[]>;
 

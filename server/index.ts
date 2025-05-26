@@ -6,15 +6,10 @@ const modulePath = fileURLToPath(moduleUrl);
 console.log("🐞  Boot file:", modulePath);
 
 import express, { type Request, Response, NextFunction } from "express";
-import session from "express-session";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { errorHandler } from "./utils/errorHandlers";
-import { pool } from "./db";
-import * as fs from 'fs';
-import * as path from 'path';
-import connectPgSimple from 'connect-pg-simple';
-import memorystore from 'memorystore';
+import { registerAuthRoutes } from "./routes/auth";
 import { StorageFactory } from "./storage-factory";
 import { initJobQueues } from "./jobs";
 import { metricsMiddleware } from "./middleware/metrics";
