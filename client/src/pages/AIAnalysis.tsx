@@ -36,6 +36,7 @@ export default function AIAnalysis() {
   const [messages, setMessages] = useState<AnalysisMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isGeneratingAnalysis, setIsGeneratingAnalysis] = useState(false);
+  const [loadingDocumentId, setLoadingDocumentId] = useState<number | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -274,7 +275,10 @@ export default function AIAnalysis() {
                           key={document.id}
                           variant="outline"
                           size="sm"
+                          disabled={loadingDocumentId === document.id}
                           onClick={async () => {
+                            setLoadingDocumentId(document.id);
+                            
                             const userMessage = {
                               id: Date.now().toString(),
                               type: 'user' as const,
@@ -325,19 +329,25 @@ export default function AIAnalysis() {
                                 description: "Failed to analyze document",
                                 variant: "destructive"
                               });
+                            } finally {
+                              setLoadingDocumentId(null);
                             }
                           }}
                           className="flex items-center gap-1"
                           title={document.fileName}
                         >
-                          {document.fileName.toLowerCase().includes('.pdf') ? (
+                          {loadingDocumentId === document.id ? (
+                            <Loader2 className="h-3 w-3 animate-spin text-blue-500" />
+                          ) : document.fileName.toLowerCase().includes('.pdf') ? (
                             <FileText className="h-3 w-3" />
                           ) : document.fileName.toLowerCase().includes('.xlsx') || document.fileName.toLowerCase().includes('.xls') ? (
                             <BarChart3 className="h-3 w-3" />
                           ) : (
                             <FileText className="h-3 w-3" />
                           )}
-                          <span className="max-w-[120px] truncate">{document.fileName}</span>
+                          <span className="max-w-[120px] truncate">
+                            {loadingDocumentId === document.id ? "Analyzing..." : document.fileName}
+                          </span>
                         </Button>
                       ))}
                     </div>
