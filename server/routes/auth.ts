@@ -1,11 +1,13 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth, isAuthenticated } from "../replitAuth";
-import { storage } from "../storage";
+import { StorageFactory } from "../storage-factory";
 
 export async function registerAuthRoutes(app: Express): Promise<void> {
   // Setup Replit Auth middleware
   await setupAuth(app);
+
+  const storage = StorageFactory.getStorage();
 
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {

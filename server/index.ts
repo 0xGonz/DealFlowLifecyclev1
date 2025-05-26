@@ -21,18 +21,11 @@ async function initialize() {
   app.use(express.json({ limit: "1mb" }));
   app.use(express.urlencoded({ extended: false, limit: "1mb" }));
 
-  // ─── SESSION CONFIGURATION - SINGLE POINT OF TRUTH ─────────────────────────
+  // Setup Replit Authentication first
+  await registerAuthRoutes(app);
+
   // Initialize the StorageFactory to use the hybrid storage implementation
   const storage = StorageFactory.getStorage();
-
-  // Create the appropriate session store classes
-  const PgSession = connectPgSimple(session);
-  const MemoryStore = memorystore(session);
-
-  // Always use PostgreSQL for sessions in production to ensure consistency
-  // Memory sessions should only be used for development or testing
-  const isProd = process.env.NODE_ENV === 'production';
-  const forceUseMemory = process.env.USE_MEMORY_SESSIONS === "true";
 
   // Default to PostgreSQL in production, regardless of USE_MEMORY_SESSIONS setting
   // This prevents accidental session store switching in production
