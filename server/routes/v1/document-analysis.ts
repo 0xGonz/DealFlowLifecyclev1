@@ -8,6 +8,13 @@ import * as path from 'path';
 const router = Router();
 
 /**
+ * Test route to verify the document analysis router is working
+ */
+router.get('/test', (req, res) => {
+  res.json({ message: 'Document analysis router is working!' });
+});
+
+/**
  * Analyze a specific document by ID
  */
 router.post('/deals/:dealId/documents/:documentId/analyze', requireAuth, async (req: Request, res: Response) => {

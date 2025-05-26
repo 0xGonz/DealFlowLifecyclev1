@@ -286,7 +286,7 @@ export default function AIAnalysis() {
                             setMessages(prev => [...prev, userMessage]);
 
                             try {
-                              const response = await fetch(`/api/v1/document-analysis/deals/${selectedDealId}/documents/${document.id}/analyze`, {
+                              const response = await fetch(`/api/documents/${document.id}/analyze`, {
                                 method: 'POST',
                                 headers: {
                                   'Content-Type': 'application/json'

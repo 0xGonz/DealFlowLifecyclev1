@@ -724,4 +724,115 @@ router.get('/:id/extract-data', requireAuth, async (req: Request, res: Response)
   }
 });
 
+// Analyze a specific document with AI
+router.post('/:id/analyze', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { query } = req.body;
+    const documentId = parseInt(req.params.id);
+    
+    if (isNaN(documentId)) {
+      return res.status(400).json({ error: 'Invalid document ID' });
+    }
+    
+    console.log(`🔍 Analyzing document ${documentId}`);
+    
+    const storage = StorageFactory.getStorage();
+    const document = await storage.getDocument(documentId);
+    
+    if (!document) {
+      return res.status(404).json({ error: 'Document not found' });
+    }
+    
+    // Read the actual document content
+    const UPLOAD_PATH = process.env.UPLOAD_PATH || './uploads';
+    const actualFilePath = path.join(UPLOAD_PATH, path.basename(document.filePath));
+    
+    if (!fs.existsSync(actualFilePath)) {
+      return res.status(404).json({ error: 'Document file not found on disk' });
+    }
+    
+    let documentContent = '';
+    const extension = path.extname(document.fileName).toLowerCase();
+    
+    // Extract content based on file type
+    if (extension === '.pdf') {
+      try {
+        const pdfParse = (await import('pdf-parse')).default;
+        const pdfBuffer = fs.readFileSync(actualFilePath);
+        const pdfData = await pdfParse(pdfBuffer);
+        documentContent = pdfData.text;
+        console.log(`📄 Extracted ${pdfData.text.length} characters from PDF`);
+      } catch (error) {
+        console.error('Error reading PDF:', error);
+        return res.status(500).json({ error: 'Failed to read PDF document' });
+      }
+    } else {
+      return res.status(400).json({ error: 'Only PDF documents are currently supported for analysis' });
+    }
+    
+    if (!documentContent || documentContent.trim().length === 0) {
+      return res.status(400).json({ error: 'Document appears to be empty or unreadable' });
+    }
+    
+    // Create analysis prompt
+    const analysisPrompt = `You are analyzing a specific document: "${document.fileName}"
+
+Document Content:
+${documentContent}
+
+User Request: ${query || 'Provide a comprehensive analysis of this document'}
+
+Please provide a detailed analysis of this document, focusing on:
+1. Key financial metrics and terms (if applicable)
+2. Investment structure and conditions
+3. Risk factors identified
+4. Opportunities and strategic implications
+5. Important dates, deadlines, or milestones
+6. Any red flags or concerns
+
+Base your analysis ONLY on the actual content of this document.`;
+
+    // Use OpenAI to analyze the document
+    const OpenAI = (await import('openai')).default;
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      messages: [
+        {
+          role: "system",
+          content: "You are an expert investment analyst specializing in document analysis for private equity and venture capital investments."
+        },
+        {
+          role: "user",
+          content: analysisPrompt
+        }
+      ],
+      max_tokens: 2000,
+      temperature: 0.3
+    });
+
+    const analysis = response.choices[0].message.content;
+    
+    console.log(`✅ Generated document analysis for ${document.fileName}`);
+    
+    res.json({
+      success: true,
+      response: analysis,
+      documentName: document.fileName,
+      documentType: extension,
+      analysisType: 'document-specific'
+    });
+    
+  } catch (error) {
+    console.error('Document analysis error:', error);
+    res.status(500).json({ 
+      error: 'Failed to analyze document',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 export default router;
