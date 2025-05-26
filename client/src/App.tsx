@@ -13,39 +13,32 @@ import DealDetail from "@/pages/DealDetail";
 import Calendar from "@/pages/Calendar";
 import Settings from "@/pages/Settings";
 import Users from "@/pages/Users";
-import Landing from "@/pages/Landing";
+import AuthPage from "@/pages/auth-page";
 import AIAnalysis from "@/pages/AIAnalysis";
 import StarTest from "@/pages/StarTest";
 import CapitalCalls from "@/pages/CapitalCalls";
 import CapitalCallsByAllocation from "@/pages/CapitalCallsByAllocation";
-import { useAuth } from "@/hooks/useAuth";
+import { AuthProvider } from "@/hooks/use-auth";
 import ErrorBoundary from "@/components/common/ErrorBoundary";
 import { ProtectedRoute } from "@/components/common/ProtectedRoute";
 import { DatabaseStatusAlert } from "@/components/system/DatabaseStatusAlert";
 
 function Router() {
-  const { isAuthenticated, isLoading } = useAuth();
-
   return (
     <Switch>
-      {isLoading || !isAuthenticated ? (
-        <Route path="/" component={Landing} />
-      ) : (
-        <>
-          <Route path="/" component={Dashboard} />
-          <ProtectedRoute path="/pipeline" component={Pipeline} />
-          <ProtectedRoute path="/leaderboard" component={Leaderboard} />
-          <ProtectedRoute path="/funds" component={Funds} />
-          <ProtectedRoute path="/funds/:id" component={FundDetail} />
-          <ProtectedRoute path="/deals/:id" component={DealDetail} />
-          <ProtectedRoute path="/calendar" component={Calendar} />
-          <ProtectedRoute path="/ai-analysis" component={AIAnalysis} />
-          <ProtectedRoute path="/capital-calls" component={CapitalCalls} />
-          <ProtectedRoute path="/capital-calls/allocation/:id" component={CapitalCallsByAllocation} />
-          <ProtectedRoute path="/settings" component={Settings} />
-          <ProtectedRoute path="/users" component={Users} />
-        </>
-      )}
+      <ProtectedRoute path="/" component={Dashboard} />
+      <ProtectedRoute path="/pipeline" component={Pipeline} />
+      <ProtectedRoute path="/leaderboard" component={Leaderboard} />
+      <ProtectedRoute path="/funds" component={Funds} />
+      <ProtectedRoute path="/funds/:id" component={FundDetail} />
+      <ProtectedRoute path="/deals/:id" component={DealDetail} />
+      <ProtectedRoute path="/calendar" component={Calendar} />
+      <ProtectedRoute path="/ai-analysis" component={AIAnalysis} />
+      <ProtectedRoute path="/capital-calls" component={CapitalCalls} />
+      <ProtectedRoute path="/capital-calls/allocation/:id" component={CapitalCallsByAllocation} />
+      <ProtectedRoute path="/settings" component={Settings} />
+      <ProtectedRoute path="/users" component={Users} />
+      <Route path="/auth" component={AuthPage} />
       <Route path="/startest" component={StarTest} />
       <Route component={NotFound} />
     </Switch>
@@ -61,11 +54,13 @@ function App() {
       }}
     >
       <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Toaster />
-          <DatabaseStatusAlert />
-          <Router />
-        </TooltipProvider>
+        <AuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <DatabaseStatusAlert />
+            <Router />
+          </TooltipProvider>
+        </AuthProvider>
       </QueryClientProvider>
     </ErrorBoundary>
   );

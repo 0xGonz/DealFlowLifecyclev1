@@ -6,10 +6,15 @@ const modulePath = fileURLToPath(moduleUrl);
 console.log("🐞  Boot file:", modulePath);
 
 import express, { type Request, Response, NextFunction } from "express";
+import session from "express-session";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { errorHandler } from "./utils/errorHandlers";
-import { registerAuthRoutes } from "./routes/auth";
+import { pool } from "./db";
+import * as fs from 'fs';
+import * as path from 'path';
+import connectPgSimple from 'connect-pg-simple';
+import memorystore from 'memorystore';
 import { StorageFactory } from "./storage-factory";
 import { initJobQueues } from "./jobs";
 import { metricsMiddleware } from "./middleware/metrics";
@@ -21,11 +26,18 @@ async function initialize() {
   app.use(express.json({ limit: "1mb" }));
   app.use(express.urlencoded({ extended: false, limit: "1mb" }));
 
-  // Setup Replit Authentication first
-  await registerAuthRoutes(app);
-
+  // ─── SESSION CONFIGURATION - SINGLE POINT OF TRUTH ─────────────────────────
   // Initialize the StorageFactory to use the hybrid storage implementation
   const storage = StorageFactory.getStorage();
+
+  // Create the appropriate session store classes
+  const PgSession = connectPgSimple(session);
+  const MemoryStore = memorystore(session);
+
+  // Always use PostgreSQL for sessions in production to ensure consistency
+  // Memory sessions should only be used for development or testing
+  const isProd = process.env.NODE_ENV === 'production';
+  const forceUseMemory = process.env.USE_MEMORY_SESSIONS === "true";
 
   // Default to PostgreSQL in production, regardless of USE_MEMORY_SESSIONS setting
   // This prevents accidental session store switching in production
