@@ -40,15 +40,13 @@ export default function AIAnalysis() {
   const { toast } = useToast();
 
   // Fetch all deals for the dropdown
-  const { data: deals = [], isLoading: dealsLoading } = useQuery({
+  const { data: deals = [], isLoading: dealsLoading } = useQuery<Deal[]>({
     queryKey: ['/api/deals'],
   });
 
   // Get deal context when a deal is selected
-  const { data: contextData, isLoading: contextLoading } = useQuery({
-    queryKey: ['/api/v1/ai/deals', selectedDealId, 'context'],
-    enabled: !!selectedDealId
-  });
+  const contextData = null; // Simplified context for now
+  const contextLoading = false;
 
   // Fetch documents for the selected deal
   const { data: documents = [], isLoading: documentsLoading } = useQuery({
@@ -63,7 +61,7 @@ export default function AIAnalysis() {
         throw new Error('Please select a deal first');
       }
       
-      const response = await fetch(`/api/v1/ai/deals/${selectedDealId}/analyze`, {
+      const response = await fetch(`/api/deals/${selectedDealId}/analyze`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -108,7 +106,7 @@ export default function AIAnalysis() {
     setMessages([]);
   }, [selectedDealId]);
 
-  const selectedDeal = deals.find((deal: Deal) => deal.id === selectedDealId);
+  const selectedDeal = deals?.find((deal: Deal) => deal.id === selectedDealId);
 
   const handleSendMessage = () => {
     if (!inputValue.trim() || aiAnalysisMutation.isPending || !selectedDealId) return;
@@ -271,7 +269,7 @@ export default function AIAnalysis() {
                       >
                         Investment Thesis
                       </Button>
-                      {documents.length > 0 && documents.map((document: any) => (
+                      {documents && documents.length > 0 && documents.map((document: any) => (
                         <Button
                           key={document.id}
                           variant="outline"
