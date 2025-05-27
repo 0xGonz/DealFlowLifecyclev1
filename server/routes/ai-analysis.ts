@@ -101,7 +101,8 @@ router.post('/deals/:dealId/analyze', requireAuth, async (req: Request, res: Res
 
     return res.json({
       success: true,
-      analysis: analysis.response,
+      response: analysis.response,
+      analysis: analysis.response, // Keep both for compatibility
       context: analysis.context,
       query: query || null
     });
