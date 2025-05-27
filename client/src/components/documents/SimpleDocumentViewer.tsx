@@ -262,13 +262,21 @@ const SimpleDocumentViewer = ({ documentId, documentName, fileType }: SimpleDocu
           )}
           
           {error && (
-            <div className="absolute inset-0 bg-red-50 rounded-lg flex items-center justify-center z-10">
-              <div className="text-center">
-                <FileText className="w-16 h-16 text-red-400 mx-auto mb-4" />
-                <p className="text-red-600 mb-4">{error}</p>
-                <Button onClick={handleDownload} variant="outline">
-                  <Download className="w-4 h-4 mr-2" />
-                  Download Instead
+            <div className="absolute inset-0 bg-blue-50 rounded-lg flex items-center justify-center z-10 p-6">
+              <div className="text-center max-w-md">
+                <FileText className={ICON_SIZES.DOCUMENT.VIEWER + " text-blue-500 mx-auto mb-4"} />
+                <h3 className={RESPONSIVE.TEXT.HEADING_3 + " text-gray-800 mb-2"}>Document Temporarily Unavailable</h3>
+                <p className={RESPONSIVE.TEXT.BODY + " text-gray-600 mb-4"}>
+                  This document file could not be located and may have been moved or is temporarily unavailable.
+                </p>
+                <div className="bg-white border border-blue-200 rounded-lg p-4 mb-4">
+                  <p className={RESPONSIVE.TEXT.CAPTION + " text-blue-700"}>
+                    <strong>File:</strong> {documentName}
+                  </p>
+                </div>
+                <Button onClick={handleDownload} variant="outline" className="mr-2">
+                  <Download className={ICON_SIZES.DOCUMENT.ACTION + " mr-2"} />
+                  Try Download
                 </Button>
               </div>
             </div>
