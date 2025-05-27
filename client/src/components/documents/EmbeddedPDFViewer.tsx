@@ -206,7 +206,7 @@ export default function EmbeddedPDFViewer({ documentId, documentName }: Embedded
     setUseDirectUrl(false);
     
     // Try to fix PDF worker if there might be configuration issues
-    const workerStatus = tryFixPdfWorker();
+    const workerStatus = getWorkerStatus();
     console.log('PDF Worker Status after retry:', workerStatus);
     
     toast({
