@@ -152,11 +152,15 @@ router.post('/register', asyncHandler(async (req: Request, res: Response, next: 
     // Remove passwordConfirm (it's just for validation)
     const { passwordConfirm, ...userData } = validatedData;
     
-    // Self registration should always create users with analyst role or lower
-    if (!userData.role || userData.role === 'admin' || userData.role === 'partner') {
+    // Self registration allows analyst, observer, intern, and partner roles
+    // Only admin role is restricted and requires admin creation
+    if (!userData.role || userData.role === 'admin') {
       console.log(`Overriding requested role ${userData.role} to 'analyst' for public registration`);
       userData.role = 'analyst';
     }
+    
+    // Log the role assignment for security audit
+    console.log(`Public registration creating user with role: ${userData.role}`);
     
     // If initials are not provided, generate them from full name
     if (!userData.initials) {
