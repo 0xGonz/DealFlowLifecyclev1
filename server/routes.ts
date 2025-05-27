@@ -95,6 +95,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/system', systemRouter);
   app.use('/api/v1', v1Router); // V1 API routes including AI analysis
   
+  // Mount AI analysis routes directly for easier access
+  const aiAnalysisRoutes = require('./routes/ai-analysis').default;
+  app.use('/api/ai-analysis', aiAnalysisRoutes);
+  
   // Catch-all route for 404s
   app.use('/api/*', notFoundHandler);
   
