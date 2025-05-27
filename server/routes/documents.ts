@@ -688,22 +688,31 @@ router.patch('/:id', requireAuth, async (req: Request, res: Response) => {
     const documentId = parseInt(req.params.id);
     const { documentType } = req.body;
 
+    console.log(`🔧 Document update request: ID=${documentId}, documentType=${documentType}`);
+
     if (!documentId || isNaN(documentId)) {
       return res.status(400).json({ error: 'Invalid document ID' });
     }
 
+    // Get the storage instance
+    const storage = StorageFactory.getStorage();
+    console.log(`📦 Storage instance obtained:`, typeof storage);
+    
     // Get the document to check ownership/permissions
     const document = await storage.getDocument(documentId);
+    console.log(`📄 Found document:`, document ? `ID=${document.id}, current type=${document.documentType}` : 'not found');
+    
     if (!document) {
       return res.status(404).json({ error: 'Document not found' });
     }
 
     // Update the document type
     const updatedDocument = await storage.updateDocument(documentId, { documentType });
+    console.log(`✅ Document updated successfully:`, updatedDocument ? `new type=${updatedDocument.documentType}` : 'update failed');
     
     res.json(updatedDocument);
   } catch (error) {
-    console.error('Error updating document:', error);
+    console.error('❌ Error updating document:', error);
     res.status(500).json({ error: 'Failed to update document' });
   }
 });
