@@ -202,13 +202,18 @@ router.get('/deal/:dealId', requireAuth, async (req: Request, res: Response) => 
     console.log(`✅ Successfully fetched ${documents?.length || 0} documents for deal ${dealId}:`, documents);
     return res.json(documents);
   } catch (error) {
-    console.error(`💥 ERROR in documents route for deal ${req.params.dealId}:`, error);
+    const err = error as Error;
+    console.error(`💥 ERROR in documents route for deal ${req.params.dealId}:`, err);
     console.error(`💥 Error details:`, {
-      message: error.message,
-      stack: error.stack,
-      name: error.name
+      message: err.message,
+      stack: err.stack,
+      name: err.name
     });
-    return res.status(500).json({ message: 'Failed to fetch documents', error: error.message });
+    
+    // Prevent "headers already sent" errors
+    if (!res.headersSent) {
+      return res.status(500).json({ message: 'Failed to fetch documents', error: err.message });
+    }
   }
 });
 
