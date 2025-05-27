@@ -121,9 +121,23 @@ export default function DocumentList({ dealId }: DocumentListProps) {
       return result;
     },
     onSuccess: (data, variables) => {
-      console.log(`🎉 Document update mutation onSuccess triggered for documentId=${variables.documentId}, newType=${variables.documentType}`);
+      console.log(`🎉 Document update mutation onSuccess triggered for documentId=${variables.documentId}, newType=${variables.documentType}, newDescription=${variables.description}`);
       setIsEditDialogOpen(false);
       setEditingDocument(null);
+      
+      // 🧠 Update selectedDocument immediately to reflect the changes
+      setSelectedDocument((prev) => {
+        if (prev && prev.id === variables.documentId) {
+          const updated = { 
+            ...prev, 
+            documentType: variables.documentType,
+            description: variables.description 
+          };
+          console.log(`📝 Updated selectedDocument state:`, updated);
+          return updated;
+        }
+        return prev;
+      });
       
       console.log(`🧹 Starting cache invalidation for dealId=${dealId}`);
       
