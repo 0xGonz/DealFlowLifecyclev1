@@ -5,7 +5,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Bot, Send, FileText, Database, TrendingUp, Loader2, Brain, Search, Sparkles, BarChart3 } from 'lucide-react';
+import { Bot, Send, FileText, Database, TrendingUp, Loader2, Brain, Search, Sparkles, BarChart3, MessageSquare, DollarSign, Trash2 } from 'lucide-react';
+import { Input } from "@/components/ui/input";
 import { useQuery } from '@tanstack/react-query';
 import FormattedText from "@/components/common/FormattedText";
 import AppLayout from "@/components/layout/AppLayout";
@@ -78,16 +79,17 @@ export default function AIAnalysis() {
             </div>
           </div>
 
-          {/* Deal Selector at Top */}
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Database className="h-5 w-5" />
-                Select Deal for Analysis
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="max-w-md">
+          {/* Deal Selection and Overview Row */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+            {/* Deal Selection */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-sm">
+                  <Database className="h-4 w-4" />
+                  Select Deal for Analysis
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
                 <Select 
                   value={selectedDealId?.toString() || ""} 
                   onValueChange={(value) => setSelectedDealId(parseInt(value))}
@@ -106,9 +108,33 @@ export default function AIAnalysis() {
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+
+            {/* Deal Overview */}
+            {selectedDeal && (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-sm">
+                    <FileText className="h-4 w-4" />
+                    Deal Overview
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="space-y-2">
+                    <h3 className="font-semibold text-gray-900">{selectedDeal.name}</h3>
+                    <p className="text-sm text-gray-600 line-clamp-2">{selectedDeal.description}</p>
+                    <div className="flex items-center gap-3 text-xs">
+                      <span className="px-2 py-1 bg-blue-50 text-blue-600 rounded-full">
+                        {selectedDeal.sector}
+                      </span>
+                      <span className="text-gray-500">Target: {selectedDeal.targetReturn}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
         </div>
 
         {!selectedDealId ? (
@@ -120,189 +146,177 @@ export default function AIAnalysis() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            {/* Left Panel - Deal Context & Documents */}
-            <div className="lg:col-span-1 space-y-4">
-
-            {/* Deal Context */}
-            {selectedDeal && (
-              <Card>
-                <CardHeader>
+          <div className="w-full">
+            {/* Main Chat Interface */}
+            <Card className="h-[600px] flex flex-col">
+              <CardHeader className="border-b">
+                <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center gap-2">
-                    <TrendingUp className="h-4 w-4" />
-                    Deal Overview
+                    <MessageSquare className="h-5 w-5" />
+                    AI Analysis Chat
                   </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div>
-                    <h3 className="font-semibold">{selectedDeal.name}</h3>
-                    <p className="text-sm text-gray-600">{selectedDeal.description}</p>
-                  </div>
-                  <div className="flex gap-2">
-                    <Badge variant="secondary">{selectedDeal.sector}</Badge>
-                    <Badge variant="outline">{selectedDeal.stageLabel}</Badge>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Quick Actions */}
-            {selectedDealId && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4" />
-                    Quick Analysis
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <Button 
-                    onClick={handleGenerateAnalysis}
-                    disabled={isGeneratingAnalysis}
-                    className="w-full"
-                    variant="outline"
-                  >
-                    {isGeneratingAnalysis ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Analyzing...
-                      </>
-                    ) : (
-                      <>
-                        <Brain className="h-4 w-4 mr-2" />
-                        Investment Thesis
-                      </>
-                    )}
-                  </Button>
                   
-                  {/* Document Analysis Buttons */}
-                  {Array.isArray(documents) && documents.length > 0 && (
-                    <div className="space-y-2">
-                      <h4 className="text-sm font-medium text-gray-700">Analyze Documents:</h4>
-                      <div className="flex flex-wrap gap-1">
-                        {documents.map((document: any) => (
-                          <Button
-                            key={document.id}
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDocumentAnalysis(document)}
-                            disabled={isGeneratingAnalysis}
-                            className="flex items-center gap-1"
-                            title={document.fileName}
-                          >
-                            {document.fileName.toLowerCase().includes('.pdf') ? (
-                              <FileText className="h-3 w-3" />
-                            ) : document.fileName.toLowerCase().includes('.xlsx') || document.fileName.toLowerCase().includes('.xls') ? (
-                              <BarChart3 className="h-3 w-3" />
-                            ) : (
-                              <FileText className="h-3 w-3" />
-                            )}
-                            <span className="max-w-[120px] truncate">{document.fileName}</span>
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            )}
-          </div>
+                  {/* Quick Analysis Icons - Inside Chat Header */}
+                  <div className="flex items-center gap-2">
+                    <Button
+                      onClick={handleGenerateAnalysis}
+                      disabled={isGeneratingAnalysis}
+                      size="sm"
+                      variant="outline"
+                      className="flex items-center gap-1"
+                    >
+                      {isGeneratingAnalysis ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Brain className="h-4 w-4" />
+                      )}
+                      <span className="hidden sm:inline">Investment Thesis</span>
+                    </Button>
+                    
+                    <Button
+                      onClick={() => sendMessage("What are the key risks and opportunities for this deal?")}
+                      disabled={isGeneratingAnalysis}
+                      size="sm"
+                      variant="outline"
+                      className="flex items-center gap-1"
+                    >
+                      <TrendingUp className="h-4 w-4" />
+                      <span className="hidden sm:inline">Risks & Opps</span>
+                    </Button>
 
-          {/* Right Panel - Chat Interface */}
-          <div className="lg:col-span-3">
-            <Card className="h-[calc(100vh-200px)]">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Bot className="h-5 w-5" />
-                  AI Analysis Chat
-                  {selectedDeal && <Badge variant="secondary">{selectedDeal.name}</Badge>}
-                </CardTitle>
+                    <Button
+                      onClick={() => sendMessage("Analyze the financial metrics and returns for this investment.")}
+                      disabled={isGeneratingAnalysis}
+                      size="sm"
+                      variant="outline"
+                      className="flex items-center gap-1"
+                    >
+                      <DollarSign className="h-4 w-4" />
+                      <span className="hidden sm:inline">Financials</span>
+                    </Button>
+
+                    <Button
+                      onClick={clearMessages}
+                      size="sm"
+                      variant="ghost"
+                      className="text-gray-500 hover:text-gray-700"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+                
+                {/* Context Info Bar */}
+                {contextLoading ? (
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Loading deal context...
+                  </div>
+                ) : contextData && (
+                  <div className="flex items-center gap-4 text-sm text-gray-600">
+                    <div className="flex items-center gap-1">
+                      <FileText className="h-4 w-4" />
+                      {contextData.memos?.length || 0} memos
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Database className="h-4 w-4" />
+                      {contextData.documents?.length || 0} documents
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <BarChart3 className="h-4 w-4" />
+                      {contextData.dataTypes?.length || 0} data files
+                    </div>
+                  </div>
+                )}
               </CardHeader>
-              <CardContent className="flex flex-col h-full p-0">
-                {/* Messages Area */}
-                <ScrollArea className="flex-1 p-4">
-                  <div className="space-y-4">
-                    {!selectedDealId ? (
+
+              {/* Chat Messages Area */}
+              <CardContent className="flex-1 overflow-hidden p-0">
+                <ScrollArea className="h-full">
+                  <div className="p-4 space-y-4">
+                    {messages.length === 0 ? (
                       <div className="text-center py-8">
-                        <Search className="h-12 w-12 mx-auto text-gray-300 mb-4" />
-                        <h3 className="text-lg font-medium text-gray-500 mb-2">Select a Deal to Start</h3>
-                        <p className="text-gray-400">Choose a deal from the dropdown to begin AI analysis</p>
-                      </div>
-                    ) : messages.length === 0 ? (
-                      <div className="text-center py-8">
-                        <Bot className="h-12 w-12 mx-auto text-blue-300 mb-4" />
-                        <h3 className="text-lg font-medium text-gray-700 mb-2">Ready for Analysis</h3>
-                        <p className="text-gray-500">Ask questions about {selectedDeal?.name} or generate a comprehensive analysis</p>
+                        <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">Start Your AI Analysis</h3>
+                        <p className="text-gray-600 mb-4">Use the quick analysis buttons above or ask any question about this deal.</p>
+                        
+                        {/* Document Analysis Buttons */}
+                        {Array.isArray(documents) && documents.length > 0 && (
+                          <div className="mt-6">
+                            <h4 className="text-sm font-medium text-gray-700 mb-3">Or analyze specific documents:</h4>
+                            <div className="flex flex-wrap gap-2 justify-center">
+                              {documents.map((document: any) => (
+                                <Button
+                                  key={document.id}
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleDocumentAnalysis(document)}
+                                  disabled={isGeneratingAnalysis}
+                                  className="flex items-center gap-1"
+                                  title={document.fileName}
+                                >
+                                  {document.fileName.toLowerCase().includes('.pdf') ? (
+                                    <FileText className="h-3 w-3" />
+                                  ) : (
+                                    <Database className="h-3 w-3" />
+                                  )}
+                                  {document.fileName.length > 20 ? 
+                                    `${document.fileName.substring(0, 20)}...` : 
+                                    document.fileName
+                                  }
+                                </Button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     ) : (
-                      messages.map((message: AnalysisMessage) => (
-                        <div key={message.id} className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
-                          <div className={`max-w-[80%] p-3 rounded-lg ${
-                            message.type === 'user' 
+                      messages.map((message: AnalysisMessage, index: number) => (
+                        <div key={index} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                          <div className={`max-w-[80%] rounded-lg p-3 ${
+                            message.role === 'user' 
                               ? 'bg-blue-600 text-white' 
                               : 'bg-gray-100 text-gray-900'
                           }`}>
-                            {message.type === 'user' ? (
+                            {message.role === 'user' ? (
                               <p>{message.content}</p>
                             ) : (
                               <FormattedText content={message.content} />
-                            )}
-                            {message.context && (
-                              <div className="mt-2 pt-2 border-t border-gray-200/20">
-                                <p className="text-xs opacity-75">
-                                  Sources: {message.context.dataSourcesUsed.join(', ')}
-                                </p>
-                              </div>
                             )}
                           </div>
                         </div>
                       ))
                     )}
-                    
-                    {isGeneratingAnalysis && (
-                      <div className="flex justify-start">
-                        <div className="bg-gray-100 p-3 rounded-lg">
-                          <div className="flex items-center gap-2">
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                            <span>Analyzing...</span>
-                          </div>
-                        </div>
-                      </div>
-                    )}
+                    <div ref={messagesEndRef} />
                   </div>
-                  <div ref={messagesEndRef} />
                 </ScrollArea>
-
-                {/* Input Area */}
-                {selectedDealId && (
-                  <div className="border-t p-4">
-                    <div className="flex gap-2">
-                      <Textarea
-                        value={inputValue}
-                        onChange={(e) => setInputValue(e.target.value)}
-                        placeholder={`Ask a question about ${selectedDeal?.name}...`}
-                        className="flex-1 min-h-[44px] max-h-32"
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' && !e.shiftKey) {
-                            e.preventDefault();
-                            handleSendMessage();
-                          }
-                        }}
-                      />
-                      <Button 
-                        onClick={handleSendMessage}
-                        disabled={!inputValue.trim() || isGeneratingAnalysis}
-                        size="lg"
-                      >
-                        <Send className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                )}
               </CardContent>
+
+              {/* Chat Input */}
+              <div className="border-t p-4">
+                <form onSubmit={handleSubmit} className="flex gap-2">
+                  <Input
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    placeholder="Ask me anything about this deal..."
+                    disabled={isGeneratingAnalysis}
+                    className="flex-1"
+                  />
+                  <Button 
+                    type="submit" 
+                    disabled={!inputValue.trim() || isGeneratingAnalysis}
+                    size="sm"
+                  >
+                    {isGeneratingAnalysis ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Send className="h-4 w-4" />
+                    )}
+                  </Button>
+                </form>
+              </div>
             </Card>
           </div>
-        </div>
         )}
       </div>
     </AppLayout>
