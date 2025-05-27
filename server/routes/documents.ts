@@ -245,8 +245,14 @@ router.get('/:id/download', requireAuth, async (req: Request, res: Response) => 
       // Then try the general uploads directory (legacy files)
       path.join(UPLOAD_PATH, baseFilename),
       
-      // Try absolute path resolution (legacy)
-      path.resolve(process.cwd(), 'public', normalizedPath)
+      // Try the full normalized path directly
+      path.resolve(process.cwd(), 'public', normalizedPath),
+      
+      // Try with the original path as stored in database
+      path.resolve(process.cwd(), 'public', document.filePath),
+      
+      // Try without public directory prefix for older files
+      path.resolve(process.cwd(), normalizedPath)
     ];
     
     console.log(`Attempting to serve document: ${document.fileName}`);
