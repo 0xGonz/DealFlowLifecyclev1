@@ -8,7 +8,21 @@ import { FileText, Download, Trash2, FileUp, File, Eye, Edit2 } from 'lucide-rea
 import { Document } from '@/lib/types';
 import { formatDistanceToNow } from 'date-fns';
 import { formatBytes } from '@/lib/utils/format';
-import { getDocumentTypeLabel, getDocumentTypeOptions } from '@/shared/document-types';
+// Temporarily inline the function until import path is fixed
+const getDocumentTypeLabel = (type: string) => {
+  const types: Record<string, string> = {
+    'pitch_deck': 'Pitch Deck',
+    'financial_model': 'Financial Model',
+    'legal_document': 'Legal Document',
+    'diligence_report': 'Diligence Report',
+    'investor_report': 'Investor Report',
+    'term_sheet': 'Term Sheet',
+    'cap_table': 'Cap Table',
+    'subscription_agreement': 'Subscription Agreement',
+    'other': 'Other'
+  };
+  return types[type] || 'Other';
+};
 import EnhancedPDFViewer from './EnhancedPDFViewer';
 import EmbeddedPDFViewer from './EmbeddedPDFViewer';
 // Import react-pdf components
@@ -125,8 +139,24 @@ export default function DocumentList({ dealId }: DocumentListProps) {
       console.log(`🎉 Document update mutation onSuccess triggered for documentId=${variables.documentId}, newType=${variables.documentType}, newDescription=${variables.description}`);
       setIsEditDialogOpen(false);
       setEditingDocument(null);
-      
-      // 🧠 Update selectedDocument immediately to reflect the changes
+
+      // 🔄 Immediately update cached documents array to prevent reversion
+      queryClient.setQueryData([`/api/documents/deal/${dealId}`], (oldDocs: Document[] | undefined) => {
+        if (!oldDocs) return oldDocs;
+        const updatedDocs = oldDocs.map(doc =>
+          doc.id === variables.documentId
+            ? {
+                ...doc,
+                documentType: variables.documentType,
+                description: variables.description,
+              }
+            : doc
+        );
+        console.log(`🔄 Updated documents cache directly:`, updatedDocs);
+        return updatedDocs;
+      });
+
+      // 🧠 Update selectedDocument to reflect the changes
       setSelectedDocument((prev) => {
         if (prev && prev.id === variables.documentId) {
           const updated = { 
@@ -140,23 +170,7 @@ export default function DocumentList({ dealId }: DocumentListProps) {
         return prev;
       });
       
-      console.log(`🧹 Starting cache invalidation for dealId=${dealId}`);
-      
-      // Invalidate ALL queries that might contain document data
-      queryClient.invalidateQueries({ queryKey: [`/api/documents/deal/${dealId}`] });
-      console.log(`❌ Invalidated: /api/documents/deal/${dealId}`);
-      
-      queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
-      console.log(`❌ Invalidated: /api/documents`);
-      
-      queryClient.invalidateQueries({ queryKey: [`/api/deals/${dealId}`] });
-      console.log(`❌ Invalidated: /api/deals/${dealId}`);
-      
-      queryClient.invalidateQueries({ queryKey: [`/api/deals/${dealId}/memos`] });
-      console.log(`❌ Invalidated: /api/deals/${dealId}/memos`);
-      
-      queryClient.invalidateQueries({ queryKey: [`/api/deals/${dealId}/activities`] });
-      console.log(`❌ Invalidated: /api/deals/${dealId}/activities`);
+      console.log(`✅ Cache updated directly - no need for invalidation!`);
       
       queryClient.invalidateQueries({ queryKey: [`/api/deals/${dealId}/allocations`] });
       console.log(`❌ Invalidated: /api/deals/${dealId}/allocations`);

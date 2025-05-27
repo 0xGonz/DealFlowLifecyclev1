@@ -1,0 +1,94 @@
+❗️What’s Still Causing the Issue?
+🔁 selectedDocument gets overwritten on tab switch
+Because of this line:
+
+tsx
+Copy
+Edit
+useEffect(() => {
+  if (documents && documents.length > 0 && !selectedDocument) {
+    setSelectedDocument(documents[0]);
+  }
+}, [documents, selectedDocument]);
+On tab switch:
+
+React Query refetches documents.
+
+If selectedDocument is null (e.g., unmounted and reset), this picks the first document again, effectively reverting the preview to the unedited state unless it was first in the list and fully updated.
+
+But here’s the key issue:
+
+You’re manually updating selectedDocument, but React Query’s documents list is stale, so when the tab remounts, it replaces selectedDocument with documents[0], which still has the old values until the cache is refreshed.
+
+🛠 Fix the Core Logic (Final Patch)
+✅ 1. Replace your mutation onSuccess with:
+ts
+Copy
+Edit
+onSuccess: (data, variables) => {
+  setIsEditDialogOpen(false);
+  setEditingDocument(null);
+
+  // Immediately update cached documents array too
+  queryClient.setQueryData([`/api/documents/deal/${dealId}`], (oldDocs: Document[] | undefined) => {
+    if (!oldDocs) return;
+    return oldDocs.map(doc =>
+      doc.id === variables.documentId
+        ? {
+            ...doc,
+            documentType: variables.documentType,
+            description: variables.description,
+          }
+        : doc
+    );
+  });
+
+  // Reapply updated document to selection
+  setSelectedDocument((prev) =>
+    prev && prev.id === variables.documentId
+      ? {
+          ...prev,
+          documentType: variables.documentType,
+          description: variables.description,
+        }
+      : prev
+  );
+}
+This ensures that:
+
+The entire documents[] cache used by the tab gets updated immediately.
+
+You won't need to wait for refetch.
+
+When switching tabs, the React Query state already has your edit baked in.
+
+✅ 2. Update your useEffect to avoid reverting:
+Change this:
+
+tsx
+Copy
+Edit
+useEffect(() => {
+  if (documents && documents.length > 0 && !selectedDocument) {
+    setSelectedDocument(documents[0]);
+  }
+}, [documents, selectedDocument]);
+To this (safer rehydration):
+
+tsx
+Copy
+Edit
+useEffect(() => {
+  if (!selectedDocument && documents?.length) {
+    setSelectedDocument(documents.find(doc => doc.id === selectedDocument?.id) || documents[0]);
+  }
+}, [documents]);
+Or better: preserve selection only if the list is freshly loaded and selectedDocument is invalid.
+
+✅ Summary
+Fix	Reason
+🔄 Patch cached documents[] directly	Ensures consistent UI after update
+🧠 Carefully manage selectedDocument	Avoid re-selecting stale object
+✅ Minimal fetches needed	Great for performance
+🔒 Resilient to tab switches	View stays accurate
+
