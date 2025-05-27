@@ -575,11 +575,9 @@ router.post('/upload', requireAuth, requirePermission('create', 'document'), (re
       });
     }
     
-    // Verify at least one copy of the file exists before saving to database
-    if (!fs.existsSync(persistFilePath) && !fs.existsSync(publicFilePath)) {
-      console.error(`WARNING: File does not exist at either location after upload:`);
-      console.error(`- Persistent path: ${persistFilePath}`);
-      console.error(`- Public path: ${publicFilePath}`);
+    // Verify the file exists at the final location before saving to database
+    if (!fs.existsSync(finalFilePath)) {
+      console.error(`WARNING: File does not exist at location after upload: ${finalFilePath}`);
       return res.status(500).json({
         error: 'Upload failed',
         message: 'File was not properly saved to disk. Please try again.'
