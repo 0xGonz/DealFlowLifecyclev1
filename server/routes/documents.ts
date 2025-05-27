@@ -36,6 +36,12 @@ const sanitizeFilePath = (filePath: string): string => {
 
 const router = Router();
 
+// Add debugging middleware to track all requests to documents routes
+router.use((req, res, next) => {
+  console.log(`📋 Documents route: ${req.method} ${req.path} - Body:`, req.body);
+  next();
+});
+
 // Define allowed MIME types for security
 const ALLOWED_MIME_TYPES = [
   // PDF documents
