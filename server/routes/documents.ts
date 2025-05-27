@@ -487,11 +487,40 @@ router.post('/upload', requireAuth, requirePermission('create', 'document'), (re
     // Get form fields from request body
     const { dealId, documentType, description } = req.body;
     
-    // If we don't have a file or required fields, return an error
+    // Comprehensive file validation
     if (!req.file) {
       return res.status(400).json({ 
         error: 'Missing file',
         message: 'No file was uploaded. Please select a file to upload.' 
+      });
+    }
+    
+    // Validate file size (max 50MB)
+    const maxSize = 50 * 1024 * 1024; // 50MB
+    if (req.file.size > maxSize) {
+      return res.status(400).json({
+        error: 'File too large',
+        message: 'File size cannot exceed 50MB.'
+      });
+    }
+    
+    // Validate file type
+    const allowedTypes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.ms-powerpoint',
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      'text/csv',
+      'text/plain'
+    ];
+    
+    if (!allowedTypes.includes(req.file.mimetype)) {
+      return res.status(400).json({
+        error: 'Invalid file type',
+        message: 'Only PDF, Word, Excel, PowerPoint, CSV, and text files are allowed.'
       });
     }
     

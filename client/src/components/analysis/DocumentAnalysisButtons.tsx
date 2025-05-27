@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { FileText, TrendingUp, Calculator, Lightbulb } from 'lucide-react';
+import { FileText, TrendingUp, Calculator, Lightbulb, Loader2 } from 'lucide-react';
 
 interface Document {
   id: number;
@@ -14,6 +14,7 @@ interface DocumentAnalysisButtonsProps {
   onDocumentAnalysis: (document: Document) => void;
   onAnalysisType: (type: string) => void;
   disabled?: boolean;
+  isAnalyzing?: boolean;
 }
 
 export function DocumentAnalysisButtons({ 
@@ -21,7 +22,8 @@ export function DocumentAnalysisButtons({
   dataFiles, 
   onDocumentAnalysis, 
   onAnalysisType,
-  disabled = false 
+  disabled = false,
+  isAnalyzing = false 
 }: DocumentAnalysisButtonsProps) {
   return (
     <div className="flex flex-wrap gap-2">
@@ -31,9 +33,9 @@ export function DocumentAnalysisButtons({
         size="sm"
         variant="outline"
         className="flex items-center gap-2"
-        disabled={disabled}
+        disabled={disabled || isAnalyzing}
       >
-        <Lightbulb className="h-4 w-4" />
+        {isAnalyzing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Lightbulb className="h-4 w-4" />}
         <span className="hidden sm:inline">Investment Thesis</span>
       </Button>
 
@@ -42,9 +44,9 @@ export function DocumentAnalysisButtons({
         size="sm"
         variant="outline"
         className="flex items-center gap-2"
-        disabled={disabled}
+        disabled={disabled || isAnalyzing}
       >
-        <TrendingUp className="h-4 w-4" />
+        {isAnalyzing ? <Loader2 className="h-4 w-4 animate-spin" /> : <TrendingUp className="h-4 w-4" />}
         <span className="hidden sm:inline">Risks & Opps</span>
       </Button>
 
