@@ -188,16 +188,27 @@ const upload = multer({
 router.get('/deal/:dealId', requireAuth, async (req: Request, res: Response) => {
   try {
     const dealId = parseInt(req.params.dealId);
+    console.log(`📋 Documents route: GET /deal/${dealId} - Body:`, req.body);
+    
     if (isNaN(dealId)) {
+      console.error(`❌ Invalid deal ID provided: ${req.params.dealId}`);
       return res.status(400).json({ message: 'Invalid deal ID' });
     }
     
+    console.log(`🔍 Fetching documents for deal ${dealId}...`);
     const storage = StorageFactory.getStorage();
     const documents = await storage.getDocumentsByDeal(dealId);
+    
+    console.log(`✅ Successfully fetched ${documents?.length || 0} documents for deal ${dealId}:`, documents);
     return res.json(documents);
   } catch (error) {
-    console.error('Error fetching documents:', error);
-    return res.status(500).json({ message: 'Failed to fetch documents' });
+    console.error(`💥 ERROR in documents route for deal ${req.params.dealId}:`, error);
+    console.error(`💥 Error details:`, {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
+    return res.status(500).json({ message: 'Failed to fetch documents', error: error.message });
   }
 });
 
