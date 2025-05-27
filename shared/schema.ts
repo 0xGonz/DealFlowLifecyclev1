@@ -67,8 +67,10 @@ export const documents = pgTable("documents", {
   uploadedAt: timestamp("uploaded_at").defaultNow().notNull(),
   description: text("description"),
   documentType: text("document_type", { 
-    enum: ["pitch_deck", "financial_model", "legal_document", "diligence_report", "investor_report", "other"] 
+    enum: ["pitch_deck", "financial_model", "legal_document", "diligence_report", "investor_report", "term_sheet", "cap_table", "subscription_agreement", "other"] 
   }).notNull().default("other"),
+  metadata: jsonb("metadata").$type<Record<string, any>>().default({}),
+  version: integer("version").notNull().default(1),
 });
 
 export const insertDocumentSchema = createInsertSchema(documents).omit({

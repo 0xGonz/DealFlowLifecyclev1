@@ -277,66 +277,47 @@ router.get('/:id/download', requireAuth, async (req: Request, res: Response) => 
       res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(document.fileName)}"`);
     }
     
-    // Modular file resolution strategy
-    const normalizedPath = document.filePath.startsWith('/') 
-      ? document.filePath.substring(1) 
-      : document.filePath;
+    // Try to migrate file to standard structure first
+    const migratedPath = await migrateFileToStandardStructure(document);
+    if (migratedPath) {
+      // Update database with new path
+      const storage = StorageFactory.getStorage();
+      await storage.updateDocument(document.id, { filePath: migratedPath });
+      document.filePath = migratedPath;
+    }
     
-    const baseFilename = path.basename(normalizedPath);
+    // Use standardized path resolution
+    const standardFilePath = path.resolve(process.cwd(), document.filePath);
     
-    // Comprehensive file location search
-    const possiblePaths = [
-      // Current standardized structure
-      path.join(UPLOAD_PATH, `deal-${document.dealId}`, baseFilename),
-      path.join(UPLOAD_PATH, baseFilename),
-      
-      // Direct database path variants
-      path.resolve(process.cwd(), normalizedPath),
-      path.resolve(process.cwd(), document.filePath),
-      
-      // Legacy public folder variants
-      path.resolve(process.cwd(), 'public', normalizedPath),
-      path.resolve(process.cwd(), 'public', document.filePath),
-      
-      // Alternative uploads locations
-      path.resolve(process.cwd(), 'uploads', baseFilename),
-      path.resolve(process.cwd(), 'uploads', path.basename(document.filePath)),
-      path.resolve(process.cwd(), 'public/uploads', baseFilename),
-      path.resolve(process.cwd(), 'public/uploads', path.basename(document.filePath))
-    ];
-
-    console.log(`Attempting to serve document: ${document.fileName}`);
-    console.log(`Checking ${possiblePaths.length} possible locations`);
+    console.log(`📁 Attempting to serve: ${document.fileName}`);
+    console.log(`📍 Standard path: ${standardFilePath}`);
     
-    // Try each location until we find the file
-    for (const filePath of possiblePaths) {
-      if (fs.existsSync(filePath)) {
-        console.log(`✅ Found and serving file from: ${filePath}`);
-        
-        // Set file size header if available
-        try {
-          const stats = fs.statSync(filePath);
-          res.setHeader('Content-Length', stats.size);
-        } catch (err) {
-          console.warn('Could not get file stats:', err);
-        }
-        
-        // Create and pipe file stream
-        const fileStream = fs.createReadStream(filePath);
-        
-        fileStream.on('error', (err) => {
-          console.error('Error streaming document:', err);
-          if (!res.headersSent) {
-            res.status(500).json({ 
-              error: 'Stream error',
-              message: 'Error accessing the document file'
-            });
-          }
-        });
-        
-        fileStream.pipe(res);
-        return;
+    if (fs.existsSync(standardFilePath)) {
+      console.log(`✅ Found and serving file from: ${standardFilePath}`);
+      
+      // Set file size header
+      try {
+        const stats = fs.statSync(standardFilePath);
+        res.setHeader('Content-Length', stats.size);
+      } catch (err) {
+        console.warn('Could not get file stats:', err);
       }
+      
+      // Create and pipe file stream
+      const fileStream = fs.createReadStream(standardFilePath);
+      
+      fileStream.on('error', (err) => {
+        console.error('Error streaming document:', err);
+        if (!res.headersSent) {
+          res.status(500).json({ 
+            error: 'Stream error',
+            message: 'Error accessing the document file'
+          });
+        }
+      });
+      
+      fileStream.pipe(res);
+      return;
     }
     
     // If no exact match was found, try to find similar files by name
@@ -434,14 +415,9 @@ router.get('/:id/download', requireAuth, async (req: Request, res: Response) => 
     }
     
     // If we've gone through all fallbacks and still haven't found the file
-    console.log(`No file found for: ${document.fileName}. Returning 404.`);
-    console.log(`Document record from database:`, document);
-    console.log(`Checked these paths:`, possiblePaths);
-    console.log(`Persistent directory content:`, fs.existsSync(UPLOAD_PATH) ? fs.readdirSync(UPLOAD_PATH) : 'Directory not found');
-    console.log(`Upload directory content:`, fs.existsSync(UPLOAD_PATH) ? fs.readdirSync(UPLOAD_PATH) : 'Directory not found');
-    
+    console.log(`❌ No file found for: ${document.fileName}. Returning 404.`);
+    console.log(`📋 Document record from database:`, document);
     // Return a 404 error with detailed information for easier debugging
-    // This helps the client side distinguish between different types of errors
     return res.status(404).json({ 
       error: 'FILE_NOT_FOUND',
       message: 'The requested document file could not be found on the server. Please re-upload the document.',
@@ -450,8 +426,6 @@ router.get('/:id/download', requireAuth, async (req: Request, res: Response) => 
         fileName: document.fileName,
         filePath: document.filePath,
         uploadedAt: document.uploadedAt,
-        checkedPaths: filePaths,
-        // Include a hint that this might be due to Replit's ephemeral storage
         note: 'File may have been lost due to ephemeral storage. Consider re-uploading the document.'
       }
     });
