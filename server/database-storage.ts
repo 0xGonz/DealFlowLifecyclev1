@@ -393,6 +393,15 @@ export class DatabaseStorage implements IStorage {
     return document || undefined;
   }
 
+  async getDocument(id: number): Promise<Document | undefined> {
+    if (!db) {
+      throw new Error('Database not initialized');
+    }
+    
+    const [document] = await db.select().from(documents).where(eq(documents.id, id));
+    return document || undefined;
+  }
+
   async updateDocument(id: number, documentUpdate: Partial<InsertDocument>): Promise<Document | undefined> {
     if (!db) {
       throw new Error('Database not initialized');
