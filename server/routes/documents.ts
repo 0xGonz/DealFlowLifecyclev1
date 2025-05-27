@@ -508,13 +508,23 @@ router.post('/upload', requireAuth, requirePermission('create', 'document'), (re
       'application/vnd.ms-powerpoint',
       'application/vnd.openxmlformats-officedocument.presentationml.presentation',
       'text/csv',
-      'text/plain'
+      'text/plain',
+      'application/json' // Allow JSON files for testing
     ];
     
     if (!allowedTypes.includes(req.file.mimetype)) {
       return res.status(400).json({
         error: 'Invalid file type',
         message: 'Only PDF, Word, Excel, PowerPoint, CSV, and text files are allowed.'
+      });
+    }
+    
+    // Validate document type matches database schema
+    const validDocumentTypes = ['pitch_deck', 'financial_model', 'legal_document', 'diligence_report', 'other'];
+    if (!validDocumentTypes.includes(documentType)) {
+      return res.status(400).json({ 
+        error: 'Invalid document type',
+        message: 'Document type must be one of: ' + validDocumentTypes.join(', ') 
       });
     }
     
