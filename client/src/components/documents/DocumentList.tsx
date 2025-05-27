@@ -50,6 +50,7 @@ export default function DocumentList({ dealId }: DocumentListProps) {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingDocument, setEditingDocument] = useState<Document | null>(null);
   const [editDocumentType, setEditDocumentType] = useState('other');
+  const [editDescription, setEditDescription] = useState('');
   const [isPdfViewerOpen, setIsPdfViewerOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -107,11 +108,15 @@ export default function DocumentList({ dealId }: DocumentListProps) {
     },
   });
 
-  // Edit document type mutation
+  // Edit document mutation - now saves both type and description
   const editDocumentMutation = useMutation({
-    mutationFn: async ({ documentId, documentType }: { documentId: number, documentType: string }) => {
-      console.log(`🔄 Starting document update mutation: documentId=${documentId}, documentType=${documentType}`);
-      const result = await apiRequest('PATCH', `/api/documents/${documentId}`, { documentType });
+    mutationFn: async ({ documentId, documentType, description }: { documentId: number, documentType: string, description?: string }) => {
+      console.log(`🔄 Starting document update mutation: documentId=${documentId}, documentType=${documentType}, description=${description}`);
+      const updateData: any = { documentType };
+      if (description !== undefined) {
+        updateData.description = description;
+      }
+      const result = await apiRequest('PATCH', `/api/documents/${documentId}`, updateData);
       console.log(`✅ Document update mutation completed:`, result);
       return result;
     },
@@ -165,18 +170,21 @@ export default function DocumentList({ dealId }: DocumentListProps) {
   const handleEditDocument = (document: Document) => {
     setEditingDocument(document);
     setEditDocumentType(document.documentType);
+    setEditDescription(document.description || ''); // Set current description or empty string
     setIsEditDialogOpen(true);
   };
 
   const handleSaveDocumentType = () => {
     console.log(`💾 Save button clicked! editingDocument:`, editingDocument);
     console.log(`💾 editDocumentType:`, editDocumentType);
+    console.log(`💾 editDescription:`, editDescription);
     
     if (editingDocument) {
-      console.log(`✨ Calling mutation with documentId=${editingDocument.id}, documentType=${editDocumentType}`);
+      console.log(`✨ Calling mutation with documentId=${editingDocument.id}, documentType=${editDocumentType}, description=${editDescription}`);
       editDocumentMutation.mutate({
         documentId: editingDocument.id,
         documentType: editDocumentType,
+        description: editDescription,
       });
     } else {
       console.log(`❌ No editingDocument found, cannot save`);
@@ -475,6 +483,16 @@ export default function DocumentList({ dealId }: DocumentListProps) {
                     <SelectItem value="other">Other</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+              <div>
+                <Label htmlFor="editDescription">Description (Optional)</Label>
+                <Input
+                  id="editDescription"
+                  type="text"
+                  placeholder="Enter a description for this document..."
+                  value={editDescription}
+                  onChange={(e) => setEditDescription(e.target.value)}
+                />
               </div>
             </div>
             <DialogFooter>
