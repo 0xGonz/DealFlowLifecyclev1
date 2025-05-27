@@ -13,7 +13,7 @@ import AppLayout from "@/components/layout/AppLayout";
 import { useAIAnalysis, Deal, AnalysisMessage } from "@/hooks/useAIAnalysis";
 import { useDealContext } from "@/hooks/useDealContext";
 import { DocumentAnalysisButtons } from "@/components/analysis/DocumentAnalysisButtons";
-import { ErrorBoundary, AIAnalysisErrorFallback } from "@/components/common/ErrorBoundary";
+import ErrorBoundary, { AIAnalysisErrorFallback } from "@/components/common/ErrorBoundary";
 
 export default function AIAnalysis() {
   const [selectedDealId, setSelectedDealId] = useState<number | null>(null);
