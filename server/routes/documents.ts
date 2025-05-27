@@ -553,25 +553,25 @@ router.post('/upload', requireAuth, requirePermission('create', 'document'), (re
       console.error('Error ensuring upload directories exist:', dirErr);
     }
     
-    // Move file to standardized deal-specific directory
+    // Keep file in uploads directory for consistent access
     const tempFilePath = req.file.path;
-    const finalFilePath = getStandardizedFilePath(dealId, baseFilename);
+    const finalFilePath = path.join(UPLOAD_PATH, baseFilename);
     
-    // Move file to final standardized location with transaction safety
+    // Move file to uploads directory with transaction safety
     try {
       if (fs.existsSync(tempFilePath)) {
         fs.renameSync(tempFilePath, finalFilePath);
-        console.log(`✅ File moved to standardized location: ${finalFilePath}`);
+        console.log(`✅ File moved to uploads directory: ${finalFilePath}`);
       }
     } catch (moveErr) {
-      console.error('❌ Error moving file to final location:', moveErr);
+      console.error('❌ Error moving file to uploads directory:', moveErr);
       // Clean up temp file on failure
       if (fs.existsSync(tempFilePath)) {
         fs.unlinkSync(tempFilePath);
       }
       return res.status(500).json({
         error: 'FILE_STORAGE_ERROR',
-        message: 'Failed to organize uploaded file'
+        message: 'Failed to save uploaded file'
       });
     }
     
