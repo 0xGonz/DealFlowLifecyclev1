@@ -22,17 +22,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-// Helper function to get document type display label
-const getDocumentTypeLabel = (type: string) => {
-  switch (type) {
-    case 'pitch_deck': return 'Pitch Deck';
-    case 'financial_model': return 'Financial Model';
-    case 'legal_document': return 'Legal Document';
-    case 'diligence_report': return 'Diligence Report';
-    case 'investor_report': return 'Investor Report';
-    default: return 'Other';
-  }
-};
+import { getDocumentTypeLabel } from '@/../../shared/document-types';
 
 // Document type options for dropdown
 const documentTypeOptions = [
