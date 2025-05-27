@@ -238,14 +238,25 @@ router.get('/:id/download', requireAuth, async (req: Request, res: Response) => 
     // Define all possible locations where the file might be stored
     const dealSpecificPath = path.join(UPLOAD_PATH, `deal-${document.dealId}`, baseFilename);
     
-    // Scalable file resolution strategy
-    const fileResolver = createFileResolver(document, baseFilename);
-    const resolvedPath = await fileResolver.findFile();
-    
+    // Create comprehensive file path list for modular resolution
+    const filePaths = [
+      // Current structure (priority)
+      path.join(UPLOAD_PATH, `deal-${document.dealId}`, baseFilename),
+      path.join(UPLOAD_PATH, baseFilename),
+      
+      // Legacy paths with different formats
+      path.resolve(process.cwd(), 'public', normalizedPath),
+      path.resolve(process.cwd(), 'public', document.filePath),
+      path.resolve(process.cwd(), normalizedPath),
+      path.resolve(process.cwd(), 'public/uploads', path.basename(document.filePath)),
+      path.resolve(process.cwd(), 'public/uploads', baseFilename),
+      path.resolve(process.cwd(), 'uploads', baseFilename),
+      path.resolve(process.cwd(), 'uploads', path.basename(document.filePath))
+    ];
+
     console.log(`Attempting to serve document: ${document.fileName}`);
-    console.log(`Checking these locations: ${JSON.stringify(filePaths)}`);
+    console.log(`Checking ${filePaths.length} possible locations`);
     
-    // Try each path in order until we find one that exists
     for (const filePath of filePaths) {
       if (fs.existsSync(filePath)) {
         console.log(`✅ Found and serving file from: ${filePath}`);
