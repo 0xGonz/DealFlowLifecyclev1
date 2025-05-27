@@ -10,14 +10,15 @@ import { z } from 'zod';
 
 const router = Router();
 
-// Configure multer for file uploads
+// Configure multer for file uploads with persistent storage
+const UPLOAD_DIR = path.join(process.cwd(), 'uploads'); // Use persistent directory
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadDir = 'uploads';
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
+    if (!fs.existsSync(UPLOAD_DIR)) {
+      fs.mkdirSync(UPLOAD_DIR, { recursive: true });
     }
-    cb(null, uploadDir);
+    cb(null, UPLOAD_DIR);
   },
   filename: (req, file, cb) => {
     // Create a safe filename
@@ -50,9 +51,12 @@ router.post('/upload', requireAuth, upload.single('document'), async (req: Reque
       return res.status(400).json({ message: 'Deal ID is required' });
     }
 
+    // Fix file path to remove leading slash for proper path resolution
+    const relativePath = path.relative(process.cwd(), req.file.path);
+    
     const documentData = {
       fileName: req.file.originalname,
-      filePath: req.file.path,
+      filePath: relativePath, // Store relative path without leading slash
       fileType: req.file.mimetype,
       fileSize: req.file.size,
       dealId: parseInt(dealId),

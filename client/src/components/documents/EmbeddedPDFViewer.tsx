@@ -4,7 +4,7 @@ import { Download, FileText, RefreshCw } from 'lucide-react';
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Document as PDFDocument, Page as PDFPage } from 'react-pdf';
-import { getWorkerStatus, tryFixPdfWorker } from '@/lib/setupPdfWorker';
+import { getWorkerStatus } from '@/lib/setupPdfWorker';
 
 interface EmbeddedPDFViewerProps {
   documentId: number;
