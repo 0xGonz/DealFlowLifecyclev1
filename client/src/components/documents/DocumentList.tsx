@@ -4,7 +4,7 @@ import { queryClient, apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { FileText, Download, Trash2, FileUp, File, Eye } from 'lucide-react';
+import { FileText, Download, Trash2, FileUp, File, Eye, Edit2 } from 'lucide-react';
 import { Document } from '@/lib/types';
 import { formatDistanceToNow } from 'date-fns';
 import { formatBytes } from '@/lib/utils/format';
@@ -47,6 +47,9 @@ export default function DocumentList({ dealId }: DocumentListProps) {
   const [documentType, setDocumentType] = useState('pitch_deck');
   const [description, setDescription] = useState('');
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingDocument, setEditingDocument] = useState<Document | null>(null);
+  const [editDocumentType, setEditDocumentType] = useState('other');
   const [isPdfViewerOpen, setIsPdfViewerOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
