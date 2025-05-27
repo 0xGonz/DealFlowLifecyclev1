@@ -487,29 +487,7 @@ const CalendarPage = () => {
                 </div>
               ) : (
                 <>
-                  {/* No events message */}
-                  {filteredCalls.length === 0 && 
-                   filteredClosingEvents.length === 0 && 
-                   filteredMeetings.length === 0 && (
-                    <Card className="border-dashed">
-                      <CardContent className="py-6 flex flex-col items-center justify-center text-center">
-                        <div className="rounded-full bg-muted p-3 mb-3">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground h-6 w-6"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect><line x1="16" x2="16" y1="2" y2="6"></line><line x1="8" x2="8" y1="2" y2="6"></line><line x1="3" x2="21" y1="10" y2="10"></line></svg>
-                        </div>
-                        <h3 className="font-medium text-lg">No events scheduled</h3>
-                        <p className="text-sm text-muted-foreground mt-1">There are no events for this date.</p>
-                        <Button 
-                          onClick={() => setIsEventFormOpen(true)}
-                          size="sm"
-                          variant="outline"
-                          className="mt-4"
-                        >
-                          <Plus className="h-4 w-4 mr-1" />
-                          Add Event
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  )}
+
                 
                   {/* Capital Calls */}
                   {(activeTab === CALENDAR_EVENT_TYPES.ALL || activeTab === CALENDAR_EVENT_TYPES.CAPITAL_CALLS) && (
@@ -723,25 +701,37 @@ const CalendarPage = () => {
                     </>
                   )}
                   
-                  {/* Show message when no events are found */}
+                  {/* Show unified empty state when no events are found */}
                   {((activeTab === CALENDAR_EVENT_TYPES.CAPITAL_CALLS && filteredCalls.length === 0) ||
                     (activeTab === CALENDAR_EVENT_TYPES.CLOSING_EVENTS && filteredClosingEvents.length === 0) ||
                     (activeTab === CALENDAR_EVENT_TYPES.MEETINGS && filteredMeetings.length === 0) ||
                     (activeTab === CALENDAR_EVENT_TYPES.ALL && filteredCalls.length === 0 && 
                      filteredClosingEvents.length === 0 && filteredMeetings.length === 0)) && (
-                    <div className="text-center py-8 text-muted-foreground">
-                      No events found for this date.
-                      <div className="mt-2">
+                    <Card className="border-dashed">
+                      <CardContent className="py-8 flex flex-col items-center justify-center text-center">
+                        <div className="rounded-full bg-muted p-3 mb-3">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground h-6 w-6">
+                            <rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect>
+                            <line x1="16" x2="16" y1="2" y2="6"></line>
+                            <line x1="8" x2="8" y1="2" y2="6"></line>
+                            <line x1="3" x2="21" y1="10" y2="10"></line>
+                          </svg>
+                        </div>
+                        <h3 className="font-medium text-lg">No events scheduled</h3>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {selectedDate ? `No events found for ${format(selectedDate, 'MMM d, yyyy')}.` : 'No events found for this date.'}
+                        </p>
                         <Button 
-                          variant="outline" 
-                          size="sm" 
                           onClick={() => setIsEventFormOpen(true)}
+                          size="sm"
+                          variant="outline"
+                          className="mt-4"
                         >
                           <Plus className="h-4 w-4 mr-1" />
                           Add Event
                         </Button>
-                      </div>
-                    </div>
+                      </CardContent>
+                    </Card>
                   )}
                 </>
               )}
