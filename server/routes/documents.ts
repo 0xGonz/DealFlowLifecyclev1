@@ -438,26 +438,22 @@ router.post('/upload', requireAuth, requirePermission('create', 'document'), (re
       return next(); // Let the next handler handle missing file error
     }
     
-    // Check the actual file content to validate it's really a PDF
+    // Check the actual file content to validate file type
     const fileTypeResult = await fileTypeFromFile(req.file.path);
     
-    // If no file type detected or not a PDF when expecting one
+    // If no file type detected, try to proceed with MIME type validation
     if (!fileTypeResult) {
-      // Delete the uploaded file to clean up
-      fs.unlinkSync(req.file.path);
-      return res.status(400).json({ 
-        error: 'unsupportedType',
-        message: 'Cannot determine file type or empty file was uploaded.' 
-      });
+      console.log('Warning: Could not detect file type from content, proceeding with MIME type validation');
+      return next();
     }
     
-    // For PDF files, ensure it's really a PDF
-    if (req.file.mimetype === 'application/pdf' && fileTypeResult.mime !== 'application/pdf') {
+    // Verify the detected file type is in our allowed list
+    if (!ALLOWED_MIME_TYPES.includes(fileTypeResult.mime)) {
       // Delete the uploaded file to clean up
       fs.unlinkSync(req.file.path);
       return res.status(400).json({ 
         error: 'unsupportedType',
-        message: 'File appears to be masquerading as a PDF but is actually: ' + fileTypeResult.mime 
+        message: `File type ${fileTypeResult.mime} is not supported. Please upload PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT, or CSV files.` 
       });
     }
     
@@ -465,10 +461,8 @@ router.post('/upload', requireAuth, requirePermission('create', 'document'), (re
     next();
   } catch (error) {
     console.error('Error during file type validation:', error);
-    return res.status(500).json({ 
-      error: 'validationError',
-      message: 'Error validating file type' 
-    });
+    // Don't fail the upload due to validation errors, proceed with basic MIME type check
+    return next();
   }
 }, async (req: Request, res: Response) => {
   try {
