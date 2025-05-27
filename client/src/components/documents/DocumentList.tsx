@@ -142,7 +142,7 @@ export default function DocumentList({ dealId }: DocumentListProps) {
       setIsEditDialogOpen(false);
       setEditingDocument(null);
 
-      // 🔄 Immediately update cached documents array to prevent reversion
+      // 🔄 Immediately update ALL cached documents queries to prevent reversion
       queryClient.setQueryData([`/api/documents/deal/${dealId}`], (oldDocs: Document[] | undefined) => {
         if (!oldDocs) return oldDocs;
         const updatedDocs = oldDocs.map(doc =>
@@ -157,6 +157,9 @@ export default function DocumentList({ dealId }: DocumentListProps) {
         console.log(`🔄 Updated documents cache directly:`, updatedDocs);
         return updatedDocs;
       });
+
+      // 🔄 Force an immediate refetch to get fresh data from server
+      queryClient.invalidateQueries({ queryKey: [`/api/documents/deal/${dealId}`] });
 
       // 🧠 Update selectedDocument to reflect the changes
       setSelectedDocument((prev) => {
