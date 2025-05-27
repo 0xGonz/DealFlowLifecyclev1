@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { useDocs, DocMeta } from '@/context/DocumentsContext';
 import { FileUp, Trash2, FileText } from 'lucide-react';
@@ -20,6 +20,7 @@ export const Sidebar = ({ dealId }: { dealId: number }) => {
   const { docs, setDocs, current, setCurrent } = useDocs();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Mutation to upload a document
   const uploadMutation = useMutation({
@@ -54,6 +55,8 @@ export const Sidebar = ({ dealId }: { dealId: number }) => {
       const docMeta: DocMeta = {
         id: data.id,
         name: data.fileName,
+        fileName: data.fileName,
+        fileType: data.fileType || 'pdf',
         downloadUrl: `/api/documents/${data.id}/download`,
       };
       
@@ -64,6 +67,9 @@ export const Sidebar = ({ dealId }: { dealId: number }) => {
       if (docs.length === 0) {
         setCurrent(docMeta);
       }
+      
+      // Invalidate and refetch documents query to ensure sync
+      queryClient.invalidateQueries({ queryKey: [`/api/documents/deal/${dealId}`] });
       
       toast({
         title: 'Document uploaded',
@@ -101,6 +107,9 @@ export const Sidebar = ({ dealId }: { dealId: number }) => {
         const remaining = docs.filter(d => d.id !== id);
         setCurrent(remaining.length > 0 ? remaining[0] : null);
       }
+      
+      // Invalidate and refetch documents query to ensure sync
+      queryClient.invalidateQueries({ queryKey: [`/api/documents/deal/${dealId}`] });
       
       toast({
         title: 'Document deleted',
