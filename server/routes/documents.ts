@@ -597,7 +597,9 @@ router.post('/upload', requireAuth, requirePermission('create', 'document'), (re
     };
     
     // Save document info to database
+    console.log('💾 Attempting to save document to database:', documentData);
     const document = await storageClient.createDocument(documentData);
+    console.log('✅ Document saved successfully:', document);
     
     // Also create a timeline event for the document upload
     await storageClient.createTimelineEvent({
@@ -610,7 +612,8 @@ router.post('/upload', requireAuth, requirePermission('create', 'document'), (re
     
     return res.status(201).json(document);
   } catch (error) {
-    console.error('Error uploading document:', error);
+    console.error('❌ Error uploading document:', error);
+    console.error('Document data that failed:', documentData);
     return res.status(500).json({ 
       error: 'Server error',
       message: 'An unexpected error occurred while uploading the document.' 
