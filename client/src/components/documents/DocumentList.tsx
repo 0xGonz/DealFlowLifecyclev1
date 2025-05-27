@@ -144,6 +144,14 @@ export default function DocumentList({ dealId }: DocumentListProps) {
       formData.append('description', description);
     }
 
+    // Debug logging
+    console.log('Upload form data:', {
+      fileName: uploadingFile.name,
+      dealId: dealId.toString(),
+      documentType,
+      description: description || 'none'
+    });
+
     // Show loading state
     const uploadingToast = toast({
       title: 'Uploading document',

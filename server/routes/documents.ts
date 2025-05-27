@@ -520,7 +520,7 @@ router.post('/upload', requireAuth, requirePermission('create', 'document'), (re
     }
     
     // Validate document type matches database schema
-    const validDocumentTypes = ['pitch_deck', 'financial_model', 'legal_document', 'diligence_report', 'other'];
+    const validDocumentTypes = ['pitch_deck', 'financial_model', 'legal_document', 'diligence_report', 'investor_update', 'other'];
     if (!validDocumentTypes.includes(documentType)) {
       return res.status(400).json({ 
         error: 'Invalid document type',
