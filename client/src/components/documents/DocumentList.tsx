@@ -334,7 +334,7 @@ export default function DocumentList({ dealId }: DocumentListProps) {
                     <SelectItem value="financial_model">Financial Model</SelectItem>
                     <SelectItem value="legal_document">Legal Document</SelectItem>
                     <SelectItem value="diligence_report">Diligence Report</SelectItem>
-                    <SelectItem value="investor_update">Investor Update</SelectItem>
+                    <SelectItem value="investor_report">Investor Report</SelectItem>
                     <SelectItem value="other">Other</SelectItem>
                   </SelectContent>
                 </Select>
@@ -429,7 +429,7 @@ export default function DocumentList({ dealId }: DocumentListProps) {
                     <SelectItem value="financial_model">Financial Model</SelectItem>
                     <SelectItem value="legal_document">Legal Document</SelectItem>
                     <SelectItem value="diligence_report">Diligence Report</SelectItem>
-                    <SelectItem value="investor_update">Investor Update</SelectItem>
+                    <SelectItem value="investor_report">Investor Report</SelectItem>
                     <SelectItem value="other">Other</SelectItem>
                   </SelectContent>
                 </Select>
