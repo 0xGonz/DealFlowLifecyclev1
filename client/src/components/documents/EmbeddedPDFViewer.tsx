@@ -236,7 +236,7 @@ export default function EmbeddedPDFViewer({ documentId, documentName }: Embedded
       </div>
       
       <Card className="p-0 w-full overflow-hidden">
-        <div className="overflow-hidden h-[650px] bg-neutral-50 flex justify-center">
+        <div className="overflow-hidden h-[40vh] min-h-[300px] max-h-[80vh] bg-neutral-50 flex justify-center">
           {/* First attempt: If it's a PDF and viewer hasn't failed, try PDF.js first */}
           {isPdfFile && !pdfFailed ? (
             <div className="w-full h-full">

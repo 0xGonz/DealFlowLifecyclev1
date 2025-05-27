@@ -187,7 +187,7 @@ const SimpleDocumentViewer = ({ documentId, documentName, fileType }: SimpleDocu
   const Icon = getFileIcon();
 
   return (
-    <Card className="w-full h-full flex flex-col overflow-hidden">
+    <Card className="w-full h-full min-h-0 flex flex-col overflow-hidden">
       <CardHeader className="flex-shrink-0 pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">

@@ -448,7 +448,7 @@ export default function DocumentList({ dealId }: DocumentListProps) {
                 </div>
                 
                 <Card className="p-0 w-full overflow-hidden">
-                  <div className="overflow-hidden h-[900px] bg-neutral-50 flex justify-center">
+                  <div className="overflow-hidden h-[50vh] min-h-[400px] max-h-[90vh] bg-neutral-50 flex justify-center">
                     {selectedDocument.fileType === 'application/pdf' || 
                      selectedDocument.fileName.toLowerCase().endsWith('.pdf') ? (
                       <div className="w-full h-full">
