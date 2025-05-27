@@ -57,6 +57,12 @@ export default function DocumentList({ dealId }: DocumentListProps) {
   const { data: documents, isLoading } = useQuery<Document[]>({
     queryKey: [`/api/documents/deal/${dealId}`],
     enabled: !!dealId,
+    onSuccess: (data) => {
+      console.log(`📊 Documents query SUCCESS for dealId=${dealId}:`, data);
+    },
+    onError: (error) => {
+      console.log(`❌ Documents query ERROR for dealId=${dealId}:`, error);
+    },
   });
   
   // Set the selected document when documents are loaded and none is selected yet
@@ -103,27 +109,48 @@ export default function DocumentList({ dealId }: DocumentListProps) {
   // Edit document type mutation
   const editDocumentMutation = useMutation({
     mutationFn: async ({ documentId, documentType }: { documentId: number, documentType: string }) => {
-      return apiRequest('PATCH', `/api/documents/${documentId}`, { documentType });
+      console.log(`🔄 Starting document update mutation: documentId=${documentId}, documentType=${documentType}`);
+      const result = await apiRequest('PATCH', `/api/documents/${documentId}`, { documentType });
+      console.log(`✅ Document update mutation completed:`, result);
+      return result;
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
+      console.log(`🎉 Document update mutation onSuccess triggered for documentId=${variables.documentId}, newType=${variables.documentType}`);
       setIsEditDialogOpen(false);
       setEditingDocument(null);
       
+      console.log(`🧹 Starting cache invalidation for dealId=${dealId}`);
+      
       // Invalidate ALL queries that might contain document data
       queryClient.invalidateQueries({ queryKey: [`/api/documents/deal/${dealId}`] });
+      console.log(`❌ Invalidated: /api/documents/deal/${dealId}`);
+      
       queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
+      console.log(`❌ Invalidated: /api/documents`);
+      
       queryClient.invalidateQueries({ queryKey: [`/api/deals/${dealId}`] });
+      console.log(`❌ Invalidated: /api/deals/${dealId}`);
+      
       queryClient.invalidateQueries({ queryKey: [`/api/deals/${dealId}/memos`] });
+      console.log(`❌ Invalidated: /api/deals/${dealId}/memos`);
+      
       queryClient.invalidateQueries({ queryKey: [`/api/deals/${dealId}/activities`] });
+      console.log(`❌ Invalidated: /api/deals/${dealId}/activities`);
+      
       queryClient.invalidateQueries({ queryKey: [`/api/deals/${dealId}/allocations`] });
+      console.log(`❌ Invalidated: /api/deals/${dealId}/allocations`);
       
       // Force refetch of all document-related data
+      console.log(`🔄 Force refetching document data...`);
       queryClient.refetchQueries({ queryKey: [`/api/documents/deal/${dealId}`] });
+      console.log(`🔄 Refetch initiated for: /api/documents/deal/${dealId}`);
       
       toast({
         title: 'Document updated',
         description: 'Document type has been successfully updated.',
       });
+      
+      console.log(`✨ Document update process completed successfully`);
     },
     onError: (error) => {
       toast({
