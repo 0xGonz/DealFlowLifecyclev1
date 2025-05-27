@@ -155,10 +155,13 @@ export default function DocumentList({ dealId }: DocumentListProps) {
       const res = await fetch('/api/documents/upload', {
         method: 'POST',
         body: formData,
+        credentials: 'include', // Include cookies for authentication
       });
       
       if (!res.ok) {
-        throw new Error('Failed to upload document');
+        const errorData = await res.json().catch(() => ({}));
+        console.error('Upload failed with status:', res.status, errorData);
+        throw new Error(errorData.message || 'Failed to upload document');
       }
       
       // Handle success
