@@ -417,43 +417,8 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getDocumentsByDeal(dealId: number): Promise<Document[]> {
-    try {
-      console.log(`🔍 DatabaseStorage: Querying documents for deal ${dealId}`);
-      
-      if (!db) {
-        console.error('❌ Database connection is null or undefined');
-        throw new Error('Database not initialized');
-      }
-      
-      // Use explicit column selection to work with both old and new database schemas
-      const result = await db
-        .select({
-          id: documents.id,
-          dealId: documents.dealId,
-          fileName: documents.fileName,
-          fileType: documents.fileType,
-          fileSize: documents.fileSize,
-          filePath: documents.filePath,
-          uploadedBy: documents.uploadedBy,
-          uploadedAt: documents.uploadedAt,
-          description: documents.description,
-          documentType: documents.documentType
-        })
-        .from(documents)
-        .where(eq(documents.dealId, dealId));
-      
-      console.log(`✅ DatabaseStorage: Found ${result.length} documents for deal ${dealId}`);
-      return result;
-    } catch (error) {
-      console.error(`💥 DatabaseStorage: Error fetching documents for deal ${dealId}:`, error);
-      console.error(`💥 Error details:`, {
-        message: error.message,
-        code: error.code,
-        name: error.name,
-        stack: error.stack?.split('\n').slice(0, 3).join('\n')
-      });
-      throw error;
-    }
+    const { documentService } = await import('./services/document-service');
+    return await documentService.getDocumentsByDeal(dealId);
   }
   
   async getDocumentsByType(dealId: number, documentType: string): Promise<Document[]> {
