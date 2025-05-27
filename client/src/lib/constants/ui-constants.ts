@@ -90,6 +90,55 @@ export const USER_ROLE_DESCRIPTIONS = {
   INTERN: 'View access to all content and ability to add new deals only'
 };
 
+// Responsive breakpoints
+export const BREAKPOINTS = {
+  SM: 'sm',
+  MD: 'md', 
+  LG: 'lg',
+  XL: 'xl',
+  '2XL': '2xl'
+};
+
+// Responsive design system
+export const RESPONSIVE = {
+  // Heights - viewport-based with fallbacks
+  HEIGHTS: {
+    DOCUMENT_VIEWER: 'h-[50vh] min-h-[400px] max-h-[90vh]',
+    EMBEDDED_PDF: 'h-[40vh] min-h-[300px] max-h-[80vh]',
+    CARD_CONTENT: 'h-[30vh] min-h-[250px] max-h-[70vh]',
+    SIDEBAR: 'h-[60vh] min-h-[350px] max-h-[85vh]',
+    MOBILE_VIEWER: 'h-[45vh] min-h-[280px] max-h-[75vh]'
+  },
+  // Widths - responsive grid system
+  WIDTHS: {
+    SIDEBAR: 'w-full sm:w-64 lg:w-72',
+    CONTENT: 'w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8',
+    CARD: 'w-full max-w-md sm:max-w-lg lg:max-w-xl',
+    MODAL: 'w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl'
+  },
+  // Spacing - consistent across all components
+  SPACING: {
+    CONTAINER: 'p-4 sm:p-6 lg:p-8',
+    CARD: 'p-3 sm:p-4 lg:p-6',
+    BUTTON: 'px-3 py-2 sm:px-4 sm:py-2.5',
+    INPUT: 'px-3 py-2 sm:px-4 sm:py-2.5'
+  },
+  // Text sizes - mobile-first approach
+  TEXT: {
+    HEADING_1: 'text-2xl sm:text-3xl lg:text-4xl font-bold',
+    HEADING_2: 'text-xl sm:text-2xl lg:text-3xl font-semibold',
+    HEADING_3: 'text-lg sm:text-xl lg:text-2xl font-medium',
+    BODY: 'text-sm sm:text-base',
+    CAPTION: 'text-xs sm:text-sm text-muted-foreground'
+  },
+  // Grid layouts
+  GRID: {
+    CARDS: 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6',
+    TWO_COL: 'grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6',
+    THREE_COL: 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6'
+  }
+};
+
 // Icon size constants for consistent sizing across components
 export const ICON_SIZES = {
   TIMELINE: {
@@ -107,11 +156,18 @@ export const ICON_SIZES = {
   NAVIGATION: {
     DEFAULT: 'h-5 w-5',
     LARGE: 'h-6 w-6',
-    SMALL: 'h-4 w-4'
+    SMALL: 'h-4 w-4',
+    RESPONSIVE: 'h-4 w-4 sm:h-5 sm:w-5'
   },
   BUTTON: {
     DEFAULT: 'h-4 w-4',
     LARGE: 'h-5 w-5',
-    SMALL: 'h-3 w-3'
+    SMALL: 'h-3 w-3',
+    RESPONSIVE: 'h-3 w-3 sm:h-4 sm:w-4'
+  },
+  DOCUMENT: {
+    VIEWER: 'h-5 w-5 sm:h-6 sm:w-6',
+    ACTION: 'h-4 w-4 sm:h-5 sm:w-5',
+    SMALL: 'h-3 w-3 sm:h-4 sm:w-4'
   }
 };

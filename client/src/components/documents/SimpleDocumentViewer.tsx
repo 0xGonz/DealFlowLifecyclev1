@@ -4,6 +4,7 @@ import { Download, FileText, FileSpreadsheet, Eye, ZoomIn, ZoomOut, RotateCw, Se
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { RESPONSIVE, ICON_SIZES } from "@/lib/constants/ui-constants";
 
 interface SimpleDocumentViewerProps {
   documentId: number;
@@ -189,38 +190,39 @@ const SimpleDocumentViewer = ({ documentId, documentName, fileType }: SimpleDocu
   return (
     <Card className="w-full h-full min-h-0 flex flex-col overflow-hidden">
       <CardHeader className="flex-shrink-0 pb-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Icon className="w-5 h-5 text-blue-600" />
-            <span className="font-semibold">{documentName}</span>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-2">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <Icon className={ICON_SIZES.DOCUMENT.VIEWER + " text-blue-600 flex-shrink-0"} />
+            <span className={RESPONSIVE.TEXT.BODY + " font-semibold truncate"}>{documentName}</span>
           </div>
           
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
             {/* PDF Controls */}
             {documentName.toLowerCase().includes('.pdf') && (
               <>
                 <Button variant="outline" size="sm" onClick={handleZoomOut}>
-                  <ZoomOut className="w-4 h-4" />
+                  <ZoomOut className={ICON_SIZES.DOCUMENT.ACTION} />
                 </Button>
-                <span className="text-sm text-gray-600 px-2">{zoom}%</span>
+                <span className={RESPONSIVE.TEXT.CAPTION + " px-1 sm:px-2"}>{zoom}%</span>
                 <Button variant="outline" size="sm" onClick={handleZoomIn}>
-                  <ZoomIn className="w-4 h-4" />
+                  <ZoomIn className={ICON_SIZES.DOCUMENT.ACTION} />
                 </Button>
                 <Button variant="outline" size="sm" onClick={toggleSearch}>
-                  <Search className="w-4 h-4" />
+                  <Search className={ICON_SIZES.DOCUMENT.ACTION} />
                 </Button>
               </>
             )}
             
             {/* AI Ready Indicator */}
             <div className="flex items-center gap-1 bg-green-50 border border-green-200 rounded px-2 py-1">
-              <Eye className="w-3 h-3 text-green-600" />
-              <span className="text-xs text-green-700 font-medium">AI Ready</span>
+              <Eye className={ICON_SIZES.DOCUMENT.SMALL + " text-green-600"} />
+              <span className={RESPONSIVE.TEXT.CAPTION + " text-green-700 font-medium hidden sm:inline"}>AI Ready</span>
+              <span className="text-xs text-green-700 font-medium sm:hidden">AI</span>
             </div>
             
             {/* Download Button */}
             <Button variant="outline" size="sm" onClick={handleDownload}>
-              <Download className="w-4 h-4" />
+              <Download className={ICON_SIZES.DOCUMENT.ACTION} />
             </Button>
           </div>
         </div>

@@ -104,23 +104,27 @@ router.get('/:id/download', requireAuth, async (req: Request, res: Response) => 
     console.log(`✅ Found document ${id}: ${document.fileName} (Deal: ${document.dealId})`);
     console.log(`📁 Database filePath: ${document.filePath}`);
     
-    // Handle both old and new file path formats
-    let filePath = document.filePath;
+    // Enhanced file path resolution with multiple fallback strategies
+    const pathsToTry = [
+      document.filePath, // Original path
+      document.filePath.startsWith('/') ? document.filePath.substring(1) : document.filePath, // Remove leading slash
+      document.filePath.startsWith('uploads/') ? document.filePath : `uploads/${document.filePath}`, // Add uploads/ prefix
+      document.filePath.startsWith('/uploads/') ? document.filePath.substring(1) : document.filePath, // Clean /uploads/ to uploads/
+    ];
     
-    // Try the exact path first
-    if (!fs.existsSync(filePath)) {
-      // If it starts with /uploads/, try without the leading slash
-      if (filePath.startsWith('/uploads/')) {
-        filePath = filePath.substring(1); // Remove leading slash
-      }
-      // If it doesn't start with uploads/, try adding it
-      else if (!filePath.startsWith('uploads/')) {
-        filePath = `uploads/${filePath}`;
+    // Remove duplicates while preserving order
+    const uniquePaths = [...new Set(pathsToTry)];
+    
+    let resolvedPath = null;
+    for (const testPath of uniquePaths) {
+      if (fs.existsSync(testPath)) {
+        resolvedPath = testPath;
+        break;
       }
     }
     
-    if (fs.existsSync(filePath)) {
-      console.log(`✅ File resolved: ${filePath}`);
+    if (resolvedPath) {
+      console.log(`✅ File resolved: ${resolvedPath}`);
       
       // Set appropriate headers
       res.setHeader('Content-Type', document.fileType);
@@ -129,16 +133,21 @@ router.get('/:id/download', requireAuth, async (req: Request, res: Response) => 
       res.setHeader('Expires', '0');
       
       // Send the file
-      res.sendFile(path.resolve(filePath));
+      res.sendFile(path.resolve(resolvedPath));
     } else {
-      console.log(`❌ File not found: ${filePath}`);
+      console.log(`❌ File not found after trying ${uniquePaths.length} paths:`);
+      uniquePaths.forEach((tryPath, index) => {
+        console.log(`   ${index + 1}. ${tryPath} (${fs.existsSync(tryPath) ? 'EXISTS' : 'NOT FOUND'})`);
+      });
       
       res.status(404).json({ 
-        message: 'Document file not found',
+        message: 'We apologize, but this document file could not be located. The file may have been moved or deleted.',
+        userMessage: 'Document temporarily unavailable',
         debug: {
           fileName: document.fileName,
           originalPath: document.filePath,
-          attemptedPath: filePath
+          attemptedPaths: uniquePaths,
+          uploadDate: document.uploadedAt
         }
       });
     }
