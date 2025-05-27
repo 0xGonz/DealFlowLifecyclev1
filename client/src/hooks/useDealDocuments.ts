@@ -16,7 +16,7 @@ interface Document {
  * and sync it with the DocumentsContext
  */
 export function useDealDocuments(dealId: number) {
-  const { setDocs, setCurrent } = useDocs();
+  const { setDocs, setCurrent, current } = useDocs();
   
   // Query to fetch documents for this deal
   const { data, isLoading, error, refetch } = useQuery<Document[]>({
@@ -34,6 +34,7 @@ export function useDealDocuments(dealId: number) {
         fileName: doc.fileName,
         fileType: doc.fileType,
         downloadUrl: `/api/documents/${doc.id}/download`,
+        documentType: doc.documentType,
       }));
       
       // Update docs state
