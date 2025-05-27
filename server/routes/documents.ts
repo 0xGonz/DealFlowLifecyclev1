@@ -851,7 +851,7 @@ Base your analysis ONLY on the actual content of this document.`;
         temperature: 0.3
       });
 
-      analysis = response.choices[0].message.content;
+      analysis = response.choices[0].message.content as string || "Analysis could not be generated.";
     } else {
       // Provide analysis based on the simulated content
       if (documentContent.includes('High Road Partners')) {
