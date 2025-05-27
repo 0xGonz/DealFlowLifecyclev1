@@ -27,7 +27,7 @@ export const Sidebar = ({ dealId }: { dealId: number }) => {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('dealId', dealId.toString());
-      formData.append('documentType', 'document'); // Default document type
+      formData.append('documentType', 'other'); // Default document type
       
       const response = await fetch(`/api/documents/upload`, {
         method: 'POST',
