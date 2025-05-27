@@ -54,16 +54,17 @@ export default function DocumentList({ dealId }: DocumentListProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
-  const { data: documents, isLoading } = useQuery<Document[]>({
+  const { data: documents, isLoading } = useQuery({
     queryKey: [`/api/documents/deal/${dealId}`],
     enabled: !!dealId,
-    onSuccess: (data) => {
-      console.log(`📊 Documents query SUCCESS for dealId=${dealId}:`, data);
-    },
-    onError: (error) => {
-      console.log(`❌ Documents query ERROR for dealId=${dealId}:`, error);
-    },
-  });
+  }) as { data: Document[] | undefined, isLoading: boolean };
+
+  // Add useEffect to log when documents data changes
+  useEffect(() => {
+    if (documents) {
+      console.log(`📊 Documents query SUCCESS for dealId=${dealId}:`, documents);
+    }
+  }, [documents, dealId]);
   
   // Set the selected document when documents are loaded and none is selected yet
   useEffect(() => {
@@ -168,11 +169,17 @@ export default function DocumentList({ dealId }: DocumentListProps) {
   };
 
   const handleSaveDocumentType = () => {
+    console.log(`💾 Save button clicked! editingDocument:`, editingDocument);
+    console.log(`💾 editDocumentType:`, editDocumentType);
+    
     if (editingDocument) {
+      console.log(`✨ Calling mutation with documentId=${editingDocument.id}, documentType=${editDocumentType}`);
       editDocumentMutation.mutate({
         documentId: editingDocument.id,
         documentType: editDocumentType,
       });
+    } else {
+      console.log(`❌ No editingDocument found, cannot save`);
     }
   };
 
