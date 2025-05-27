@@ -545,7 +545,11 @@ export default function DocumentList({ dealId }: DocumentListProps) {
                     <div className="truncate">
                       <p className="text-xs font-medium truncate">{document.fileName}</p>
                       <p className="text-xs text-neutral-500 truncate">
-                        {getDocumentTypeLabel(document.documentType)} • {formatBytes(document.fileSize)}
+                        {(() => {
+                          const label = getDocumentTypeLabel(document.documentType);
+                          console.log(`🏷️ Document ${document.id} (${document.fileName}): documentType="${document.documentType}" → label="${label}"`);
+                          return label;
+                        })()} • {formatBytes(document.fileSize)}
                       </p>
                     </div>
                   </div>
