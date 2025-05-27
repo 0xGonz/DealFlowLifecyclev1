@@ -481,6 +481,16 @@ router.post('/upload', requireAuth, requirePermission('create', 'document'), (re
     // Get form fields from request body
     const { dealId, documentType, description } = req.body;
     
+    // Debug logging for upload request
+    console.log('🔍 Document upload request:', {
+      dealId,
+      documentType,
+      description,
+      fileName: req.file?.originalname,
+      fileSize: req.file?.size,
+      userAgent: req.get('User-Agent')
+    });
+    
     // Comprehensive file validation
     if (!req.file) {
       return res.status(400).json({ 
@@ -536,6 +546,7 @@ router.post('/upload', requireAuth, requirePermission('create', 'document'), (re
     }
     
     if (!documentType) {
+      console.log('❌ Upload failed: Missing document type');
       return res.status(400).json({ 
         error: 'Missing documentType',
         message: 'A document type must be specified.' 
