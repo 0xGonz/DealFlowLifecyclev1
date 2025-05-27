@@ -212,24 +212,19 @@ export default function AIAnalysis() {
                 </div>
                 
                 {/* Context Info Bar */}
-                {contextLoading ? (
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Loading deal context...
-                  </div>
-                ) : contextData && (
+                {selectedDeal && (
                   <div className="flex items-center gap-4 text-sm text-gray-600">
                     <div className="flex items-center gap-1">
                       <FileText className="h-4 w-4" />
-                      {contextData.memos?.length || 0} memos
+                      {contextData?.memos?.length || 0} memos
                     </div>
                     <div className="flex items-center gap-1">
                       <Database className="h-4 w-4" />
-                      {contextData.documents?.length || 0} documents
+                      {documents.length} documents
                     </div>
                     <div className="flex items-center gap-1">
                       <BarChart3 className="h-4 w-4" />
-                      {contextData.dataTypes?.length || 0} data files
+                      {contextData?.dataTypes?.length || 0} data files
                     </div>
                   </div>
                 )}
