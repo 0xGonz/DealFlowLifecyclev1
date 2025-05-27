@@ -65,7 +65,7 @@ export default function AIAnalysis() {
 
   return (
     <AppLayout>
-      <div className="container mx-auto px-6 py-6 max-w-7xl">
+      <div className="max-w-7xl mx-auto">
         {/* Header Section */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
