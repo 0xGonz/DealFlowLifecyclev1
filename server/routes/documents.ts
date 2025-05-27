@@ -75,7 +75,7 @@ const sanitizeFilename = (filename: string): string => {
 };
 
 // Setup constants for standardized file storage
-const UPLOAD_PATH = path.join(process.cwd(), 'public', 'uploads');
+const UPLOAD_PATH = path.join(process.cwd(), 'uploads');
 
 // Ensure upload directories exist at server startup
 try {
@@ -102,6 +102,50 @@ const getStandardizedFilePath = (dealId: number, filename: string): string => {
 // Helper function to get relative path for database storage
 const getRelativeFilePath = (dealId: number, filename: string): string => {
   return `uploads/deal-${dealId}/${filename}`;
+};
+
+// Migration helper to move files to standardized structure
+const migrateFileToStandardStructure = async (document: any): Promise<string | null> => {
+  const currentPath = document.filePath;
+  const baseFilename = path.basename(currentPath);
+  const standardPath = getStandardizedFilePath(document.dealId, baseFilename);
+  const relativePath = getRelativeFilePath(document.dealId, baseFilename);
+  
+  // Check if file already exists in standard location
+  if (fs.existsSync(standardPath)) {
+    console.log(`✅ File already in standard location: ${standardPath}`);
+    return relativePath;
+  }
+  
+  // Try to find the file in various legacy locations
+  const possiblePaths = [
+    path.resolve(process.cwd(), currentPath.startsWith('/') ? currentPath.substring(1) : currentPath),
+    path.resolve(process.cwd(), 'public', currentPath),
+    path.resolve(process.cwd(), 'uploads', baseFilename),
+    path.resolve(process.cwd(), 'public/uploads', baseFilename)
+  ];
+  
+  for (const sourcePath of possiblePaths) {
+    if (fs.existsSync(sourcePath)) {
+      try {
+        // Ensure target directory exists
+        const targetDir = path.dirname(standardPath);
+        if (!fs.existsSync(targetDir)) {
+          fs.mkdirSync(targetDir, { recursive: true });
+        }
+        
+        // Copy file to standard location
+        fs.copyFileSync(sourcePath, standardPath);
+        console.log(`✅ Migrated file from ${sourcePath} to ${standardPath}`);
+        return relativePath;
+      } catch (error) {
+        console.error(`❌ Failed to migrate file from ${sourcePath}:`, error);
+      }
+    }
+  }
+  
+  console.warn(`⚠️ Could not find source file for migration: ${currentPath}`);
+  return null;
 };
 
 // Set up multer storage with standardized organization
