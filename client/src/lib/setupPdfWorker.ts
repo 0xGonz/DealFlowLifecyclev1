@@ -1,8 +1,5 @@
 import { pdfjs } from 'react-pdf';
 
-// Use the CDN worker URL that matches our pdfjs-dist version
-const workerURL = 'https://unpkg.com/pdfjs-dist@4.8.69/build/pdf.worker.min.js';
-
 /**
  * PDF.js Worker Configuration
  * 
@@ -10,10 +7,11 @@ const workerURL = 'https://unpkg.com/pdfjs-dist@4.8.69/build/pdf.worker.min.js';
  * This ensures the worker file is correctly bundled and served by Vite.
  */
 
-// Configure PDF.js worker with Vite-bundled worker
+// Configure PDF.js worker - use CDN that matches our version
+const workerURL = 'https://unpkg.com/pdfjs-dist@4.8.69/build/pdf.worker.min.js';
 pdfjs.GlobalWorkerOptions.workerSrc = workerURL;
 
-console.log('✅ PDF.js worker configured with Vite-bundled worker:', workerURL);
+console.log('✅ PDF.js worker configured with CDN worker:', workerURL);
 
 // Export functions to help components check and manage the worker configuration
 export function getWorkerStatus() {

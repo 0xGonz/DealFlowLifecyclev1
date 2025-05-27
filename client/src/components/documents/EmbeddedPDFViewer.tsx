@@ -174,8 +174,8 @@ export default function EmbeddedPDFViewer({ documentId, documentName }: Embedded
       
       case 'worker-error':
         // Try to fix the worker configuration
-        const newStatus = tryFixPdfWorker();
-        console.log('PDF Worker reconfigured:', newStatus);
+        const newStatus = getWorkerStatus();
+        console.log('PDF Worker status:', newStatus);
         
         toast({
           title: 'PDF Worker Issue',
