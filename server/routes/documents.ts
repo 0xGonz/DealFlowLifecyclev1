@@ -710,9 +710,9 @@ router.post('/upload', requireAuth, requirePermission('create', 'document'), (re
 router.patch('/:id', requireAuth, async (req: Request, res: Response) => {
   try {
     const documentId = parseInt(req.params.id);
-    const { documentType } = req.body;
+    const { documentType, description } = req.body;
 
-    console.log(`🔧 Document update request: ID=${documentId}, documentType=${documentType}`);
+    console.log(`🔧 Document update request: ID=${documentId}, documentType=${documentType}, description=${description}`);
 
     if (!documentId || isNaN(documentId)) {
       return res.status(400).json({ error: 'Invalid document ID' });
@@ -730,9 +730,13 @@ router.patch('/:id', requireAuth, async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Document not found' });
     }
 
-    // Update the document type
-    const updatedDocument = await storage.updateDocument(documentId, { documentType });
-    console.log(`✅ Document updated successfully:`, updatedDocument ? `new type=${updatedDocument.documentType}` : 'update failed');
+    // Update the document with both type and description
+    const updateData: any = {};
+    if (documentType !== undefined) updateData.documentType = documentType;
+    if (description !== undefined) updateData.description = description;
+    
+    const updatedDocument = await storage.updateDocument(documentId, updateData);
+    console.log(`✅ Document updated successfully:`, updatedDocument ? `new type=${updatedDocument.documentType}, description=${updatedDocument.description}` : 'update failed');
     
     res.json(updatedDocument);
   } catch (error) {
