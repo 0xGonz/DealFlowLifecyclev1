@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { useDocs, DocMeta } from '@/context/DocumentsContext';
-import { FileUp, Trash2, FileText } from 'lucide-react';
+import { FileUp, Trash2, FileText, Edit2 } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -236,20 +236,33 @@ export const Sidebar = ({ dealId }: { dealId: number }) => {
               >
                 <div className="flex items-center overflow-hidden">
                   <FileText className="h-4 w-4 mr-2 flex-shrink-0" />
-                  <span className="truncate text-sm">{doc.name}</span>
+                  <div className="min-w-0 flex-1">
+                    <span className="truncate text-sm block">{doc.name}</span>
+                    <span className="text-xs text-muted-foreground">{doc.documentType || 'Other'}</span>
+                  </div>
                 </div>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 w-6 p-0"
-                      aria-label={`Delete document: ${doc.name}`}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                    </Button>
-                  </AlertDialogTrigger>
+                <div className="flex space-x-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 w-6 p-0"
+                    aria-label={`Edit document type: ${doc.name}`}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Edit2 className="h-3.5 w-3.5 text-blue-500" />
+                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0"
+                        aria-label={`Delete document: ${doc.name}`}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                      </Button>
+                    </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
                       <AlertDialogTitle>Delete document?</AlertDialogTitle>
