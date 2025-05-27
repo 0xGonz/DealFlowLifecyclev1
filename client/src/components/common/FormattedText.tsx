@@ -8,6 +8,11 @@ interface FormattedTextProps {
 export function FormattedText({ content, className = '' }: FormattedTextProps) {
   // Convert markdown-style formatting to HTML
   const formatText = (text: string): string => {
+    // Ensure we have a string to work with
+    if (!text || typeof text !== 'string') {
+      return '';
+    }
+    
     let formatted = text;
     
     // Convert headers (### -> h3, ## -> h2, # -> h1) - Remove hashtags completely
