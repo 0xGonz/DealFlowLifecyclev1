@@ -537,6 +537,17 @@ export class MemStorage implements IStorage {
       .sort((a, b) => b.uploadedAt.getTime() - a.uploadedAt.getTime());
   }
   
+  async updateDocument(id: number, updates: Partial<InsertDocument>): Promise<Document | undefined> {
+    const document = this.documents.get(id);
+    if (!document) {
+      return undefined;
+    }
+    
+    const updatedDocument: Document = { ...document, ...updates };
+    this.documents.set(id, updatedDocument);
+    return updatedDocument;
+  }
+  
   async deleteDocument(id: number): Promise<boolean> {
     return this.documents.delete(id);
   }
