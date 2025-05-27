@@ -66,31 +66,33 @@ export default function AIAnalysis() {
   return (
     <AppLayout>
       <div className="container mx-auto p-6 max-w-7xl">
+        {/* Header Section */}
         <div className="mb-6">
-          <div className="flex items-center gap-3 mb-2">
-            <Brain className="h-8 w-8 text-blue-600" />
-            <h1 className="text-3xl font-bold">AI Analysis</h1>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <Brain className="h-8 w-8 text-blue-600" />
+              <div>
+                <h1 className="text-3xl font-bold">AI Analysis</h1>
+                <p className="text-gray-600">Get comprehensive AI-powered insights and analysis for your investment deals</p>
+              </div>
+            </div>
           </div>
-          <p className="text-gray-600">Get comprehensive AI-powered insights and analysis for your investment deals</p>
-        </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Left Panel - Deal Selection & Context */}
-          <div className="lg:col-span-1 space-y-4">
-            {/* Deal Selector */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Database className="h-4 w-4" />
-                  Select Deal
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+          {/* Deal Selector at Top */}
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Database className="h-5 w-5" />
+                Select Deal for Analysis
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="max-w-md">
                 <Select 
                   value={selectedDealId?.toString() || ""} 
                   onValueChange={(value) => setSelectedDealId(parseInt(value))}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="Choose a deal to analyze..." />
                   </SelectTrigger>
                   <SelectContent>
@@ -104,8 +106,23 @@ export default function AIAnalysis() {
                     ))}
                   </SelectContent>
                 </Select>
-              </CardContent>
-            </Card>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {!selectedDealId ? (
+          <Card className="text-center py-12">
+            <CardContent>
+              <Search className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Select a Deal to Begin</h3>
+              <p className="text-gray-600">Choose a deal from the dropdown above to start AI analysis and chat.</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            {/* Left Panel - Deal Context & Documents */}
+            <div className="lg:col-span-1 space-y-4">
 
             {/* Deal Context */}
             {selectedDeal && (
@@ -159,7 +176,7 @@ export default function AIAnalysis() {
                   </Button>
                   
                   {/* Document Analysis Buttons */}
-                  {documents && documents.length > 0 && (
+                  {Array.isArray(documents) && documents.length > 0 && (
                     <div className="space-y-2">
                       <h4 className="text-sm font-medium text-gray-700">Analyze Documents:</h4>
                       <div className="flex flex-wrap gap-1">
@@ -286,6 +303,7 @@ export default function AIAnalysis() {
             </Card>
           </div>
         </div>
+        )}
       </div>
     </AppLayout>
   );
