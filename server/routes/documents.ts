@@ -227,51 +227,64 @@ router.get('/:id/download', requireAuth, async (req: Request, res: Response) => 
       res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(document.fileName)}"`);
     }
     
-    // Check file existence before attempting to serve
-    // First normalize the filePath - handle both with and without leading slash
+    // Modular file resolution strategy
     const normalizedPath = document.filePath.startsWith('/') 
-      ? document.filePath.substring(1) // Remove leading slash if present
+      ? document.filePath.substring(1) 
       : document.filePath;
     
     const baseFilename = path.basename(normalizedPath);
     
-    // Define all possible locations where the file might be stored
-    const dealSpecificPath = path.join(UPLOAD_PATH, `deal-${document.dealId}`, baseFilename);
-    
-    // Create comprehensive file path list for modular resolution
-    const filePaths = [
-      // Current structure (priority)
+    // Comprehensive file location search
+    const possiblePaths = [
+      // Current standardized structure
       path.join(UPLOAD_PATH, `deal-${document.dealId}`, baseFilename),
       path.join(UPLOAD_PATH, baseFilename),
       
-      // Legacy paths with different formats
+      // Direct database path variants
+      path.resolve(process.cwd(), normalizedPath),
+      path.resolve(process.cwd(), document.filePath),
+      
+      // Legacy public folder variants
       path.resolve(process.cwd(), 'public', normalizedPath),
       path.resolve(process.cwd(), 'public', document.filePath),
-      path.resolve(process.cwd(), normalizedPath),
-      path.resolve(process.cwd(), 'public/uploads', path.basename(document.filePath)),
-      path.resolve(process.cwd(), 'public/uploads', baseFilename),
+      
+      // Alternative uploads locations
       path.resolve(process.cwd(), 'uploads', baseFilename),
-      path.resolve(process.cwd(), 'uploads', path.basename(document.filePath))
+      path.resolve(process.cwd(), 'uploads', path.basename(document.filePath)),
+      path.resolve(process.cwd(), 'public/uploads', baseFilename),
+      path.resolve(process.cwd(), 'public/uploads', path.basename(document.filePath))
     ];
 
     console.log(`Attempting to serve document: ${document.fileName}`);
-    console.log(`Checking ${filePaths.length} possible locations`);
+    console.log(`Checking ${possiblePaths.length} possible locations`);
     
-    for (const filePath of filePaths) {
+    // Try each location until we find the file
+    for (const filePath of possiblePaths) {
       if (fs.existsSync(filePath)) {
         console.log(`✅ Found and serving file from: ${filePath}`);
-        // Stream the file instead of loading it into memory
-        const fileStream = fs.createReadStream(filePath);
-        fileStream.pipe(res);
         
-        // Handle stream errors
+        // Set file size header if available
+        try {
+          const stats = fs.statSync(filePath);
+          res.setHeader('Content-Length', stats.size);
+        } catch (err) {
+          console.warn('Could not get file stats:', err);
+        }
+        
+        // Create and pipe file stream
+        const fileStream = fs.createReadStream(filePath);
+        
         fileStream.on('error', (err) => {
           console.error('Error streaming document:', err);
-          res.status(500).json({ 
-            error: 'Stream error',
-            message: 'Error accessing the document file'
-          });
+          if (!res.headersSent) {
+            res.status(500).json({ 
+              error: 'Stream error',
+              message: 'Error accessing the document file'
+            });
+          }
         });
+        
+        fileStream.pipe(res);
         return;
       }
     }
