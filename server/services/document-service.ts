@@ -1,6 +1,6 @@
 import { db } from '../db';
 import { documents } from '../../shared/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { schemaManager, documentQueryBuilder } from '../database/schema-compatibility';
 
 /**
@@ -62,7 +62,10 @@ export class DocumentService {
         .select(selectFields)
         .from(documents)
         .where(
-          eq(documents.dealId, dealId) && eq(documents.documentType, documentType)
+          and(
+            eq(documents.dealId, dealId),
+            eq(documents.documentType, documentType)
+          )
         );
       
       console.log(`✅ DocumentService: Found ${result.length} ${documentType} documents`);

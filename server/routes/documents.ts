@@ -11,6 +11,7 @@ declare global {
   }
 }
 import { StorageFactory } from '../storage-factory';
+import { DocumentService } from '../services/document-service-fixed';
 import { z } from 'zod';
 import { createInsertSchema } from 'drizzle-zod';
 import * as schema from '@shared/schema';
@@ -222,8 +223,7 @@ router.get('/deal/:dealId', requireAuth, async (req: Request, res: Response) => 
     }
     
     console.log(`🔍 Fetching documents for deal ${dealId}...`);
-    const storage = StorageFactory.getStorage();
-    const documents = await storage.getDocumentsByDeal(dealId);
+    const documents = await DocumentService.getDocumentsByDeal(dealId);
     
     console.log(`✅ Successfully fetched ${documents?.length || 0} documents for deal ${dealId}:`, documents);
     return res.json(documents);
