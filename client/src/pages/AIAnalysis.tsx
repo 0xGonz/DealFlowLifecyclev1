@@ -253,11 +253,11 @@ export default function AIAnalysis() {
                         <p className="text-gray-600 mb-4">Use the quick analysis buttons above or ask any question about this deal.</p>
                         
                         {/* Document Analysis Buttons */}
-                        {Array.isArray(documents) && documents.length > 0 && (
+                        {Array.isArray(dealContext.documents) && dealContext.documents.length > 0 && (
                           <div className="mt-6">
                             <h4 className="text-sm font-medium text-gray-700 mb-3">Or analyze specific documents:</h4>
                             <div className="flex flex-wrap gap-2 justify-center">
-                              {documents.map((document: any) => (
+                              {dealContext.documents.map((document: any) => (
                                 <Button
                                   key={document.id}
                                   variant="outline"
