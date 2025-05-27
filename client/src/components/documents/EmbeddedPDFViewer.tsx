@@ -4,7 +4,7 @@ import { Download, FileText, RefreshCw } from 'lucide-react';
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Document as PDFDocument, Page as PDFPage } from 'react-pdf';
-import { getWorkerStatus } from '@/lib/setupPdfWorker';
+import { getWorkerStatus, tryFixPdfWorker } from '@/lib/setupPdfWorker';
 
 interface EmbeddedPDFViewerProps {
   documentId: number;
@@ -174,8 +174,8 @@ export default function EmbeddedPDFViewer({ documentId, documentName }: Embedded
       
       case 'worker-error':
         // Try to fix the worker configuration
-        const newStatus = getWorkerStatus();
-        console.log('PDF Worker status:', newStatus);
+        const newStatus = tryFixPdfWorker();
+        console.log('PDF Worker reconfigured:', newStatus);
         
         toast({
           title: 'PDF Worker Issue',
@@ -206,7 +206,7 @@ export default function EmbeddedPDFViewer({ documentId, documentName }: Embedded
     setUseDirectUrl(false);
     
     // Try to fix PDF worker if there might be configuration issues
-    const workerStatus = getWorkerStatus();
+    const workerStatus = tryFixPdfWorker();
     console.log('PDF Worker Status after retry:', workerStatus);
     
     toast({
@@ -236,7 +236,7 @@ export default function EmbeddedPDFViewer({ documentId, documentName }: Embedded
       </div>
       
       <Card className="p-0 w-full overflow-hidden">
-        <div className="overflow-hidden h-[40vh] min-h-[300px] max-h-[80vh] sm:h-[45vh] sm:min-h-[350px] lg:h-[50vh] lg:min-h-[400px] bg-neutral-50 flex justify-center">
+        <div className="overflow-hidden h-[650px] bg-neutral-50 flex justify-center">
           {/* First attempt: If it's a PDF and viewer hasn't failed, try PDF.js first */}
           {isPdfFile && !pdfFailed ? (
             <div className="w-full h-full">

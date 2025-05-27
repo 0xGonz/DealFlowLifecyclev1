@@ -4,7 +4,6 @@ import { Download, FileText, FileSpreadsheet, Eye, ZoomIn, ZoomOut, RotateCw, Se
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { RESPONSIVE, ICON_SIZES } from "@/lib/constants/ui-constants";
 
 interface SimpleDocumentViewerProps {
   documentId: number;
@@ -188,41 +187,40 @@ const SimpleDocumentViewer = ({ documentId, documentName, fileType }: SimpleDocu
   const Icon = getFileIcon();
 
   return (
-    <Card className="w-full h-full min-h-0 flex flex-col overflow-hidden">
+    <Card className="w-full h-full flex flex-col overflow-hidden">
       <CardHeader className="flex-shrink-0 pb-3">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-2">
-          <div className="flex items-center gap-2 min-w-0 flex-1">
-            <Icon className={ICON_SIZES.DOCUMENT.VIEWER + " text-blue-600 flex-shrink-0"} />
-            <span className={RESPONSIVE.TEXT.BODY + " font-semibold truncate"}>{documentName}</span>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Icon className="w-5 h-5 text-blue-600" />
+            <span className="font-semibold">{documentName}</span>
           </div>
           
-          <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+          <div className="flex items-center gap-2">
             {/* PDF Controls */}
             {documentName.toLowerCase().includes('.pdf') && (
               <>
                 <Button variant="outline" size="sm" onClick={handleZoomOut}>
-                  <ZoomOut className={ICON_SIZES.DOCUMENT.ACTION} />
+                  <ZoomOut className="w-4 h-4" />
                 </Button>
-                <span className={RESPONSIVE.TEXT.CAPTION + " px-1 sm:px-2"}>{zoom}%</span>
+                <span className="text-sm text-gray-600 px-2">{zoom}%</span>
                 <Button variant="outline" size="sm" onClick={handleZoomIn}>
-                  <ZoomIn className={ICON_SIZES.DOCUMENT.ACTION} />
+                  <ZoomIn className="w-4 h-4" />
                 </Button>
                 <Button variant="outline" size="sm" onClick={toggleSearch}>
-                  <Search className={ICON_SIZES.DOCUMENT.ACTION} />
+                  <Search className="w-4 h-4" />
                 </Button>
               </>
             )}
             
             {/* AI Ready Indicator */}
             <div className="flex items-center gap-1 bg-green-50 border border-green-200 rounded px-2 py-1">
-              <Eye className={ICON_SIZES.DOCUMENT.SMALL + " text-green-600"} />
-              <span className={RESPONSIVE.TEXT.CAPTION + " text-green-700 font-medium hidden sm:inline"}>AI Ready</span>
-              <span className="text-xs text-green-700 font-medium sm:hidden">AI</span>
+              <Eye className="w-3 h-3 text-green-600" />
+              <span className="text-xs text-green-700 font-medium">AI Ready</span>
             </div>
             
             {/* Download Button */}
             <Button variant="outline" size="sm" onClick={handleDownload}>
-              <Download className={ICON_SIZES.DOCUMENT.ACTION} />
+              <Download className="w-4 h-4" />
             </Button>
           </div>
         </div>
@@ -262,21 +260,13 @@ const SimpleDocumentViewer = ({ documentId, documentName, fileType }: SimpleDocu
           )}
           
           {error && (
-            <div className="absolute inset-0 bg-blue-50 rounded-lg flex items-center justify-center z-10 p-6">
-              <div className="text-center max-w-md">
-                <FileText className={ICON_SIZES.DOCUMENT.VIEWER + " text-blue-500 mx-auto mb-4"} />
-                <h3 className={RESPONSIVE.TEXT.HEADING_3 + " text-gray-800 mb-2"}>Document Temporarily Unavailable</h3>
-                <p className={RESPONSIVE.TEXT.BODY + " text-gray-600 mb-4"}>
-                  This document file could not be located and may have been moved or is temporarily unavailable.
-                </p>
-                <div className="bg-white border border-blue-200 rounded-lg p-4 mb-4">
-                  <p className={RESPONSIVE.TEXT.CAPTION + " text-blue-700"}>
-                    <strong>File:</strong> {documentName}
-                  </p>
-                </div>
-                <Button onClick={handleDownload} variant="outline" className="mr-2">
-                  <Download className={ICON_SIZES.DOCUMENT.ACTION + " mr-2"} />
-                  Try Download
+            <div className="absolute inset-0 bg-red-50 rounded-lg flex items-center justify-center z-10">
+              <div className="text-center">
+                <FileText className="w-16 h-16 text-red-400 mx-auto mb-4" />
+                <p className="text-red-600 mb-4">{error}</p>
+                <Button onClick={handleDownload} variant="outline">
+                  <Download className="w-4 h-4 mr-2" />
+                  Download Instead
                 </Button>
               </div>
             </div>
