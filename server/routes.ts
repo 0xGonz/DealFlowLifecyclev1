@@ -18,6 +18,7 @@ import meetingsRoutes from './routes/meetings';
 import calendarRoutes from './routes/calendar.routes'; // New unified calendar API
 import { systemRouter } from './routes/system';
 import v1Router from './routes/v1/index'; // V1 API routes including AI analysis
+import aiAnalysisRoutes from './routes/ai-analysis';
 
 // Utils
 import { errorHandler, notFoundHandler, AppError } from './utils/errorHandlers';
@@ -94,10 +95,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/documents', documentsRoutes);
   app.use('/api/system', systemRouter);
   app.use('/api/v1', v1Router); // V1 API routes including AI analysis
-  
-  // Mount AI analysis routes directly for easier access
-  const aiAnalysisRoutes = require('./routes/ai-analysis').default;
-  app.use('/api/ai-analysis', aiAnalysisRoutes);
+  app.use('/api/ai-analysis', aiAnalysisRoutes); // Direct access to AI analysis
   
   // Catch-all route for 404s
   app.use('/api/*', notFoundHandler);
