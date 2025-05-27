@@ -238,35 +238,9 @@ router.get('/:id/download', requireAuth, async (req: Request, res: Response) => 
     // Define all possible locations where the file might be stored
     const dealSpecificPath = path.join(UPLOAD_PATH, `deal-${document.dealId}`, baseFilename);
     
-    // Create a comprehensive list of possible file locations for maximum modularity
-    const filePaths = [
-      // First try the deal-specific directory (standardized structure)
-      dealSpecificPath,
-      
-      // Then try the general uploads directory (legacy files)
-      path.join(UPLOAD_PATH, baseFilename),
-      
-      // Try the full normalized path directly
-      path.resolve(process.cwd(), 'public', normalizedPath),
-      
-      // Try with the original path as stored in database
-      path.resolve(process.cwd(), 'public', document.filePath),
-      
-      // Try without public directory prefix for older files
-      path.resolve(process.cwd(), normalizedPath),
-      
-      // Try in public/uploads with the exact filename from database path
-      path.resolve(process.cwd(), 'public/uploads', path.basename(document.filePath)),
-      
-      // Try looking for files with similar names in uploads directory
-      path.resolve(process.cwd(), 'public/uploads', baseFilename),
-      
-      // Try in uploads directory without public prefix
-      path.resolve(process.cwd(), 'uploads', baseFilename),
-      
-      // Try in root uploads directory
-      path.resolve(process.cwd(), 'uploads', path.basename(document.filePath))
-    ];
+    // Scalable file resolution strategy
+    const fileResolver = createFileResolver(document, baseFilename);
+    const resolvedPath = await fileResolver.findFile();
     
     console.log(`Attempting to serve document: ${document.fileName}`);
     console.log(`Checking these locations: ${JSON.stringify(filePaths)}`);
