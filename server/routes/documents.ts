@@ -2,12 +2,11 @@ import fs from 'fs';
 import path from 'path';
 import multer from 'multer';
 import { Request, Response, Router } from 'express';
-import { requireAuth } from '../middleware/auth';
-import { StorageFactory } from '../storage';
+import { requireAuth } from '../utils/auth';
+import { StorageFactory } from '../storage-factory';
 import { createInsertSchema } from 'drizzle-zod';
 import { documents } from '../../shared/schema';
 import { z } from 'zod';
-import { fileResolver } from '../services/FileResolver';
 
 const router = Router();
 
@@ -125,7 +124,7 @@ router.get('/deal/:dealId', requireAuth, async (req: Request, res: Response) => 
   try {
     const { dealId } = req.params;
     const storage = StorageFactory.getStorage();
-    const documents = await storage.getDealDocuments(parseInt(dealId));
+    const documents = await storage.getDocuments({ dealId: parseInt(dealId) });
     res.json(documents);
   } catch (error) {
     console.error('Error fetching deal documents:', error);
