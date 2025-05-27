@@ -1,77 +1,82 @@
-import React, { Component, ReactNode, ErrorInfo } from 'react';
-import { AlertCircle } from 'lucide-react';
+import React, { Component, ReactNode } from 'react';
+import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface Props {
   children: ReactNode;
   fallback?: ReactNode;
-  onError?: (error: Error, info: ErrorInfo) => void;
+  onRetry?: () => void;
 }
 
 interface State {
   hasError: boolean;
-  error: Error | null;
+  error?: Error;
 }
 
-/**
- * Error Boundary component to catch and handle JavaScript errors in child components
- * This prevents the entire application from crashing when an error occurs
- */
-class ErrorBoundary extends Component<Props, State> {
+export class ErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
-    this.state = {
-      hasError: false,
-      error: null,
-    };
+    this.state = { hasError: false };
   }
 
   static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, info: ErrorInfo): void {
-    // Log the error to an error reporting service
-    console.error('Error caught by ErrorBoundary:', error, info);
-    this.props.onError?.(error, info);
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('Error caught by boundary:', error, errorInfo);
   }
 
-  resetErrorBoundary = (): void => {
-    this.setState({ hasError: false, error: null });
+  handleRetry = () => {
+    this.setState({ hasError: false, error: undefined });
+    this.props.onRetry?.();
   };
 
   render() {
-    const { hasError, error } = this.state;
-    const { children, fallback } = this.props;
-
-    if (hasError) {
-      if (fallback) {
-        return fallback;
+    if (this.state.hasError) {
+      if (this.props.fallback) {
+        return this.props.fallback;
       }
 
       return (
-        <Alert variant="destructive" className="mb-4">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Something went wrong</AlertTitle>
-          <AlertDescription>
-            <div className="mt-2">
-              {error?.message || 'An unexpected error occurred'}
+        <Card className="max-w-md mx-auto mt-8">
+          <CardHeader className="text-center">
+            <div className="flex justify-center mb-4">
+              <AlertTriangle className="h-12 w-12 text-destructive" />
             </div>
-            <Button 
-              variant="outline" 
-              className="mt-4" 
-              onClick={this.resetErrorBoundary}
-            >
+            <CardTitle>Something went wrong</CardTitle>
+            <CardDescription>
+              An error occurred while loading this component. Please try again.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex justify-center">
+            <Button onClick={this.handleRetry} variant="outline">
+              <RefreshCw className="h-4 w-4 mr-2" />
               Try Again
             </Button>
-          </AlertDescription>
-        </Alert>
+          </CardContent>
+        </Card>
       );
     }
 
-    return children;
+    return this.props.children;
   }
 }
 
-export default ErrorBoundary;
+// Error fallback component for specific use cases
+export function AIAnalysisErrorFallback({ onRetry }: { onRetry?: () => void }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-12 px-4">
+      <AlertTriangle className="h-16 w-16 text-destructive mb-4" />
+      <h3 className="text-lg font-semibold mb-2">AI Analysis Error</h3>
+      <p className="text-muted-foreground text-center mb-6 max-w-md">
+        There was a problem loading the AI analysis system. This could be due to a connection issue or temporary service disruption.
+      </p>
+      <Button onClick={onRetry} variant="outline">
+        <RefreshCw className="h-4 w-4 mr-2" />
+        Retry Analysis
+      </Button>
+    </div>
+  );
+}

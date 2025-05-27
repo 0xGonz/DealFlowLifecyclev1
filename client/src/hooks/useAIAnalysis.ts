@@ -10,6 +10,7 @@ export interface Deal {
   stage: string;
   stageLabel: string;
   description: string;
+  targetReturn?: string;
 }
 
 export interface AnalysisMessage {
@@ -17,6 +18,7 @@ export interface AnalysisMessage {
   type: 'user' | 'ai' | 'analysis';
   content: string;
   timestamp: Date;
+  role: 'user' | 'assistant'; // Added for OpenAI compatibility
   context?: AnalysisContext;
 }
 
@@ -80,6 +82,7 @@ export function useAIAnalysis(options: AIAnalysisHookOptions = {}) {
         type: data.query ? 'ai' : 'analysis',
         content: data.analysis || data.response || data.content,
         timestamp: new Date(),
+        role: 'assistant',
         context: data.context
       };
       
@@ -132,7 +135,8 @@ export function useAIAnalysis(options: AIAnalysisHookOptions = {}) {
       id: `user-${Date.now()}`,
       type: 'user',
       content: text,
-      timestamp: new Date()
+      timestamp: new Date(),
+      role: 'user'
     };
 
     setMessages(prev => [...prev, userMessage]);

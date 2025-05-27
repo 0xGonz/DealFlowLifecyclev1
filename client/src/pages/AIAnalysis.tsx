@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Bot, Send, FileText, Database, TrendingUp, Loader2, Brain, Search, Sparkles, BarChart3, MessageSquare, DollarSign, Trash2 } from 'lucide-react';
+import { Bot, Send, FileText, Database, TrendingUp, Loader2, Brain, Search, Sparkles, BarChart3, MessageSquare, DollarSign, Trash2, AlertTriangle, RefreshCw } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { useQuery } from '@tanstack/react-query';
 import FormattedText from "@/components/common/FormattedText";
@@ -13,6 +13,7 @@ import AppLayout from "@/components/layout/AppLayout";
 import { useAIAnalysis, Deal, AnalysisMessage } from "@/hooks/useAIAnalysis";
 import { useDealContext } from "@/hooks/useDealContext";
 import { DocumentAnalysisButtons } from "@/components/analysis/DocumentAnalysisButtons";
+import { ErrorBoundary, AIAnalysisErrorFallback } from "@/components/common/ErrorBoundary";
 
 export default function AIAnalysis() {
   const [selectedDealId, setSelectedDealId] = useState<number | null>(null);
