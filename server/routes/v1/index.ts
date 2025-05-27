@@ -30,7 +30,7 @@ v1Router.use('/dashboard', dashboardRoutes);
 v1Router.use('/leaderboard', leaderboardRoutes);
 v1Router.use('/notifications', notificationsRoutes);
 v1Router.use('/documents', documentsRoutes);
-v1Router.use('/ai', aiAnalysisRoutes);
+v1Router.use('/ai-analysis', aiAnalysisRoutes);
 v1Router.use('/document-analysis', documentAnalysisRoutes);
 
 export default v1Router;
