@@ -65,6 +65,7 @@ export interface IStorage {
   getDocument(id: number): Promise<Document | undefined>;
   getDocumentsByDeal(dealId: number): Promise<Document[]>;
   getDocumentsByType(dealId: number, documentType: string): Promise<Document[]>;
+  updateDocument(id: number, document: Partial<InsertDocument>): Promise<Document | undefined>;
   deleteDocument(id: number): Promise<boolean>;
   
   // Funds

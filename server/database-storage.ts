@@ -392,6 +392,20 @@ export class DatabaseStorage implements IStorage {
     const [document] = await db.select().from(documents).where(eq(documents.id, id));
     return document || undefined;
   }
+
+  async updateDocument(id: number, documentUpdate: Partial<InsertDocument>): Promise<Document | undefined> {
+    if (!db) {
+      throw new Error('Database not initialized');
+    }
+
+    const [updatedDocument] = await db
+      .update(documents)
+      .set(documentUpdate)
+      .where(eq(documents.id, id))
+      .returning();
+      
+    return updatedDocument || undefined;
+  }
   
   async getDocumentsByDeal(dealId: number): Promise<Document[]> {
     return await db
