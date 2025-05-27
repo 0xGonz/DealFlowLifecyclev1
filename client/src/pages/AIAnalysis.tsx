@@ -12,6 +12,7 @@ import FormattedText from "@/components/common/FormattedText";
 import AppLayout from "@/components/layout/AppLayout";
 import { useAIAnalysis, Deal, AnalysisMessage } from "@/hooks/useAIAnalysis";
 import { useDealContext } from "@/hooks/useDealContext";
+import { DocumentAnalysisButtons } from "@/components/analysis/DocumentAnalysisButtons";
 
 export default function AIAnalysis() {
   const [selectedDealId, setSelectedDealId] = useState<number | null>(null);
@@ -60,6 +61,19 @@ export default function AIAnalysis() {
     
     const analysisQuery = `Please analyze the document "${document.fileName}" in detail. Focus on key financial metrics, investment terms, risks, opportunities, and strategic implications.`;
     await sendMessage(analysisQuery);
+  };
+
+  const handleAnalysisType = async (type: string) => {
+    if (!selectedDealId) return;
+    
+    const analysisQueries = {
+      'investment_thesis': 'Please provide an investment thesis analysis for this deal, focusing on market opportunity, competitive advantages, financial projections, and strategic value.',
+      'risks_opportunities': 'Please analyze the risks and opportunities for this deal, including market risks, execution risks, regulatory considerations, and potential upside scenarios.',
+      'financial_analysis': 'Please provide a detailed financial analysis including revenue projections, profitability metrics, cash flow analysis, and key financial ratios.'
+    };
+    
+    const query = analysisQueries[type as keyof typeof analysisQueries] || 'Please analyze this deal comprehensively.';
+    await sendMessage(query);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
