@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Download, FileText, FileSpreadsheet, Eye, ZoomIn, ZoomOut, RotateCw } from 'lucide-react';
+import { Download, FileText, FileSpreadsheet, Eye, ZoomIn, ZoomOut, RotateCw, Search } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 
 interface SimpleDocumentViewerProps {
@@ -15,6 +16,8 @@ const SimpleDocumentViewer = ({ documentId, documentName, fileType }: SimpleDocu
   const [zoom, setZoom] = useState(100);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const getFileIcon = () => {
     if (!fileType) return FileText;
@@ -50,6 +53,32 @@ const SimpleDocumentViewer = ({ documentId, documentName, fileType }: SimpleDocu
 
   const handleZoomIn = () => setZoom(prev => Math.min(prev + 25, 200));
   const handleZoomOut = () => setZoom(prev => Math.max(prev - 25, 50));
+  
+  const handleSearch = () => {
+    if (searchTerm.trim()) {
+      // Use browser's built-in search functionality
+      const found = document.execCommand('find', false, searchTerm);
+      if (!found) {
+        // Fallback: Try to trigger browser's native search
+        document.dispatchEvent(new KeyboardEvent('keydown', { 
+          key: 'f', 
+          ctrlKey: true, 
+          bubbles: true 
+        }));
+      }
+    }
+  };
+
+  const toggleSearch = () => {
+    setShowSearch(!showSearch);
+    if (!showSearch) {
+      // Focus on search input when opening
+      setTimeout(() => {
+        const searchInput = document.getElementById('pdf-search-input');
+        if (searchInput) searchInput.focus();
+      }, 100);
+    }
+  };
 
   const renderDocumentViewer = () => {
     const documentUrl = `/api/documents/${documentId}/download`;
@@ -170,6 +199,9 @@ const SimpleDocumentViewer = ({ documentId, documentName, fileType }: SimpleDocu
                 <Button variant="outline" size="sm" onClick={handleZoomIn}>
                   <ZoomIn className="w-4 h-4" />
                 </Button>
+                <Button variant="outline" size="sm" onClick={toggleSearch}>
+                  <Search className="w-4 h-4" />
+                </Button>
               </>
             )}
             
@@ -185,6 +217,28 @@ const SimpleDocumentViewer = ({ documentId, documentName, fileType }: SimpleDocu
             </Button>
           </div>
         </div>
+        
+        {/* Search Bar */}
+        {showSearch && documentName.toLowerCase().includes('.pdf') && (
+          <div className="flex items-center gap-2 mt-2 p-2 bg-gray-50 rounded">
+            <Input
+              id="pdf-search-input"
+              type="text"
+              placeholder="Search in document..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              className="flex-1"
+              size="sm"
+            />
+            <Button size="sm" onClick={handleSearch} disabled={!searchTerm.trim()}>
+              Search
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => setShowSearch(false)}>
+              ✕
+            </Button>
+          </div>
+        )}
       </CardHeader>
       
       <CardContent className="flex-1 p-4 min-h-0">
