@@ -39,14 +39,15 @@ export function useDealDocuments(dealId: number) {
       // Update docs state
       setDocs(docMetas);
       
-      // Select first document as current if available
-      if (docMetas.length > 0 && docMetas[0]) {
+      // Only select first document if no current selection exists
+      // This prevents overriding user selections when data refetches
+      if (docMetas.length > 0 && !current) {
         setCurrent(docMetas[0]);
-      } else {
+      } else if (docMetas.length === 0) {
         setCurrent(null);
       }
     }
-  }, [data, setDocs, setCurrent]);
+  }, [data, setDocs, setCurrent, current]);
   
   return {
     isLoading,
