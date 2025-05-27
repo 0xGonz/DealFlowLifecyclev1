@@ -78,7 +78,7 @@ export function useAIAnalysis(options: AIAnalysisHookOptions = {}) {
       const aiMessage: AnalysisMessage = {
         id: `ai-${Date.now()}`,
         type: data.query ? 'ai' : 'analysis',
-        content: data.response || data.analysis,
+        content: data.analysis || data.response || data.content,
         timestamp: new Date(),
         context: data.context
       };
