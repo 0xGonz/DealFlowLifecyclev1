@@ -184,6 +184,32 @@ const upload = multer({
   fileFilter
 });
 
+// Database health check for debugging production issues
+router.get('/health-check', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const storage = StorageFactory.getStorage();
+    
+    // Test if we can query the documents table
+    const testResult = await storage.getDocumentsByDeal(999); // Use non-existent deal ID
+    
+    return res.json({
+      status: 'ok',
+      message: 'Documents table accessible',
+      testQueryResult: 'success',
+      documentsFound: testResult.length
+    });
+  } catch (error) {
+    const err = error as Error;
+    return res.status(500).json({
+      status: 'error',
+      message: 'Documents table access failed',
+      error: err.message,
+      errorCode: (err as any).code,
+      errorName: err.name
+    });
+  }
+});
+
 // Get all documents for a deal - requires authentication
 router.get('/deal/:dealId', requireAuth, async (req: Request, res: Response) => {
   try {
