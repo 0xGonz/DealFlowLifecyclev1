@@ -242,7 +242,7 @@ export default function DocumentList({ dealId }: DocumentListProps) {
       'financial_model': 'Financial Model',
       'legal_document': 'Legal Document',
       'diligence_report': 'Diligence Report',
-      'investor_update': 'Investor Update',
+      'investor_report': 'Investor Report',
       'other': 'Other'
     };
     return types[type] || type;

@@ -67,7 +67,7 @@ export const documents = pgTable("documents", {
   uploadedAt: timestamp("uploaded_at").defaultNow().notNull(),
   description: text("description"),
   documentType: text("document_type", { 
-    enum: ["pitch_deck", "financial_model", "legal_document", "diligence_report", "other"] 
+    enum: ["pitch_deck", "financial_model", "legal_document", "diligence_report", "investor_report", "other"] 
   }).notNull().default("other"),
 });
 
