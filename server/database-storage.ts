@@ -425,8 +425,20 @@ export class DatabaseStorage implements IStorage {
         throw new Error('Database not initialized');
       }
       
+      // Use explicit column selection to work with both old and new database schemas
       const result = await db
-        .select()
+        .select({
+          id: documents.id,
+          dealId: documents.dealId,
+          fileName: documents.fileName,
+          fileType: documents.fileType,
+          fileSize: documents.fileSize,
+          filePath: documents.filePath,
+          uploadedBy: documents.uploadedBy,
+          uploadedAt: documents.uploadedAt,
+          description: documents.description,
+          documentType: documents.documentType
+        })
         .from(documents)
         .where(eq(documents.dealId, dealId));
       
