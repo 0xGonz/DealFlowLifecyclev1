@@ -22,7 +22,7 @@ export const PdfViewer = () => {
   }
 
   return (
-    <div className="h-full">
+    <div className="h-full overflow-hidden">
       <UniversalDocumentViewer 
         documentId={current.id} 
         documentName={current.fileName}

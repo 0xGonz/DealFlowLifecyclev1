@@ -12,20 +12,22 @@ export const DocumentsPane: React.FC<DocumentsPaneProps> = ({ dealId }) => {
   const { isLoading } = useDealDocuments(dealId);
 
   return (
-    <div className="h-full flex">
+    <div className="h-full flex overflow-hidden">
       {/* Left sidebar for document list and actions */}
-      <div className="w-64 border-r border-border overflow-y-auto">
+      <div className="w-64 border-r border-border overflow-y-auto flex-shrink-0">
         <Sidebar dealId={dealId} />
       </div>
       
       {/* Main PDF viewer area */}
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-hidden min-w-0">
         {isLoading ? (
           <div className="h-full flex items-center justify-center">
             <p className="text-muted-foreground">Loading documents...</p>
           </div>
         ) : (
-          <PdfViewer />
+          <div className="h-full overflow-hidden">
+            <PdfViewer />
+          </div>
         )}
       </div>
     </div>
