@@ -83,11 +83,13 @@ export default function DocumentList({ dealId }: DocumentListProps) {
   }, [documents, dealId]);
   
   // Set the selected document when documents are loaded and none is selected yet
+  // Only run when documents change, NOT when selectedDocument changes
   useEffect(() => {
     if (documents && documents.length > 0 && !selectedDocument) {
       setSelectedDocument(documents[0]);
+      console.log(`📋 Auto-selected first document: ${documents[0]?.fileName}`);
     }
-  }, [documents, selectedDocument]);
+  }, [documents]); // Removed selectedDocument from dependency array
 
   // Document uploads use the native fetch API with FormData directly
   // instead of using the query client, since we need to send files
@@ -170,15 +172,7 @@ export default function DocumentList({ dealId }: DocumentListProps) {
         return prev;
       });
       
-      console.log(`✅ Cache updated directly - no need for invalidation!`);
-      
-      queryClient.invalidateQueries({ queryKey: [`/api/deals/${dealId}/allocations`] });
-      console.log(`❌ Invalidated: /api/deals/${dealId}/allocations`);
-      
-      // Force refetch of all document-related data
-      console.log(`🔄 Force refetching document data...`);
-      queryClient.refetchQueries({ queryKey: [`/api/documents/deal/${dealId}`] });
-      console.log(`🔄 Refetch initiated for: /api/documents/deal/${dealId}`);
+      console.log(`✅ Cache updated directly - no need for invalidation or refetch!`);
       
       toast({
         title: 'Document updated',
