@@ -6,6 +6,7 @@ export interface DocMeta {
   fileName: string;
   fileType: string;
   downloadUrl: string;
+  documentType?: string;
 }
 
 interface DocsCtx {

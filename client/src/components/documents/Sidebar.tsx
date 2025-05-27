@@ -48,48 +48,41 @@ export const Sidebar = ({ dealId }: { dealId: number }) => {
         }
       }
       
-      return await response.json();
-    },
-    onSuccess: (data) => {
-      // Convert API data to DocMeta format
+      const data = await response.json();
+      
       const docMeta: DocMeta = {
         id: data.id,
         name: data.fileName,
         fileName: data.fileName,
-        fileType: data.fileType || 'pdf',
+        fileType: data.fileType,
         downloadUrl: `/api/documents/${data.id}/download`,
+        documentType: data.documentType
       };
       
-      // Add to docs state
-      setDocs(prev => [...prev, docMeta]);
-      
-      // Set as current document if first one
-      if (docs.length === 0) {
-        setCurrent(docMeta);
-      }
-      
-      // Invalidate and refetch documents query to ensure sync
-      queryClient.invalidateQueries({ queryKey: [`/api/documents/deal/${dealId}`] });
-      
-      toast({
-        title: 'Document uploaded',
-        description: `${data.fileName} was uploaded successfully`,
-      });
+      return docMeta;
     },
-    onError: (error) => {
+    onSuccess: (newDoc: DocMeta) => {
+      setDocs((prev: DocMeta[]) => [...prev, newDoc]);
       toast({
-        title: 'Upload failed',
-        description: error instanceof Error ? error.message : 'Unknown error',
-        variant: 'destructive',
+        title: "Document uploaded successfully",
+        description: `${newDoc.name} has been uploaded.`
       });
+      queryClient.invalidateQueries({ queryKey: [`/api/deals/${dealId}/documents`] });
     },
+    onError: (error: Error) => {
+      toast({
+        title: "Upload failed",
+        description: error.message || "Failed to upload document",
+        variant: "destructive"
+      });
+    }
   });
 
   // Mutation to delete a document
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
       const response = await fetch(`/api/documents/${id}`, {
-        method: 'DELETE',
+        method: 'DELETE'
       });
       
       if (!response.ok) {
@@ -98,54 +91,46 @@ export const Sidebar = ({ dealId }: { dealId: number }) => {
       
       return id;
     },
-    onSuccess: (id) => {
-      // Remove from docs state
+    onSuccess: (id: number) => {
       setDocs((prev: DocMeta[]) => prev.filter((d: DocMeta) => d.id !== id));
-      
-      // If current doc was deleted, set to first available or null
       if (current?.id === id) {
-        const remaining = docs.filter(d => d.id !== id);
-        setCurrent(remaining.length > 0 ? remaining[0] : null);
+        setCurrent(null);
       }
-      
-      // Invalidate and refetch documents query to ensure sync
-      queryClient.invalidateQueries({ queryKey: [`/api/documents/deal/${dealId}`] });
-      
       toast({
-        title: 'Document deleted',
-        description: 'The document was deleted successfully',
+        title: "Document deleted",
+        description: "The document has been removed."
       });
+      queryClient.invalidateQueries({ queryKey: [`/api/deals/${dealId}/documents`] });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       toast({
-        title: 'Delete failed',
-        description: error instanceof Error ? error.message : 'Unknown error',
-        variant: 'destructive',
+        title: "Delete failed",
+        description: "Failed to delete document",
+        variant: "destructive"
       });
-    },
+    }
   });
+
+  const handleFileSelect = () => {
+    fileInputRef.current?.click();
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      uploadMutation.mutate(file);
+      handleFileUpload(file);
     }
+    // Reset the input
+    e.target.value = '';
   };
 
-  const handleUploadClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  // Handle file drop
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDraggingOver(false);
-    
-    const file = e.dataTransfer.files?.[0];
-    if (!file) {
+  const handleFileUpload = (file: File) => {
+    // Validate file size (50MB limit)
+    const maxSize = 50 * 1024 * 1024; // 50MB in bytes
+    if (file.size > maxSize) {
       toast({
-        title: "Upload failed",
-        description: "No file was detected. Please try again.",
+        title: "File too large",
+        description: "Please select a file smaller than 50MB.",
         variant: "destructive"
       });
       return;
@@ -168,7 +153,16 @@ export const Sidebar = ({ dealId }: { dealId: number }) => {
     uploadMutation.mutate(file);
   };
 
-  // Prevent default to avoid browser opening the file
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDraggingOver(false);
+    
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length > 0) {
+      handleFileUpload(files[0]);
+    }
+  };
+
   // State to track when we're dragging over the drop zone
   const [isDraggingOver, setIsDraggingOver] = useState(false);
 
@@ -199,22 +193,21 @@ export const Sidebar = ({ dealId }: { dealId: number }) => {
             type="file"
             ref={fileInputRef}
             onChange={handleFileChange}
-            className="hidden"
             accept=".pdf,.doc,.docx,.xls,.xlsx"
+            className="hidden"
           />
-          <Button
+          <Button 
+            onClick={handleFileSelect}
             size="sm"
-            onClick={handleUploadClick}
-            aria-label="Upload new document"
             disabled={uploadMutation.isPending}
+            className="bg-[#D32F2F] hover:bg-[#B71C1C] text-white"
           >
-            <FileUp className="h-4 w-4 mr-2" />
-            Upload
+            <FileUp className="h-4 w-4 mr-1" />
+            {uploadMutation.isPending ? 'Uploading...' : 'Upload'}
           </Button>
         </div>
       </div>
 
-      {/* Document list */}
       <div className="flex-1 overflow-y-auto">
         {docs.length === 0 ? (
           <div className="text-center text-muted-foreground text-sm p-4">
@@ -238,7 +231,7 @@ export const Sidebar = ({ dealId }: { dealId: number }) => {
                   <FileText className="h-4 w-4 mr-2 flex-shrink-0" />
                   <div className="min-w-0 flex-1">
                     <span className="truncate text-sm block">{doc.name}</span>
-                    <span className="text-xs text-muted-foreground">{doc.documentType || 'Other'}</span>
+                    <span className="text-xs text-muted-foreground">Other</span>
                   </div>
                 </div>
                 <div className="flex space-x-1">
@@ -263,24 +256,25 @@ export const Sidebar = ({ dealId }: { dealId: number }) => {
                         <Trash2 className="h-3.5 w-3.5 text-destructive" />
                       </Button>
                     </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Delete document?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        This will permanently delete this document. This action cannot be undone.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={() => deleteMutation.mutate(doc.id)}
-                        disabled={deleteMutation.isPending}
-                      >
-                        Delete
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete document?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This will permanently delete this document. This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => deleteMutation.mutate(doc.id)}
+                          disabled={deleteMutation.isPending}
+                        >
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
               </div>
             ))}
           </div>
