@@ -100,6 +100,47 @@ export default function DocumentList({ dealId }: DocumentListProps) {
     },
   });
 
+  // Edit document type mutation
+  const editDocumentMutation = useMutation({
+    mutationFn: async ({ documentId, documentType }: { documentId: number, documentType: string }) => {
+      return apiRequest('PATCH', `/api/documents/${documentId}`, { documentType });
+    },
+    onSuccess: () => {
+      setIsEditDialogOpen(false);
+      setEditingDocument(null);
+      
+      // Invalidate queries to refresh document lists
+      queryClient.invalidateQueries({ queryKey: [`/api/documents/deal/${dealId}`] });
+      
+      toast({
+        title: 'Document updated',
+        description: 'Document type has been successfully updated.',
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error updating document',
+        description: error.message || 'Failed to update document type',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const handleEditDocument = (document: Document) => {
+    setEditingDocument(document);
+    setEditDocumentType(document.documentType);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleSaveDocumentType = () => {
+    if (editingDocument) {
+      editDocumentMutation.mutate({
+        documentId: editingDocument.id,
+        documentType: editDocumentType,
+      });
+    }
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setUploadingFile(e.target.files[0]);
@@ -361,6 +402,50 @@ export default function DocumentList({ dealId }: DocumentListProps) {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Edit Document Type Dialog */}
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Document Type</DialogTitle>
+              <DialogDescription>
+                Change the document type to properly categorize this file.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              {editingDocument && (
+                <div>
+                  <p className="text-sm text-gray-600 mb-2">Document: {editingDocument.fileName}</p>
+                </div>
+              )}
+              <div>
+                <Label htmlFor="editDocumentType">Document Type</Label>
+                <Select value={editDocumentType} onValueChange={setEditDocumentType}>
+                  <SelectTrigger id="editDocumentType">
+                    <SelectValue placeholder="Select document type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pitch_deck">Pitch Deck</SelectItem>
+                    <SelectItem value="financial_model">Financial Model</SelectItem>
+                    <SelectItem value="legal_document">Legal Document</SelectItem>
+                    <SelectItem value="diligence_report">Diligence Report</SelectItem>
+                    <SelectItem value="investor_update">Investor Update</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
+              <Button 
+                onClick={handleSaveDocumentType} 
+                disabled={editDocumentMutation.isPending}
+              >
+                {editDocumentMutation.isPending ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {documents && documents.length > 0 ? (
@@ -400,6 +485,17 @@ export default function DocumentList({ dealId }: DocumentListProps) {
                       >
                         <Download className="h-3.5 w-3.5" />
                       </a>
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-6 w-6 p-0"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditDocument(document);
+                      }}
+                    >
+                      <Edit2 className="h-3.5 w-3.5 text-blue-500" />
                     </Button>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>

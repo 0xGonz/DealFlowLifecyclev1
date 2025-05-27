@@ -386,7 +386,7 @@ router.get('/:id/download', requireAuth, async (req: Request, res: Response) => 
     // If we've gone through all fallbacks and still haven't found the file
     console.log(`No file found for: ${document.fileName}. Returning 404.`);
     console.log(`Document record from database:`, document);
-    console.log(`Checked these paths:`, filePaths);
+    console.log(`Checked these paths:`, possiblePaths);
     console.log(`Persistent directory content:`, fs.existsSync(UPLOAD_PATH) ? fs.readdirSync(UPLOAD_PATH) : 'Directory not found');
     console.log(`Upload directory content:`, fs.existsSync(UPLOAD_PATH) ? fs.readdirSync(UPLOAD_PATH) : 'Directory not found');
     
@@ -682,6 +682,32 @@ router.post('/upload', requireAuth, requirePermission('create', 'document'), (re
 });
 
 // Delete a document - requires authentication
+// Update document (e.g., change document type)
+router.patch('/:id', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const documentId = parseInt(req.params.id);
+    const { documentType } = req.body;
+
+    if (!documentId || isNaN(documentId)) {
+      return res.status(400).json({ error: 'Invalid document ID' });
+    }
+
+    // Get the document to check ownership/permissions
+    const document = await storage.getDocument(documentId);
+    if (!document) {
+      return res.status(404).json({ error: 'Document not found' });
+    }
+
+    // Update the document type
+    const updatedDocument = await storage.updateDocument(documentId, { documentType });
+    
+    res.json(updatedDocument);
+  } catch (error) {
+    console.error('Error updating document:', error);
+    res.status(500).json({ error: 'Failed to update document' });
+  }
+});
+
 router.delete('/:id', requireAuth, requirePermission('delete', 'document'), async (req: Request, res: Response) => {
   try {
     const storage = StorageFactory.getStorage();
