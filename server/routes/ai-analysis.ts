@@ -10,6 +10,44 @@ const analysisRequestSchema = z.object({
   query: z.string().optional()
 });
 
+// Get all deals for AI analysis
+router.get('/deals', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { StorageFactory } = await import('../storage-factory');
+    const storage = StorageFactory.getStorage();
+    const deals = await storage.getDeals();
+    
+    res.json(deals);
+  } catch (error) {
+    console.error('Error getting deals for AI analysis:', error);
+    res.status(500).json({ message: 'Failed to get deals' });
+  }
+});
+
+// Analyze a specific deal
+router.post('/deals/:dealId/analyze', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const dealId = parseInt(req.params.dealId);
+    if (isNaN(dealId)) {
+      return res.status(400).json({ message: 'Invalid deal ID' });
+    }
+
+    const { query } = analysisRequestSchema.parse(req.body);
+    
+    const analysis = await AIAnalyzer.analyzeDeal(dealId, query);
+    
+    res.json({
+      success: true,
+      dealId,
+      analysis,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Error analyzing deal:', error);
+    res.status(500).json({ message: 'Failed to analyze deal' });
+  }
+});
+
 // Get deal context for AI analysis
 router.get('/deals/:dealId/context', requireAuth, async (req: Request, res: Response) => {
   try {
