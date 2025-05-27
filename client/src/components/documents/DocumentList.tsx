@@ -109,8 +109,10 @@ export default function DocumentList({ dealId }: DocumentListProps) {
       setIsEditDialogOpen(false);
       setEditingDocument(null);
       
-      // Invalidate queries to refresh document lists
+      // Invalidate all document-related queries to refresh the UI
       queryClient.invalidateQueries({ queryKey: [`/api/documents/deal/${dealId}`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/deals/${dealId}`] });
       
       toast({
         title: 'Document updated',
