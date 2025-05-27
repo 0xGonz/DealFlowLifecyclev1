@@ -64,6 +64,11 @@ export default function AIAnalysis() {
     await sendMessage(analysisQuery);
   };
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleSendMessage();
+  };
+
   return (
     <AppLayout>
       <div className="pt-2 sm:pt-4 px-2 sm:px-4 md:px-6 pb-20 w-full overflow-hidden">
