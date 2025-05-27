@@ -90,7 +90,14 @@ const SimpleDocumentViewer = ({ documentId, documentName, fileType }: SimpleDocu
         <div className="w-full h-full bg-gray-100 rounded-lg overflow-hidden">
           <iframe
             src={`${documentUrl}#zoom=${zoom}`}
-            className="w-full h-full border-0"
+            className="w-full h-full border-0 max-w-full max-h-full"
+            style={{ 
+              width: '100%', 
+              height: '100%', 
+              maxWidth: '100%', 
+              maxHeight: '100%',
+              overflow: 'hidden'
+            }}
             title={documentName}
             onLoad={() => setLoading(false)}
             onError={() => {
@@ -180,7 +187,7 @@ const SimpleDocumentViewer = ({ documentId, documentName, fileType }: SimpleDocu
   const Icon = getFileIcon();
 
   return (
-    <Card className="w-full h-full flex flex-col">
+    <Card className="w-full h-full flex flex-col overflow-hidden">
       <CardHeader className="flex-shrink-0 pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -241,8 +248,8 @@ const SimpleDocumentViewer = ({ documentId, documentName, fileType }: SimpleDocu
         )}
       </CardHeader>
       
-      <CardContent className="flex-1 p-4 min-h-0">
-        <div className="w-full h-full relative">
+      <CardContent className="flex-1 p-4 min-h-0 overflow-hidden">
+        <div className="w-full h-full relative overflow-hidden">
           {loading && (
             <div className="absolute inset-0 bg-gray-50 rounded-lg flex items-center justify-center z-10">
               <div className="text-center">
