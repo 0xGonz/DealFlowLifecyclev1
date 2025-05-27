@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { useDocs, DocMeta } from '@/context/DocumentsContext';
-import { FileUp, Trash2, FileText, Edit2 } from 'lucide-react';
+import { FileUp, Trash2, FileText, Edit2, Check } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,6 +15,32 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+// Helper function to get document type display label
+const getDocumentTypeLabel = (type: string) => {
+  switch (type) {
+    case 'pitch_deck': return 'Pitch Deck';
+    case 'financial_model': return 'Financial Model';
+    case 'legal_document': return 'Legal Document';
+    case 'diligence_report': return 'Diligence Report';
+    default: return 'Other';
+  }
+};
+
+// Document type options for dropdown
+const documentTypeOptions = [
+  { value: 'other', label: 'Other' },
+  { value: 'pitch_deck', label: 'Pitch Deck' },
+  { value: 'financial_model', label: 'Financial Model' },
+  { value: 'legal_document', label: 'Legal Document' },
+  { value: 'diligence_report', label: 'Diligence Report' },
+];
 
 export const Sidebar = ({ dealId }: { dealId: number }) => {
   const { docs, setDocs, current, setCurrent } = useDocs();
@@ -73,6 +99,49 @@ export const Sidebar = ({ dealId }: { dealId: number }) => {
       toast({
         title: "Upload failed",
         description: error.message || "Failed to upload document",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Mutation to update document type
+  const updateDocumentTypeMutation = useMutation({
+    mutationFn: async ({ id, documentType }: { id: number, documentType: string }) => {
+      const response = await fetch(`/api/documents/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ documentType }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to update document type');
+      }
+      
+      return { id, documentType };
+    },
+    onSuccess: ({ id, documentType }) => {
+      setDocs((prev: DocMeta[]) => 
+        prev.map(doc => 
+          doc.id === id 
+            ? { ...doc, documentType } 
+            : doc
+        )
+      );
+      if (current?.id === id) {
+        setCurrent({ ...current, documentType });
+      }
+      toast({
+        title: "Document type updated",
+        description: `Document type changed to ${getDocumentTypeLabel(documentType)}.`
+      });
+      queryClient.invalidateQueries({ queryKey: [`/api/deals/${dealId}/documents`] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Update failed",
+        description: "Failed to update document type",
         variant: "destructive"
       });
     }
@@ -231,19 +300,45 @@ export const Sidebar = ({ dealId }: { dealId: number }) => {
                   <FileText className="h-4 w-4 mr-2 flex-shrink-0" />
                   <div className="min-w-0 flex-1">
                     <span className="truncate text-sm block">{doc.name}</span>
-                    <span className="text-xs text-muted-foreground">Other</span>
+                    <span className="text-xs text-muted-foreground">
+                      {getDocumentTypeLabel(doc.documentType || 'other')}
+                    </span>
                   </div>
                 </div>
                 <div className="flex space-x-1">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 w-6 p-0"
-                    aria-label={`Edit document type: ${doc.name}`}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <Edit2 className="h-3.5 w-3.5 text-blue-500" />
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0"
+                        aria-label={`Edit document type: ${doc.name}`}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Edit2 className="h-3.5 w-3.5 text-blue-500" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                      {documentTypeOptions.map((option) => (
+                        <DropdownMenuItem
+                          key={option.value}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            updateDocumentTypeMutation.mutate({
+                              id: doc.id,
+                              documentType: option.value
+                            });
+                          }}
+                          className="flex items-center justify-between"
+                        >
+                          <span>{option.label}</span>
+                          {(doc.documentType || 'other') === option.value && (
+                            <Check className="h-4 w-4 text-primary" />
+                          )}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button
