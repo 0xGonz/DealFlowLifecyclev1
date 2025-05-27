@@ -261,7 +261,7 @@ export const Sidebar = ({ dealId }: { dealId: number }) => {
             onClick={handleFileSelect}
             size="sm"
             disabled={uploadMutation.isPending}
-            className="bg-[#D32F2F] hover:bg-[#B71C1C] text-white"
+            className="bg-[#136c34] hover:bg-[#B71C1C] text-white"
           >
             <FileUp className="h-4 w-4 mr-1" />
             {uploadMutation.isPending ? 'Uploading...' : 'Upload'}
