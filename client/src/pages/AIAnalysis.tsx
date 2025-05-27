@@ -11,6 +11,7 @@ import { useQuery } from '@tanstack/react-query';
 import FormattedText from "@/components/common/FormattedText";
 import AppLayout from "@/components/layout/AppLayout";
 import { useAIAnalysis, Deal, AnalysisMessage } from "@/hooks/useAIAnalysis";
+import { useDealContext } from "@/hooks/useDealContext";
 
 export default function AIAnalysis() {
   const [selectedDealId, setSelectedDealId] = useState<number | null>(null);
@@ -22,6 +23,9 @@ export default function AIAnalysis() {
 
   // Get the selected deal
   const selectedDeal = deals.find(deal => deal.id === selectedDealId);
+
+  // Use modular deal context hook for comprehensive data integration
+  const dealContext = useDealContext(selectedDealId);
 
   // Use the shared AI Analysis hook
   const {
@@ -39,12 +43,6 @@ export default function AIAnalysis() {
     dealId: selectedDealId || undefined,
     dealName: selectedDeal?.name,
     persistMessages: false
-  });
-
-  // Fetch documents for the selected deal
-  const { data: documents = [], isLoading: documentsLoading } = useQuery({
-    queryKey: [`/api/documents/deal/${selectedDealId}`],
-    enabled: !!selectedDealId
   });
 
   const handleSendMessage = () => {
@@ -216,15 +214,15 @@ export default function AIAnalysis() {
                   <div className="flex items-center gap-4 text-sm text-gray-600">
                     <div className="flex items-center gap-1">
                       <FileText className="h-4 w-4" />
-                      {contextData?.memos?.length || 0} memos
+                      {dealContext.memos.length} memos
                     </div>
                     <div className="flex items-center gap-1">
                       <Database className="h-4 w-4" />
-                      {documents.length} documents
+                      {dealContext.documents.length} documents
                     </div>
                     <div className="flex items-center gap-1">
                       <BarChart3 className="h-4 w-4" />
-                      {contextData?.dataTypes?.length || 0} data files
+                      {dealContext.dataFiles.length} data files
                     </div>
                   </div>
                 )}
