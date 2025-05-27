@@ -8,6 +8,7 @@ import { FileText, Download, Trash2, FileUp, File, Eye, Edit2 } from 'lucide-rea
 import { Document } from '@/lib/types';
 import { formatDistanceToNow } from 'date-fns';
 import { formatBytes } from '@/lib/utils/format';
+import { getDocumentTypeLabel, getDocumentTypeOptions } from '@/shared/document-types';
 import EnhancedPDFViewer from './EnhancedPDFViewer';
 import EmbeddedPDFViewer from './EmbeddedPDFViewer';
 // Import react-pdf components
@@ -300,17 +301,7 @@ export default function DocumentList({ dealId }: DocumentListProps) {
     }
   };
 
-  const getDocumentTypeLabel = (type: string) => {
-    const types: Record<string, string> = {
-      'pitch_deck': 'Pitch Deck',
-      'financial_model': 'Financial Model',
-      'legal_document': 'Legal Document',
-      'diligence_report': 'Diligence Report',
-      'investor_report': 'Investor Report',
-      'other': 'Other'
-    };
-    return types[type] || type;
-  };
+
 
   const getDocumentTypeIcon = (type: string, className = 'h-10 w-10') => {
     // Default icon
