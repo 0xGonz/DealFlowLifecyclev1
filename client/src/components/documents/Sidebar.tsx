@@ -29,6 +29,7 @@ const getDocumentTypeLabel = (type: string) => {
     case 'financial_model': return 'Financial Model';
     case 'legal_document': return 'Legal Document';
     case 'diligence_report': return 'Diligence Report';
+    case 'investor_report': return 'Investor Report';
     default: return 'Other';
   }
 };
@@ -40,6 +41,7 @@ const documentTypeOptions = [
   { value: 'financial_model', label: 'Financial Model' },
   { value: 'legal_document', label: 'Legal Document' },
   { value: 'diligence_report', label: 'Diligence Report' },
+  { value: 'investor_report', label: 'Investor Report' },
 ];
 
 export const Sidebar = ({ dealId }: { dealId: number }) => {
