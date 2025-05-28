@@ -357,7 +357,15 @@ export type InsertMiniMemo = z.infer<typeof insertMiniMemoSchema>;
 export type Fund = typeof funds.$inferSelect;
 export type InsertFund = z.infer<typeof insertFundSchema>;
 
-export type FundAllocation = typeof fundAllocations.$inferSelect;
+// Base type from the table
+export type FundAllocationBase = typeof fundAllocations.$inferSelect;
+
+// Extended type with additional properties for API responses
+export type FundAllocation = FundAllocationBase & {
+  fundName?: string;
+  dealName?: string;
+  distributions?: Distribution[];
+};
 export type InsertFundAllocation = z.infer<typeof insertFundAllocationSchema>;
 
 // Base type from the table
@@ -430,3 +438,26 @@ export const DealStageColors: Record<Deal['stage'], string> = {
   invested: "success",
   rejected: "danger"
 };
+
+// Distributions table for tracking multiple distributions from investments
+export const distributions = pgTable("distributions", {
+  id: serial("id").primaryKey(),
+  allocationId: integer("allocation_id").notNull().references(() => fundAllocations.id, { onDelete: "cascade" }),
+  distributionDate: date("distribution_date").notNull(),
+  amount: numeric("amount", { precision: 14, scale: 2 }).notNull(),
+  distributionType: text("distribution_type", { 
+    enum: ["dividend", "capital_gain", "return_of_capital", "liquidation", "other"] 
+  }).notNull().default("dividend"),
+  description: text("description"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const insertDistributionSchema = createInsertSchema(distributions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type Distribution = typeof distributions.$inferSelect;
+export type InsertDistribution = z.infer<typeof insertDistributionSchema>;
