@@ -71,10 +71,9 @@ async function updateAllocationStatusBasedOnCapitalCalls(allocationId: number): 
     console.error(`Error updating allocation status for allocation ${allocationId}:`, error);
   }
 }
-      console.log(`Updated allocation ${allocationId} status from ${allocation.status} to ${newStatus}`);
-      
-      // Recalculate portfolio weights for all allocations in this fund
-      // to maintain correct weights as allocations get funded
+
+// Helper function to recalculate portfolio weights for a fund
+async function recalculatePortfolioWeights(fundId: number): Promise<void> {
       await recalculatePortfolioWeights(allocation.fundId);
     }
   } catch (error) {
