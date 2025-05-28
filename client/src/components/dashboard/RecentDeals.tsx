@@ -30,8 +30,8 @@ export default function RecentDeals() {
     queryKey: ["/api/deals"],
   });
 
-  // Filter deals based on current filters and limit to most recent 5
-  const filteredDeals = deals
+  // Filter deals based on current filters and limit to most recent 5 - with null safety
+  const filteredDeals = (deals || [])
     .filter((deal: Deal) => {
       // Stage filter
       if (stageFilter !== "all" && deal.stage !== stageFilter) {
@@ -56,7 +56,7 @@ export default function RecentDeals() {
 
   // Find selected deal name for allocate modal
   const selectedDealName = allocateDealId ? 
-    deals.find(d => d.id === allocateDealId)?.name || "Selected Deal" : "";
+    (deals || []).find(d => d.id === allocateDealId)?.name || "Selected Deal" : "";
 
   return (
     <div className="w-full">
@@ -121,7 +121,7 @@ export default function RecentDeals() {
           ) : (
             <div className="rounded-md overflow-hidden border border-neutral-200 w-full mx-0">
               <ul className="divide-y divide-neutral-200 w-full border-t-0 border-r-0 border-l-0 p-0">
-                {filteredDeals.map(rawDeal => {
+                {(filteredDeals || []).map(rawDeal => {
                   // Enrich deal with computed properties
                   const deal = enrichDealWithComputedProps(rawDeal);
                   const stageBadgeClass = getDealStageBadgeClass(deal.stage);
