@@ -68,15 +68,18 @@ import {
   CheckCircle
 } from "lucide-react";
 import { format } from "date-fns";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency } from "@/lib/services/formatters";
 import FundSectorDistribution from "@/components/funds/FundSectorDistribution";
 import CalledCapitalRatio from "@/components/funds/CalledCapitalRatio";
+import ModularTable from "@/components/ui/ModularTable";
 import { 
   calculateAllocationCapitalMetrics, 
   calculateFundCapitalMetrics, 
   getDisplayAmount, 
-  getCapitalViewColorClass 
+  getCapitalViewColorClass,
+  calculateDynamicWeight 
 } from "@/lib/services/capitalCalculations";
+import { TABLE_CONFIGS } from "@/lib/services/tableConfig";
 // Import local types instead of schema types to ensure consistency
 import { Fund, FundAllocation, Deal } from "@/lib/types";
 
