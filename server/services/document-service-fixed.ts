@@ -14,8 +14,8 @@ export class DocumentService {
       console.log(`🔍 DocumentService: Fetching documents for deal ${dealId}`);
       
       // Use raw SQL query that works with actual production schema
-      const result = await db.execute(`
-        SELECT 
+      const result = await db.execute(
+        `SELECT 
           id,
           deal_id as "dealId",
           file_name as "fileName", 
@@ -27,8 +27,9 @@ export class DocumentService {
           description,
           document_type as "documentType"
         FROM documents 
-        WHERE deal_id = $1
-      `, [dealId]);
+        WHERE deal_id = $1`,
+        [dealId]
+      );
       
       console.log(`✅ DocumentService: Found ${result.rows.length} documents for deal ${dealId}`);
       return result.rows;
