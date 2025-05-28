@@ -67,12 +67,35 @@ router.post('/deals/:dealId/analyze', requireAuth, async (req: Request, res: Res
     // CRITICAL: Only proceed if we have actual document content
     if (documentContents.length === 0) {
       console.error(`🚨 NO DOCUMENT CONTENT AVAILABLE - Cannot proceed with AI analysis`);
-      return res.status(400).json({ 
-        error: 'No document content available for analysis. The documents exist in the database but content extraction failed.',
-        details: `Found ${documents.length} documents but none could be processed for content extraction.`,
-        dealId: dealId,
-        documentCount: documents.length
-      });
+      
+      // Return a clear analysis that explains the data unavailability
+      const transparentResponse = {
+        analysis: `I cannot provide a reliable analysis for "${deal.name}" because I'm unable to access the actual document content. 
+
+**Data Availability Issue:**
+- Found ${documents.length} document(s) in the database for this deal
+- However, none of the documents could be processed for content extraction
+- Without access to the actual investment materials, I cannot provide specific insights
+
+**What this means:**
+- Any analysis would be based solely on basic deal metadata (name, sector, stage)
+- This would not meet the reliability standards required for investment decisions
+- The document files may need to be re-uploaded or the file paths may need to be corrected
+
+**Recommendation:**
+Please verify that the document files are properly uploaded and accessible, then try the analysis again. This ensures you receive accurate, data-driven insights based on the actual investment materials.`,
+        
+        context: {
+          dealName: deal.name,
+          dealId: parseInt(dealId),
+          dataSourcesUsed: ['Deal metadata only - no document content available'],
+          documentCount: documents.length,
+          documentsProcessed: 0,
+          timestamp: new Date()
+        }
+      };
+      
+      return res.json(transparentResponse);
     }
     
     console.log(`🚀 Proceeding with AI analysis using content from ${successfulExtractions} documents`);
