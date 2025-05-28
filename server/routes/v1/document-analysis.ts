@@ -23,9 +23,13 @@ router.post('/deals/:dealId/analyze', requireAuth, async (req: Request, res: Res
     const { dealId } = req.params;
     const { query } = req.body;
     
-    console.log(`🔍 AI ANALYSIS REQUEST RECEIVED - Deal ${dealId} with query: ${query || 'comprehensive analysis'}`);
-    console.log(`📋 Request body:`, req.body);
-    console.log(`👤 User:`, req.user);
+    const userId = (req.session as any)?.userId;
+
+    if (!userId) {
+      return res.status(401).json({ error: 'User authentication required' });
+    }
+    
+    console.log(`🔍 AI ANALYSIS REQUEST - Deal ${dealId}, User ${userId}, Query: ${query || 'comprehensive analysis'}`);
     
     const storage = StorageFactory.getStorage();
     
