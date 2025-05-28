@@ -14,17 +14,14 @@ if (!process.env.DATABASE_URL) {
 // Create direct pool/db exports, not nullable anymore
 console.log('Initializing database connection...');
 
-// Configure the pool with more detailed options for better reliability
+// Configure the pool with optimized settings for document access
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  max: 5, // Reduced max connections to avoid overloading
-  idleTimeoutMillis: 30000, // Close idle connections sooner (30 seconds)
-  connectionTimeoutMillis: 15000, // Increased timeout to 15 seconds
-  allowExitOnIdle: false, // Don't exit if all connections end
-  ssl: { rejectUnauthorized: false }, // Required for some PostgreSQL services
-  // Add error handling at the pool level
-  query_timeout: 15000, // 15 second timeout on queries
-  statement_timeout: 15000 // 15 second timeout on statements
+  max: 3, // Reduced connections for stability
+  idleTimeoutMillis: 10000, // 10 seconds
+  connectionTimeoutMillis: 5000, // 5 second connection timeout
+  allowExitOnIdle: false,
+  ssl: { rejectUnauthorized: false }
 });
 
 // Set up event handlers for the pool

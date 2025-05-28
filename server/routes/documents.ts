@@ -20,7 +20,7 @@ router.get('/deal/:dealId', requireAuth, async (req: Request, res: Response) => 
     const dealId = parseInt(req.params.dealId);
     console.log(`📁 Fetching documents for deal ${dealId}`);
     
-    const documents = await storage.getDocumentsByDealId(dealId);
+    const documents = await storage.getDocumentsByDeal(dealId);
     console.log(`📋 Found ${documents.length} documents for deal ${dealId}`);
     
     res.json(documents);
@@ -34,7 +34,7 @@ router.get('/deal/:dealId', requireAuth, async (req: Request, res: Response) => 
 router.get('/:id', requireAuth, async (req: Request, res: Response) => {
   try {
     const documentId = parseInt(req.params.id);
-    const document = await storage.getDocumentById(documentId);
+    const document = await storage.getDocument(documentId);
     
     if (!document) {
       return res.status(404).json({ error: 'Document not found' });
@@ -53,7 +53,7 @@ router.get('/:id/download', requireAuth, async (req: Request, res: Response) => 
     const documentId = parseInt(req.params.id);
     console.log(`📥 Download request for document ID: ${documentId}`);
     
-    const document = await storage.getDocumentById(documentId);
+    const document = await storage.getDocument(documentId);
     if (!document) {
       console.log(`❌ Document ${documentId} not found in database`);
       return res.status(404).json({ message: 'Document not found' });
