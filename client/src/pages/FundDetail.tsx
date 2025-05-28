@@ -1036,8 +1036,11 @@ export default function FundDetail() {
                                 )}
                               </TableCell>
                               <TableCell className="py-1.5 sm:py-2.5 px-2 sm:px-4 text-right">
-                                <span className="text-2xs xs:text-xs sm:text-sm">
-                                  {allocation.portfolioWeight ? `${allocation.portfolioWeight.toFixed(2)}%` : "0.00%"}
+                                <span className={`text-2xs xs:text-xs sm:text-sm ${getCapitalViewColorClass(capitalView)}`}>
+                                  {(() => {
+                                    const dynamicWeight = calculateDynamicWeight(allocation, allocations, capitalView);
+                                    return `${dynamicWeight.toFixed(2)}%`;
+                                  })()}
                                 </span>
                               </TableCell>
                               <TableCell className="py-1.5 sm:py-2.5 px-2 sm:px-4 text-right">
@@ -1161,11 +1164,13 @@ export default function FundDetail() {
                             <TableCell></TableCell>
                             <TableCell></TableCell>
                             <TableCell></TableCell>
-                            <TableCell className="py-3 px-2 sm:px-4 text-right font-bold text-gray-800">
-                              {allocations.reduce((sum, allocation) => {
-                                const totalWeight = allocation.portfolioWeight || 0;
-                                return sum + totalWeight;
-                              }, 0).toFixed(2)}%
+                            <TableCell className="py-3 px-2 sm:px-4 text-right font-bold">
+                              <span className={getCapitalViewColorClass(capitalView)}>
+                                {allocations.reduce((sum, allocation) => {
+                                  const dynamicWeight = calculateDynamicWeight(allocation, allocations, capitalView);
+                                  return sum + dynamicWeight;
+                                }, 0).toFixed(2)}%
+                              </span>
                             </TableCell>
                             <TableCell className="py-3 px-2 sm:px-4 text-right font-bold">
                               <span className={getCapitalViewColorClass(capitalView)}>
