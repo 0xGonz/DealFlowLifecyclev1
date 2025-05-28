@@ -32,11 +32,28 @@ router.post('/deals/:dealId/analyze', requireAuth, async (req: Request, res: Res
       return res.status(404).json({ error: 'Deal not found' });
     }
     
-    // Get all related data
+    // Get all related data and extract PDF content
     const [documents, memos] = await Promise.all([
       storage.getDocumentsByDeal(parseInt(dealId)),
       storage.getMiniMemosByDeal(parseInt(dealId))
     ]);
+    
+    // Extract actual content from PDF documents
+    let documentContents: string[] = [];
+    for (const doc of documents) {
+      try {
+        console.log(`📄 Extracting content from document: ${doc.fileName}`);
+        const content = await DocumentService.extractPdfContent(doc.id);
+        if (content && content.trim().length > 0) {
+          documentContents.push(`DOCUMENT: ${doc.fileName}\nCONTENT:\n${content}`);
+          console.log(`✅ Extracted ${content.length} characters from ${doc.fileName}`);
+        } else {
+          console.log(`⚠️ No content extracted from ${doc.fileName}`);
+        }
+      } catch (error) {
+        console.error(`❌ Error extracting content from ${doc.fileName}:`, error);
+      }
+    }
     
     // Get timeline events (if available)
     let timeline = [];
@@ -56,50 +73,59 @@ router.post('/deals/:dealId/analyze', requireAuth, async (req: Request, res: Res
       analysisPrompt = `
 You are an expert investment analyst. A user is asking about the deal "${deal.name}" in the ${deal.sector} sector.
 
+User Question: ${query}
+
 Deal Information:
 - Name: ${deal.name}
 - Description: ${deal.description}
 - Sector: ${deal.sector}
-- Stage: ${deal.stageLabel}
+- Stage: ${deal.stage}
 - Target Return: ${deal.targetReturn || 'Not specified'}
 - Notes: ${deal.notes || 'None'}
 
-Available Documents: ${documents.length} documents
-Available Memos: ${memos.length} mini memos
-Timeline Events: ${timeline.length} events
+ACTUAL DOCUMENT CONTENT:
+${documentContents.length > 0 ? documentContents.join('\n\n---DOCUMENT SEPARATOR---\n\n') : 'No document content available.'}
 
-User Question: ${query}
+CRITICAL INSTRUCTIONS:
+- Base your analysis ONLY on the actual document content provided above
+- Quote specific numbers, amounts, dates, and metrics directly from the documents
+- Reference exact figures from financial statements, balance sheets, or other data
+- If specific information is not in the documents, state "This information is not available in the provided documents"
+- Do NOT use generic investment templates or assumptions
+- Focus on real data extracted from the uploaded documents
 
-Please provide a detailed, professional response based on the available deal information. Focus on investment analysis, due diligence insights, and strategic recommendations.
-`;
+Provide a detailed response based exclusively on the document content.`;
     } else {
       // Comprehensive analysis
       analysisPrompt = `
-You are an expert investment analyst. Please provide a comprehensive investment analysis for the following deal:
+You are an expert investment analyst. Analyze the following deal and documents:
 
 Deal Information:
 - Name: ${deal.name}
 - Description: ${deal.description}
 - Sector: ${deal.sector}
-- Stage: ${deal.stageLabel}
+- Stage: ${deal.stage}
 - Target Return: ${deal.targetReturn || 'Not specified'}
 - Notes: ${deal.notes || 'None'}
 
-Data Available:
-- ${documents.length} documents uploaded
-- ${memos.length} mini memos created
-- ${timeline.length} timeline events
+ACTUAL DOCUMENT CONTENT:
+${documentContents.length > 0 ? documentContents.join('\n\n---DOCUMENT SEPARATOR---\n\n') : 'No document content available for analysis.'}
 
-Please provide:
-1. Investment Thesis Analysis
-2. Risk Assessment
-3. Market Opportunity Evaluation
-4. Financial Analysis (based on available data)
-5. Strategic Recommendations
-6. Key Questions for Due Diligence
+CRITICAL INSTRUCTIONS:
+- Analyze ONLY the actual content from the documents above
+- Reference specific financial figures, dates, amounts, and metrics from the documents
+- Quote exact numbers and percentages from the source material
+- If data is not available in documents, clearly state so
+- Do NOT use generic analysis templates or make assumptions
 
-Format your response with clear sections and bullet points for easy reading.
-`;
+Provide analysis covering:
+1. Specific Financial Metrics (exact amounts from documents)
+2. Investment Terms (as stated in documents)
+3. Risk Factors (identified in documents)
+4. Opportunities (based on document data)
+5. Data-driven Recommendations
+
+Base your entire analysis on the actual document content only.`;
     }
 
     // Initialize OpenAI
