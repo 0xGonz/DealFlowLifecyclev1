@@ -333,9 +333,7 @@ router.get('/:id/download', requireAuth, async (req: Request, res: Response) => 
     // Try to migrate file to standard structure first
     const migratedPath = await migrateFileToStandardStructure(document);
     if (migratedPath) {
-      // Update database with new path
-      const storage = StorageFactory.getStorage();
-      await storage.updateDocument(document.id, { filePath: migratedPath });
+      // Use migrated path for serving (skip database update for now)
       document.filePath = migratedPath;
     }
     
