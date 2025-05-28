@@ -1,6 +1,8 @@
 import { Router, Request, Response } from 'express';
 import path from 'path';
 import fs from 'fs';
+import multer from 'multer';
+import { v4 as uuidv4 } from 'uuid';
 import { DatabaseStorage } from '../database-storage';
 import { DocumentService } from '../modules/documents/service';
 
@@ -14,6 +16,40 @@ const requireAuth = (req: Request, res: Response, next: any) => {
   }
   next();
 };
+
+// Configure multer for file uploads
+const uploadStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = './uploads';
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueId = uuidv4();
+    const sanitizedName = file.originalname.toLowerCase().replace(/[^a-z0-9.-]/g, '_');
+    const filename = `${uniqueId}-${sanitizedName}`;
+    cb(null, filename);
+  }
+});
+
+const upload = multer({ 
+  storage: uploadStorage,
+  limits: {
+    fileSize: 50 * 1024 * 1024 // 50MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.csv', '.ppt', '.pptx'];
+    const fileExt = path.extname(file.originalname).toLowerCase();
+    
+    if (allowedTypes.includes(fileExt)) {
+      cb(null, true);
+    } else {
+      cb(new Error(`File type ${fileExt} not allowed. Allowed types: ${allowedTypes.join(', ')}`));
+    }
+  }
+});
 
 // Get documents for a specific deal
 router.get('/deal/:dealId', requireAuth, async (req: Request, res: Response) => {
@@ -253,6 +289,62 @@ router.put('/:id', requireAuth, async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error updating document:', error);
     res.status(500).json({ error: 'Failed to update document' });
+  }
+});
+
+// Document upload endpoint
+router.post('/upload', requireAuth, upload.single('document'), async (req: Request, res: Response) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    const { dealId, description, documentType } = req.body;
+    
+    if (!dealId) {
+      return res.status(400).json({ error: 'Deal ID is required' });
+    }
+
+    console.log(`📤 Uploading document for deal ${dealId}:`, {
+      filename: req.file.originalname,
+      size: req.file.size,
+      type: documentType
+    });
+
+    // Create document record in database
+    const documentData = {
+      dealId: parseInt(dealId),
+      fileName: req.file.originalname,
+      fileType: req.file.mimetype,
+      fileSize: req.file.size,
+      filePath: `uploads/${req.file.filename}`,
+      uploadedBy: req.session.userId,
+      description: description || '',
+      documentType: documentType || 'other'
+    };
+
+    const newDocument = await storage.createDocument(documentData);
+    
+    console.log(`✅ Document uploaded successfully: ${req.file.originalname}`);
+    
+    res.json({
+      success: true,
+      document: newDocument,
+      message: 'Document uploaded successfully'
+    });
+
+  } catch (error) {
+    console.error('Error uploading document:', error);
+    
+    // Clean up the uploaded file if database operation failed
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    
+    res.status(500).json({ 
+      error: 'Failed to upload document',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 });
 
