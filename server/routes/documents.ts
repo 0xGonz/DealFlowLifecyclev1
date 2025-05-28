@@ -64,13 +64,12 @@ router.get('/:id/download', requireAuth, async (req: Request, res: Response) => 
     
     // Try multiple possible file locations
     const possiblePaths = [
-      document.filePath, // Original path from database
       path.join(process.cwd(), document.filePath), // Relative to project root
       path.join(process.cwd(), 'public', 'uploads', document.fileName), // Standard uploads with fileName
       path.join(process.cwd(), 'uploads', document.fileName), // Alternative uploads with fileName
       path.join(process.cwd(), 'public', document.filePath), // Public + relative path
       path.join(process.cwd(), 'data', 'uploads', document.fileName) // Data uploads
-    ];
+    ].filter(Boolean); // Remove any undefined paths
     
     let resolvedFilePath = null;
     
