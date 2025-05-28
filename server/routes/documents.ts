@@ -76,8 +76,8 @@ const sanitizeFilename = (filename: string): string => {
     .toLowerCase();                  // Convert to lowercase for consistency
 };
 
-// Setup constants for standardized file storage
-const UPLOAD_PATH = path.join(process.cwd(), 'uploads');
+// Setup constants for standardized file storage - using persistent directory
+const UPLOAD_PATH = path.join(process.cwd(), 'public', 'uploads');
 
 // Ensure upload directories exist at server startup
 try {
