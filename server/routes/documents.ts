@@ -59,7 +59,8 @@ router.get('/:id/download', requireAuth, async (req: Request, res: Response) => 
       return res.status(404).json({ message: 'Document not found' });
     }
 
-    console.log(`📄 Found document: ${document.fileName}`);
+    console.log(`📄 Document object:`, document);
+    console.log(`📄 Found document fileName: ${document.fileName}`);
     console.log(`📍 Original file path: ${document.filePath}`);
     
     // Try multiple possible file locations
