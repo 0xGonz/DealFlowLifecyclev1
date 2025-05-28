@@ -2,7 +2,7 @@ import { db } from '../db';
 
 /**
  * Fixed Document Service - Production Compatible
- * Uses raw SQL to bypass schema compatibility issues
+ * Uses direct database queries that work with production schema
  */
 export class DocumentService {
   
@@ -13,9 +13,9 @@ export class DocumentService {
     try {
       console.log(`🔍 DocumentService: Fetching documents for deal ${dealId}`);
       
-      // Use raw SQL query that works with actual production schema
-      const result = await db.execute(
-        `SELECT 
+      // Use connection query method directly
+      const query = `
+        SELECT 
           id,
           deal_id as "dealId",
           file_name as "fileName", 
@@ -27,9 +27,10 @@ export class DocumentService {
           description,
           document_type as "documentType"
         FROM documents 
-        WHERE deal_id = $1`,
-        [dealId]
-      );
+        WHERE deal_id = $1
+      `;
+      
+      const result = await (db as any).query(query, [dealId]);
       
       console.log(`✅ DocumentService: Found ${result.rows.length} documents for deal ${dealId}`);
       return result.rows;
