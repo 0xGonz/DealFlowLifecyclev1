@@ -60,9 +60,10 @@ router.get('/:id/download', requireAuth, async (req: Request, res: Response) => 
       return res.status(404).json({ message: 'Document not found' });
     }
 
-    console.log(`📄 Document object:`, document);
-    console.log(`📄 Found document fileName: ${document.fileName}`);
-    console.log(`📍 Original file path: ${document.filePath}`);
+    console.log(`📄 Document object:`, JSON.stringify(document, null, 2));
+    console.log(`📄 Document keys:`, Object.keys(document || {}));
+    console.log(`📄 Found document fileName: ${document?.fileName}`);
+    console.log(`📍 Original file path: ${document?.filePath}`);
     
     // Safety check for fileName
     if (!document.fileName) {
@@ -72,11 +73,11 @@ router.get('/:id/download', requireAuth, async (req: Request, res: Response) => 
     
     // Try multiple possible file locations
     const possiblePaths = [
-      path.join(process.cwd(), document.filePath), // Relative to project root
-      path.join(process.cwd(), 'public', 'uploads', document.fileName), // Standard uploads with fileName
-      path.join(process.cwd(), 'uploads', document.fileName), // Alternative uploads with fileName
-      path.join(process.cwd(), 'public', document.filePath), // Public + relative path
-      path.join(process.cwd(), 'data', 'uploads', document.fileName) // Data uploads
+      document.filePath ? path.join(process.cwd(), document.filePath) : null, // Relative to project root
+      document.fileName ? path.join(process.cwd(), 'public', 'uploads', document.fileName) : null, // Standard uploads with fileName
+      document.fileName ? path.join(process.cwd(), 'uploads', document.fileName) : null, // Alternative uploads with fileName
+      document.filePath ? path.join(process.cwd(), 'public', document.filePath) : null, // Public + relative path
+      document.fileName ? path.join(process.cwd(), 'data', 'uploads', document.fileName) : null // Data uploads
     ].filter(Boolean); // Remove any undefined paths
     
     let resolvedFilePath = null;
