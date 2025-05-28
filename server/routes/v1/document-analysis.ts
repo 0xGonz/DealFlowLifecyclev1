@@ -43,32 +43,39 @@ router.post('/deals/:dealId/analyze', requireAuth, async (req: Request, res: Res
     let documentContents: string[] = [];
     let successfulExtractions = 0;
     
+    console.log(`🔍 Starting content extraction for ${documents.length} documents in deal ${dealId}`);
+    
     for (const doc of documents) {
       try {
-        console.log(`📄 Extracting content from document: ${doc.fileName}`);
+        console.log(`📄 Extracting content from document: ${doc.fileName} (ID: ${doc.id})`);
         const content = await DocumentService.extractPdfContent(doc.id);
         if (content && content.trim().length > 0) {
           documentContents.push(`DOCUMENT: ${doc.fileName}\nCONTENT:\n${content}`);
           successfulExtractions++;
-          console.log(`✅ Extracted ${content.length} characters from ${doc.fileName}`);
+          console.log(`✅ Successfully extracted ${content.length} characters from ${doc.fileName}`);
         } else {
-          console.log(`⚠️ No content extracted from ${doc.fileName}`);
+          console.log(`⚠️ No content extracted from ${doc.fileName} - content was empty`);
         }
       } catch (error) {
-        console.error(`❌ Error extracting content from ${doc.fileName}:`, error);
+        console.error(`❌ Error extracting content from ${doc.fileName}:`, error.message);
         // Continue to next document instead of failing
       }
     }
     
+    console.log(`📊 Content extraction complete: ${successfulExtractions}/${documents.length} documents processed successfully`);
+    
     // CRITICAL: Only proceed if we have actual document content
     if (documentContents.length === 0) {
+      console.error(`🚨 NO DOCUMENT CONTENT AVAILABLE - Cannot proceed with AI analysis`);
       return res.status(400).json({ 
-        error: 'No document content available for analysis. Please ensure documents are properly uploaded and accessible.',
-        details: `Found ${documents.length} documents in database but none could be processed for content extraction.`
+        error: 'No document content available for analysis. The documents exist in the database but content extraction failed.',
+        details: `Found ${documents.length} documents but none could be processed for content extraction.`,
+        dealId: dealId,
+        documentCount: documents.length
       });
     }
     
-    console.log(`📊 Successfully extracted content from ${successfulExtractions}/${documents.length} documents`);
+    console.log(`🚀 Proceeding with AI analysis using content from ${successfulExtractions} documents`);
     
     // Get timeline events (if available)
     let timeline = [];
