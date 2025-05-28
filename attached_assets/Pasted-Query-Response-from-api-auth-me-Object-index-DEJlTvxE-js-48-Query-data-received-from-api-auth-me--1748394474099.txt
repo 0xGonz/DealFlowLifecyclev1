@@ -1,0 +1,60 @@
+Query Response from /api/auth/me: Object
+index-DEJlTvxE.js:48 Query data received from /api/auth/me: Object
+index-DEJlTvxE.js:457 Direct user fetch for avatar ID 4: Object
+index-DEJlTvxE.js:457 Direct user fetch for avatar ID 1: Object
+index-DEJlTvxE.js:457 UserAvatar: User 7 has color #388E3C
+index-DEJlTvxE.js:457 Avatar color changed to: null
+index-DEJlTvxE.js:48 Query fetch request: /api/auth/me Object
+index-DEJlTvxE.js:48 Query fetch request: /api/deals/8 Object
+index-DEJlTvxE.js:48 Query fetch request: /api/deals/8/stars Object
+index-DEJlTvxE.js:457 Avatar color changed to: #388E3C
+index-DEJlTvxE.js:457 Using /me endpoint data for avatar Object
+index-DEJlTvxE.js:48 Query Response from /api/deals/8/stars: Object
+index-DEJlTvxE.js:48 Query data received from /api/deals/8/stars: Array(0)
+index-DEJlTvxE.js:48 Query Response from /api/auth/me: Object
+index-DEJlTvxE.js:48 Query data received from /api/auth/me: Object
+index-DEJlTvxE.js:48 Query Response from /api/deals/8: Object
+index-DEJlTvxE.js:48 Query data received from /api/deals/8: Object
+index-DEJlTvxE.js:457 UserAvatar: User 1 has color #4f46e5
+index-DEJlTvxE.js:48 Query fetch request: /api/documents/deal/8 Object
+index-DEJlTvxE.js:546 🔍 useDealDocuments: Processing data for deal 8: undefined
+index-DEJlTvxE.js:546 ⚠️ useDealDocuments: No data received or data is not an array: undefined
+index-DEJlTvxE.js:48 Query Response from /api/documents/deal/8: Object
+index-DEJlTvxE.js:48 Query data received from /api/documents/deal/8: Array(1)
+index-DEJlTvxE.js:546 🔍 useDealDocuments: Processing data for deal 8: Array(1)
+index-DEJlTvxE.js:546 📝 useDealDocuments: Setting 1 documents in context: Array(1)
+index-DEJlTvxE.js:546 🎯 useDealDocuments: Auto-selecting first document: Object
+index-DEJlTvxE.js:546 🔍 useDealDocuments: Processing data for deal 8: Array(1)
+index-DEJlTvxE.js:546 📝 useDealDocuments: Setting 1 documents in context: Array(1)
+index-DEJlTvxE.js:457 Direct user fetch for avatar ID 1: Object
+/api/documents/47/download#zoom=100:1 
+            
+            
+           Failed to load resource: the server responded with a status of 404 ()Understand this error
+index-DEJlTvxE.js:48 Query fetch request: /api/auth/me Object
+index-DEJlTvxE.js:48 Query fetch request: /api/system/health Object
+index-DEJlTvxE.js:48 Query fetch request: /api/notifications/unread-count Object
+index-DEJlTvxE.js:48 Query Response from /api/notifications/unread-count: Object
+index-DEJlTvxE.js:48 Query data received from /api/notifications/unread-count: Object
+index-DEJlTvxE.js:48 Query Response from /api/system/health: Object
+index-DEJlTvxE.js:48 Query Response from /api/auth/me: Object
+index-DEJlTvxE.js:48 Query data received from /api/auth/me: Object
+index-DEJlTvxE.js:48 Query data received from /api/system/health: Object
+index-DEJlTvxE.js:457 Using /me endpoint data for avatar Object
+index-DEJlTvxE.js:457 Direct user fetch for avatar ID 1: Object
+index-DEJlTvxE.js:48 Query fetch request: /api/auth/me Object
+index-DEJlTvxE.js:48 Query fetch request: /api/system/health Object
+index-DEJlTvxE.js:48 Query fetch request: /api/notifications Object
+index-DEJlTvxE.js:48 Query fetch request: /api/notifications/unread-count Object
+index-DEJlTvxE.js:48 Query Response from /api/system/health: Object
+index-DEJlTvxE.js:48 Query data received from /api/system/health: Object
+index-DEJlTvxE.js:48 Query Response from /api/auth/me: Object
+index-DEJlTvxE.js:48 Query data received from /api/auth/me: Object
+index-DEJlTvxE.js:48 Query Response from /api/notifications/unread-count: Object
+index-DEJlTvxE.js:48 Query data received from /api/notifications/unread-count: Object
+index-DEJlTvxE.js:48 Query Response from /api/notifications: Object
+index-DEJlTvxE.js:48 Query data received from /api/notifications: Array(0)
+index-DEJlTvxE.js:457 Using /me endpoint data for avatar Object
+index-DEJlTvxE.js:457 Direct user fetch for avatar ID 1: Object
+index-DEJlTvxE.js:457 Using /me endpoint data for avatar {id: 7, username: 'gonz1', fullName: 'Brett Gonzalez', initials: 'BG', email: 'brettgonzalez01@gmail.com', …}
+index-DEJlTvxE.js:457 Direct user fetch for avatar ID 1: {id: 1, username: 'admin', fullName: 'Admin User', initials: 'AU', email: 'admin@example.com', …}
