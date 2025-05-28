@@ -141,16 +141,40 @@ export class DocumentService {
       
       console.log(`📄 Found PDF file at: ${filePath}`);
       
-      // Extract PDF content
+      // Extract content from PDF or text files
       if (document.fileType === 'application/pdf' || document.fileName.endsWith('.pdf')) {
-        const pdfParse = (await import('pdf-parse')).default;
-        const pdfBuffer = fs.readFileSync(filePath);
-        const pdfData = await pdfParse(pdfBuffer);
-        
-        console.log(`✅ DocumentService: Extracted ${pdfData.text.length} characters from ${document.fileName}`);
-        return pdfData.text;
+        try {
+          const pdfParse = (await import('pdf-parse')).default;
+          const pdfBuffer = fs.readFileSync(filePath);
+          const pdfData = await pdfParse(pdfBuffer);
+          
+          if (pdfData.text && pdfData.text.trim().length > 0) {
+            console.log(`✅ DocumentService: Extracted ${pdfData.text.length} characters from ${document.fileName}`);
+            return pdfData.text;
+          } else {
+            console.warn(`⚠️ PDF parsed but no text content found in ${document.fileName}`);
+            // Try reading as text file if PDF parsing fails to extract content
+            const textContent = fs.readFileSync(filePath, 'utf8');
+            console.log(`📄 Reading as text file: ${textContent.length} characters from ${document.fileName}`);
+            return textContent;
+          }
+        } catch (pdfError) {
+          console.warn(`⚠️ PDF parsing failed for ${document.fileName}, trying as text: ${pdfError.message}`);
+          // Fallback to reading as text file
+          try {
+            const textContent = fs.readFileSync(filePath, 'utf8');
+            console.log(`📄 Reading as text file: ${textContent.length} characters from ${document.fileName}`);
+            return textContent;
+          } catch (textError) {
+            console.error(`❌ Both PDF and text parsing failed for ${document.fileName}`);
+            throw new Error(`Cannot extract content from document: ${textError.message}`);
+          }
+        }
       } else {
-        throw new Error('Document is not a PDF file');
+        // Handle other file types as text
+        const textContent = fs.readFileSync(filePath, 'utf8');
+        console.log(`📄 Text content extracted: ${textContent.length} characters from ${document.fileName}`);
+        return textContent;
       }
       
     } catch (error) {
