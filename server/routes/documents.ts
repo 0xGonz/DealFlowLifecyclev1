@@ -201,7 +201,34 @@ router.delete('/:id', requireAuth, async (req: Request, res: Response) => {
   }
 });
 
-// Update document metadata
+// Update document metadata (support both PUT and PATCH)
+router.patch('/:id', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const documentId = parseInt(req.params.id);
+    const { description, documentType } = req.body;
+    
+    console.log(`📝 PATCH request for document ${documentId}`, { description, documentType });
+    
+    // Check if document exists first
+    const document = await storage.getDocument(documentId);
+    if (!document) {
+      return res.status(404).json({ error: 'Document not found' });
+    }
+    
+    // Update document
+    const updatedDocument = await DocumentService.updateDocument(documentId, {
+      description,
+      documentType
+    });
+    
+    console.log(`✅ Successfully updated document ${documentId}`);
+    res.json(updatedDocument);
+  } catch (error) {
+    console.error('Error updating document:', error);
+    res.status(500).json({ error: 'Failed to update document' });
+  }
+});
+
 router.put('/:id', requireAuth, async (req: Request, res: Response) => {
   try {
     const documentId = parseInt(req.params.id);
