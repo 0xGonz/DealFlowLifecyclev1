@@ -66,6 +66,7 @@ export function useAIAnalysis(options: AIAnalysisHookOptions = {}) {
         headers: {
           'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify({ query })
       });
       
