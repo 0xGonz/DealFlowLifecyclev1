@@ -411,8 +411,7 @@ export class DatabaseStorage implements IStorage {
   
   async getDocumentsByDeal(dealId: number): Promise<Document[]> {
     const { DocumentService } = await import('./modules/documents/service');
-    const documentService = new DocumentService();
-    return await documentService.getDocumentsByDeal(dealId);
+    return await DocumentService.getDocumentsByDeal(dealId);
   }
   
   async getDocumentsByType(dealId: number, documentType: string): Promise<Document[]> {

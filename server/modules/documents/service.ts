@@ -1,7 +1,6 @@
 import { db } from '../../db';
 import { documents } from '../../../shared/schema';
 import { eq, and } from 'drizzle-orm';
-import { pool } from '../../db';
 
 /**
  * Unified Document Service
@@ -17,28 +16,14 @@ export class DocumentService {
     try {
       console.log(`🔍 DocumentService: Fetching documents for deal ${dealId}`);
       
-      // Use raw SQL for production compatibility with proper column mapping
-      const query = `
-        SELECT 
-          id,
-          deal_id as "dealId",
-          file_name as "fileName", 
-          file_type as "fileType",
-          file_size as "fileSize",
-          file_path as "filePath",
-          uploaded_by as "uploadedBy",
-          uploaded_at as "uploadedAt",
-          description,
-          document_type as "documentType"
-        FROM documents 
-        WHERE deal_id = $1
-        ORDER BY uploaded_at DESC
-      `;
+      const result = await db
+        .select()
+        .from(documents)
+        .where(eq(documents.dealId, dealId))
+        .orderBy(documents.uploadedAt);
       
-      const result = await pool.query(query, [dealId]);
-      
-      console.log(`✅ DocumentService: Found ${result.rows.length} documents for deal ${dealId}`);
-      return result.rows;
+      console.log(`✅ DocumentService: Found ${result.length} documents for deal ${dealId}`);
+      return result;
       
     } catch (error) {
       const err = error as Error;
@@ -54,30 +39,18 @@ export class DocumentService {
     try {
       console.log(`🔍 DocumentService: Fetching document ${documentId}`);
       
-      const query = `
-        SELECT 
-          id,
-          deal_id as "dealId",
-          file_name as "fileName", 
-          file_type as "fileType",
-          file_size as "fileSize",
-          file_path as "filePath",
-          uploaded_by as "uploadedBy",
-          uploaded_at as "uploadedAt",
-          description,
-          document_type as "documentType"
-        FROM documents 
-        WHERE id = $1
-      `;
+      const result = await db
+        .select()
+        .from(documents)
+        .where(eq(documents.id, documentId))
+        .limit(1);
       
-      const result = await pool.query(query, [documentId]);
-      
-      if (result.rows.length === 0) {
+      if (result.length === 0) {
         console.log(`⚠️ DocumentService: Document ${documentId} not found`);
         return null;
       }
       
-      const document = result.rows[0];
+      const document = result[0];
       console.log(`✅ DocumentService: Found document ${documentId}: ${document.fileName}`);
       
       return {
@@ -131,42 +104,35 @@ export class DocumentService {
     try {
       console.log(`📝 DocumentService: Updating document ${documentId}`, updates);
       
-      // Use raw SQL for updates to avoid type compatibility issues
-      const setClause = [];
-      const values = [];
-      let paramIndex = 2;
-      
+      const updateData: any = {};
       if (updates.description !== undefined) {
-        setClause.push(`description = $${paramIndex}`);
-        values.push(updates.description);
-        paramIndex++;
+        updateData.description = updates.description;
       }
-      
       if (updates.documentType !== undefined) {
-        setClause.push(`document_type = $${paramIndex}`);
-        values.push(updates.documentType);
-        paramIndex++;
+        updateData.documentType = updates.documentType;
       }
       
-      if (setClause.length === 0) {
+      if (Object.keys(updateData).length === 0) {
         throw new Error('No updates provided');
       }
       
-      const query = `
-        UPDATE documents 
-        SET ${setClause.join(', ')}
-        WHERE id = $1
-        RETURNING id, file_name as "fileName", document_type as "documentType", description
-      `;
+      const result = await db
+        .update(documents)
+        .set(updateData)
+        .where(eq(documents.id, documentId))
+        .returning({
+          id: documents.id,
+          fileName: documents.fileName,
+          documentType: documents.documentType,
+          description: documents.description
+        });
       
-      const result = await pool.query(query, [documentId, ...values]);
-      
-      if (result.rows.length === 0) {
+      if (result.length === 0) {
         throw new Error('Document not found');
       }
       
       console.log(`✅ DocumentService: Updated document ${documentId}`);
-      return result.rows[0];
+      return result[0];
       
     } catch (error) {
       const err = error as Error;
@@ -203,27 +169,17 @@ export class DocumentService {
     try {
       console.log(`🔍 DocumentService: Fetching ${documentType} documents for deal ${dealId}`);
       
-      const query = `
-        SELECT 
-          id,
-          deal_id as "dealId",
-          file_name as "fileName", 
-          file_type as "fileType",
-          file_size as "fileSize",
-          file_path as "filePath",
-          uploaded_by as "uploadedBy",
-          uploaded_at as "uploadedAt",
-          description,
-          document_type as "documentType"
-        FROM documents 
-        WHERE deal_id = $1 AND document_type = $2
-        ORDER BY uploaded_at DESC
-      `;
+      const result = await db
+        .select()
+        .from(documents)
+        .where(and(
+          eq(documents.dealId, dealId),
+          eq(documents.documentType, documentType)
+        ))
+        .orderBy(documents.uploadedAt);
       
-      const result = await pool.query(query, [dealId, documentType]);
-      
-      console.log(`✅ DocumentService: Found ${result.rows.length} ${documentType} documents`);
-      return result.rows;
+      console.log(`✅ DocumentService: Found ${result.length} ${documentType} documents`);
+      return result;
       
     } catch (error) {
       const err = error as Error;
