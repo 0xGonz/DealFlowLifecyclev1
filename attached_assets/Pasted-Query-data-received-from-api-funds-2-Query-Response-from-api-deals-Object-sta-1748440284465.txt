@@ -1,0 +1,80 @@
+Query data received from /api/funds: 
+(2) [{…}, {…}]
+Query Response from /api/deals: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/deals: 
+(89) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+Query Response from /api/leaderboard: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/leaderboard: 
+(72) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+Query Response from /api/activity: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/activity: 
+(20) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+UserAvatar: User 4 has color #D32F2F
+UserAvatar: User 1 has color #4f46e5
+UserAvatar: User 4 has color #D32F2F
+Using /me endpoint data for avatar 
+Object {id: 4, username: "Gonz", fullName: "Brett Gonzalez", initials: "BG", email: "bgonzalez@doliveradvisors.com", …}
+Direct user fetch for avatar ID 1: 
+Object {id: 1, username: "admin", fullName: "Admin User", initials: "AU", email: "admin@example.com", …}
+ProtectedRoute for /deals/:id: isLoading=false, user=Gonz
+ProtectedRoute /deals/:id: Rendering component for user Gonz
+UserAvatar: User 4 has color #D32F2F
+Avatar color changed to: null
+Query fetch request: /api/auth/me 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Query fetch request: /api/deals/48 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Query fetch request: /api/deals/48/stars 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Avatar color changed to: #D32F2F
+Using /me endpoint data for avatar 
+Object {id: 4, username: "Gonz", fullName: "Brett Gonzalez", initials: "BG", email: "bgonzalez@doliveradvisors.com", …}
+Query Response from /api/deals/48/stars: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/deals/48/stars: 
+Array []
+Query Response from /api/auth/me: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/auth/me: 
+Object {id: 4, username: "Gonz", fullName: "Brett Gonzalez", initials: "BG", email: "bgonzalez@doliveradvisors.com", …}
+Query Response from /api/deals/48: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/deals/48: 
+Object {id: 48, name: "Valor Equity Partners ", description: "Tech VC, operational - Antonio Gracias", sector: "Venture", stage: "invested", …}
+UserAvatar: User 1 has color #4f46e5
+Query fetch request: /api/documents/deal/48 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+🔍 useDealDocuments: Processing data for deal 48: undefined
+⚠️ useDealDocuments: No data received or data is not an array: undefined
+Query Response from /api/documents/deal/48: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/documents/deal/48: 
+Array []
+🔍 useDealDocuments: Processing data for deal 48: 
+Array []
+📝 useDealDocuments: Setting 0 documents in context: 
+Array []
+❌ useDealDocuments: No documents found, clearing selection
+Direct user fetch for avatar ID 1: 
+Object {id: 1, username: "admin", fullName: "Admin User", initials: "AU", email: "admin@example.com", …}
+ProtectedRoute for /deals/:id: isLoading=false, user=Gonz
+ProtectedRoute /deals/:id: Rendering component for user Gonz
+Using /me endpoint data for avatar 
+Object {id: 4, username: "Gonz", fullName: "Brett Gonzalez", initials: "BG", email: "bgonzalez@doliveradvisors.com", …}
+Direct user fetch for avatar ID 1: 
+Object {id: 1, username: "admin", fullName: "Admin User", initials: "AU", email: "admin@example.com", …}
+Query fetch request: /api/system/health 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Query Response from /api/system/health: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/system/health: 
+Object {status: "ok", timestamp: "2025-05-28T13:50:59.702Z", storage: "pg", databaseConnected: true, environment: "development", …}
+ProtectedRoute for /deals/:id: isLoading=false, user=Gonz
+ProtectedRoute /deals/:id: Rendering component for user Gonz
+Using /me endpoint data for avatar 
+Object {id: 4, username: "Gonz", fullName: "Brett Gonzalez", initials: "BG", email: "bgonzalez@doliveradvisors.com", …}
+Direct user fetch for avatar ID 1: 
+Object {id: 1, username: "admin", fullName: "Admin User", initials: "AU", email: "admin@example.com", …}

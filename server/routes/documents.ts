@@ -293,7 +293,7 @@ router.put('/:id', requireAuth, async (req: Request, res: Response) => {
 });
 
 // Document upload endpoint
-router.post('/upload', requireAuth, upload.single('document'), async (req: Request, res: Response) => {
+router.post('/upload', requireAuth, upload.single('file'), async (req: Request, res: Response) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
@@ -318,7 +318,7 @@ router.post('/upload', requireAuth, upload.single('document'), async (req: Reque
       fileType: req.file.mimetype,
       fileSize: req.file.size,
       filePath: `uploads/${req.file.filename}`,
-      uploadedBy: req.session.userId,
+      uploadedBy: req.session.userId!,
       description: description || '',
       documentType: documentType || 'other'
     };
