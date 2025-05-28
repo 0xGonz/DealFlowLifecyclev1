@@ -357,6 +357,9 @@ export type InsertMiniMemo = z.infer<typeof insertMiniMemoSchema>;
 export type Fund = typeof funds.$inferSelect;
 export type InsertFund = z.infer<typeof insertFundSchema>;
 
+// Forward declaration for Distribution (defined later)
+type Distribution = typeof distributions.$inferSelect;
+
 // Base type from the table
 export type FundAllocationBase = typeof fundAllocations.$inferSelect;
 

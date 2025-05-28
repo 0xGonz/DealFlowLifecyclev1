@@ -128,10 +128,10 @@ export interface IStorage {
   deleteClosingScheduleEvent(id: number): Promise<boolean>;
 
   // Distributions - Modular investment tracking
-  createDistribution(distribution: InsertDistribution): Promise<Distribution>;
-  getDistribution(id: number): Promise<Distribution | undefined>;
-  getDistributionsByAllocation(allocationId: number): Promise<Distribution[]>;
-  updateDistribution(id: number, distribution: Partial<InsertDistribution>): Promise<Distribution | undefined>;
+  createDistribution(distribution: any): Promise<any>;
+  getDistribution(id: number): Promise<any | undefined>;
+  getDistributionsByAllocation(allocationId: number): Promise<any[]>;
+  updateDistribution(id: number, distribution: any): Promise<any | undefined>;
   deleteDistribution(id: number): Promise<boolean>;
   recalculateAllocationMetrics(allocationId: number): Promise<void>;
 }

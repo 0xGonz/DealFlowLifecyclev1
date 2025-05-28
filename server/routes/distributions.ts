@@ -1,9 +1,10 @@
 import { Router } from 'express';
-import { requireAuth } from '../middleware/auth.js';
-import { storage } from '../storage.js';
+import { requireAuth } from '../middleware/auth';
+import { db } from '../db';
 import { createInsertSchema } from 'drizzle-zod';
-import { distributions } from '../../shared/schema.js';
+import { distributions } from '../../shared/schema';
 import { z } from 'zod';
+import { eq } from 'drizzle-orm';
 
 const router = Router();
 
@@ -18,7 +19,10 @@ const insertDistributionSchema = createInsertSchema(distributions).omit({
 router.get('/allocation/:allocationId', requireAuth, async (req, res) => {
   try {
     const { allocationId } = req.params;
-    const allocationDistributions = await storage.getDistributionsByAllocation(parseInt(allocationId));
+    const allocationDistributions = await db
+      .select()
+      .from(distributions)
+      .where(eq(distributions.allocationId, parseInt(allocationId)));
     res.json(allocationDistributions);
   } catch (error) {
     console.error('Error fetching distributions:', error);
