@@ -39,22 +39,36 @@ router.post('/deals/:dealId/analyze', requireAuth, async (req: Request, res: Res
       storage.getMiniMemosByDeal(parseInt(dealId))
     ]);
     
-    // Extract actual content from PDF documents
+    // Extract actual content from PDF documents - ONLY use real document content
     let documentContents: string[] = [];
+    let successfulExtractions = 0;
+    
     for (const doc of documents) {
       try {
         console.log(`📄 Extracting content from document: ${doc.fileName}`);
         const content = await DocumentService.extractPdfContent(doc.id);
         if (content && content.trim().length > 0) {
           documentContents.push(`DOCUMENT: ${doc.fileName}\nCONTENT:\n${content}`);
+          successfulExtractions++;
           console.log(`✅ Extracted ${content.length} characters from ${doc.fileName}`);
         } else {
           console.log(`⚠️ No content extracted from ${doc.fileName}`);
         }
       } catch (error) {
         console.error(`❌ Error extracting content from ${doc.fileName}:`, error);
+        // Continue to next document instead of failing
       }
     }
+    
+    // CRITICAL: Only proceed if we have actual document content
+    if (documentContents.length === 0) {
+      return res.status(400).json({ 
+        error: 'No document content available for analysis. Please ensure documents are properly uploaded and accessible.',
+        details: `Found ${documents.length} documents in database but none could be processed for content extraction.`
+      });
+    }
+    
+    console.log(`📊 Successfully extracted content from ${successfulExtractions}/${documents.length} documents`);
     
     // Get timeline events (if available)
     let timeline = [];
@@ -84,16 +98,18 @@ Deal Information:
 - Target Return: ${deal.targetReturn || 'Not specified'}
 - Notes: ${deal.notes || 'None'}
 
-ACTUAL DOCUMENT CONTENT:
-${documentContents.length > 0 ? documentContents.join('\n\n---DOCUMENT SEPARATOR---\n\n') : 'No document content available.'}
+ACTUAL DOCUMENT CONTENT FROM DEAL ${dealId}:
+${documentContents.join('\n\n---DOCUMENT SEPARATOR---\n\n')}
 
 CRITICAL INSTRUCTIONS:
-- Base your analysis ONLY on the actual document content provided above
+- Base your analysis EXCLUSIVELY on the actual document content provided above from this specific deal
 - Quote specific numbers, amounts, dates, and metrics directly from the documents
-- Reference exact figures from financial statements, balance sheets, or other data
-- If specific information is not in the documents, state "This information is not available in the provided documents"
-- Do NOT use generic investment templates or assumptions
-- Focus on real data extracted from the uploaded documents
+- Reference exact figures from financial statements, balance sheets, term sheets, or other uploaded data
+- If specific information is not in the documents, clearly state "This information is not available in the provided documents"
+- Do NOT use generic investment templates, assumptions, or external knowledge
+- NEVER say "I don't have access to the document" - you have the full content above
+- Focus exclusively on real data extracted from the uploaded documents for this deal
+- Provide specific, data-driven insights based only on the document content
 
 Provide a detailed response based exclusively on the document content.`;
     } else {
