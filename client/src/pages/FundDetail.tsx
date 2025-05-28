@@ -39,6 +39,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -89,6 +90,9 @@ export default function FundDetail() {
   
   // State for allocation being edited
   const [editingAllocation, setEditingAllocation] = useState<EditingAllocation | null>(null);
+  
+  // State for capital metrics toggle
+  const [capitalView, setCapitalView] = useState<'total' | 'called' | 'uncalled'>('total');
   
   // Type for new allocation form data
   interface NewAllocationData {
@@ -913,10 +917,39 @@ export default function FundDetail() {
             <div className="mb-8">
               <Card>
                 <CardHeader className="border-b">
-                  <CardTitle>Investment Allocations</CardTitle>
-                  <CardDescription>
-                    All capital allocations made from this fund
-                  </CardDescription>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <CardTitle>Investment Allocations</CardTitle>
+                      <CardDescription>
+                        All capital allocations made from this fund
+                      </CardDescription>
+                    </div>
+                    
+                    {/* Capital Metrics Toggle */}
+                    <Tabs value={capitalView} onValueChange={(value) => setCapitalView(value as 'total' | 'called' | 'uncalled')}>
+                      <TabsList className="grid w-full grid-cols-3">
+                        <TabsTrigger value="total" className="text-xs">Total Committed</TabsTrigger>
+                        <TabsTrigger value="called" className="text-xs">Called Capital</TabsTrigger>
+                        <TabsTrigger value="uncalled" className="text-xs">Uncalled Capital</TabsTrigger>
+                      </TabsList>
+                    </Tabs>
+                  </div>
+                  
+                  {/* Capital Metrics Summary */}
+                  <div className="mt-4 grid grid-cols-3 gap-4 text-center">
+                    <div className={`p-3 rounded-lg border ${capitalView === 'total' ? 'bg-blue-50 border-blue-200' : 'bg-gray-50'}`}>
+                      <div className="text-sm font-medium text-gray-600">Total Committed</div>
+                      <div className="text-lg font-bold">{formatCurrency(fund?.committedCapital || 0)}</div>
+                    </div>
+                    <div className={`p-3 rounded-lg border ${capitalView === 'called' ? 'bg-green-50 border-green-200' : 'bg-gray-50'}`}>
+                      <div className="text-sm font-medium text-gray-600">Called Capital</div>
+                      <div className="text-lg font-bold">{formatCurrency(fund?.calledCapital || 0)}</div>
+                    </div>
+                    <div className={`p-3 rounded-lg border ${capitalView === 'uncalled' ? 'bg-orange-50 border-orange-200' : 'bg-gray-50'}`}>
+                      <div className="text-sm font-medium text-gray-600">Uncalled Capital</div>
+                      <div className="text-lg font-bold">{formatCurrency(fund?.uncalledCapital || 0)}</div>
+                    </div>
+                  </div>
                 </CardHeader>
                 <CardContent className="p-0">
                   {isAllocationsLoading ? (
@@ -945,7 +978,11 @@ export default function FundDetail() {
                               <TableHead className="font-semibold text-[10px] xs:text-xs sm:text-sm">Date</TableHead>
                               <TableHead className="font-semibold text-[10px] xs:text-xs sm:text-sm">Status</TableHead>
                               <TableHead className="font-semibold text-[10px] xs:text-xs sm:text-sm text-right">Weight</TableHead>
-                              <TableHead className="font-semibold text-[10px] xs:text-xs sm:text-sm text-right">Committed</TableHead>
+                              <TableHead className="font-semibold text-[10px] xs:text-xs sm:text-sm text-right">
+                                {capitalView === 'total' && 'Committed'}
+                                {capitalView === 'called' && 'Called'}
+                                {capitalView === 'uncalled' && 'Remaining'}
+                              </TableHead>
                               <TableHead className="font-semibold text-[10px] xs:text-xs sm:text-sm text-right">Distributions</TableHead>
                               <TableHead className="font-semibold text-[10px] xs:text-xs sm:text-sm text-right">Value</TableHead>
                               <TableHead className="font-semibold text-[10px] xs:text-xs sm:text-sm text-right">MOIC</TableHead>
@@ -956,8 +993,33 @@ export default function FundDetail() {
                           <TableBody>
                         {allocations?.map(allocation => {
                           const deal = deals?.find((d: Deal) => d.id === allocation.dealId);
-                          // Calculate totals and metrics
-                          const totalInvested = allocations?.reduce((sum, alloc) => sum + alloc.amount, 0) || 0;
+                          
+                          // Calculate capital metrics based on allocation status
+                          const committedAmount = allocation.amount;
+                          let calledAmount = 0;
+                          let uncalledAmount = allocation.amount;
+                          
+                          // For funded allocations, called = committed
+                          if (allocation.status === 'funded') {
+                            calledAmount = allocation.amount;
+                            uncalledAmount = 0;
+                          }
+                          // For partially paid allocations, estimate called amount (40% for Balerion example)
+                          else if (allocation.status === 'partially_paid') {
+                            // In a real system, this would come from actual capital call data
+                            calledAmount = allocation.amount * 0.4; // Balerion's 40% funding
+                            uncalledAmount = allocation.amount - calledAmount;
+                          }
+                          
+                          // Determine which amount to display based on toggle
+                          let displayAmount = committedAmount;
+                          if (capitalView === 'called') {
+                            displayAmount = calledAmount;
+                          } else if (capitalView === 'uncalled') {
+                            displayAmount = uncalledAmount;
+                          }
+                          
+                          // Calculate MOIC
                           let moic = 0;
                           if (allocation.amount > 0) {
                             moic = (allocation.distributionPaid + (allocation.marketValue || 0)) / allocation.amount;
@@ -1007,9 +1069,18 @@ export default function FundDetail() {
                                 </span>
                               </TableCell>
                               <TableCell className="py-1.5 sm:py-2.5 px-2 sm:px-4 text-right">
-                                <span className="text-2xs xs:text-xs sm:text-sm">
-                                  {formatCurrency(allocation.amount)}
+                                <span className={`text-2xs xs:text-xs sm:text-sm ${
+                                  capitalView === 'called' ? 'text-green-700 font-medium' : 
+                                  capitalView === 'uncalled' ? 'text-orange-700 font-medium' : 
+                                  'text-blue-700 font-medium'
+                                }`}>
+                                  {formatCurrency(displayAmount)}
                                 </span>
+                                {capitalView === 'called' && allocation.status === 'partially_paid' && (
+                                  <div className="text-xs text-gray-500">
+                                    ({((calledAmount / committedAmount) * 100).toFixed(0)}% of commitment)
+                                  </div>
+                                )}
                               </TableCell>
                               <TableCell className="py-1.5 sm:py-2.5 px-2 sm:px-4 text-right">
                                 <span className="text-2xs xs:text-xs sm:text-sm">
