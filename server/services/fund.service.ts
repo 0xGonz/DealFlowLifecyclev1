@@ -118,10 +118,11 @@ export class FundService {
           return {
             ...fund,
             committedCapital,
-            totalFundSize: fund.aum || 0,
+            totalFundSize: committedCapital, // Total fund size should be based on commitments
             allocationCount: allocations.length,
             calledCapital,
-            uncalledCapital
+            uncalledCapital,
+            aum: calledCapital // AUM should always equal called capital (actual money invested)
           };
         } catch (error) {
           console.error(`Error calculating statistics for fund ${fund.id}:`, error);
