@@ -118,14 +118,14 @@ export class DocumentService {
       const query = `
         SELECT 
           id, 
-          "fileName", 
-          "fileType", 
-          "filePath", 
-          "dealId", 
-          "documentType", 
-          "uploadedBy", 
-          "uploadedAt",
-          "fileName" as name
+          file_name as "fileName", 
+          file_type as "fileType", 
+          file_path as "filePath", 
+          deal_id as "dealId", 
+          document_type as "documentType", 
+          uploaded_by as "uploadedBy", 
+          uploaded_at as "uploadedAt",
+          file_name as name
         FROM documents 
         WHERE id = $1
       `;
