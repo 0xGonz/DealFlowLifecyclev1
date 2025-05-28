@@ -203,7 +203,14 @@ export default function InvestmentTrackingTab({ dealId }: InvestmentTrackingTabP
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right font-medium">
-                        {formatCurrency(allocation.amount)}
+                        <div className="space-y-1">
+                          <div>{formatCurrency(allocation.amount)}</div>
+                          {allocation.status === "partially_paid" && (
+                            <div className="text-xs text-gray-500">
+                              Funded: {formatCurrency(allocation.amount * 0.4)} (40%)
+                            </div>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
