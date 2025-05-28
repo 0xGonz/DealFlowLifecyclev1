@@ -60,23 +60,18 @@ router.post('/deals/:dealId/analyze', requireAuth, async (req: Request, res: Res
     console.log(`📄 Analysis based on ${documentContents.length} authentic documents`);
 
     res.json(result);
-      success: true,
-      response: analysis,
-      analysis: analysis,
-      dealName: deal.name,
-      dealId: parseInt(dealId),
-      analysisType: query ? 'query-response' : 'comprehensive',
-      context: {
-        dealName: deal.name,
-        dataSourcesUsed: ['deal_data', 'documents', 'memos', 'timeline'],
-        timestamp: new Date()
-      }
-    });
-    
   } catch (error) {
-    console.error('Deal analysis error:', error);
+    console.error('Error in document analysis:', error);
+    
+    if (error instanceof Error && error.message.includes('No authentic document content')) {
+      return res.status(400).json({ 
+        error: error.message,
+        requiresDocuments: true
+      });
+    }
+    
     res.status(500).json({ 
-      error: 'Failed to analyze deal',
+      error: 'Failed to analyze documents', 
       details: error instanceof Error ? error.message : 'Unknown error'
     });
   }
