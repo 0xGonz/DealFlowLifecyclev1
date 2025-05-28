@@ -1,10 +1,8 @@
 import { db } from '../db';
-import { documents } from '../../shared/schema';
-import { eq } from 'drizzle-orm';
 
 /**
  * Fixed Document Service - Production Compatible
- * This service works with both old and new database schemas
+ * Uses raw SQL to bypass schema compatibility issues
  */
 export class DocumentService {
   
@@ -15,14 +13,25 @@ export class DocumentService {
     try {
       console.log(`🔍 DocumentService: Fetching documents for deal ${dealId}`);
       
-      // Use simple query that works with both schema versions
-      const result = await db
-        .select()
-        .from(documents)
-        .where(eq(documents.dealId, dealId));
+      // Use raw SQL query that works with actual production schema
+      const result = await db.execute(`
+        SELECT 
+          id,
+          deal_id as "dealId",
+          file_name as "fileName", 
+          file_type as "fileType",
+          file_size as "fileSize",
+          file_path as "filePath",
+          uploaded_by as "uploadedBy",
+          uploaded_at as "uploadedAt",
+          description,
+          document_type as "documentType"
+        FROM documents 
+        WHERE deal_id = $1
+      `, [dealId]);
       
-      console.log(`✅ DocumentService: Found ${result.length} documents for deal ${dealId}`);
-      return result;
+      console.log(`✅ DocumentService: Found ${result.rows.length} documents for deal ${dealId}`);
+      return result.rows;
       
     } catch (error) {
       const err = error as Error;
