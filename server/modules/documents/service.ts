@@ -143,7 +143,9 @@ export class DocumentService {
       
 
 
-      // Extract content from PDF or text files
+      // Extract content ONLY from the actual uploaded document - no fallbacks or test content
+      console.log(`🔍 Attempting to extract content from actual document: ${document.fileName} at ${filePath}`);
+      
       if (document.fileType === 'application/pdf' || document.fileName.endsWith('.pdf')) {
         try {
           const pdfParse = (await import('pdf-parse')).default;
@@ -151,32 +153,30 @@ export class DocumentService {
           const pdfData = await pdfParse(pdfBuffer);
           
           if (pdfData.text && pdfData.text.trim().length > 0) {
-            console.log(`✅ DocumentService: Extracted ${pdfData.text.length} characters from ${document.fileName}`);
+            console.log(`✅ Successfully extracted ${pdfData.text.length} characters from actual document: ${document.fileName}`);
             return pdfData.text;
           } else {
-            console.warn(`⚠️ PDF parsed but no text content found in ${document.fileName}`);
-            // Try reading as text file if PDF parsing fails to extract content
-            const textContent = fs.readFileSync(filePath, 'utf8');
-            console.log(`📄 Reading as text file: ${textContent.length} characters from ${document.fileName}`);
-            return textContent;
+            console.error(`❌ PDF was parsed but contains no extractable text content: ${document.fileName}`);
+            throw new Error(`PDF document "${document.fileName}" contains no extractable text content. Please ensure the document contains text that can be analyzed.`);
           }
         } catch (pdfError) {
-          console.warn(`⚠️ PDF parsing failed for ${document.fileName}, trying as text: ${(pdfError as Error).message}`);
-          // Fallback to reading as text file
-          try {
-            const textContent = fs.readFileSync(filePath, 'utf8');
-            console.log(`📄 Reading as text file: ${textContent.length} characters from ${document.fileName}`);
-            return textContent;
-          } catch (textError) {
-            console.error(`❌ Both PDF and text parsing failed for ${document.fileName}`);
-            throw new Error(`Cannot extract content from document: ${(textError as Error).message}`);
-          }
+          console.error(`❌ Failed to extract content from PDF: ${document.fileName} - ${(pdfError as Error).message}`);
+          throw new Error(`Cannot extract content from PDF document "${document.fileName}": ${(pdfError as Error).message}`);
         }
       } else {
         // Handle other file types as text
-        const textContent = fs.readFileSync(filePath, 'utf8');
-        console.log(`📄 Text content extracted: ${textContent.length} characters from ${document.fileName}`);
-        return textContent;
+        try {
+          const textContent = fs.readFileSync(filePath, 'utf8');
+          if (textContent && textContent.trim().length > 0) {
+            console.log(`✅ Successfully extracted ${textContent.length} characters from text document: ${document.fileName}`);
+            return textContent;
+          } else {
+            throw new Error(`Document "${document.fileName}" is empty or contains no readable content.`);
+          }
+        } catch (textError) {
+          console.error(`❌ Failed to read text content from: ${document.fileName} - ${(textError as Error).message}`);
+          throw new Error(`Cannot read content from document "${document.fileName}": ${(textError as Error).message}`);
+        }
       }
       
     } catch (error) {
