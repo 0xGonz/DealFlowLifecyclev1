@@ -69,11 +69,11 @@ export const Sidebar = ({ dealId }: { dealId: number }) => {
       const data = await response.json();
       
       const docMeta: DocMeta = {
-        id: data.id,
+        id: data.id || data.documentId,
         name: data.fileName,
         fileName: data.fileName,
         fileType: data.fileType,
-        downloadUrl: `/api/documents/${data.id}/download`,
+        downloadUrl: `/api/documents/${data.id || data.documentId}/download`,
         documentType: data.documentType
       };
       
