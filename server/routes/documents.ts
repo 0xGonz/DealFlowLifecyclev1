@@ -106,9 +106,9 @@ router.get('/:id/download', requireAuth, async (req: Request, res: Response) => 
       return res.status(404).json({ message: 'Document not found' });
     }
 
-    // Extract filename and file path with multiple fallbacks
-    const fileName = document.fileName || document.file_name || document.name;
-    const filePath = document.filePath || document.file_path || document.path;
+    // Extract filename and file path - use proper schema field names
+    const fileName = document.fileName;
+    const filePath = document.filePath;
     
     console.log(`📄 Extracted fileName: ${fileName}`);
     console.log(`📍 Extracted filePath: ${filePath}`);
