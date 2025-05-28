@@ -71,6 +71,12 @@ import { format } from "date-fns";
 import { formatCurrency } from "@/lib/utils";
 import FundSectorDistribution from "@/components/funds/FundSectorDistribution";
 import CalledCapitalRatio from "@/components/funds/CalledCapitalRatio";
+import { 
+  calculateAllocationCapitalMetrics, 
+  calculateFundCapitalMetrics, 
+  getDisplayAmount, 
+  getCapitalViewColorClass 
+} from "@/lib/services/capitalCalculations";
 // Import local types instead of schema types to ensure consistency
 import { Fund, FundAllocation, Deal } from "@/lib/types";
 
@@ -978,30 +984,9 @@ export default function FundDetail() {
                         {allocations?.map(allocation => {
                           const deal = deals?.find((d: Deal) => d.id === allocation.dealId);
                           
-                          // Calculate capital metrics based on allocation status
-                          const committedAmount = allocation.amount;
-                          let calledAmount = 0;
-                          let uncalledAmount = allocation.amount;
-                          
-                          // For funded allocations, called = committed
-                          if (allocation.status === 'funded') {
-                            calledAmount = allocation.amount;
-                            uncalledAmount = 0;
-                          }
-                          // For partially paid allocations, estimate called amount (40% for Balerion example)
-                          else if (allocation.status === 'partially_paid') {
-                            // In a real system, this would come from actual capital call data
-                            calledAmount = allocation.amount * 0.4; // Balerion's 40% funding
-                            uncalledAmount = allocation.amount - calledAmount;
-                          }
-                          
-                          // Determine which amount to display based on toggle
-                          let displayAmount = committedAmount;
-                          if (capitalView === 'called') {
-                            displayAmount = calledAmount;
-                          } else if (capitalView === 'uncalled') {
-                            displayAmount = uncalledAmount;
-                          }
+                          // Use modular capital calculation service
+                          const capitalMetrics = calculateAllocationCapitalMetrics(allocation);
+                          const displayAmount = getDisplayAmount(capitalMetrics, capitalView);
                           
                           // Calculate MOIC
                           let moic = 0;
@@ -1053,11 +1038,7 @@ export default function FundDetail() {
                                 </span>
                               </TableCell>
                               <TableCell className="py-1.5 sm:py-2.5 px-2 sm:px-4 text-right">
-                                <span className={`text-2xs xs:text-xs sm:text-sm ${
-                                  capitalView === 'called' ? 'text-green-700 font-medium' : 
-                                  capitalView === 'uncalled' ? 'text-orange-700 font-medium' : 
-                                  'text-blue-700 font-medium'
-                                }`}>
+                                <span className={`text-2xs xs:text-xs sm:text-sm ${getCapitalViewColorClass(capitalView)}`}>
                                   {formatCurrency(displayAmount)}
                                 </span>
                               </TableCell>
@@ -1184,33 +1165,11 @@ export default function FundDetail() {
                               }, 0).toFixed(2)}%
                             </TableCell>
                             <TableCell className="py-3 px-2 sm:px-4 text-right font-bold">
-                              <span className={`${
-                                capitalView === 'called' ? 'text-green-700' : 
-                                capitalView === 'uncalled' ? 'text-orange-700' : 
-                                'text-blue-700'
-                              }`}>
-                                {formatCurrency(allocations.reduce((sum, allocation) => {
-                                  const committedAmount = allocation.amount;
-                                  let calledAmount = 0;
-                                  let uncalledAmount = allocation.amount;
-                                  
-                                  if (allocation.status === 'funded') {
-                                    calledAmount = allocation.amount;
-                                    uncalledAmount = 0;
-                                  } else if (allocation.status === 'partially_paid') {
-                                    calledAmount = allocation.amount * 0.4;
-                                    uncalledAmount = allocation.amount - calledAmount;
-                                  }
-                                  
-                                  let displayAmount = committedAmount;
-                                  if (capitalView === 'called') {
-                                    displayAmount = calledAmount;
-                                  } else if (capitalView === 'uncalled') {
-                                    displayAmount = uncalledAmount;
-                                  }
-                                  
-                                  return sum + displayAmount;
-                                }, 0))}
+                              <span className={getCapitalViewColorClass(capitalView)}>
+                                {(() => {
+                                  const totalMetrics = calculateFundCapitalMetrics(allocations);
+                                  return formatCurrency(getDisplayAmount(totalMetrics, capitalView));
+                                })()}
                               </span>
                             </TableCell>
                             <TableCell className="py-3 px-2 sm:px-4 text-right font-bold text-gray-800">
