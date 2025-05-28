@@ -53,7 +53,7 @@ router.get('/:id/download', requireAuth, async (req: Request, res: Response) => 
     const documentId = parseInt(req.params.id);
     console.log(`📥 Download request for document ID: ${documentId}`);
     
-    const document = await storage.getDocument(documentId);
+    const document = await DocumentService.getDocumentById(documentId);
     if (!document) {
       console.log(`❌ Document ${documentId} not found in database`);
       return res.status(404).json({ message: 'Document not found' });
