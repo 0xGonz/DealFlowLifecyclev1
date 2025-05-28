@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import path from 'path';
 import fs from 'fs';
 import { DatabaseStorage } from '../database-storage';
+import { DocumentService } from '../modules/documents/service';
 
 const router = Router();
 const storage = new DatabaseStorage();
@@ -53,7 +54,7 @@ router.get('/:id/download', requireAuth, async (req: Request, res: Response) => 
     const documentId = parseInt(req.params.id);
     console.log(`📥 Download request for document ID: ${documentId}`);
     
-    const document = await DocumentService.getDocumentById(documentId);
+    const document = await storage.getDocument(documentId);
     if (!document) {
       console.log(`❌ Document ${documentId} not found in database`);
       return res.status(404).json({ message: 'Document not found' });
@@ -62,6 +63,12 @@ router.get('/:id/download', requireAuth, async (req: Request, res: Response) => 
     console.log(`📄 Document object:`, document);
     console.log(`📄 Found document fileName: ${document.fileName}`);
     console.log(`📍 Original file path: ${document.filePath}`);
+    
+    // Safety check for fileName
+    if (!document.fileName) {
+      console.error(`❌ Document ${documentId} has no fileName field!`);
+      return res.status(500).json({ message: 'Document missing fileName' });
+    }
     
     // Try multiple possible file locations
     const possiblePaths = [
