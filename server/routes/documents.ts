@@ -59,16 +59,17 @@ router.get('/:id/download', requireAuth, async (req: Request, res: Response) => 
       return res.status(404).json({ message: 'Document not found' });
     }
 
-    console.log(`📄 Found document: ${document.name}`);
+    console.log(`📄 Found document: ${document.fileName}`);
     console.log(`📍 Original file path: ${document.filePath}`);
     
     // Try multiple possible file locations
     const possiblePaths = [
       document.filePath, // Original path from database
-      path.join(process.cwd(), 'public', 'uploads', document.name), // Standard uploads
-      path.join(process.cwd(), 'uploads', document.name), // Alternative uploads
-      path.join(process.cwd(), 'public', 'uploads', path.basename(document.filePath)), // Just filename in uploads
-      path.join(process.cwd(), 'data', 'uploads', document.name) // Data uploads
+      path.join(process.cwd(), document.filePath), // Relative to project root
+      path.join(process.cwd(), 'public', 'uploads', document.fileName), // Standard uploads with fileName
+      path.join(process.cwd(), 'uploads', document.fileName), // Alternative uploads with fileName
+      path.join(process.cwd(), 'public', document.filePath), // Public + relative path
+      path.join(process.cwd(), 'data', 'uploads', document.fileName) // Data uploads
     ];
     
     let resolvedFilePath = null;
@@ -93,7 +94,7 @@ router.get('/:id/download', requireAuth, async (req: Request, res: Response) => 
     }
 
     // Set appropriate headers
-    const fileExtension = path.extname(document.name).toLowerCase();
+    const fileExtension = path.extname(document.fileName).toLowerCase();
     const mimeTypes: { [key: string]: string } = {
       '.pdf': 'application/pdf',
       '.doc': 'application/msword',
@@ -107,7 +108,7 @@ router.get('/:id/download', requireAuth, async (req: Request, res: Response) => 
     const mimeType = mimeTypes[fileExtension] || 'application/octet-stream';
     
     res.setHeader('Content-Type', mimeType);
-    res.setHeader('Content-Disposition', `inline; filename="${document.name}"`);
+    res.setHeader('Content-Disposition', `inline; filename="${document.fileName}"`);
     
     // Set file size header
     try {
@@ -117,7 +118,7 @@ router.get('/:id/download', requireAuth, async (req: Request, res: Response) => 
       console.warn('Could not get file stats:', err);
     }
     
-    console.log(`📁 Serving file: ${document.name} from ${resolvedFilePath}`);
+    console.log(`📁 Serving file: ${document.fileName} from ${resolvedFilePath}`);
     
     // Create and pipe file stream
     const fileStream = fs.createReadStream(resolvedFilePath);
