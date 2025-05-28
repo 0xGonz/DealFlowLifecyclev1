@@ -141,16 +141,7 @@ export class DocumentService {
       
       console.log(`📄 Found PDF file at: ${filePath}`);
       
-      // Special handling for Winkler test document - use actual content
-      if (document.fileName.includes('Winkler') || document.id === 61) {
-        console.log(`🎯 Using direct content for Winkler document: ${document.fileName}`);
-        const testWinklerPath = path.join(process.cwd(), 'test-winkler-content.txt');
-        if (fs.existsSync(testWinklerPath)) {
-          const winklerContent = fs.readFileSync(testWinklerPath, 'utf8');
-          console.log(`✅ Loaded Winkler content: ${winklerContent.length} characters`);
-          return winklerContent;
-        }
-      }
+
 
       // Extract content from PDF or text files
       if (document.fileType === 'application/pdf' || document.fileName.endsWith('.pdf')) {
