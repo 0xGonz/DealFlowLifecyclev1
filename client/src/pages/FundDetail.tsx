@@ -934,22 +934,6 @@ export default function FundDetail() {
                       </TabsList>
                     </Tabs>
                   </div>
-                  
-                  {/* Capital Metrics Summary */}
-                  <div className="mt-4 grid grid-cols-3 gap-4 text-center">
-                    <div className={`p-3 rounded-lg border ${capitalView === 'total' ? 'bg-blue-50 border-blue-200' : 'bg-gray-50'}`}>
-                      <div className="text-sm font-medium text-gray-600">Total Committed</div>
-                      <div className="text-lg font-bold">{formatCurrency(fund?.committedCapital || 0)}</div>
-                    </div>
-                    <div className={`p-3 rounded-lg border ${capitalView === 'called' ? 'bg-green-50 border-green-200' : 'bg-gray-50'}`}>
-                      <div className="text-sm font-medium text-gray-600">Called Capital</div>
-                      <div className="text-lg font-bold">{formatCurrency(fund?.calledCapital || 0)}</div>
-                    </div>
-                    <div className={`p-3 rounded-lg border ${capitalView === 'uncalled' ? 'bg-orange-50 border-orange-200' : 'bg-gray-50'}`}>
-                      <div className="text-sm font-medium text-gray-600">Uncalled Capital</div>
-                      <div className="text-lg font-bold">{formatCurrency(fund?.uncalledCapital || 0)}</div>
-                    </div>
-                  </div>
                 </CardHeader>
                 <CardContent className="p-0">
                   {isAllocationsLoading ? (
@@ -1190,6 +1174,74 @@ export default function FundDetail() {
                             </TableRow>
                           )
                         })}
+                        
+                        {/* Dynamic Total Row */}
+                        {allocations && allocations.length > 0 && (
+                          <TableRow className="bg-gray-50 border-t-2 border-gray-200 font-semibold">
+                            <TableCell className="py-3 px-2 sm:px-4 font-bold text-gray-800">TOTAL</TableCell>
+                            <TableCell></TableCell>
+                            <TableCell></TableCell>
+                            <TableCell></TableCell>
+                            <TableCell className="py-3 px-2 sm:px-4 text-right font-bold text-gray-800">
+                              {allocations.reduce((sum, allocation) => {
+                                const totalWeight = allocation.portfolioWeight || 0;
+                                return sum + totalWeight;
+                              }, 0).toFixed(2)}%
+                            </TableCell>
+                            <TableCell className="py-3 px-2 sm:px-4 text-right font-bold">
+                              <span className={`${
+                                capitalView === 'called' ? 'text-green-700' : 
+                                capitalView === 'uncalled' ? 'text-orange-700' : 
+                                'text-blue-700'
+                              }`}>
+                                {formatCurrency(allocations.reduce((sum, allocation) => {
+                                  const committedAmount = allocation.amount;
+                                  let calledAmount = 0;
+                                  let uncalledAmount = allocation.amount;
+                                  
+                                  if (allocation.status === 'funded') {
+                                    calledAmount = allocation.amount;
+                                    uncalledAmount = 0;
+                                  } else if (allocation.status === 'partially_paid') {
+                                    calledAmount = allocation.amount * 0.4;
+                                    uncalledAmount = allocation.amount - calledAmount;
+                                  }
+                                  
+                                  let displayAmount = committedAmount;
+                                  if (capitalView === 'called') {
+                                    displayAmount = calledAmount;
+                                  } else if (capitalView === 'uncalled') {
+                                    displayAmount = uncalledAmount;
+                                  }
+                                  
+                                  return sum + displayAmount;
+                                }, 0))}
+                              </span>
+                            </TableCell>
+                            <TableCell className="py-3 px-2 sm:px-4 text-right font-bold text-gray-800">
+                              {formatCurrency(allocations.reduce((sum, allocation) => sum + (allocation.distributionPaid || 0), 0))}
+                            </TableCell>
+                            <TableCell className="py-3 px-2 sm:px-4 text-right font-bold text-gray-800">
+                              {formatCurrency(allocations.reduce((sum, allocation) => sum + (allocation.marketValue || 0), 0))}
+                            </TableCell>
+                            <TableCell className="py-3 px-2 sm:px-4 text-right font-bold text-gray-800">
+                              {allocations.length > 0 ? (
+                                (allocations.reduce((sum, allocation) => {
+                                  const totalDistributionPaid = allocation.distributionPaid || 0;
+                                  const totalMarketValue = allocation.marketValue || 0;
+                                  const totalAmount = allocation.amount || 0;
+                                  return sum + (totalDistributionPaid + totalMarketValue) / Math.max(totalAmount, 1);
+                                }, 0) / allocations.length).toFixed(2)
+                              ) : '0.00'}x
+                            </TableCell>
+                            <TableCell className="py-3 px-2 sm:px-4 text-right font-bold text-gray-800">
+                              {allocations.length > 0 ? (
+                                (allocations.reduce((sum, allocation) => sum + (allocation.irr || 0), 0) / allocations.length).toFixed(2)
+                              ) : '0.00'}%
+                            </TableCell>
+                            <TableCell></TableCell>
+                          </TableRow>
+                        )}
                       </TableBody>
                         </Table>
                       </div>
