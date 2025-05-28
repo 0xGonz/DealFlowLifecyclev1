@@ -98,6 +98,49 @@ export class DocumentService {
   }
 
   /**
+   * Extract PDF content for AI analysis
+   */
+  static async extractPdfContent(documentId: number): Promise<string> {
+    try {
+      console.log(`📄 DocumentService: Extracting PDF content for document ${documentId}`);
+      
+      // Get document metadata
+      const document = await this.getDocumentById(documentId);
+      if (!document) {
+        throw new Error('Document not found');
+      }
+      
+      // Build file path
+      const UPLOAD_PATH = process.env.UPLOAD_PATH || './uploads';
+      const filePath = require('path').join(UPLOAD_PATH, require('path').basename(document.filePath));
+      
+      // Check if file exists
+      const fs = require('fs');
+      if (!fs.existsSync(filePath)) {
+        console.error(`📄 File not found at: ${filePath}`);
+        throw new Error('Document file not found on disk');
+      }
+      
+      // Extract PDF content
+      if (document.fileType === 'application/pdf' || document.fileName.endsWith('.pdf')) {
+        const pdfParse = (await import('pdf-parse')).default;
+        const pdfBuffer = fs.readFileSync(filePath);
+        const pdfData = await pdfParse(pdfBuffer);
+        
+        console.log(`✅ DocumentService: Extracted ${pdfData.text.length} characters from ${document.fileName}`);
+        return pdfData.text;
+      } else {
+        throw new Error('Document is not a PDF file');
+      }
+      
+    } catch (error) {
+      const err = error as Error;
+      console.error(`💥 DocumentService: Error extracting PDF content:`, err);
+      throw new Error(`Failed to extract PDF content: ${err.message}`);
+    }
+  }
+
+  /**
    * Update document metadata
    */
   static async updateDocument(documentId: number, updates: { description?: string; documentType?: string }) {
