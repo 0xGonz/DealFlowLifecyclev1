@@ -332,46 +332,31 @@ router.get('/:id/download', requireAuth, async (req: Request, res: Response) => 
       res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(document.fileName)}"`);
     }
     
-    // Try to migrate file to standard structure first
-    const migratedPath = await migrateFileToStandardStructure(document);
-    if (migratedPath) {
-      // Use migrated path for serving (skip database update for now)
-      document.filePath = migratedPath;
-    }
-    
-    // Use standardized path resolution
-    const standardFilePath = path.resolve(process.cwd(), document.filePath);
-    
     console.log(`📁 Attempting to serve: ${document.fileName}`);
-    console.log(`📍 Standard path: ${standardFilePath}`);
+    console.log(`📍 Using resolved path: ${resolvedFilePath}`);
     
-    if (fs.existsSync(standardFilePath)) {
-      console.log(`✅ Found and serving file from: ${standardFilePath}`);
-      
-      // Set file size header
-      try {
-        const stats = fs.statSync(standardFilePath);
-        res.setHeader('Content-Length', stats.size);
-      } catch (err) {
-        console.warn('Could not get file stats:', err);
-      }
-      
-      // Create and pipe file stream
-      const fileStream = fs.createReadStream(standardFilePath);
-      
-      fileStream.on('error', (err) => {
-        console.error('Error streaming document:', err);
-        if (!res.headersSent) {
-          res.status(500).json({ 
-            error: 'Stream error',
-            message: 'Error accessing the document file'
-          });
-        }
-      });
-      
-      fileStream.pipe(res);
-      return;
+    // Set file size header
+    try {
+      const stats = fs.statSync(resolvedFilePath);
+      res.setHeader('Content-Length', stats.size);
+    } catch (err) {
+      console.warn('Could not get file stats:', err);
     }
+    
+    // Create and pipe file stream
+    const fileStream = fs.createReadStream(resolvedFilePath);
+    
+    fileStream.on('error', (err) => {
+      console.error('Error streaming document:', err);
+      if (!res.headersSent) {
+        res.status(500).json({ 
+          error: 'Stream error',
+          message: 'Error accessing the document file'
+        });
+      }
+    });
+    
+    fileStream.pipe(res);
     
     // If no exact match was found, try to find similar files by name
     // This is a streamlined fallback approach for files that might have been renamed
