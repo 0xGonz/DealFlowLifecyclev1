@@ -305,13 +305,16 @@ router.get('/:id/download', requireAuth, async (req: Request, res: Response) => 
     console.log(`✅ Found document ${id}: ${document.fileName} (Deal: ${document.dealId})`);
     console.log(`📁 Database filePath: ${document.filePath}`);
     
-    // Check if file exists on disk
-    const filePath = path.join(process.cwd(), document.filePath);
+    // Use DocumentPathResolver for correct file resolution
+    const DocumentPathResolver = require('../modules/documents/path-resolver').DocumentPathResolver;
+    const resolvedFilePath = DocumentPathResolver.resolveExistingFile(document);
     
-    if (!fs.existsSync(filePath)) {
-      console.log(`❌ File not found on disk: ${filePath}`);
+    if (!resolvedFilePath) {
+      console.log(`❌ File not found on disk for document: ${document.fileName}`);
       return res.status(404).json({ message: 'File not found on disk' });
     }
+    
+    console.log(`✅ Resolved file path: ${resolvedFilePath}`);
     
     // Set appropriate content type
     res.setHeader('Content-Type', document.fileType);
