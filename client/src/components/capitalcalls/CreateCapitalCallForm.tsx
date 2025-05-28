@@ -33,8 +33,8 @@ interface CapitalCallFormData {
   allocationId: number | null;
   callAmount: number;
   amountType: 'percentage' | 'dollar';
-  callDate: Date;
-  dueDate: Date;
+  callDate: string;
+  dueDate: string;
   notes: string;
   status: string;
 }
@@ -47,8 +47,8 @@ export function CreateCapitalCallForm({ isOpen, onClose, dealId, onSuccess }: Cr
     allocationId: null,
     callAmount: 0,
     amountType: 'percentage',
-    callDate: new Date(),
-    dueDate: addDays(new Date(), 30), // Default due date is 30 days from now
+    callDate: getTodayUTC(),
+    dueDate: formatDateForInput(addDays(new Date(), 30)),
     notes: '',
     status: 'scheduled'
   });
@@ -62,11 +62,11 @@ export function CreateCapitalCallForm({ isOpen, onClose, dealId, onSuccess }: Cr
   // Create capital call mutation
   const createCapitalCallMutation = useMutation({
     mutationFn: async (data: CapitalCallFormData) => {
-      // Format dates as ISO strings
+      // Convert date strings to proper UTC date objects for the API
       const formattedData = {
         ...data,
-        callDate: data.callDate instanceof Date ? data.callDate.toISOString() : data.callDate,
-        dueDate: data.dueDate instanceof Date ? data.dueDate.toISOString() : data.dueDate
+        callDate: parseUTCDate(data.callDate).toISOString(),
+        dueDate: parseUTCDate(data.dueDate).toISOString()
       };
       
       const response = await apiRequest("POST", "/api/capital-calls", formattedData);
@@ -87,8 +87,8 @@ export function CreateCapitalCallForm({ isOpen, onClose, dealId, onSuccess }: Cr
         allocationId: null,
         callAmount: 0,
         amountType: 'percentage',
-        callDate: new Date(),
-        dueDate: addDays(new Date(), 30),
+        callDate: getTodayUTC(),
+        dueDate: formatDateForInput(addDays(new Date(), 30)),
         notes: '',
         status: 'scheduled'
       });
@@ -240,12 +240,10 @@ export function CreateCapitalCallForm({ isOpen, onClose, dealId, onSuccess }: Cr
               <Input
                 id="callDate"
                 type="date"
-                value={formData.callDate instanceof Date 
-                  ? formData.callDate.toISOString().split('T')[0] 
-                  : ''}
+                value={formData.callDate}
                 onChange={(e) => setFormData({
                   ...formData,
-                  callDate: e.target.value ? new Date(e.target.value) : new Date()
+                  callDate: e.target.value
                 })}
               />
             </div>
@@ -258,12 +256,10 @@ export function CreateCapitalCallForm({ isOpen, onClose, dealId, onSuccess }: Cr
               <Input
                 id="dueDate"
                 type="date"
-                value={formData.dueDate instanceof Date 
-                  ? formData.dueDate.toISOString().split('T')[0] 
-                  : ''}
+                value={formData.dueDate}
                 onChange={(e) => setFormData({
                   ...formData,
-                  dueDate: e.target.value ? new Date(e.target.value) : addDays(new Date(), 30)
+                  dueDate: e.target.value
                 })}
               />
             </div>
