@@ -134,12 +134,6 @@ router.post('/deals/:dealId/documents/:documentId/analyze', requireAuth, async (
       console.log(`✅ Specific document analysis completed for ${document.fileName}`);
       res.json(result);
     } catch (error) {
-      console.error(`❌ Failed to analyze document ${document.fileName}:`, error);
-      return res.status(400).json({ 
-        error: `Cannot analyze "${document.fileName}" - authentic document content not available. Please ensure the document is properly uploaded.`,
-        requiresDocument: true
-      });
-  } catch (error) {
     console.error('Error in specific document analysis:', error);
     
     if (error instanceof Error && error.message.includes('No authentic document content')) {
