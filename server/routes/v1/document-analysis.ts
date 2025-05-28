@@ -33,11 +33,20 @@ router.post('/deals/:dealId/analyze', requireAuth, async (req: Request, res: Res
     }
     
     // Get all related data
-    const [documents, memos, timeline] = await Promise.all([
+    const [documents, memos] = await Promise.all([
       storage.getDocumentsByDeal(parseInt(dealId)),
-      storage.getMiniMemosByDeal(parseInt(dealId)),
-      storage.getDealTimeline(parseInt(dealId))
+      storage.getMiniMemosByDeal(parseInt(dealId))
     ]);
+    
+    // Get timeline events (if available)
+    let timeline = [];
+    try {
+      if (storage.getDealTimeline) {
+        timeline = await storage.getDealTimeline(parseInt(dealId));
+      }
+    } catch (error) {
+      console.log('Timeline not available, continuing without it');
+    }
 
     // Create comprehensive analysis prompt
     let analysisPrompt = '';

@@ -15,7 +15,7 @@ import leaderboardRoutes from '../leaderboard';
 import notificationsRoutes from '../notifications';
 import documentsRoutes from '../documents';
 import aiAnalysisRoutes from '../ai-analysis';
-import documentAnalysisRoutes from './document-analysis';
+import documentAnalysisRoutes from './document-analysis.js';
 
 const v1Router = Router();
 
