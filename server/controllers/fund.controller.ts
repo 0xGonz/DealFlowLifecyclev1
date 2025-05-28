@@ -126,25 +126,52 @@ export class FundController {
   }
 
   /**
-   * Delete a fund
+   * Delete a fund with optional force parameter
    */
   async deleteFund(req: Request, res: Response) {
+    try {
+      const fundId = parseInt(req.params.id);
+      const force = req.query.force === 'true';
+      
+      if (isNaN(fundId)) {
+        return res.status(400).json({ message: "Invalid fund ID" });
+      }
+      
+      const success = await fundService.deleteFund(fundId, { force });
+      
+      if (!success) {
+        return res.status(404).json({ message: "Fund not found" });
+      }
+      
+      return res.status(204).send();
+    } catch (error) {
+      console.error(`Error deleting fund ${req.params.id}:`, error);
+      return res.status(500).json({ 
+        message: error instanceof Error ? error.message : "Internal server error" 
+      });
+    }
+  }
+
+  /**
+   * Get fund deletion preview
+   */
+  async getFundDeletionPreview(req: Request, res: Response) {
     try {
       const fundId = parseInt(req.params.id);
       
       if (isNaN(fundId)) {
         return res.status(400).json({ message: "Invalid fund ID" });
       }
-
-      const result = await fundService.deleteFund(fundId);
       
-      if (!result) {
+      const preview = await fundService.getFundDeletionPreview(fundId);
+      return res.json(preview);
+    } catch (error) {
+      console.error(`Error getting fund deletion preview ${req.params.id}:`, error);
+      
+      if (error instanceof Error && error.message === 'Fund not found') {
         return res.status(404).json({ message: "Fund not found" });
       }
       
-      return res.status(204).end();
-    } catch (error) {
-      console.error(`Error deleting fund ${req.params.id}:`, error);
       return res.status(500).json({ 
         message: error instanceof Error ? error.message : "Internal server error" 
       });

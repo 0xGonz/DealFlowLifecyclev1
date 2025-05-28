@@ -288,9 +288,9 @@ export class FundService {
   }
 
   /**
-   * Delete a fund
+   * Delete a fund with enhanced management options
    */
-  async deleteFund(fundId: number): Promise<boolean> {
+  async deleteFund(fundId: number, options?: { force?: boolean }): Promise<boolean> {
     const storage = getStorage();
     
     // Make sure fund exists
@@ -302,11 +302,65 @@ export class FundService {
     // Check if fund has allocations
     const allocations = await storage.getAllocationsByFund(fundId);
     if (allocations.length > 0) {
-      throw new Error("Cannot delete fund with existing allocations");
+      if (!options?.force) {
+        throw new Error(`Cannot delete fund "${fund.name}" - it has ${allocations.length} existing allocation(s). Use force delete if you want to remove all allocations and the fund.`);
+      }
+      
+      // Force delete: remove all allocations first
+      console.log(`[FUND-DELETE] Force deleting fund "${fund.name}" with ${allocations.length} allocations`);
+      for (const allocation of allocations) {
+        await storage.deleteFundAllocation(allocation.id);
+        console.log(`[FUND-DELETE] Removed allocation ID ${allocation.id} (${allocation.amount} to deal ${allocation.dealId})`);
+      }
     }
     
     const result = await storage.deleteFund(fundId);
+    console.log(`[FUND-DELETE] Successfully deleted fund "${fund.name}" (ID: ${fundId})`);
     return result;
+  }
+
+  /**
+   * Get fund deletion preview - shows what would be affected
+   */
+  async getFundDeletionPreview(fundId: number): Promise<{
+    fundName: string;
+    canDelete: boolean;
+    allocations: Array<{
+      id: number;
+      dealName: string;
+      amount: number;
+      status: string;
+    }>;
+    totalAllocatedAmount: number;
+  }> {
+    const storage = getStorage();
+    
+    const fund = await storage.getFund(fundId);
+    if (!fund) {
+      throw new Error('Fund not found');
+    }
+    
+    const allocations = await storage.getAllocationsByFund(fundId);
+    const allocationDetails = [];
+    let totalAmount = 0;
+    
+    for (const allocation of allocations) {
+      const deal = await storage.getDeal(allocation.dealId);
+      allocationDetails.push({
+        id: allocation.id,
+        dealName: deal?.name || `Deal ${allocation.dealId}`,
+        amount: allocation.amount,
+        status: allocation.status || 'unknown'
+      });
+      totalAmount += allocation.amount;
+    }
+    
+    return {
+      fundName: fund.name,
+      canDelete: allocations.length === 0,
+      allocations: allocationDetails,
+      totalAllocatedAmount: totalAmount
+    };
   }
 }
 

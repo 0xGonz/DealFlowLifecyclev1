@@ -16,6 +16,9 @@ router.post('/', requireAuth, fundController.createFund.bind(fundController));
 // Update fund
 router.patch('/:id', requireAuth, fundController.updateFund.bind(fundController));
 
+// Get fund deletion preview (must come before the general /:id route)
+router.get('/:id/deletion-preview', requireAuth, fundController.getFundDeletionPreview.bind(fundController));
+
 // Delete fund
 router.delete('/:id', requireAuth, fundController.deleteFund.bind(fundController));
 
