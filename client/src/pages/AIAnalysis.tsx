@@ -60,7 +60,7 @@ export default function AIAnalysis() {
   const handleDocumentAnalysis = async (document: any) => {
     if (!selectedDealId) return;
     
-    const analysisQuery = `Please analyze the document "${document.fileName}" in detail. Focus on key financial metrics, investment terms, risks, opportunities, and strategic implications.`;
+    const analysisQuery = `Please analyze the document "${document.fileName}" in detail.`;
     await sendMessage(analysisQuery);
   };
 

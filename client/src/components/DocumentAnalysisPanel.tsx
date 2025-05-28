@@ -41,7 +41,7 @@ export function DocumentAnalysisPanel({ dealId, dealName }: DocumentAnalysisPane
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ 
-          query: `Please analyze the document "${selectedDocument?.fileName}" in detail. Focus on key financial metrics, investment terms, risks, opportunities, and strategic implications.`,
+          query: `Please analyze the document "${selectedDocument?.fileName}" in detail.`,
           documentId 
         })
       });

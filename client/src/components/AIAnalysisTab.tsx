@@ -63,7 +63,7 @@ export default function AIAnalysisTab({ dealId, dealName }: AIAnalysisTabProps) 
   const handleDocumentAnalysis = async (document: Document) => {
     setLoadingDocumentId(document.id);
     
-    const analysisQuery = `Please analyze the document "${document.fileName}" in detail. Focus on key financial metrics, investment terms, risks, opportunities, and strategic implications.`;
+    const analysisQuery = `Please analyze the document "${document.fileName}" in detail.`;
     await sendMessage(analysisQuery);
     
     setLoadingDocumentId(null);
