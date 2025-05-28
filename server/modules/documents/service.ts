@@ -115,28 +115,33 @@ export class DocumentService {
       const fs = require('fs');
       const path = require('path');
       
-      // Try direct path first
-      let filePath = path.join(UPLOAD_PATH, path.basename(document.filePath));
+      // Try multiple path combinations to find the file
+      const possiblePaths = [
+        document.filePath, // Exact path from database
+        path.resolve(document.filePath), // Relative to current directory
+        path.join(process.cwd(), document.filePath), // From project root
+        path.join(UPLOAD_PATH, path.basename(document.filePath)), // Filename in uploads
+        path.join(UPLOAD_PATH, document.fileName), // Original filename in uploads
+      ];
       
-      // If not found, try the full relative path
-      if (!fs.existsSync(filePath)) {
-        filePath = document.filePath.startsWith('./') ? document.filePath : `./${document.filePath}`;
+      console.log(`🔍 Searching for file: ${document.fileName} (ID: ${document.id})`);
+      console.log(`📂 Database path: ${document.filePath}`);
+      
+      let filePath = '';
+      for (const testPath of possiblePaths) {
+        console.log(`🔍 Checking path: ${testPath}`);
+        if (fs.existsSync(testPath)) {
+          filePath = testPath;
+          console.log(`✅ Found file at: ${testPath}`);
+          break;
+        }
       }
       
-      // If still not found, try without leading uploads/
-      if (!fs.existsSync(filePath)) {
-        const filePathWithoutUploads = document.filePath.replace(/^uploads\//, '');
-        filePath = path.join(UPLOAD_PATH, filePathWithoutUploads);
-      }
-      
-      // Check if file exists
-      if (!fs.existsSync(filePath)) {
-        console.error(`📄 File not found at any location:`);
-        console.error(`📄 - Tried: ${path.join(UPLOAD_PATH, path.basename(document.filePath))}`);
-        console.error(`📄 - Tried: ${document.filePath}`);
-        console.error(`📄 - Tried: ${filePath}`);
-        console.error(`📄 - Document filePath: ${document.filePath}`);
-        throw new Error('Document file not found on disk');
+      // Check if file was found
+      if (!filePath || !fs.existsSync(filePath)) {
+        console.error(`💥 File not found in any location for document ${document.id}`);
+        console.error(`Searched paths: [${possiblePaths.join(', ')}]`);
+        throw new Error(`Document file not found on disk: ${document.fileName}`);
       }
       
       console.log(`📄 Found PDF file at: ${filePath}`);
