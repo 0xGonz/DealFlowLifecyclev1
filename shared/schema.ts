@@ -202,6 +202,7 @@ export const fundAllocations = pgTable("fund_allocations", {
   marketValue: real("market_value").default(0),
   moic: real("moic").default(1),
   irr: real("irr").default(0),
+  fundingPercentage: real("funding_percentage"),
 });
 
 export const insertFundAllocationSchema = createInsertSchema(fundAllocations)
