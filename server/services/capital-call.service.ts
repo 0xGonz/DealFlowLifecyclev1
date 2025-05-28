@@ -1,4 +1,5 @@
 import { StorageFactory } from '../storage-factory';
+import { updateAllocationStatusBasedOnCapitalCalls } from '../routes/allocations';
 import { db } from '../db';
 import { eq, sql } from 'drizzle-orm';
 import { 
@@ -41,15 +42,96 @@ const VALID_STATUS_TRANSITIONS: Record<CapitalCall['status'], CapitalCall['statu
 };
 
 /**
+ * Validate if a status transition is allowed
+ */
+function validateStatusTransition(currentStatus: CapitalCall['status'], newStatus: CapitalCall['status']): boolean {
+  const allowedTransitions = VALID_STATUS_TRANSITIONS[currentStatus];
+  return allowedTransitions.includes(newStatus);
+}
+
+/**
+ * Calculate outstanding amount based on call amount and paid amount
+ */
+function calculateOutstandingAmount(callAmount: number, paidAmount: number): number {
+  return Math.max(0, callAmount - (paidAmount || 0));
+}
+
+/**
  * Service for capital call related operations
  */
 export class CapitalCallService {
   /**
-   * Create a new capital call
+   * Create a new capital call with validation and automatic calculation
    */
   async createCapitalCall(capitalCall: InsertCapitalCall): Promise<CapitalCall> {
     const storage = StorageFactory.getStorage();
-    return await storage.createCapitalCall(capitalCall);
+    
+    // Calculate outstanding amount automatically
+    const outstandingAmount = calculateOutstandingAmount(
+      capitalCall.callAmount, 
+      capitalCall.paidAmount || 0
+    );
+    
+    // Create the capital call with calculated outstanding amount
+    const enrichedCapitalCall = {
+      ...capitalCall,
+      outstanding_amount: outstandingAmount,
+      paidAmount: capitalCall.paidAmount || 0
+    };
+    
+    const result = await storage.createCapitalCall(enrichedCapitalCall);
+    
+    // Update allocation status after creating capital call
+    try {
+      await updateAllocationStatusBasedOnCapitalCalls(capitalCall.allocationId);
+    } catch (error) {
+      console.error('Failed to update allocation status after capital call creation:', error);
+      // Don't fail the capital call creation if status update fails
+    }
+    
+    return result;
+  }
+
+  /**
+   * Update a capital call with validation
+   */
+  async updateCapitalCall(id: number, updates: Partial<CapitalCall>): Promise<CapitalCall> {
+    const storage = StorageFactory.getStorage();
+    
+    // Get current capital call for validation
+    const currentCall = await storage.getCapitalCall(id);
+    if (!currentCall) {
+      throw new Error('Capital call not found');
+    }
+    
+    // Validate status transition if status is being updated
+    if (updates.status && updates.status !== currentCall.status) {
+      if (!validateStatusTransition(currentCall.status, updates.status)) {
+        throw new Error(`Invalid status transition from ${currentCall.status} to ${updates.status}`);
+      }
+    }
+    
+    // Recalculate outstanding amount if call amount or paid amount changed
+    if (updates.callAmount !== undefined || updates.paidAmount !== undefined) {
+      const newCallAmount = updates.callAmount ?? currentCall.callAmount;
+      const newPaidAmount = updates.paidAmount ?? (currentCall.paidAmount || 0);
+      updates.outstanding_amount = calculateOutstandingAmount(newCallAmount, newPaidAmount);
+    }
+    
+    const result = await storage.updateCapitalCall(id, updates);
+    
+    // Update allocation status after updating capital call
+    try {
+      await updateAllocationStatusBasedOnCapitalCalls(currentCall.allocationId);
+    } catch (error) {
+      console.error('Failed to update allocation status after capital call update:', error);
+    }
+    
+    if (!result) {
+      throw new Error('Failed to update capital call');
+    }
+    
+    return result;
   }
 
   /**

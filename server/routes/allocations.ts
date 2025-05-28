@@ -48,41 +48,29 @@ async function updateAllocationStatusBasedOnCapitalCalls(allocationId: number): 
     else if (totalPaidAmount >= totalCalledAmount) {
       newStatus = 'funded';
     }
-    // If some capital has been called and partially paid, status is 'partially_paid'
+    // If some capital has been called but only partially paid, status is 'partially_paid'
     else if (totalPaidAmount > 0 && totalPaidAmount < totalCalledAmount) {
-      // Use 'partially_paid' instead of 'committed' when partial payment exists
-      // Note: We need to add this status to the schema if not already there
-      // For backward compatibility, use 'committed' if schema doesn't support 'partially_paid'
-      try {
-        // Check existing enum values for status in fund_allocations table
-        const existingStatuses = ['committed', 'funded', 'unfunded', 'partially_paid'];
-        if (existingStatuses.includes('partially_paid')) {
-          newStatus = 'partially_paid';
-        } else {
-          // Fallback for backward compatibility
-          console.log('Warning: Schema does not support partially_paid status, using committed');
-          newStatus = 'committed';
-        }
-      } catch (e) {
-        console.error('Error checking status enum:', e);
-        newStatus = 'committed'; // Safe fallback
-      }
+      newStatus = 'partially_paid';
     }
-    // If some capital has been called but not paid at all, status is 'committed'
-    else if (totalPaidAmount === 0 && totalCalledAmount > 0) {
+    // If capital has been called but nothing paid yet, status remains 'committed'
+    else if (totalCalledAmount > 0 && totalPaidAmount === 0) {
       newStatus = 'committed';
     }
     
-    console.log(`Allocation ${allocationId} status calculation:`, {
-      totalCalledAmount,
-      totalPaidAmount,
-      oldStatus: allocation.status,
-      newStatus
-    });
-    
-    // Only update if status changed
+    // Only update if status actually changed to avoid unnecessary database calls
     if (newStatus !== allocation.status) {
-      await storage.updateFundAllocation(allocation.id, { status: newStatus });
+      await storage.updateFundAllocation(allocationId, { status: newStatus });
+      console.log(`Updated allocation ${allocationId} status from ${allocation.status} to ${newStatus}`, {
+        totalCalledAmount,
+        totalPaidAmount,
+        allocation: allocation.id,
+        newStatus
+      });
+    }
+  } catch (error) {
+    console.error(`Error updating allocation status for allocation ${allocationId}:`, error);
+  }
+}
       console.log(`Updated allocation ${allocationId} status from ${allocation.status} to ${newStatus}`);
       
       // Recalculate portfolio weights for all allocations in this fund

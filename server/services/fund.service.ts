@@ -70,42 +70,43 @@ export class FundService {
   
   /**
    * Calculate the uncalled capital for a fund based on capital calls and payment records
-   * This is the sum of all capital call amounts minus the sum of payments
+   * This is the sum of all outstanding capital call amounts across ALL allocations
    */
   async calculateUncalledCapital(fundId: number): Promise<number> {
     const storage = getStorage();
     const db = storage.getDbClient();
     
-    // Query to calculate uncalled capital based on committed allocations and active capital calls
+    // Fixed logic: Include ALL allocations (committed AND funded) in uncalled calculation
+    // Uncalled capital = Total outstanding amounts from all unpaid capital calls
     const result = await db.execute(`
-      WITH committed_allocations AS (
+      WITH all_allocations AS (
         SELECT 
           fa.id as allocation_id,
-          fa.amount as allocation_amount
+          fa.amount as allocation_amount,
+          fa.status
         FROM fund_allocations fa
         WHERE fa.fund_id = ${fundId} 
-          AND fa.status != 'written_off' 
-          AND fa.status != 'funded'
+          AND fa.status != 'written_off'
       ),
       outstanding_calls AS (
         SELECT 
           cc.allocation_id,
           SUM(cc.outstanding_amount) as total_outstanding
         FROM capital_calls cc
-        JOIN committed_allocations ca ON cc.allocation_id = ca.allocation_id
-        WHERE cc.status != 'paid' AND cc.status != 'defaulted'
+        JOIN all_allocations aa ON cc.allocation_id = aa.allocation_id
+        WHERE cc.status NOT IN ('paid', 'defaulted')
         GROUP BY cc.allocation_id
       ),
-      uncalled_by_allocation AS (
+      called_but_unpaid AS (
         SELECT
-          ca.allocation_id,
-          ca.allocation_amount - COALESCE(oc.total_outstanding, 0) as remaining_commitment
-        FROM committed_allocations ca
-        LEFT JOIN outstanding_calls oc ON ca.allocation_id = oc.allocation_id
+          aa.allocation_id,
+          COALESCE(oc.total_outstanding, 0) as remaining_to_pay
+        FROM all_allocations aa
+        LEFT JOIN outstanding_calls oc ON aa.allocation_id = oc.allocation_id
       )
       SELECT 
-        SUM(remaining_commitment) as uncalled_capital
-      FROM uncalled_by_allocation
+        SUM(remaining_to_pay) as uncalled_capital
+      FROM called_but_unpaid
     `);
     
     // Extract and return the uncalled capital, defaulting to 0 if null
