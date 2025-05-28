@@ -74,50 +74,29 @@ async function updateAllocationStatusBasedOnCapitalCalls(allocationId: number): 
 
 // Helper function to recalculate portfolio weights for a fund
 async function recalculatePortfolioWeights(fundId: number): Promise<void> {
-      await recalculatePortfolioWeights(allocation.fundId);
-    }
-  } catch (error) {
-    console.error(`Error updating allocation status for allocation ${allocationId}:`, error);
-  }
-}
-
-// Helper function to recalculate portfolio weights for a fund
-async function recalculatePortfolioWeights(fundId: number): Promise<void> {
   try {
-    
-    console.log(`[DEBUG] Starting portfolio weight recalculation for fund ID ${fundId}`);
-    
-    // Get all allocations for the fund
     const allocations = await storage.getAllocationsByFund(fundId);
-    if (!allocations || allocations.length === 0) {
-      console.log(`[DEBUG] No allocations found for fund ID ${fundId}, skipping weight calculation`);
-      return;
-    }
-    
-    console.log(`[DEBUG] Found ${allocations.length} total allocations for fund ID ${fundId}`);
-    
-    // Get funded allocations
-    const fundedAllocations = allocations.filter(allocation => allocation.status === 'funded');
-    console.log(`[DEBUG] Found ${fundedAllocations.length} funded allocations for fund ID ${fundId}`);
-    
-    // Calculate the total called (funded) capital in the fund
-    const calledCapital = fundedAllocations.reduce((sum, allocation) => sum + allocation.amount, 0);
-    console.log(`[DEBUG] Total called capital for fund ID ${fundId}: ${calledCapital}`);
-    
-    // If there's no called capital yet, we don't need to update weights
-    if (calledCapital <= 0) {
-      console.log(`[DEBUG] No called capital for fund ID ${fundId}, skipping weight calculation`);
-      return;
-    }
-    
-    // Update the weight for each allocation
+    if (!allocations || allocations.length === 0) return;
+
+    // Calculate total called capital (only funded allocations)
+    const calledCapital = allocations
+      .filter(a => a.status === 'funded')
+      .reduce((sum, a) => sum + a.amount, 0);
+
+    if (calledCapital <= 0) return;
+
+    // Update portfolio weights for funded allocations
     for (const allocation of allocations) {
-      // Only funded allocations contribute to portfolio weight
-      const weight = allocation.status === 'funded'
-        ? (allocation.amount / calledCapital) * 100
+      const weight = allocation.status === 'funded' 
+        ? (allocation.amount / calledCapital) * 100 
         : 0;
       
-      console.log(`[DEBUG] Allocation ID ${allocation.id}: Status ${allocation.status}, Amount ${allocation.amount}, Calculated Weight ${weight}%`);
+      await storage.updateFundAllocation(allocation.id, { portfolioWeight: weight });
+    }
+  } catch (error) {
+    console.error(`Error recalculating portfolio weights for fund ${fundId}:`, error);
+  }
+}
       
       // Update the allocation with the new weight
       const updatedAllocation = await storage.updateFundAllocation(

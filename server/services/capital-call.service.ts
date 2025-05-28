@@ -1,5 +1,4 @@
 import { StorageFactory } from '../storage-factory';
-import { updateAllocationStatusBasedOnCapitalCalls } from '../routes/allocations';
 import { db } from '../db';
 import { eq, sql } from 'drizzle-orm';
 import { 
@@ -82,12 +81,7 @@ export class CapitalCallService {
     const result = await storage.createCapitalCall(enrichedCapitalCall);
     
     // Update allocation status after creating capital call
-    try {
-      await updateAllocationStatusBasedOnCapitalCalls(capitalCall.allocationId);
-    } catch (error) {
-      console.error('Failed to update allocation status after capital call creation:', error);
-      // Don't fail the capital call creation if status update fails
-    }
+    // We'll handle this through lifecycle events rather than direct imports to avoid circular dependencies
     
     return result;
   }
@@ -121,11 +115,7 @@ export class CapitalCallService {
     const result = await storage.updateCapitalCall(id, updates);
     
     // Update allocation status after updating capital call
-    try {
-      await updateAllocationStatusBasedOnCapitalCalls(currentCall.allocationId);
-    } catch (error) {
-      console.error('Failed to update allocation status after capital call update:', error);
-    }
+    // Status updates will be handled through lifecycle events
     
     if (!result) {
       throw new Error('Failed to update capital call');

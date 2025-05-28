@@ -69,49 +69,26 @@ export class FundService {
   }
   
   /**
-   * Calculate the uncalled capital for a fund based on capital calls and payment records
-   * This is the sum of all outstanding capital call amounts across ALL allocations
+   * Calculate the uncalled capital for a fund
+   * Uncalled capital = Total commitments - Called capital
+   * This represents money committed but not yet called/paid
    */
   async calculateUncalledCapital(fundId: number): Promise<number> {
     const storage = getStorage();
-    const db = storage.getDbClient();
     
-    // Fixed logic: Include ALL allocations (committed AND funded) in uncalled calculation
-    // Uncalled capital = Total outstanding amounts from all unpaid capital calls
-    const result = await db.execute(`
-      WITH all_allocations AS (
-        SELECT 
-          fa.id as allocation_id,
-          fa.amount as allocation_amount,
-          fa.status
-        FROM fund_allocations fa
-        WHERE fa.fund_id = ${fundId} 
-          AND fa.status != 'written_off'
-      ),
-      outstanding_calls AS (
-        SELECT 
-          cc.allocation_id,
-          SUM(cc.outstanding_amount) as total_outstanding
-        FROM capital_calls cc
-        JOIN all_allocations aa ON cc.allocation_id = aa.allocation_id
-        WHERE cc.status NOT IN ('paid', 'defaulted')
-        GROUP BY cc.allocation_id
-      ),
-      called_but_unpaid AS (
-        SELECT
-          aa.allocation_id,
-          COALESCE(oc.total_outstanding, 0) as remaining_to_pay
-        FROM all_allocations aa
-        LEFT JOIN outstanding_calls oc ON aa.allocation_id = oc.allocation_id
-      )
-      SELECT 
-        SUM(remaining_to_pay) as uncalled_capital
-      FROM called_but_unpaid
-    `);
+    // Get total committed capital (all allocations except written_off)
+    const allocations = await storage.getAllocationsByFund(fundId);
+    const totalCommitments = allocations
+      .filter(a => a.status !== 'written_off')
+      .reduce((sum, a) => sum + a.amount, 0);
     
-    // Extract and return the uncalled capital, defaulting to 0 if null
-    const uncalledCapital = result.rows[0]?.uncalled_capital || 0;
-    return Math.max(0, Number(uncalledCapital)); // Ensure non-negative 
+    // Get called capital (actual payments made)
+    const calledCapital = await this.calculateCalledCapital(fundId);
+    
+    // Uncalled = Commitments - Called
+    const uncalledCapital = totalCommitments - calledCapital;
+    
+    return Math.max(0, uncalledCapital); // Ensure non-negative
   }
   
   /**
