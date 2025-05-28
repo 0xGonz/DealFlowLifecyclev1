@@ -50,7 +50,7 @@ export class DocumentAnalyzer {
 
     for (const doc of documents) {
       try {
-        const content = await DocumentService.extractPdfContent(doc.filePath);
+        const content = await DocumentService.extractPdfContent(doc.id);
         
         if (content && content.trim().length > 0) {
           documentContents.push({

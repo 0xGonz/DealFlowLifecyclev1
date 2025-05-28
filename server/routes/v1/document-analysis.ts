@@ -1,10 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { StorageFactory } from '../../storage-factory';
 import { requireAuth } from '../../utils/auth';
-import { DocumentService } from '../../modules/documents/service';
-import OpenAI from 'openai';
-import * as fs from 'fs';
-import * as path from 'path';
+import { DocumentAnalyzer, type AnalysisRequest } from '../../modules/documents/document-analyzer';
 
 const router = Router();
 
@@ -33,173 +30,36 @@ router.post('/deals/:dealId/analyze', requireAuth, async (req: Request, res: Res
     
     const storage = StorageFactory.getStorage();
     
-    // Get the deal
+    // Get the deal with validation
     const deal = await storage.getDeal(parseInt(dealId));
     if (!deal) {
       return res.status(404).json({ error: 'Deal not found' });
     }
     
-    // Get all related data and extract PDF content
-    const [documents, memos] = await Promise.all([
-      storage.getDocumentsByDeal(parseInt(dealId)),
-      storage.getMiniMemosByDeal(parseInt(dealId))
-    ]);
+    console.log(`📈 Analyzing deal: ${deal.name} (${deal.sector})`);
+
+    // Initialize the document analyzer
+    const analyzer = new DocumentAnalyzer();
     
-    // Extract actual content from PDF documents - ONLY use real document content
-    let documentContents: string[] = [];
-    let successfulExtractions = 0;
+    // Extract all authentic document content
+    const documentContents = await analyzer.extractDealDocuments(parseInt(dealId));
     
-    console.log(`🔍 Starting content extraction for ${documents.length} documents in deal ${dealId}`);
+    // Validate we have sufficient authentic data
+    analyzer.validateAnalysisData(documentContents, deal);
     
-    for (const doc of documents) {
-      try {
-        console.log(`📄 Extracting content from document: ${doc.fileName} (ID: ${doc.id})`);
-        const content = await DocumentService.extractPdfContent(doc.id);
-        if (content && content.trim().length > 0) {
-          documentContents.push(`DOCUMENT: ${doc.fileName}\nCONTENT:\n${content}`);
-          successfulExtractions++;
-          console.log(`✅ Successfully extracted ${content.length} characters from ${doc.fileName}`);
-        } else {
-          console.log(`⚠️ No content extracted from ${doc.fileName} - content was empty`);
-        }
-      } catch (error) {
-        console.error(`❌ Error extracting content from ${doc.fileName}:`, error.message);
-        // Continue to next document instead of failing
-      }
-    }
+    // Perform the AI analysis with authentic data only
+    const analysisRequest: AnalysisRequest = {
+      dealId: parseInt(dealId),
+      query,
+      userId
+    };
     
-    console.log(`📊 Content extraction complete: ${successfulExtractions}/${documents.length} documents processed successfully`);
+    const result = await analyzer.performAnalysis(analysisRequest, deal, documentContents);
     
-    // CRITICAL: Only proceed if we have actual document content
-    if (documentContents.length === 0) {
-      console.error(`🚨 NO DOCUMENT CONTENT AVAILABLE - Cannot proceed with AI analysis`);
-      
-      // Return clear error - no authentic document content available
-      return res.status(400).json({ 
-        error: 'No authentic document content available for analysis',
-        details: {
-          message: `Found ${documents.length} document(s) in database but none could be processed. Only authentic uploaded documents can be analyzed.`,
-          dealId: parseInt(dealId),
-          dealName: deal.name,
-          documentCount: documents.length,
-          documentsProcessed: 0,
-          recommendation: 'Please upload the required investment documents to enable AI analysis.'
-        }
-      });
-    }
-    
-    console.log(`🚀 Proceeding with AI analysis using content from ${successfulExtractions} documents`);
-    
-    // Get timeline events (if available)
-    let timeline = [];
-    try {
-      if (storage.getDealTimeline) {
-        timeline = await storage.getDealTimeline(parseInt(dealId));
-      }
-    } catch (error) {
-      console.log('Timeline not available, continuing without it');
-    }
+    console.log(`✅ AI analysis completed successfully for deal ${dealId}`);
+    console.log(`📄 Analysis based on ${documentContents.length} authentic documents`);
 
-    // Create comprehensive analysis prompt
-    let analysisPrompt = '';
-    
-    if (query) {
-      // User has specific question
-      analysisPrompt = `
-You are an expert investment analyst. A user is asking about the deal "${deal.name}" in the ${deal.sector} sector.
-
-User Question: ${query}
-
-Deal Information:
-- Name: ${deal.name}
-- Description: ${deal.description}
-- Sector: ${deal.sector}
-- Stage: ${deal.stage}
-- Target Return: ${deal.targetReturn || 'Not specified'}
-- Notes: ${deal.notes || 'None'}
-
-ACTUAL DOCUMENT CONTENT FROM DEAL ${dealId}:
-${documentContents.join('\n\n---DOCUMENT SEPARATOR---\n\n')}
-
-CRITICAL INSTRUCTIONS:
-- Base your analysis EXCLUSIVELY on the actual document content provided above from this specific deal
-- Quote specific numbers, amounts, dates, and metrics directly from the documents
-- Reference exact figures from financial statements, balance sheets, term sheets, or other uploaded data
-- If specific information is not in the documents, clearly state "This information is not available in the provided documents"
-- Do NOT use generic investment templates, assumptions, or external knowledge
-- NEVER say "I don't have access to the document" - you have the full content above
-- Focus exclusively on real data extracted from the uploaded documents for this deal
-- Provide specific, data-driven insights based only on the document content
-
-Provide a detailed response based exclusively on the document content.`;
-    } else {
-      // Comprehensive analysis
-      analysisPrompt = `
-You are an expert investment analyst. Analyze the following deal and documents:
-
-Deal Information:
-- Name: ${deal.name}
-- Description: ${deal.description}
-- Sector: ${deal.sector}
-- Stage: ${deal.stage}
-- Target Return: ${deal.targetReturn || 'Not specified'}
-- Notes: ${deal.notes || 'None'}
-
-ACTUAL DOCUMENT CONTENT:
-${documentContents.length > 0 ? documentContents.join('\n\n---DOCUMENT SEPARATOR---\n\n') : 'No document content available for analysis.'}
-
-CRITICAL INSTRUCTIONS:
-- Analyze ONLY the actual content from the documents above
-- Reference specific financial figures, dates, amounts, and metrics from the documents
-- Quote exact numbers and percentages from the source material
-- If data is not available in documents, clearly state so
-- Do NOT use generic analysis templates or make assumptions
-
-Provide analysis covering:
-1. Specific Financial Metrics (exact amounts from documents)
-2. Investment Terms (as stated in documents)
-3. Risk Factors (identified in documents)
-4. Opportunities (based on document data)
-5. Data-driven Recommendations
-
-Base your entire analysis on the actual document content only.`;
-    }
-
-    console.log(`🔍 DEBUGGING: Document contents being sent to AI:`);
-    console.log(`📄 Number of documents: ${documentContents.length}`);
-    documentContents.forEach((content, index) => {
-      console.log(`📝 Document ${index + 1} content length: ${content.length} characters`);
-      console.log(`🔍 First 200 chars: ${content.substring(0, 200)}...`);
-    });
-    console.log(`🎯 Full analysis prompt being sent to AI:`);
-    console.log(analysisPrompt);
-    
-    // Initialize OpenAI
-    const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
-
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-      messages: [
-        {
-          role: "system",
-          content: "You are an expert investment analyst specializing in private equity and venture capital deal analysis."
-        },
-        {
-          role: "user",
-          content: analysisPrompt
-        }
-      ],
-      max_tokens: 2000,
-      temperature: 0.3
-    });
-
-    const analysis = response.choices[0].message.content;
-    
-    console.log(`✅ Generated ${query ? 'response' : 'comprehensive analysis'} for deal ${deal.name}`);
-    
-    res.json({
+    res.json(result);
       success: true,
       response: analysis,
       analysis: analysis,
