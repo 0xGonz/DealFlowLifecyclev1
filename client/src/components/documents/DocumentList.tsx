@@ -104,17 +104,23 @@ export default function DocumentList({ dealId }: DocumentListProps) {
         setSelectedDocument(null);
       }
       
-      // Invalidate queries to refresh document lists
+      // Immediately update the cache to remove the deleted document
+      queryClient.setQueryData([`/api/documents/deal/${dealId}`], (oldDocs: Document[] | undefined) => {
+        if (!oldDocs) return oldDocs;
+        const filteredDocs = oldDocs.filter(doc => doc.id !== deletedDocumentId);
+        console.log(`🗑️ Removed document ${deletedDocumentId} from cache, ${filteredDocs.length} documents remaining`);
+        return filteredDocs;
+      });
+      
+      // Also invalidate all related queries to ensure consistency
       queryClient.invalidateQueries({ queryKey: [`/api/documents/deal/${dealId}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/deals/${dealId}/documents`] });
       queryClient.invalidateQueries({ queryKey: [`/api/deals/${dealId}`] });
       
       toast({
         title: 'Document deleted',
         description: 'The document has been successfully deleted.',
       });
-      
-      // After invalidating queries, automatically select the first document in the list
-      // This will happen when the data is refetched and the useEffect runs
     },
     onError: () => {
       toast({
@@ -158,8 +164,10 @@ export default function DocumentList({ dealId }: DocumentListProps) {
         return updatedDocs;
       });
 
-      // 🔄 Force an immediate refetch to get fresh data from server
+      // 🔄 Invalidate all related queries to ensure consistency
       queryClient.invalidateQueries({ queryKey: [`/api/documents/deal/${dealId}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/deals/${dealId}/documents`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/deals/${dealId}`] });
 
       // 🧠 Update selectedDocument to reflect the changes
       setSelectedDocument((prev) => {

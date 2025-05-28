@@ -124,11 +124,16 @@ export const Sidebar = ({ dealId }: { dealId: number }) => {
       if (current?.id === id) {
         setCurrent({ ...current, documentType });
       }
+      
+      // Invalidate all document-related queries to ensure consistency across components
+      queryClient.invalidateQueries({ queryKey: [`/api/documents/deal/${dealId}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/deals/${dealId}/documents`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/deals/${dealId}`] });
+      
       toast({
         title: "Document type updated",
         description: `Document type changed to ${getDocumentTypeLabel(documentType)}.`
       });
-      queryClient.invalidateQueries({ queryKey: [`/api/deals/${dealId}/documents`] });
     },
     onError: (error: Error) => {
       toast({
@@ -157,11 +162,16 @@ export const Sidebar = ({ dealId }: { dealId: number }) => {
       if (current?.id === id) {
         setCurrent(null);
       }
+      
+      // Invalidate all document-related queries to ensure consistency across components
+      queryClient.invalidateQueries({ queryKey: [`/api/documents/deal/${dealId}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/deals/${dealId}/documents`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/deals/${dealId}`] });
+      
       toast({
         title: "Document deleted",
         description: "The document has been removed."
       });
-      queryClient.invalidateQueries({ queryKey: [`/api/deals/${dealId}/documents`] });
     },
     onError: (error: Error) => {
       toast({
