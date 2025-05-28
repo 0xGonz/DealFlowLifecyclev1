@@ -483,6 +483,27 @@ router.patch('/:id', requireAuth, requirePermission('edit', 'allocation'), async
 });
 
 // Update allocation date with synchronization
+// POST /api/allocations/fund/:fundId/recalculate-weights - Recalculate portfolio weights
+router.post('/fund/:fundId/recalculate-weights', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const fundId = parseInt(req.params.fundId);
+    
+    if (!fundId || isNaN(fundId)) {
+      return res.status(400).json({ error: 'Invalid fund ID' });
+    }
+
+    await allocationService.recalculatePortfolioWeights(fundId);
+    
+    res.json({ 
+      message: 'Portfolio weights recalculated successfully',
+      fundId: fundId 
+    });
+  } catch (error) {
+    console.error('Error recalculating portfolio weights:', error);
+    res.status(500).json({ error: 'Failed to recalculate portfolio weights' });
+  }
+});
+
 router.patch('/:id/date', async (req: Request, res: Response) => {
   try {
     const allocationId = Number(req.params.id);
