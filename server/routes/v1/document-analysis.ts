@@ -84,6 +84,11 @@ router.post('/deals/:dealId/documents/:documentId/analyze', requireAuth, async (
   try {
     const { dealId, documentId } = req.params;
     const { query } = req.body;
+    const userId = (req.session as any)?.userId;
+
+    if (!userId) {
+      return res.status(401).json({ error: 'User authentication required' });
+    }
     
     console.log(`🔍 Analyzing specific document ${documentId} for deal ${dealId}`);
     
@@ -96,110 +101,56 @@ router.post('/deals/:dealId/documents/:documentId/analyze', requireAuth, async (
     if (!document) {
       return res.status(404).json({ error: 'Document not found' });
     }
+
+    // Use the modular DocumentAnalyzer for authentic content extraction
+    const analyzer = new DocumentAnalyzer();
     
-    // Read the actual document content
-    const UPLOAD_PATH = process.env.UPLOAD_PATH || './uploads';
-    const actualFilePath = path.join(UPLOAD_PATH, path.basename(document.filePath));
-    
-    if (!fs.existsSync(actualFilePath)) {
-      return res.status(404).json({ error: 'Document file not found on disk' });
-    }
-    
-    let documentContent = '';
-    const extension = path.extname(document.fileName).toLowerCase();
-    
-    // Extract content based on file type
-    if (extension === '.pdf') {
-      try {
-        const pdfParse = (await import('pdf-parse')).default;
-        const pdfBuffer = fs.readFileSync(actualFilePath);
-        const pdfData = await pdfParse(pdfBuffer);
-        documentContent = pdfData.text;
-        console.log(`📄 Extracted ${pdfData.text.length} characters from PDF`);
-      } catch (error) {
-        console.error('Error reading PDF:', error);
-        return res.status(500).json({ error: 'Failed to read PDF document' });
+    try {
+      // Extract content using the modular service
+      const content = await analyzer.extractDealDocuments(parseInt(dealId));
+      const specificDoc = content.find(doc => doc.documentId === parseInt(documentId));
+      
+      if (!specificDoc) {
+        return res.status(400).json({ 
+          error: `Document "${document.fileName}" content is not available for analysis. Only authentic uploaded documents can be analyzed.`,
+          requiresDocument: true
+        });
       }
-    } else if (['.xlsx', '.xls', '.csv'].includes(extension)) {
-      // Handle spreadsheet files
-      try {
-        const { DataExtractor } = await import('../../services/data-extractor');
-        const extractedData = await DataExtractor.extractData(actualFilePath, document.fileName);
-        documentContent = JSON.stringify(extractedData, null, 2);
-        console.log(`📊 Extracted structured data from ${document.fileName}`);
-      } catch (error) {
-        console.error('Error reading spreadsheet:', error);
-        return res.status(500).json({ error: 'Failed to read spreadsheet document' });
+
+      // Create analysis request for the specific document
+      const deal = await storage.getDeal(parseInt(dealId));
+      if (!deal) {
+        return res.status(404).json({ error: 'Deal not found' });
       }
-    } else {
-      return res.status(400).json({ error: 'Unsupported document type' });
-    }
-    
-    if (!documentContent || documentContent.trim().length === 0) {
-      return res.status(400).json({ error: 'Document appears to be empty or unreadable' });
-    }
-    
-    // Enhanced logging for debugging
-    console.log(`📊 Document Content Length: ${documentContent.length} characters`);
-    console.log(`📋 Document Content Preview: ${documentContent.substring(0, 200)}...`);
-    
-    // Create analysis prompt focused on the specific document
-    const analysisPrompt = `You are analyzing the document: "${document.fileName}"
 
-IMPORTANT: Base your analysis ONLY on the actual document content provided below. Do not use general knowledge or assumptions.
+      const analysisRequest: AnalysisRequest = {
+        dealId: parseInt(dealId),
+        query: query || `Analyze the document "${document.fileName}" in detail`,
+        userId
+      };
 
-DOCUMENT CONTENT TO ANALYZE:
-${documentContent}
-
-USER REQUEST: ${query || 'Analyze this document in detail'}
-
-Please provide a comprehensive analysis based solely on the content above. Include:
-1. Specific financial figures, metrics, and performance data found in the document
-2. Investment terms, conditions, and structure details
-3. Risk factors explicitly mentioned
-4. Strategic insights and opportunities identified
-5. Important dates, deadlines, and milestones
-6. Any concerns or red flags noted in the document
-
-Reference specific numbers, percentages, dates, and details from the document content. If certain information is not present in the document, clearly state that it is not available in the provided content.`;
-
-    // Get AI analysis using OpenAI
-    const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
-
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-      messages: [
-        {
-          role: "system",
-          content: "You are an expert investment analyst specializing in document analysis for private equity and venture capital investments."
-        },
-        {
-          role: "user",
-          content: analysisPrompt
-        }
-      ],
-      max_tokens: 2000,
-      temperature: 0.3
-    });
-
-    const analysis = response.choices[0].message.content;
-    
-    console.log(`✅ Generated document analysis for ${document.fileName}`);
-    
-    res.json({
-      success: true,
-      response: analysis,
-      documentName: document.fileName,
-      documentType: extension,
-      analysisType: 'document-specific'
-    });
-    
+      const result = await analyzer.performAnalysis(analysisRequest, deal, [specificDoc]);
+      
+      console.log(`✅ Specific document analysis completed for ${document.fileName}`);
+      res.json(result);
+    } catch (error) {
+      console.error(`❌ Failed to analyze document ${document.fileName}:`, error);
+      return res.status(400).json({ 
+        error: `Cannot analyze "${document.fileName}" - authentic document content not available. Please ensure the document is properly uploaded.`,
+        requiresDocument: true
+      });
   } catch (error) {
-    console.error('Document analysis error:', error);
+    console.error('Error in specific document analysis:', error);
+    
+    if (error instanceof Error && error.message.includes('No authentic document content')) {
+      return res.status(400).json({ 
+        error: error.message,
+        requiresDocument: true
+      });
+    }
+    
     res.status(500).json({ 
-      error: 'Failed to analyze document',
+      error: 'Failed to analyze document', 
       details: error instanceof Error ? error.message : 'Unknown error'
     });
   }
