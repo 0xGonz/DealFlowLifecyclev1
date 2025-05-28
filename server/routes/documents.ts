@@ -1,6 +1,8 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { Express } from 'express-serve-static-core';
 import { fileTypeFromFile } from 'file-type';
+import * as fs from 'fs';
+import * as path from 'path';
 
 declare global {
   namespace Express {
@@ -303,6 +305,14 @@ router.get('/:id/download', requireAuth, async (req: Request, res: Response) => 
     
     console.log(`✅ Found document ${id}: ${document.fileName} (Deal: ${document.dealId})`);
     console.log(`📁 Database filePath: ${document.filePath}`);
+    
+    // Check if file exists on disk
+    const filePath = path.join(process.cwd(), document.filePath);
+    
+    if (!fs.existsSync(filePath)) {
+      console.log(`❌ File not found on disk: ${filePath}`);
+      return res.status(404).json({ message: 'File not found on disk' });
+    }
     
     // Set appropriate content type
     res.setHeader('Content-Type', document.fileType);
