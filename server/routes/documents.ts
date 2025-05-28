@@ -13,12 +13,11 @@ declare global {
   }
 }
 import { StorageFactory } from '../storage-factory';
-import { DocumentService } from '../services/document-service-fixed';
+import { DocumentService } from '../modules/documents/service';
 import { z } from 'zod';
 import { createInsertSchema } from 'drizzle-zod';
 import * as schema from '@shared/schema';
-import * as path from 'path';
-import * as fs from 'fs';
+
 import * as crypto from 'crypto';
 import multer from 'multer';
 
