@@ -35,8 +35,8 @@ export class FundService {
     const storage = getStorage();
     const db = storage.getDbClient();
     
-    // Calculate called capital as the sum of all paid capital calls
-    // and amounts that have been paid for partially paid capital calls
+    // Calculate called capital as the sum of all ACTUALLY PAID amounts
+    // This should be paid_amount for paid calls, and paid_amount for partial calls
     const result = await db.execute(`
       WITH funded_allocations AS (
         SELECT 
@@ -44,23 +44,16 @@ export class FundService {
         FROM fund_allocations
         WHERE fund_id = ${fundId} AND status = 'funded'
       ),
-      paid_capital_calls AS (
+      all_payments AS (
         SELECT 
-          SUM(cc.call_amount) as total_paid
+          SUM(COALESCE(cc.paid_amount, 0)) as total_paid
         FROM capital_calls cc
         JOIN funded_allocations fa ON cc.allocation_id = fa.id
-        WHERE cc.status = 'paid'
-      ),
-      partial_payments AS (
-        SELECT 
-          SUM(cc.paid_amount) as total_partial
-        FROM capital_calls cc
-        JOIN funded_allocations fa ON cc.allocation_id = fa.id
-        WHERE cc.status = 'partial' OR cc.status = 'partially_paid'
+        WHERE cc.status IN ('paid', 'partial', 'partially_paid')
       )
       SELECT 
-        COALESCE(p.total_paid, 0) + COALESCE(pp.total_partial, 0) as called_capital
-      FROM paid_capital_calls p, partial_payments pp
+        COALESCE(ap.total_paid, 0) as called_capital
+      FROM all_payments ap
     `);
     
     // Extract and return the called capital, defaulting to 0 if null

@@ -3,7 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { formatCurrency } from "@/lib/utils";
-import { format } from "date-fns";
+import { formatDisplayDate } from "@shared/utils/dateUtils";
 import {
   Card,
   CardContent,
