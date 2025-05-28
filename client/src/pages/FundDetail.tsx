@@ -1060,11 +1060,6 @@ export default function FundDetail() {
                                 }`}>
                                   {formatCurrency(displayAmount)}
                                 </span>
-                                {capitalView === 'called' && allocation.status === 'partially_paid' && (
-                                  <div className="text-xs text-gray-500">
-                                    ({((calledAmount / committedAmount) * 100).toFixed(0)}% of commitment)
-                                  </div>
-                                )}
                               </TableCell>
                               <TableCell className="py-1.5 sm:py-2.5 px-2 sm:px-4 text-right">
                                 <span className="text-2xs xs:text-xs sm:text-sm">
