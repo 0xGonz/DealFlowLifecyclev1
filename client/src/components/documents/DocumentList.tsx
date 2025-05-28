@@ -273,48 +273,52 @@ export default function DocumentList({ dealId }: DocumentListProps) {
     }
 
     // Debug logging
-    console.log('Upload form data:', {
+    console.log('📤 Starting upload for:', {
       fileName: uploadingFile.name,
       dealId: dealId.toString(),
       documentType,
       description: description || 'none'
     });
 
-    // Show loading state
-    const uploadingToast = toast({
-      title: 'Uploading document',
-      description: 'Please wait while your document is being uploaded...',
-    });
-
-    // Use a direct fetch call instead of apiRequest for FormData upload
     try {
+      // Use a direct fetch call instead of apiRequest for FormData upload
       const res = await fetch('/api/documents/upload', {
         method: 'POST',
         body: formData,
         credentials: 'include', // Include cookies for authentication
       });
       
+      console.log('📡 Upload response status:', res.status);
+      
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
-        console.error('Upload failed with status:', res.status, errorData);
-        throw new Error(errorData.message || 'Failed to upload document');
+        console.error('💥 Upload failed with status:', res.status, errorData);
+        throw new Error(errorData.error || errorData.message || 'Failed to upload document');
       }
       
-      // Handle success
+      const responseData = await res.json();
+      console.log('✅ Upload successful:', responseData);
+      
+      // Invalidate queries to refresh the document list
       queryClient.invalidateQueries({ queryKey: [`/api/documents/deal/${dealId}`] });
       queryClient.invalidateQueries({ queryKey: [`/api/deals/${dealId}`] });
+      
       toast({
         title: 'Document uploaded',
         description: 'Your document has been successfully uploaded.',
       });
+      
+      // Reset form
       setIsUploadDialogOpen(false);
       setUploadingFile(null);
       setDescription('');
+      setDocumentType('pitch_deck');
+      
     } catch (error) {
-      console.error('Document upload error:', error);
+      console.error('💥 Document upload error:', error);
       toast({
         title: 'Upload failed',
-        description: 'There was an error uploading your document. Please try again.',
+        description: error instanceof Error ? error.message : 'There was an error uploading your document. Please try again.',
         variant: 'destructive',
       });
     }

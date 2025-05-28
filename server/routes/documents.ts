@@ -295,21 +295,34 @@ router.put('/:id', requireAuth, async (req: Request, res: Response) => {
 // Document upload endpoint
 router.post('/upload', requireAuth, upload.single('file'), async (req: Request, res: Response) => {
   try {
+    console.log('📤 Upload request received');
+    console.log('📤 Session data:', req.session);
+    console.log('📤 User ID from session:', req.session?.userId);
+    
     if (!req.file) {
+      console.log('❌ No file uploaded');
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
     const { dealId, description, documentType } = req.body;
     
     if (!dealId) {
+      console.log('❌ No deal ID provided');
       return res.status(400).json({ error: 'Deal ID is required' });
     }
 
     console.log(`📤 Uploading document for deal ${dealId}:`, {
       filename: req.file.originalname,
       size: req.file.size,
-      type: documentType
+      type: documentType,
+      userId: req.session?.userId
     });
+
+    // Ensure user ID is available
+    if (!req.session?.userId) {
+      console.log('❌ No user ID in session');
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
 
     // Create document record in database
     const documentData = {
@@ -318,11 +331,12 @@ router.post('/upload', requireAuth, upload.single('file'), async (req: Request, 
       fileType: req.file.mimetype,
       fileSize: req.file.size,
       filePath: `uploads/${req.file.filename}`,
-      uploadedBy: req.session.userId!,
+      uploadedBy: req.session.userId,
       description: description || '',
       documentType: documentType || 'other'
     };
 
+    console.log('💾 Creating document in database:', documentData);
     const newDocument = await storage.createDocument(documentData);
     
     console.log(`✅ Document uploaded successfully: ${req.file.originalname}`);
@@ -334,7 +348,7 @@ router.post('/upload', requireAuth, upload.single('file'), async (req: Request, 
     });
 
   } catch (error) {
-    console.error('Error uploading document:', error);
+    console.error('💥 Error uploading document:', error);
     
     // Clean up the uploaded file if database operation failed
     if (req.file && fs.existsSync(req.file.path)) {
