@@ -134,17 +134,24 @@ router.post('/deals/:dealId/documents/:documentId/analyze', requireAuth, async (
       console.log(`✅ Specific document analysis completed for ${document.fileName}`);
       res.json(result);
     } catch (error) {
-    console.error('Error in specific document analysis:', error);
-    
-    if (error instanceof Error && error.message.includes('No authentic document content')) {
-      return res.status(400).json({ 
-        error: error.message,
-        requiresDocument: true
+      console.error('Error in specific document analysis:', error);
+      
+      if (error instanceof Error && error.message.includes('No authentic document content')) {
+        return res.status(400).json({ 
+          error: error.message,
+          requiresDocument: true
+        });
+      }
+      
+      res.status(500).json({ 
+        error: 'Failed to analyze document', 
+        details: error instanceof Error ? error.message : 'Unknown error'
       });
     }
-    
+  } catch (error) {
+    console.error('Error in document analysis endpoint:', error);
     res.status(500).json({ 
-      error: 'Failed to analyze document', 
+      error: 'Failed to process request',
       details: error instanceof Error ? error.message : 'Unknown error'
     });
   }

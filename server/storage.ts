@@ -126,6 +126,14 @@ export interface IStorage {
   updateClosingScheduleEventStatus(id: number, status: ClosingScheduleEvent['status'], actualDate?: Date, actualAmount?: number): Promise<ClosingScheduleEvent | undefined>;
   updateClosingScheduleEventDate(id: number, scheduledDate: Date): Promise<ClosingScheduleEvent | undefined>;
   deleteClosingScheduleEvent(id: number): Promise<boolean>;
+
+  // Distributions - Modular investment tracking
+  createDistribution(distribution: InsertDistribution): Promise<Distribution>;
+  getDistribution(id: number): Promise<Distribution | undefined>;
+  getDistributionsByAllocation(allocationId: number): Promise<Distribution[]>;
+  updateDistribution(id: number, distribution: Partial<InsertDistribution>): Promise<Distribution | undefined>;
+  deleteDistribution(id: number): Promise<boolean>;
+  recalculateAllocationMetrics(allocationId: number): Promise<void>;
 }
 
 // In-memory storage implementation
