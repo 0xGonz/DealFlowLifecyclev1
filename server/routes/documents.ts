@@ -339,11 +339,30 @@ router.post('/upload', requireAuth, upload.single('file'), async (req: Request, 
     console.log('💾 Creating document in database:', documentData);
     const newDocument = await storage.createDocument(documentData);
     
+    // Add timeline event for document upload
+    await storage.createTimelineEvent({
+      dealId: parseInt(dealId),
+      eventType: 'document_upload',
+      content: `${req.session.username || 'User'} uploaded document: ${req.file.originalname}`,
+      createdBy: req.session.userId,
+      metadata: {
+        documentId: newDocument.id,
+        fileName: req.file.originalname,
+        fileType: req.file.mimetype,
+        documentType: documentType || 'other'
+      }
+    });
+    
     console.log(`✅ Document uploaded successfully: ${req.file.originalname}`);
     
     res.json({
       success: true,
       document: newDocument,
+      id: newDocument.id,
+      documentId: newDocument.id,
+      fileName: newDocument.fileName,
+      fileType: newDocument.fileType,
+      documentType: newDocument.documentType,
       message: 'Document uploaded successfully'
     });
 
