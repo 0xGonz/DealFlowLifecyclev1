@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { StorageFactory } from '../../storage-factory';
 import { requireAuth } from '../../utils/auth';
+import { DocumentService } from '../../modules/documents/service';
 import OpenAI from 'openai';
 import * as fs from 'fs';
 import * as path from 'path';
