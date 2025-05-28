@@ -212,23 +212,29 @@ router.post('/deals/:dealId/documents/:documentId/analyze', requireAuth, async (
       return res.status(400).json({ error: 'Document appears to be empty or unreadable' });
     }
     
+    // Enhanced logging for debugging
+    console.log(`📊 Document Content Length: ${documentContent.length} characters`);
+    console.log(`📋 Document Content Preview: ${documentContent.substring(0, 200)}...`);
+    
     // Create analysis prompt focused on the specific document
-    const analysisPrompt = `You are analyzing a specific document: "${document.fileName}"
+    const analysisPrompt = `You are analyzing the document: "${document.fileName}"
 
-Document Content:
+IMPORTANT: Base your analysis ONLY on the actual document content provided below. Do not use general knowledge or assumptions.
+
+DOCUMENT CONTENT TO ANALYZE:
 ${documentContent}
 
-User Request: ${query || 'Provide a comprehensive analysis of this document'}
+USER REQUEST: ${query || 'Analyze this document in detail'}
 
-Please provide a detailed analysis of this document, focusing on:
-1. Key financial metrics and terms (if applicable)
-2. Investment structure and conditions
-3. Risk factors identified
-4. Opportunities and strategic implications
-5. Important dates, deadlines, or milestones
-6. Any red flags or concerns
+Please provide a comprehensive analysis based solely on the content above. Include:
+1. Specific financial figures, metrics, and performance data found in the document
+2. Investment terms, conditions, and structure details
+3. Risk factors explicitly mentioned
+4. Strategic insights and opportunities identified
+5. Important dates, deadlines, and milestones
+6. Any concerns or red flags noted in the document
 
-Base your analysis ONLY on the actual content of this document. Do not reference external deal data unless it's mentioned in the document itself.`;
+Reference specific numbers, percentages, dates, and details from the document content. If certain information is not present in the document, clearly state that it is not available in the provided content.`;
 
     // Get AI analysis using OpenAI
     const openai = new OpenAI({
