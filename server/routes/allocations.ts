@@ -3,6 +3,7 @@ import { insertCapitalCallSchema, insertFundAllocationSchema } from '@shared/sch
 import { StorageFactory } from '../storage-factory';
 import { synchronizeAllocationDates } from '../utils/date-integration';
 import { capitalCallService } from '../services/capital-call.service';
+import { allocationService } from '../services/allocation.service';
 import { z } from 'zod';
 import { requireAuth } from '../utils/auth';
 import { requirePermission } from '../utils/permissions';
@@ -10,92 +11,14 @@ import { requirePermission } from '../utils/permissions';
 const router = Router();
 const storage = StorageFactory.getStorage();
 
-// Helper function to update allocation status based on capital calls
+// Export the helper function from allocation service for backward compatibility
 async function updateAllocationStatusBasedOnCapitalCalls(allocationId: number): Promise<void> {
-  try {
-    // Get the allocation
-    const allocation = await storage.getFundAllocation(allocationId);
-    if (!allocation) return;
-    
-    // Get capital calls for this allocation
-    const capitalCalls = await storage.getCapitalCallsByAllocation(allocationId);
-    if (!capitalCalls || capitalCalls.length === 0) return;
-    
-    // Calculate total called amount and total paid amount
-    let totalCalledAmount = 0;
-    let totalPaidAmount = 0;
-    
-    for (const call of capitalCalls) {
-      if (call.status !== 'scheduled') {
-        // Only count calls that have been actually called or paid
-        totalCalledAmount += call.callAmount;
-      }
-      
-      // Count any paid amount regardless of status (partial, partially_paid, paid) 
-      if (call.paidAmount && call.paidAmount > 0) {
-        totalPaidAmount += call.paidAmount;
-      }
-    }
-    
-    // Determine allocation status based on capital calls
-    let newStatus = allocation.status;
-    
-    // If no capital has been called, status remains 'committed'
-    if (totalCalledAmount === 0) {
-      newStatus = 'committed';
-    }
-    // If some capital has been called and fully paid, status is 'funded'
-    else if (totalPaidAmount >= totalCalledAmount) {
-      newStatus = 'funded';
-    }
-    // If some capital has been called but only partially paid, status is 'partially_paid'
-    else if (totalPaidAmount > 0 && totalPaidAmount < totalCalledAmount) {
-      newStatus = 'partially_paid';
-    }
-    // If capital has been called but nothing paid yet, status remains 'committed'
-    else if (totalCalledAmount > 0 && totalPaidAmount === 0) {
-      newStatus = 'committed';
-    }
-    
-    // Only update if status actually changed to avoid unnecessary database calls
-    if (newStatus !== allocation.status) {
-      await storage.updateFundAllocation(allocationId, { status: newStatus });
-      console.log(`Updated allocation ${allocationId} status from ${allocation.status} to ${newStatus}`, {
-        totalCalledAmount,
-        totalPaidAmount,
-        allocation: allocation.id,
-        newStatus
-      });
-    }
-  } catch (error) {
-    console.error(`Error updating allocation status for allocation ${allocationId}:`, error);
-  }
+  await allocationService.updateAllocationStatus(allocationId);
 }
 
-// Helper function to recalculate portfolio weights for a fund
+// Export the helper function from allocation service for backward compatibility
 async function recalculatePortfolioWeights(fundId: number): Promise<void> {
-  try {
-    const allocations = await storage.getAllocationsByFund(fundId);
-    if (!allocations || allocations.length === 0) return;
-
-    // Calculate total called capital (only funded allocations)
-    const calledCapital = allocations
-      .filter(a => a.status === 'funded')
-      .reduce((sum, a) => sum + a.amount, 0);
-
-    if (calledCapital <= 0) return;
-
-    // Update portfolio weights for funded allocations
-    for (const allocation of allocations) {
-      const weight = allocation.status === 'funded' 
-        ? (allocation.amount / calledCapital) * 100 
-        : 0;
-      
-      await storage.updateFundAllocation(allocation.id, { portfolioWeight: weight });
-    }
-  } catch (error) {
-    console.error(`Error recalculating portfolio weights for fund ${fundId}:`, error);
-  }
+  await allocationService.recalculatePortfolioWeights(fundId);
 }
 
 // PUT /api/allocations/:id - Update allocation with investment tracking
