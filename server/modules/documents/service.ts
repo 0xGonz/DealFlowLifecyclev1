@@ -110,16 +110,36 @@ export class DocumentService {
         throw new Error('Document not found');
       }
       
-      // Build file path
+      // Build file path - try multiple possible locations
       const UPLOAD_PATH = process.env.UPLOAD_PATH || './uploads';
-      const filePath = require('path').join(UPLOAD_PATH, require('path').basename(document.filePath));
+      const fs = require('fs');
+      const path = require('path');
+      
+      // Try direct path first
+      let filePath = path.join(UPLOAD_PATH, path.basename(document.filePath));
+      
+      // If not found, try the full relative path
+      if (!fs.existsSync(filePath)) {
+        filePath = document.filePath.startsWith('./') ? document.filePath : `./${document.filePath}`;
+      }
+      
+      // If still not found, try without leading uploads/
+      if (!fs.existsSync(filePath)) {
+        const filePathWithoutUploads = document.filePath.replace(/^uploads\//, '');
+        filePath = path.join(UPLOAD_PATH, filePathWithoutUploads);
+      }
       
       // Check if file exists
-      const fs = require('fs');
       if (!fs.existsSync(filePath)) {
-        console.error(`📄 File not found at: ${filePath}`);
+        console.error(`📄 File not found at any location:`);
+        console.error(`📄 - Tried: ${path.join(UPLOAD_PATH, path.basename(document.filePath))}`);
+        console.error(`📄 - Tried: ${document.filePath}`);
+        console.error(`📄 - Tried: ${filePath}`);
+        console.error(`📄 - Document filePath: ${document.filePath}`);
         throw new Error('Document file not found on disk');
       }
+      
+      console.log(`📄 Found PDF file at: ${filePath}`);
       
       // Extract PDF content
       if (document.fileType === 'application/pdf' || document.fileName.endsWith('.pdf')) {
