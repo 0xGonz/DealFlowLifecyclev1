@@ -21,6 +21,7 @@ import { CreateMeetingForm } from "@/components/meetings/CreateMeetingForm";
 import { UserAvatar } from "@/components/common/UserAvatar";
 import AIAnalysisTab from "@/components/AIAnalysisTab";
 import { DocumentAnalysisPanel } from "@/components/DocumentAnalysisPanel";
+import InvestmentTrackingTab from "@/components/deals/InvestmentTrackingTab";
 import { 
   Card, 
   CardHeader, 
@@ -617,6 +618,9 @@ export default function DealDetail() {
               <TabsTrigger value="ai-analysis" className="text-xs sm:text-sm h-8 sm:h-10 px-2 sm:px-4 flex-1">
                 AI Analysis
               </TabsTrigger>
+              <TabsTrigger value="investments" className="text-xs sm:text-sm h-8 sm:h-10 px-2 sm:px-4 flex-1">
+                Investments
+              </TabsTrigger>
 
             </TabsList>
           </div>
@@ -748,7 +752,9 @@ export default function DealDetail() {
             </div>
           </TabsContent>
 
-
+          <TabsContent value="investments">
+            <InvestmentTrackingTab dealId={Number(dealId)} />
+          </TabsContent>
 
         </Tabs>
       </div>
