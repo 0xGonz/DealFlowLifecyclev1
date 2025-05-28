@@ -112,6 +112,9 @@ export class FundService {
           const calledCapital = await this.calculateCalledCapital(fund.id);
           const uncalledCapital = await this.calculateUncalledCapital(fund.id);
           
+          // Update the fund's AUM to match called capital
+          await this.updateFundAUM(fund.id);
+          
           return {
             ...fund,
             committedCapital,
