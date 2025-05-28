@@ -1,8 +1,8 @@
-import { db } from '../db';
+import { pool } from '../db';
 
 /**
  * Fixed Document Service - Production Compatible
- * Uses direct database queries that work with production schema
+ * Uses direct pool connection with proper SQL syntax
  */
 export class DocumentService {
   
@@ -13,7 +13,7 @@ export class DocumentService {
     try {
       console.log(`🔍 DocumentService: Fetching documents for deal ${dealId}`);
       
-      // Use connection query method directly
+      // Use direct SQL with escaped value - no parameters needed
       const query = `
         SELECT 
           id,
@@ -27,10 +27,10 @@ export class DocumentService {
           description,
           document_type as "documentType"
         FROM documents 
-        WHERE deal_id = $1
+        WHERE deal_id = ${parseInt(dealId.toString())}
       `;
       
-      const result = await (db as any).query(query, [dealId]);
+      const result = await pool.query(query);
       
       console.log(`✅ DocumentService: Found ${result.rows.length} documents for deal ${dealId}`);
       return result.rows;
