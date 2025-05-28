@@ -70,34 +70,18 @@ router.post('/deals/:dealId/analyze', requireAuth, async (req: Request, res: Res
     if (documentContents.length === 0) {
       console.error(`🚨 NO DOCUMENT CONTENT AVAILABLE - Cannot proceed with AI analysis`);
       
-      // Return a clear analysis that explains the data unavailability
-      const transparentResponse = {
-        analysis: `I cannot provide a reliable analysis for "${deal.name}" because I'm unable to access the actual document content. 
-
-**Data Availability Issue:**
-- Found ${documents.length} document(s) in the database for this deal
-- However, none of the documents could be processed for content extraction
-- Without access to the actual investment materials, I cannot provide specific insights
-
-**What this means:**
-- Any analysis would be based solely on basic deal metadata (name, sector, stage)
-- This would not meet the reliability standards required for investment decisions
-- The document files may need to be re-uploaded or the file paths may need to be corrected
-
-**Recommendation:**
-Please verify that the document files are properly uploaded and accessible, then try the analysis again. This ensures you receive accurate, data-driven insights based on the actual investment materials.`,
-        
-        context: {
-          dealName: deal.name,
+      // Return clear error - no authentic document content available
+      return res.status(400).json({ 
+        error: 'No authentic document content available for analysis',
+        details: {
+          message: `Found ${documents.length} document(s) in database but none could be processed. Only authentic uploaded documents can be analyzed.`,
           dealId: parseInt(dealId),
-          dataSourcesUsed: ['Deal metadata only - no document content available'],
+          dealName: deal.name,
           documentCount: documents.length,
           documentsProcessed: 0,
-          timestamp: new Date()
+          recommendation: 'Please upload the required investment documents to enable AI analysis.'
         }
-      };
-      
-      return res.json(transparentResponse);
+      });
     }
     
     console.log(`🚀 Proceeding with AI analysis using content from ${successfulExtractions} documents`);
