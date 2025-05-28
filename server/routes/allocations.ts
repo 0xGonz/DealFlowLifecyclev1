@@ -415,7 +415,19 @@ router.get('/deal/:dealId', requireAuth, async (req: Request, res: Response) => 
     
     // Now get the updated allocations after weight recalculation
     const updatedAllocations = await storage.getAllocationsByDeal(dealId);
-    res.json(updatedAllocations);
+    
+    // Get fund names for each allocation
+    const allocationsWithFundNames = await Promise.all(
+      updatedAllocations.map(async (allocation) => {
+        const fund = await storage.getFund(allocation.fundId);
+        return {
+          ...allocation,
+          fundName: fund?.name || `Fund ${allocation.fundId}`
+        };
+      })
+    );
+    
+    res.json(allocationsWithFundNames);
   } catch (error) {
     console.error('Error fetching deal allocations:', error);
     res.status(500).json({ message: 'Failed to fetch allocations' });
