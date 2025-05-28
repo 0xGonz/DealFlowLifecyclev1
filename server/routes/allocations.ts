@@ -97,28 +97,53 @@ async function recalculatePortfolioWeights(fundId: number): Promise<void> {
     console.error(`Error recalculating portfolio weights for fund ${fundId}:`, error);
   }
 }
-      
-      // Update the allocation with the new weight
-      const updatedAllocation = await storage.updateFundAllocation(
-        allocation.id,
-        { portfolioWeight: parseFloat(weight.toFixed(2)) }
-      );
-      
-      console.log(`[DEBUG] Updated allocation ID ${allocation.id} with weight ${updatedAllocation?.portfolioWeight}%`);
+
+// PUT /api/allocations/:id - Update allocation with investment tracking
+router.put('/:id', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id);
+    const updates = req.body;
+    
+    if (!id || isNaN(id)) {
+      return res.status(400).json({ error: 'Invalid allocation ID' });
     }
+
+    // Auto-calculate MOIC if market value and amount are provided
+    if (updates.marketValue !== undefined && updates.amount !== undefined) {
+      const marketValue = Number(updates.marketValue) || 0;
+      const amount = Number(updates.amount) || 0;
+      if (amount > 0) {
+        updates.moic = marketValue / amount;
+      }
+    }
+
+    // Validate and convert numeric fields
+    const numericFields = ['amount', 'portfolioWeight', 'interestPaid', 'distributionPaid', 'marketValue', 'moic', 'irr'];
+    for (const field of numericFields) {
+      if (updates[field] !== undefined && updates[field] !== null) {
+        updates[field] = Number(updates[field]) || 0;
+      }
+    }
+
+    const result = await storage.updateFundAllocation(id, updates);
     
-    // For validation, fetch the allocations again and check their weights
-    const updatedAllocations = await storage.getAllocationsByFund(fundId);
-    console.log(`[DEBUG] Validation: Portfolio weights after recalculation:`);
-    updatedAllocations.forEach(a => {
-      console.log(`[DEBUG] ID ${a.id}: Status ${a.status}, Weight ${a.portfolioWeight}%`);
-    });
-    
-    console.log(`[SUCCESS] Recalculated portfolio weights for fund ID ${fundId}`);
+    if (!result) {
+      return res.status(404).json({ error: 'Allocation not found' });
+    }
+
+    // Trigger portfolio weight recalculation
+    try {
+      await recalculatePortfolioWeights(result.fundId);
+    } catch (error) {
+      console.error(`Error updating allocation status for allocation ${id}:`, error);
+    }
+
+    res.json(result);
   } catch (error) {
-    console.error(`[ERROR] Error recalculating portfolio weights for fund ID ${fundId}:`, error);
+    console.error('Error updating allocation:', error);
+    res.status(500).json({ error: 'Failed to update allocation' });
   }
-}
+});
 
 // Get all allocations
 router.get('/', requireAuth, async (req: Request, res: Response) => {

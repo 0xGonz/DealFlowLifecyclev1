@@ -241,7 +241,7 @@ export default function FundDetail() {
         throw new Error("No allocation selected for editing.");
       }
       
-      const res = await apiRequest("PATCH", `/api/allocations/${editingAllocation.id}`, editingAllocation);
+      const res = await apiRequest("PUT", `/api/allocations/${editingAllocation.id}`, editingAllocation);
       return await res.json();
     },
     onSuccess: () => {
