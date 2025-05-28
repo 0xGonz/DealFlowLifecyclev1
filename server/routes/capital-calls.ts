@@ -6,6 +6,7 @@ import { requireAuth } from '../utils/auth';
 import { requirePermission } from '../utils/permissions';
 import { eq } from 'drizzle-orm';
 import { capitalCallService } from '../services/capital-call.service';
+import { createDatabaseDate, parseUTCDate } from '../../shared/utils/dateUtils.js';
 
 const router = express.Router();
 const storage = StorageFactory.getStorage();
@@ -15,8 +16,8 @@ router.get('/', requireAuth, async (req, res) => {
   try {
     // Get query parameters for filtering
     const status = req.query.status as string || undefined;
-    const fromDate = req.query.fromDate ? new Date(req.query.fromDate as string) : undefined;
-    const toDate = req.query.toDate ? new Date(req.query.toDate as string) : undefined;
+    const fromDate = req.query.fromDate ? parseUTCDate(req.query.fromDate as string) : undefined;
+    const toDate = req.query.toDate ? parseUTCDate(req.query.toDate as string) : undefined;
     const fundId = req.query.fundId ? Number(req.query.fundId) : undefined;
     
     // Get all capital calls from database

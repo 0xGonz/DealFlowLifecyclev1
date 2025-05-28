@@ -4,6 +4,7 @@ import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { format, addDays } from 'date-fns';
 import { DollarSign, Calendar, AlertCircle, Info } from 'lucide-react';
+import { formatDateForInput, formatDisplayDate, getTodayUTC, parseUTCDate } from '@shared/utils/dateUtils';
 
 import {
   Dialog,
