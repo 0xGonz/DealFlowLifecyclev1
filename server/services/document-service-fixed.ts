@@ -108,24 +108,45 @@ export class DocumentService {
   }
 
   /**
-   * Get a single document by ID
+   * Get a single document by ID - Using direct SQL for production compatibility
    */
   static async getDocumentById(documentId: number) {
     try {
       console.log(`🔍 DocumentService: Fetching document ${documentId}`);
       
-      const result = await db
-        .select()
-        .from(documents)
-        .where(eq(documents.id, documentId));
+      // Use direct SQL query to avoid schema compatibility issues
+      const query = `
+        SELECT 
+          id, 
+          "fileName", 
+          "fileType", 
+          "filePath", 
+          "dealId", 
+          "documentType", 
+          "uploadedBy", 
+          "uploadedAt",
+          "fileName" as name
+        FROM documents 
+        WHERE id = $1
+      `;
       
-      if (result.length === 0) {
+      const { rows } = await pool.query(query, [documentId]);
+      
+      if (rows.length === 0) {
         console.log(`⚠️ DocumentService: Document ${documentId} not found`);
         return null;
       }
       
-      console.log(`✅ DocumentService: Found document ${documentId}`);
-      return result[0];
+      const document = rows[0];
+      console.log(`✅ DocumentService: Found document ${documentId}: ${document.fileName}`);
+      
+      // Add download URL for frontend compatibility
+      const result = {
+        ...document,
+        downloadUrl: `/api/documents/${document.id}/download`
+      };
+      
+      return result;
       
     } catch (error) {
       const err = error as Error;
