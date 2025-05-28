@@ -48,37 +48,58 @@ router.get('/:id', requireAuth, async (req: Request, res: Response) => {
   }
 });
 
-// Download document endpoint - FIXED VERSION
+// Download document endpoint - COMPREHENSIVE FIX
 router.get('/:id/download', requireAuth, async (req: Request, res: Response) => {
   try {
     const documentId = parseInt(req.params.id);
     console.log(`📥 Download request for document ID: ${documentId}`);
     
-    const document = await storage.getDocument(documentId);
+    // Get document with comprehensive logging
+    let document;
+    try {
+      document = await storage.getDocument(documentId);
+      console.log(`🔍 Database query completed for document ${documentId}`);
+      console.log(`📄 Raw document result:`, JSON.stringify(document, null, 2));
+    } catch (dbError) {
+      console.error(`💥 Database error for document ${documentId}:`, dbError);
+      return res.status(500).json({ message: 'Database error', error: String(dbError) });
+    }
+    
     if (!document) {
       console.log(`❌ Document ${documentId} not found in database`);
       return res.status(404).json({ message: 'Document not found' });
     }
 
-    console.log(`📄 Document object:`, JSON.stringify(document, null, 2));
-    console.log(`📄 Document keys:`, Object.keys(document || {}));
-    console.log(`📄 Found document fileName: ${document?.fileName}`);
-    console.log(`📍 Original file path: ${document?.filePath}`);
+    // Extract filename and file path with multiple fallbacks
+    const fileName = document.fileName || document.file_name || document.name;
+    const filePath = document.filePath || document.file_path || document.path;
     
-    // Safety check for fileName
-    if (!document.fileName) {
-      console.error(`❌ Document ${documentId} has no fileName field!`);
-      return res.status(500).json({ message: 'Document missing fileName' });
+    console.log(`📄 Extracted fileName: ${fileName}`);
+    console.log(`📍 Extracted filePath: ${filePath}`);
+    
+    if (!fileName && !filePath) {
+      console.error(`❌ Document ${documentId} has no valid file name or path!`);
+      return res.status(500).json({ message: 'Document missing file information' });
     }
     
-    // Try multiple possible file locations
-    const possiblePaths = [
-      document.filePath ? path.join(process.cwd(), document.filePath) : null, // Relative to project root
-      document.fileName ? path.join(process.cwd(), 'public', 'uploads', document.fileName) : null, // Standard uploads with fileName
-      document.fileName ? path.join(process.cwd(), 'uploads', document.fileName) : null, // Alternative uploads with fileName
-      document.filePath ? path.join(process.cwd(), 'public', document.filePath) : null, // Public + relative path
-      document.fileName ? path.join(process.cwd(), 'data', 'uploads', document.fileName) : null // Data uploads
-    ].filter(Boolean); // Remove any undefined paths
+    // Build potential file paths
+    const possiblePaths = [];
+    
+    if (filePath) {
+      possiblePaths.push(
+        path.join(process.cwd(), filePath),
+        path.join(process.cwd(), 'public', filePath),
+        path.join(process.cwd(), 'uploads', filePath)
+      );
+    }
+    
+    if (fileName) {
+      possiblePaths.push(
+        path.join(process.cwd(), 'uploads', fileName),
+        path.join(process.cwd(), 'public', 'uploads', fileName),
+        path.join(process.cwd(), 'data', 'uploads', fileName)
+      );
+    }
     
     let resolvedFilePath = null;
     
