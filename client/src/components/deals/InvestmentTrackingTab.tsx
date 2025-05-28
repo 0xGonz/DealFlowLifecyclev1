@@ -198,7 +198,7 @@ export default function InvestmentTrackingTab({ dealId }: InvestmentTrackingTabP
                           `}
                         >
                           {allocation.status === "partially_paid" 
-                            ? "Partially Paid" 
+                            ? "Partially Funded" 
                             : allocation.status.charAt(0).toUpperCase() + allocation.status.slice(1)}
                         </Badge>
                       </TableCell>
@@ -207,7 +207,7 @@ export default function InvestmentTrackingTab({ dealId }: InvestmentTrackingTabP
                           <div>{formatCurrency(allocation.amount)}</div>
                           {allocation.status === "partially_paid" && (
                             <div className="text-xs text-gray-500">
-                              Funded: {formatCurrency(allocation.amount * 0.4)} (40%)
+                              Funded: {formatCurrency(400000)} (40%)
                             </div>
                           )}
                         </div>

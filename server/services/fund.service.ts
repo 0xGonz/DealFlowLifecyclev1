@@ -48,8 +48,10 @@ export class FundService {
         SELECT 
           SUM(COALESCE(cc.paid_amount, 0)) as total_paid
         FROM capital_calls cc
-        JOIN funded_allocations fa ON cc.allocation_id = fa.id
-        WHERE cc.status IN ('paid', 'partial', 'partially_paid')
+        JOIN fund_allocations fa ON cc.allocation_id = fa.id
+        WHERE fa.fund_id = ${fundId} 
+          AND fa.status IN ('funded', 'partially_paid')
+          AND cc.status IN ('paid', 'partial', 'partially_paid')
       )
       SELECT 
         COALESCE(ap.total_paid, 0) as called_capital
