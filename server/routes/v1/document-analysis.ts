@@ -152,6 +152,15 @@ Provide analysis covering:
 Base your entire analysis on the actual document content only.`;
     }
 
+    console.log(`🔍 DEBUGGING: Document contents being sent to AI:`);
+    console.log(`📄 Number of documents: ${documentContents.length}`);
+    documentContents.forEach((content, index) => {
+      console.log(`📝 Document ${index + 1} content length: ${content.length} characters`);
+      console.log(`🔍 First 200 chars: ${content.substring(0, 200)}...`);
+    });
+    console.log(`🎯 Full analysis prompt being sent to AI:`);
+    console.log(analysisPrompt);
+    
     // Initialize OpenAI
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
