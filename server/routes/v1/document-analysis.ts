@@ -15,6 +15,133 @@ router.get('/test', (req, res) => {
 });
 
 /**
+ * General deal analysis - for comprehensive AI analysis of entire deals
+ */
+router.post('/deals/:dealId/analyze', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { dealId } = req.params;
+    const { query } = req.body;
+    
+    console.log(`🔍 Analyzing deal ${dealId} with query: ${query || 'comprehensive analysis'}`);
+    
+    const storage = StorageFactory.getStorage();
+    
+    // Get the deal
+    const deal = await storage.getDeal(parseInt(dealId));
+    if (!deal) {
+      return res.status(404).json({ error: 'Deal not found' });
+    }
+    
+    // Get all related data
+    const [documents, memos, timeline] = await Promise.all([
+      storage.getDocumentsByDeal(parseInt(dealId)),
+      storage.getMiniMemosByDeal(parseInt(dealId)),
+      storage.getDealTimeline(parseInt(dealId))
+    ]);
+
+    // Create comprehensive analysis prompt
+    let analysisPrompt = '';
+    
+    if (query) {
+      // User has specific question
+      analysisPrompt = `
+You are an expert investment analyst. A user is asking about the deal "${deal.name}" in the ${deal.sector} sector.
+
+Deal Information:
+- Name: ${deal.name}
+- Description: ${deal.description}
+- Sector: ${deal.sector}
+- Stage: ${deal.stageLabel}
+- Target Return: ${deal.targetReturn || 'Not specified'}
+- Notes: ${deal.notes || 'None'}
+
+Available Documents: ${documents.length} documents
+Available Memos: ${memos.length} mini memos
+Timeline Events: ${timeline.length} events
+
+User Question: ${query}
+
+Please provide a detailed, professional response based on the available deal information. Focus on investment analysis, due diligence insights, and strategic recommendations.
+`;
+    } else {
+      // Comprehensive analysis
+      analysisPrompt = `
+You are an expert investment analyst. Please provide a comprehensive investment analysis for the following deal:
+
+Deal Information:
+- Name: ${deal.name}
+- Description: ${deal.description}
+- Sector: ${deal.sector}
+- Stage: ${deal.stageLabel}
+- Target Return: ${deal.targetReturn || 'Not specified'}
+- Notes: ${deal.notes || 'None'}
+
+Data Available:
+- ${documents.length} documents uploaded
+- ${memos.length} mini memos created
+- ${timeline.length} timeline events
+
+Please provide:
+1. Investment Thesis Analysis
+2. Risk Assessment
+3. Market Opportunity Evaluation
+4. Financial Analysis (based on available data)
+5. Strategic Recommendations
+6. Key Questions for Due Diligence
+
+Format your response with clear sections and bullet points for easy reading.
+`;
+    }
+
+    // Initialize OpenAI
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      messages: [
+        {
+          role: "system",
+          content: "You are an expert investment analyst specializing in private equity and venture capital deal analysis."
+        },
+        {
+          role: "user",
+          content: analysisPrompt
+        }
+      ],
+      max_tokens: 2000,
+      temperature: 0.3
+    });
+
+    const analysis = response.choices[0].message.content;
+    
+    console.log(`✅ Generated ${query ? 'response' : 'comprehensive analysis'} for deal ${deal.name}`);
+    
+    res.json({
+      success: true,
+      response: analysis,
+      analysis: analysis,
+      dealName: deal.name,
+      dealId: parseInt(dealId),
+      analysisType: query ? 'query-response' : 'comprehensive',
+      context: {
+        dealName: deal.name,
+        dataSourcesUsed: ['deal_data', 'documents', 'memos', 'timeline'],
+        timestamp: new Date()
+      }
+    });
+    
+  } catch (error) {
+    console.error('Deal analysis error:', error);
+    res.status(500).json({ 
+      error: 'Failed to analyze deal',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
  * Analyze a specific document by ID
  */
 router.post('/deals/:dealId/documents/:documentId/analyze', requireAuth, async (req: Request, res: Response) => {

@@ -49,7 +49,7 @@ export function useAIAnalysis(options: AIAnalysisHookOptions = {}) {
 
   // Get deal context when dealId is provided
   const { data: contextData, isLoading: contextLoading } = useQuery({
-    queryKey: ['/api/ai-analysis/deals', dealId, 'context'],
+    queryKey: ['/api/deals', dealId],
     enabled: !!dealId
   });
 
@@ -61,7 +61,7 @@ export function useAIAnalysis(options: AIAnalysisHookOptions = {}) {
         throw new Error('Please select a deal first');
       }
       
-      const response = await fetch(`/api/ai-analysis/deals/${activeDealId}/analyze`, {
+      const response = await fetch(`/api/v1/document-analysis/deals/${activeDealId}/analyze`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
