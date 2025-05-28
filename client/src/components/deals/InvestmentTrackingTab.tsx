@@ -184,10 +184,7 @@ export default function InvestmentTrackingTab({ dealId }: InvestmentTrackingTabP
                         <div>
                           <div className="font-medium">{allocation.fundName || `Fund ${allocation.fundId}`}</div>
                           <div className="text-sm text-gray-500">
-                            {allocation.allocationDate 
-                              ? format(new Date(allocation.allocationDate), "MMM d, yyyy")
-                              : "N/A"
-                            }
+                            {formatDisplayDate(allocation.allocationDate)}
                           </div>
                         </div>
                       </TableCell>
