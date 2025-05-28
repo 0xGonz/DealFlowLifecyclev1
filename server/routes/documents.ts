@@ -173,4 +173,60 @@ router.get('/:id/download', requireAuth, async (req: Request, res: Response) => 
   }
 });
 
+// Delete document
+router.delete('/:id', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const documentId = parseInt(req.params.id);
+    console.log(`🗑️ Delete request for document ${documentId}`);
+    
+    // Check if document exists first
+    const document = await storage.getDocument(documentId);
+    if (!document) {
+      return res.status(404).json({ error: 'Document not found' });
+    }
+    
+    // Delete from database
+    const success = await DocumentService.deleteDocument(documentId);
+    
+    if (success) {
+      console.log(`✅ Successfully deleted document ${documentId}`);
+      res.json({ success: true, message: 'Document deleted successfully' });
+    } else {
+      console.error(`❌ Failed to delete document ${documentId}`);
+      res.status(500).json({ error: 'Failed to delete document' });
+    }
+  } catch (error) {
+    console.error('Error deleting document:', error);
+    res.status(500).json({ error: 'Failed to delete document' });
+  }
+});
+
+// Update document metadata
+router.put('/:id', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const documentId = parseInt(req.params.id);
+    const { description, documentType } = req.body;
+    
+    console.log(`📝 Update request for document ${documentId}`, { description, documentType });
+    
+    // Check if document exists first
+    const document = await storage.getDocument(documentId);
+    if (!document) {
+      return res.status(404).json({ error: 'Document not found' });
+    }
+    
+    // Update document
+    const updatedDocument = await DocumentService.updateDocument(documentId, {
+      description,
+      documentType
+    });
+    
+    console.log(`✅ Successfully updated document ${documentId}`);
+    res.json(updatedDocument);
+  } catch (error) {
+    console.error('Error updating document:', error);
+    res.status(500).json({ error: 'Failed to update document' });
+  }
+});
+
 export default router;
