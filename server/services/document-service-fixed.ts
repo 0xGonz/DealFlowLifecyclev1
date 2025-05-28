@@ -43,6 +43,46 @@ export class DocumentService {
   }
 
   /**
+   * Get a single document by ID
+   */
+  static async getDocumentById(documentId: number) {
+    try {
+      console.log(`🔍 DocumentService: Fetching document by ID ${documentId}`);
+      
+      const query = `
+        SELECT 
+          id,
+          deal_id as "dealId",
+          file_name as "fileName", 
+          file_type as "fileType",
+          file_size as "fileSize",
+          file_path as "filePath",
+          uploaded_by as "uploadedBy",
+          uploaded_at as "uploadedAt",
+          description,
+          document_type as "documentType"
+        FROM documents 
+        WHERE id = ${parseInt(documentId.toString())}
+      `;
+      
+      const result = await pool.query(query);
+      
+      if (result.rows.length === 0) {
+        console.log(`❌ DocumentService: Document ${documentId} not found`);
+        return null;
+      }
+      
+      console.log(`✅ DocumentService: Found document ${documentId}: ${result.rows[0].fileName}`);
+      return result.rows[0];
+      
+    } catch (error) {
+      const err = error as Error;
+      console.error(`💥 DocumentService: Error fetching document ${documentId}:`, err);
+      throw new Error(`Failed to fetch document: ${err.message}`);
+    }
+  }
+
+  /**
    * Get documents by type for a deal
    */
   static async getDocumentsByType(dealId: number, documentType: string) {
