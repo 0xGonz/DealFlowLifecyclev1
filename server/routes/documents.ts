@@ -118,14 +118,16 @@ router.get('/:id/download', requireAuth, async (req: Request, res: Response) => 
       return res.status(500).json({ message: 'Document missing file information' });
     }
     
-    // Build potential file paths
+    // Build proper file paths with consistent handling
     const possiblePaths = [];
     
     if (filePath) {
+      // Handle paths with or without leading slash
+      const normalizedPath = filePath.startsWith('/') ? filePath.substring(1) : filePath;
       possiblePaths.push(
-        path.join(process.cwd(), filePath),
-        path.join(process.cwd(), 'public', filePath),
-        path.join(process.cwd(), 'uploads', filePath)
+        path.join(process.cwd(), normalizedPath),
+        path.join(process.cwd(), 'public', normalizedPath),
+        path.join(process.cwd(), 'uploads', normalizedPath)
       );
     }
     
@@ -141,10 +143,14 @@ router.get('/:id/download', requireAuth, async (req: Request, res: Response) => 
     
     for (const testPath of possiblePaths) {
       console.log(`🔍 Checking path: ${testPath}`);
-      if (fs.existsSync(testPath)) {
-        resolvedFilePath = testPath;
-        console.log(`✅ Found file at: ${testPath}`);
-        break;
+      try {
+        if (fs.existsSync(testPath) && fs.statSync(testPath).isFile()) {
+          resolvedFilePath = testPath;
+          console.log(`✅ Found file at: ${testPath}`);
+          break;
+        }
+      } catch (err) {
+        console.log(`❌ Error checking path ${testPath}:`, err);
       }
     }
     
@@ -152,7 +158,8 @@ router.get('/:id/download', requireAuth, async (req: Request, res: Response) => 
       console.error(`💥 File not found in any location for document ${documentId}`);
       console.error(`Searched paths:`, possiblePaths);
       return res.status(404).json({ 
-        message: 'File not found on disk',
+        message: 'File not found', 
+        error: 'The document file is missing from the server. Please re-upload the document.',
         originalPath: document.filePath,
         searchedPaths: possiblePaths
       });

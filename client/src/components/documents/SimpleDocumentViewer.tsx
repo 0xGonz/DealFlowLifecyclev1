@@ -84,12 +84,12 @@ const SimpleDocumentViewer = ({ documentId, documentName, fileType }: SimpleDocu
     const documentUrl = `/api/documents/${documentId}/download`;
     const fileName = documentName.toLowerCase();
 
-    // PDF Viewer
+    // PDF Viewer with enhanced error handling
     if (fileName.includes('.pdf')) {
       return (
         <div className="w-full h-full bg-gray-100 rounded-lg overflow-hidden">
           <iframe
-            src={`${documentUrl}#zoom=${zoom}`}
+            src={`${documentUrl}#zoom=${zoom}&toolbar=1&navpanes=0&scrollbar=1`}
             className="w-full h-full border-0 max-w-full max-h-full"
             style={{ 
               width: '100%', 
@@ -99,9 +99,22 @@ const SimpleDocumentViewer = ({ documentId, documentName, fileType }: SimpleDocu
               overflow: 'hidden'
             }}
             title={documentName}
-            onLoad={() => setLoading(false)}
+            onLoad={(e) => {
+              setLoading(false);
+              // Check if iframe loaded successfully
+              try {
+                const iframe = e.target as HTMLIFrameElement;
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+                if (iframeDoc?.body?.innerText?.includes('can\'t open') || 
+                    iframeDoc?.body?.innerText?.includes('error')) {
+                  setError('PDF could not be displayed. Please download to view.');
+                }
+              } catch (err) {
+                // Cross-origin restrictions - this is normal
+              }
+            }}
             onError={() => {
-              setError('Failed to load PDF document');
+              setError('Failed to load PDF document. Please try downloading the file.');
               setLoading(false);
             }}
           />
@@ -261,13 +274,32 @@ const SimpleDocumentViewer = ({ documentId, documentName, fileType }: SimpleDocu
           
           {error && (
             <div className="absolute inset-0 bg-red-50 rounded-lg flex items-center justify-center z-10">
-              <div className="text-center">
+              <div className="text-center max-w-md">
                 <FileText className="w-16 h-16 text-red-400 mx-auto mb-4" />
-                <p className="text-red-600 mb-4">{error}</p>
-                <Button onClick={handleDownload} variant="outline">
-                  <Download className="w-4 h-4 mr-2" />
-                  Download Instead
-                </Button>
+                <h3 className="text-lg font-medium text-red-800 mb-2">We can't open this file</h3>
+                <p className="text-red-600 mb-4 text-sm">{error}</p>
+                <div className="space-y-2">
+                  <Button onClick={handleDownload} variant="outline" className="w-full">
+                    <Download className="w-4 h-4 mr-2" />
+                    Download to View
+                  </Button>
+                  <Button 
+                    onClick={() => {
+                      setError(null);
+                      setLoading(true);
+                      // Force reload by updating the iframe src
+                      const iframe = document.querySelector('iframe');
+                      if (iframe) {
+                        iframe.src = iframe.src + '&reload=' + Date.now();
+                      }
+                    }} 
+                    variant="ghost" 
+                    size="sm"
+                    className="w-full"
+                  >
+                    Try Again
+                  </Button>
+                </div>
               </div>
             </div>
           )}
