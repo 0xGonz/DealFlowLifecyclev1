@@ -45,7 +45,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { usePermissions } from "@/hooks/use-permissions";
 import { Plus, ArrowUpRight, Pencil, Trash2, MoreHorizontal } from "lucide-react";
-import { formatCurrency } from "@/lib/utils/format";
+import { formatCurrency } from "@/lib/utils";
 import { formatDistanceToNow, format } from "date-fns";
 import { Fund } from "@/lib/types";
 import {

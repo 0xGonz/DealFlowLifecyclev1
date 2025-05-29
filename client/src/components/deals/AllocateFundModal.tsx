@@ -3,7 +3,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
-import { formatPercentage } from '@/lib/utils/format';
+import { formatPercentage } from '@/lib/utils';
 import { formatDateForAPI } from '@/lib/dateUtils';
 import { FINANCIAL_CALCULATION } from '@/lib/constants/calculation-constants';
 import { ALLOCATION_STATUS, CAPITAL_CALL_SCHEDULES, PAYMENT_SCHEDULE_LABELS } from '@/lib/constants/allocation-constants';

@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { TrendingUp, TrendingDown, Target, Briefcase, Clock, DollarSign, PieChart } from "lucide-react";
 import { Deal } from "@/lib/types";
-import { formatCurrency, formatPercentage } from "@/lib/utils/format";
+import { formatCurrency, formatPercentage } from "@/lib/utils";
 import { PERCENTAGE_CALCULATION, FINANCIAL_CALCULATION, SCORE_CALCULATION, PIPELINE_METRICS } from "@/lib/constants/calculation-constants";
 import { PADDING, MARGIN, GAP } from "@/lib/constants/spacing-constants";
 

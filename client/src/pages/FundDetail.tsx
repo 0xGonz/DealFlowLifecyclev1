@@ -68,7 +68,7 @@ import {
   CheckCircle
 } from "lucide-react";
 import { format } from "date-fns";
-import { formatCurrency } from "@/lib/services/formatters";
+import { formatCurrency } from "@/lib/utils";
 import FundSectorDistribution from "@/components/funds/FundSectorDistribution";
 import CalledCapitalRatio from "@/components/funds/CalledCapitalRatio";
 import ModularTable from "@/components/ui/ModularTable";

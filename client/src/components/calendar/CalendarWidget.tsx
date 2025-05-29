@@ -14,7 +14,7 @@ import {
 } from '@/lib/constants/calendar-constants';
 import { CAPITAL_CALL_STATUS_COLORS, CAPITAL_CALL_STATUS_LABELS } from '@/lib/constants/capital-call-constants';
 import { CLOSING_EVENT_STATUS_COLORS } from '@/lib/constants/closing-event-constants';
-import { formatCurrency } from '@/lib/utils/formatters';
+import { formatCurrency } from '@/lib/utilsters';
 
 interface CalendarWidgetProps {
   /** Compact mode shows mini calendar, full mode shows detailed view */

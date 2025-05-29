@@ -15,7 +15,7 @@ import {
   Tag
 } from "lucide-react";
 import { Deal, User, DealStar as DealStarType } from "@/lib/types";
-import { getDealStageBadgeClass } from "@/lib/utils/format";
+import { getDealStageBadgeClass } from "@/lib/utils";
 import { enrichDealWithComputedProps } from "@/lib/utils";
 import DealStar from "./DealStar";
 import { UserAvatar } from "@/components/common/UserAvatar";

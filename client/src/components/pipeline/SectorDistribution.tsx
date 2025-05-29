@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { Deal } from "@/lib/types";
-import { formatPercentage } from '@/lib/utils/format';
+import { formatPercentage } from '@/lib/utils';
 import { FINANCIAL_CALCULATION } from '@/lib/constants/calculation-constants';
 
 type SectorDistributionProps = {

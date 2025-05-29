@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Deal } from "@/lib/types";
-import { getDealStageBadgeClass, formatCurrency, formatDate, formatPercentage } from "@/lib/utils/format";
+import { getDealStageBadgeClass, formatCurrency, formatDate, formatPercentage } from "@/lib/utils";
 import { DealStageLabels } from "@shared/schema";
 import { DEFAULT_DEAL_SECTOR, DEAL_STAGES } from "@/lib/constants/deal-constants";
 

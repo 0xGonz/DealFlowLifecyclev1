@@ -37,7 +37,7 @@ import {
   CLOSING_EVENT_TYPES, 
   CLOSING_EVENT_TYPE_LABELS 
 } from '@/lib/constants/closing-event-constants';
-import { formatCurrency } from '@/lib/utils/format';
+import { formatCurrency } from '@/lib/utils';
 
 interface ClosingEventsListProps {
   dealId: number;

@@ -80,7 +80,7 @@ import {
   Trash2
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import { getDealStageBadgeClass } from "@/lib/utils/format";
+import { getDealStageBadgeClass } from "@/lib/utils";
 import { enrichDealWithComputedProps } from "@/lib/utils";
 import { Deal, MiniMemo, User } from "@/lib/types";
 import { DEFAULT_EMPTY_TEXT, DEFAULT_AVATAR_TEXT, COMPANY_LABELS } from "@/lib/constants/display-constants";

@@ -6,7 +6,7 @@ import RecentDeals from "@/components/dashboard/RecentDeals";
 import ActivityFeed from "@/components/dashboard/ActivityFeed";
 
 import SectorDistributionChart from "@/components/dashboard/SectorDistributionChart";
-import { formatCurrency } from "@/lib/utils/format";
+import { formatCurrency } from "@/lib/utils";
 import { PADDING, MARGIN, GAP } from "@/lib/constants/spacing-constants";
 import { 
   Activity, 
