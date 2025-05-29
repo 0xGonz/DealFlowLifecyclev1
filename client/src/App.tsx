@@ -26,7 +26,7 @@ function Router() {
     <Switch>
       <ProtectedRoute path="/" component={Dashboard} />
       <ProtectedRoute path="/pipeline" component={Pipeline} />
-      <ProtectedRoute path="/leaderboard" component={Leaderboard} />
+
       <ProtectedRoute path="/funds" component={Funds} />
       <ProtectedRoute path="/funds/:id" component={FundDetail} />
       <ProtectedRoute path="/deals/:id" component={DealDetail} />
