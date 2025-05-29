@@ -1,0 +1,25 @@
+vite] connecting...
+[vite] connected.
+Login error: 
+Error {}
+message: "Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for one of the following reasons:↵1. You might have mismatching versions of React and the renderer (such as React DOM)↵2. You might be breaking the Rules of Hooks↵3. You might have more than one copy of React in the same app↵See https://reactjs.org/link/invalid-hook-call for tips about how to debug and fix this problem."
+stack: "Error: Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for one of the following reasons:↵1. You might have mismatching versions of React and the renderer (such as React DOM)↵2. You might be breaking the Rules of Hooks↵3. You might have more than one copy of React in the same app↵See https://reactjs.org/link/invalid-hook-call for tips about how to debug and fix this problem.↵ at Object.throwInvalidHookError (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=e136d21e:11501:17)↵ at useContext (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-QCHXOAYK.js?v=e136d21e:1062:29)↵ at useAuth (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/src/hooks/use-auth.tsx:117:19)↵ at AuthPage.jsxDEV.children.jsxDEV.children.jsxDEV.children.jsxDEV.children.jsxDEV.children.jsxDEV.children.jsxDEV.onSubmit (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/src/pages/auth-page.tsx:238:37)↵ at handleSubmit (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/src/pages/auth-page.tsx:343:13)↵ at https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-MGW4VB6R.js?v=e136d21e:1469:15"
+get stack: ƒ ()
+length: 0
+name: ""
+[[Prototype]]: ƒ ()
+set stack: ƒ ()
+[[Prototype]]: Object
+constructor: ƒ Error()
+message: "Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for one of the following reasons:↵1. You might have mismatching versions of React and the renderer (such as React DOM)↵2. You might be breaking the Rules of Hooks↵3. You might have more than one copy of React in the same app↵See https://reactjs.org/link/invalid-hook-call for tips about how to debug and fix this problem."
+name: "Error"
+toString: ƒ toString()
+length: 0
+name: "toString"
+[[Prototype]]: ƒ ()
+[[Prototype]]: Object
+
+at t.value (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400

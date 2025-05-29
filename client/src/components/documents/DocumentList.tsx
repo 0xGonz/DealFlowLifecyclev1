@@ -7,7 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { FileText, Download, Trash2, FileUp, File, Eye, Edit2 } from 'lucide-react';
 import { Document } from '@/lib/types';
 import { formatDistanceToNow } from 'date-fns';
-import { formatBytes } from '@/lib/utils';
+import { formatBytes } from '@/lib/utils/format';
 // Temporarily inline the function until import path is fixed
 const getDocumentTypeLabel = (type: string) => {
   const types: Record<string, string> = {

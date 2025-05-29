@@ -1,0 +1,162 @@
+Avatar color changed to: #D32F2F
+index-jIeO4q_L.js:48 Query Response from /api/system/health: Object
+index-jIeO4q_L.js:48 Query data received from /api/system/health: Object
+index-jIeO4q_L.js:48 Query Response from /api/notifications/unread-count: Object
+index-jIeO4q_L.js:48 Query data received from /api/notifications/unread-count: Object
+index-jIeO4q_L.js:48 Query Response from /api/notifications: Object
+index-jIeO4q_L.js:48 Query data received from /api/notifications: Array(2)
+index-jIeO4q_L.js:457 Using /me endpoint data for avatar Object
+index-jIeO4q_L.js:48 Query Response from /api/deals/100/stars: Object
+index-jIeO4q_L.js:48 Query data received from /api/deals/100/stars: Array(0)
+index-jIeO4q_L.js:48 Query Response from /api/funds: Object
+index-jIeO4q_L.js:48 Query data received from /api/funds: Array(2)
+index-jIeO4q_L.js:48 Query Response from /api/deals: Object
+index-jIeO4q_L.js:48 Query data received from /api/deals: Array(89)
+index-jIeO4q_L.js:48 Query Response from /api/auth/me: Object
+index-jIeO4q_L.js:48 Query data received from /api/auth/me: Object
+index-jIeO4q_L.js:48 Query Response from /api/deals/100: Object
+index-jIeO4q_L.js:48 Query data received from /api/deals/100: Object
+index-jIeO4q_L.js:457 UserAvatar: User 1 has color #4f46e5
+index-jIeO4q_L.js:48 Query fetch request: /api/documents/deal/100 Object
+index-jIeO4q_L.js:546 🔍 useDealDocuments: Processing data for deal 100: undefined
+index-jIeO4q_L.js:546 ⚠️ useDealDocuments: No data received or data is not an array: undefined
+/api/documents/deal/100:1 
+            
+            
+            Failed to load resource: the server responded with a status of 500 ()
+index-jIeO4q_L.js:48 Query Response from /api/documents/deal/100: Object
+index-jIeO4q_L.js:48  Error response from /api/documents/deal/100: Object
+(anonymous) @ index-jIeO4q_L.js:48
+index-jIeO4q_L.js:48  Exception during query fetch to /api/documents/deal/100: TypeError: Failed to execute 'text' on 'Response': body stream already read
+    at Ole (index-jIeO4q_L.js:48:43202)
+    at index-jIeO4q_L.js:48:44655
+(anonymous) @ index-jIeO4q_L.js:48
+index-jIeO4q_L.js:457 Direct user fetch for avatar ID 1: Object
+index-jIeO4q_L.js:48 Query fetch request: /api/documents/deal/100 Object
+/api/documents/deal/100:1 
+            
+            
+            Failed to load resource: the server responded with a status of 500 ()
+index-jIeO4q_L.js:48 Query Response from /api/documents/deal/100: Object
+index-jIeO4q_L.js:48  Error response from /api/documents/deal/100: Object
+(anonymous) @ index-jIeO4q_L.js:48
+index-jIeO4q_L.js:48  Exception during query fetch to /api/documents/deal/100: TypeError: Failed to execute 'text' on 'Response': body stream already read
+    at Ole (index-jIeO4q_L.js:48:43202)
+    at index-jIeO4q_L.js:48:44655
+(anonymous) @ index-jIeO4q_L.js:48
+index-jIeO4q_L.js:457 Using /me endpoint data for avatar Object
+index-jIeO4q_L.js:48 Query fetch request: /api/auth/me Object
+index-jIeO4q_L.js:48 Query fetch request: /api/system/health Object
+index-jIeO4q_L.js:48 Query fetch request: /api/documents/deal/100 Object
+/api/documents/deal/100:1 
+            
+            
+            Failed to load resource: the server responded with a status of 500 ()
+index-jIeO4q_L.js:48 Query Response from /api/documents/deal/100: Object
+index-jIeO4q_L.js:48  Error response from /api/documents/deal/100: Object
+(anonymous) @ index-jIeO4q_L.js:48
+index-jIeO4q_L.js:48  Exception during query fetch to /api/documents/deal/100: TypeError: Failed to execute 'text' on 'Response': body stream already read
+    at Ole (index-jIeO4q_L.js:48:43202)
+    at index-jIeO4q_L.js:48:44655
+(anonymous) @ index-jIeO4q_L.js:48
+index-jIeO4q_L.js:48 Query Response from /api/auth/me: Object
+index-jIeO4q_L.js:48 Query data received from /api/auth/me: Object
+index-jIeO4q_L.js:48 Query Response from /api/system/health: Object
+index-jIeO4q_L.js:48 Query data received from /api/system/health: Object
+index-jIeO4q_L.js:457 Using /me endpoint data for avatar Object
+index-jIeO4q_L.js:457 Direct user fetch for avatar ID 1: Object
+index-jIeO4q_L.js:48 Query fetch request: /api/documents/deal/100 Object
+/api/documents/deal/100:1 
+            
+            
+            Failed to load resource: the server responded with a status of 500 ()
+index-jIeO4q_L.js:48 Query Response from /api/documents/deal/100: Object
+index-jIeO4q_L.js:48  Error response from /api/documents/deal/100: Object
+(anonymous) @ index-jIeO4q_L.js:48
+index-jIeO4q_L.js:48  Exception during query fetch to /api/documents/deal/100: TypeError: Failed to execute 'text' on 'Response': body stream already read
+    at Ole (index-jIeO4q_L.js:48:43202)
+    at index-jIeO4q_L.js:48:44655
+(anonymous) @ index-jIeO4q_L.js:48
+index-jIeO4q_L.js:457 Using /me endpoint data for avatar Object
+index-jIeO4q_L.js:457 Direct user fetch for avatar ID 1: Object
+index-jIeO4q_L.js:457 Using /me endpoint data for avatar Object
+index-jIeO4q_L.js:457 Direct user fetch for avatar ID 1: Object
+index-jIeO4q_L.js:48 Query fetch request: /api/auth/me Object
+index-jIeO4q_L.js:48 Query fetch request: /api/system/health Object
+index-jIeO4q_L.js:48 Query Response from /api/auth/me: Object
+index-jIeO4q_L.js:48 Query data received from /api/auth/me: Object
+index-jIeO4q_L.js:48 Query Response from /api/system/health: Object
+index-jIeO4q_L.js:48 Query data received from /api/system/health: Object
+index-jIeO4q_L.js:457 Using /me endpoint data for avatar Object
+index-jIeO4q_L.js:457 Direct user fetch for avatar ID 1: Object
+index-jIeO4q_L.js:457 Using /me endpoint data for avatar Object
+index-jIeO4q_L.js:457 Direct user fetch for avatar ID 1: Object
+index-jIeO4q_L.js:457 Using /me endpoint data for avatar Object
+index-jIeO4q_L.js:457 Direct user fetch for avatar ID 1: Object
+index-jIeO4q_L.js:48 Query fetch request: /api/auth/me {queryKey: Array(1), unauthorizedBehavior: 'returnNull'}
+index-jIeO4q_L.js:48 Query Response from /api/auth/me: {status: 200, statusText: '', ok: true}
+index-jIeO4q_L.js:48 Query data received from /api/auth/me: {id: 4, username: 'Gonz', fullName: 'Brett Gonzalez', initials: 'BG', email: 'bgonzalez@doliveradvisors.com', …}
+index-jIeO4q_L.js:48 Query fetch request: /api/system/health {queryKey: Array(1), unauthorizedBehavior: 'returnNull'}
+index-jIeO4q_L.js:48 Query Response from /api/system/health: {status: 200, statusText: '', ok: true}
+index-jIeO4q_L.js:48 Query data received from /api/system/health: {status: 'ok', timestamp: '2025-05-27T22:21:57.101Z', storage: 'pg', databaseConnected: true, environment: 'production', …}
+index-jIeO4q_L.js:457 Using /me endpoint data for avatar {id: 4, username: 'Gonz', fullName: 'Brett Gonzalez', initials: 'BG', email: 'bgonzalez@doliveradvisors.com', …}
+index-jIeO4q_L.js:457 Direct user fetch for avatar ID 1: {id: 1, username: 'admin', fullName: 'Admin User', initials: 'AU', email: 'admin@example.com', …}
+index-jIeO4q_L.js:457 Using /me endpoint data for avatar {id: 4, username: 'Gonz', fullName: 'Brett Gonzalez', initials: 'BG', email: 'bgonzalez@doliveradvisors.com', …}
+index-jIeO4q_L.js:457 Direct user fetch for avatar ID 1: {id: 1, username: 'admin', fullName: 'Admin User', initials: 'AU', email: 'admin@example.com', …}
+index-jIeO4q_L.js:457 Using /me endpoint data for avatar {id: 4, username: 'Gonz', fullName: 'Brett Gonzalez', initials: 'BG', email: 'bgonzalez@doliveradvisors.com', …}
+index-jIeO4q_L.js:457 Direct user fetch for avatar ID 1: {id: 1, username: 'admin', fullName: 'Admin User', initials: 'AU', email: 'admin@example.com', …}
+index-jIeO4q_L.js:48 Query fetch request: /api/auth/me {queryKey: Array(1), unauthorizedBehavior: 'returnNull'}
+index-jIeO4q_L.js:48 Query Response from /api/auth/me: {status: 200, statusText: '', ok: true}
+index-jIeO4q_L.js:48 Query data received from /api/auth/me: {id: 4, username: 'Gonz', fullName: 'Brett Gonzalez', initials: 'BG', email: 'bgonzalez@doliveradvisors.com', …}
+index-jIeO4q_L.js:48 Query fetch request: /api/system/health {queryKey: Array(1), unauthorizedBehavior: 'returnNull'}
+index-jIeO4q_L.js:48 Query Response from /api/system/health: {status: 200, statusText: '', ok: true}
+index-jIeO4q_L.js:48 Query data received from /api/system/health: {status: 'ok', timestamp: '2025-05-27T22:22:27.331Z', storage: 'pg', databaseConnected: true, environment: 'production', …}
+index-jIeO4q_L.js:457 Using /me endpoint data for avatar {id: 4, username: 'Gonz', fullName: 'Brett Gonzalez', initials: 'BG', email: 'bgonzalez@doliveradvisors.com', …}
+index-jIeO4q_L.js:457 Direct user fetch for avatar ID 1: {id: 1, username: 'admin', fullName: 'Admin User', initials: 'AU', email: 'admin@example.com', …}
+index-jIeO4q_L.js:457 Using /me endpoint data for avatar {id: 4, username: 'Gonz', fullName: 'Brett Gonzalez', initials: 'BG', email: 'bgonzalez@doliveradvisors.com', …}
+index-jIeO4q_L.js:457 Direct user fetch for avatar ID 1: {id: 1, username: 'admin', fullName: 'Admin User', initials: 'AU', email: 'admin@example.com', …}
+index-jIeO4q_L.js:457 Using /me endpoint data for avatar {id: 4, username: 'Gonz', fullName: 'Brett Gonzalez', initials: 'BG', email: 'bgonzalez@doliveradvisors.com', …}
+index-jIeO4q_L.js:457 Direct user fetch for avatar ID 1: {id: 1, username: 'admin', fullName: 'Admin User', initials: 'AU', email: 'admin@example.com', …}
+index-jIeO4q_L.js:48 Query fetch request: /api/auth/me {queryKey: Array(1), unauthorizedBehavior: 'returnNull'}
+index-jIeO4q_L.js:48 Query Response from /api/auth/me: {status: 200, statusText: '', ok: true}
+index-jIeO4q_L.js:48 Query data received from /api/auth/me: {id: 4, username: 'Gonz', fullName: 'Brett Gonzalez', initials: 'BG', email: 'bgonzalez@doliveradvisors.com', …}
+index-jIeO4q_L.js:48 Query fetch request: /api/system/health {queryKey: Array(1), unauthorizedBehavior: 'returnNull'}
+index-jIeO4q_L.js:48 Query Response from /api/system/health: {status: 200, statusText: '', ok: true}
+index-jIeO4q_L.js:48 Query data received from /api/system/health: {status: 'ok', timestamp: '2025-05-27T22:22:57.627Z', storage: 'pg', databaseConnected: true, environment: 'production', …}
+index-jIeO4q_L.js:457 Using /me endpoint data for avatar {id: 4, username: 'Gonz', fullName: 'Brett Gonzalez', initials: 'BG', email: 'bgonzalez@doliveradvisors.com', …}
+index-jIeO4q_L.js:457 Direct user fetch for avatar ID 1: {id: 1, username: 'admin', fullName: 'Admin User', initials: 'AU', email: 'admin@example.com', …}
+index-jIeO4q_L.js:457 Using /me endpoint data for avatar {id: 4, username: 'Gonz', fullName: 'Brett Gonzalez', initials: 'BG', email: 'bgonzalez@doliveradvisors.com', …}
+index-jIeO4q_L.js:457 Direct user fetch for avatar ID 1: {id: 1, username: 'admin', fullName: 'Admin User', initials: 'AU', email: 'admin@example.com', …}
+index-jIeO4q_L.js:457 Using /me endpoint data for avatar {id: 4, username: 'Gonz', fullName: 'Brett Gonzalez', initials: 'BG', email: 'bgonzalez@doliveradvisors.com', …}
+index-jIeO4q_L.js:457 Direct user fetch for avatar ID 1: {id: 1, username: 'admin', fullName: 'Admin User', initials: 'AU', email: 'admin@example.com', …}
+index-jIeO4q_L.js:48 Query fetch request: /api/auth/me {queryKey: Array(1), unauthorizedBehavior: 'returnNull'}
+index-jIeO4q_L.js:48 Query Response from /api/auth/me: {status: 200, statusText: '', ok: true}
+index-jIeO4q_L.js:48 Query data received from /api/auth/me: {id: 4, username: 'Gonz', fullName: 'Brett Gonzalez', initials: 'BG', email: 'bgonzalez@doliveradvisors.com', …}
+index-jIeO4q_L.js:48 Query fetch request: /api/system/health {queryKey: Array(1), unauthorizedBehavior: 'returnNull'}
+index-jIeO4q_L.js:48 Query Response from /api/system/health: {status: 200, statusText: '', ok: true}
+index-jIeO4q_L.js:48 Query data received from /api/system/health: {status: 'ok', timestamp: '2025-05-27T22:23:27.867Z', storage: 'pg', databaseConnected: true, environment: 'production', …}
+index-jIeO4q_L.js:457 Using /me endpoint data for avatar {id: 4, username: 'Gonz', fullName: 'Brett Gonzalez', initials: 'BG', email: 'bgonzalez@doliveradvisors.com', …}
+index-jIeO4q_L.js:457 Direct user fetch for avatar ID 1: {id: 1, username: 'admin', fullName: 'Admin User', initials: 'AU', email: 'admin@example.com', …}
+index-jIeO4q_L.js:457 Using /me endpoint data for avatar {id: 4, username: 'Gonz', fullName: 'Brett Gonzalez', initials: 'BG', email: 'bgonzalez@doliveradvisors.com', …}
+index-jIeO4q_L.js:457 Direct user fetch for avatar ID 1: {id: 1, username: 'admin', fullName: 'Admin User', initials: 'AU', email: 'admin@example.com', …}
+index-jIeO4q_L.js:457 Using /me endpoint data for avatar {id: 4, username: 'Gonz', fullName: 'Brett Gonzalez', initials: 'BG', email: 'bgonzalez@doliveradvisors.com', …}
+index-jIeO4q_L.js:457 Direct user fetch for avatar ID 1: {id: 1, username: 'admin', fullName: 'Admin User', initials: 'AU', email: 'admin@example.com', …}
+index-jIeO4q_L.js:48 Query fetch request: /api/auth/me {queryKey: Array(1), unauthorizedBehavior: 'returnNull'}
+index-jIeO4q_L.js:48 Query Response from /api/auth/me: {status: 200, statusText: '', ok: true}
+index-jIeO4q_L.js:48 Query data received from /api/auth/me: {id: 4, username: 'Gonz', fullName: 'Brett Gonzalez', initials: 'BG', email: 'bgonzalez@doliveradvisors.com', …}
+index-jIeO4q_L.js:48 Query fetch request: /api/system/health {queryKey: Array(1), unauthorizedBehavior: 'returnNull'}
+index-jIeO4q_L.js:48 Query Response from /api/system/health: {status: 200, statusText: '', ok: true}
+index-jIeO4q_L.js:48 Query data received from /api/system/health: {status: 'ok', timestamp: '2025-05-27T22:23:58.100Z', storage: 'pg', databaseConnected: true, environment: 'production', …}
+index-jIeO4q_L.js:457 Using /me endpoint data for avatar {id: 4, username: 'Gonz', fullName: 'Brett Gonzalez', initials: 'BG', email: 'bgonzalez@doliveradvisors.com', …}
+index-jIeO4q_L.js:457 Direct user fetch for avatar ID 1: {id: 1, username: 'admin', fullName: 'Admin User', initials: 'AU', email: 'admin@example.com', …}
+index-jIeO4q_L.js:457 Using /me endpoint data for avatar {id: 4, username: 'Gonz', fullName: 'Brett Gonzalez', initials: 'BG', email: 'bgonzalez@doliveradvisors.com', …}
+index-jIeO4q_L.js:457 Direct user fetch for avatar ID 1: {id: 1, username: 'admin', fullName: 'Admin User', initials: 'AU', email: 'admin@example.com', …}
+index-jIeO4q_L.js:457 Using /me endpoint data for avatar {id: 4, username: 'Gonz', fullName: 'Brett Gonzalez', initials: 'BG', email: 'bgonzalez@doliveradvisors.com', …}
+index-jIeO4q_L.js:457 Direct user fetch for avatar ID 1: {id: 1, username: 'admin', fullName: 'Admin User', initials: 'AU', email: 'admin@example.com', …}
+index-jIeO4q_L.js:48 Query fetch request: /api/auth/me {queryKey: Array(1), unauthorizedBehavior: 'returnNull'}
+index-jIeO4q_L.js:48 Query Response from /api/auth/me: {status: 200, statusText: '', ok: true}
+index-jIeO4q_L.js:48 Query data received from /api/auth/me: {id: 4, username: 'Gonz', fullName: 'Brett Gonzalez', initials: 'BG', email: 'bgonzalez@doliveradvisors.com', …}
+index-jIeO4q_L.js:48 Query fetch request: /api/system/health {queryKey: Array(1), unauthorizedBehavior: 'returnNull'}
+index-jIeO4q_L.js:48 Query Response from /api/system/health: {status: 200, statusText: '', ok: true}
+index-jIeO4q_L.js:48 Query data received from /api/system/health: {status: 'ok', timestamp: '2025-05-27T22:24:28.368Z', storage: 'pg', databaseConnected: true, environment: 'production', …}
+index-jIeO4q_L.js:457 Using /me endpoint data for avatar {id: 4, username: 'Gonz', fullName: 'Brett Gonzalez', initials: 'BG', email: 'bgonzalez@doliveradvisors.com', …}

@@ -1,0 +1,106 @@
+The project has been successfully extracted. Here's the structure:
+
+client/ – React front-end
+
+server/ – Node.js/Express backend
+
+shared/ – Shared TypeScript types/schema
+
+uploads/ – Local file storage for documents
+
+public/ – Static assets
+
+docs/, scripts/, migrations/ – Project utilities
+
+replit_agent/, .replit – Replit-specific config
+
+Various config files – ESLint, Tailwind, TypeScript, etc.
+
+Next, I’ll locate the document editing logic in the frontend (likely in client/), and trace how it's handled end-to-end through state, API calls, and server persistence.
+
+I'll start by identifying relevant files for document editing in the front-end. 
+
+Here are the key document-related components found:
+
+DocumentList.tsx – Likely responsible for listing documents and possibly initiating edits.
+
+DocumentsPane.tsx / DocumentsTab.tsx – Likely host the full document panel/tab views.
+
+SimpleDocumentViewer.tsx, UniversalDocumentViewer.tsx – For viewing documents.
+
+EmbeddedPDFViewer.tsx, etc. – Handle inline previews.
+
+Sidebar.tsx – May control navigation between documents or tabs.
+
+Next, I’ll review DocumentList.tsx and related components to trace how document metadata (e.g., title, description, type) is edited and why it may be reverting when switching tabs. 
+
+Here’s what I see so far in the DocumentList.tsx component:
+
+✅ Current Behaviors
+documents are fetched via React Query using the deal ID.
+
+selectedDocument is auto-set to the first document when the documents load.
+
+editingDocument, editDocumentType, etc., are stored in local useState hooks.
+
+isEditDialogOpen determines if the edit modal is open.
+
+🚨 Likely Cause of Reverting on Tab Switch
+The root cause is likely this pattern:
+
+tsx
+Copy
+Edit
+useEffect(() => {
+  if (documents && documents.length > 0 && !selectedDocument) {
+    setSelectedDocument(documents[0]);
+  }
+}, [documents, selectedDocument]);
+If you don’t persist edits (e.g. via a save button calling a PATCH /api/documents/:id), then switching tabs causes:
+
+selectedDocument to reset (e.g. back to documents[0])
+
+The unsaved changes (which were in state, not backend) are lost
+
+On return to the tab, React Query re-runs and re-populates from the backend
+
+✅ Confirming Next Steps
+To fix this, I’ll now:
+
+Inspect if a “Save” or “Update” button exists that updates the backend.
+
+See where the edit modal fields are initialized from and how they’re handled.
+
+Check whether the update is persisted via apiRequest or a mutation.
+
+Let’s locate and inspect the part of the code where the edit dialog is defined and how updates are submitted. 
+
+Great — we found the actual update logic in this line:
+
+ts
+Copy
+Edit
+const result = await apiRequest('PATCH', `/api/documents/${documentId}`, { documentType });
+This confirms that a PATCH request exists to update a document's metadata (in this case, the documentType).
+
+🚨 Problem: Only documentType Is Being Sent
+You're not updating the description or other fields in this call.
+
+That means:
+
+If a user edits both the document type and the description, only the type is persisted.
+
+When switching tabs or reloading, the description reverts — it was never saved.
+
+✅ Fix: Patch All Editable Fields
+Update the PATCH call to include the full payload:
+
+ts
+Copy
+Edit
+const result = await apiRequest('PATCH', `/api/documents/${documentId}`, {
+  documentType,
+  description
+});
+Also ensure that the description field is bound to editDescription in state and wired up in the form input.
+

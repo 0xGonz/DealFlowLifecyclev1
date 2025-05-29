@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Deal } from "@/lib/types";
-import { getDealStageBadgeClass } from "@/lib/utils";
+import { getDealStageBadgeClass } from "@/lib/utils/format";
 import { usePermissions } from "@/hooks/use-permissions";
 import { enrichDealWithComputedProps } from "@/lib/utils";
 

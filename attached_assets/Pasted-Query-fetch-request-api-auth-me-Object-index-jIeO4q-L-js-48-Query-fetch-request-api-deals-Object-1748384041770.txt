@@ -1,0 +1,53 @@
+Query fetch request: /api/auth/me Object
+index-jIeO4q_L.js:48 Query fetch request: /api/deals Object
+index-jIeO4q_L.js:48 Query fetch request: /api/funds Object
+index-jIeO4q_L.js:48 Query fetch request: /api/deals/100 Object
+index-jIeO4q_L.js:48 Query fetch request: /api/deals/100/stars Object
+index-jIeO4q_L.js:457 Avatar color changed to: #D32F2F
+index-jIeO4q_L.js:48 Query Response from /api/notifications: Object
+index-jIeO4q_L.js:48 Query data received from /api/notifications: Array(2)
+index-jIeO4q_L.js:457 Using /me endpoint data for avatar Object
+index-jIeO4q_L.js:48 Query Response from /api/deals/100/stars: Object
+index-jIeO4q_L.js:48 Query data received from /api/deals/100/stars: Array(0)
+index-jIeO4q_L.js:48 Query Response from /api/funds: Object
+index-jIeO4q_L.js:48 Query data received from /api/funds: Array(2)
+index-jIeO4q_L.js:48 Query Response from /api/notifications/unread-count: Object
+index-jIeO4q_L.js:48 Query data received from /api/notifications/unread-count: Object
+index-jIeO4q_L.js:48 Query Response from /api/auth/me: Object
+index-jIeO4q_L.js:48 Query data received from /api/auth/me: Object
+index-jIeO4q_L.js:48 Query Response from /api/deals/100: Object
+index-jIeO4q_L.js:48 Query data received from /api/deals/100: Object
+index-jIeO4q_L.js:457 UserAvatar: User 1 has color #4f46e5
+index-jIeO4q_L.js:48 Query fetch request: /api/documents/deal/100 Object
+index-jIeO4q_L.js:546 🔍 useDealDocuments: Processing data for deal 100: undefined
+index-jIeO4q_L.js:546 ⚠️ useDealDocuments: No data received or data is not an array: undefined
+index-jIeO4q_L.js:48 Query Response from /api/deals: Object
+index-jIeO4q_L.js:48 Query data received from /api/deals: Array(89)
+100:1 
+            
+            
+            Failed to load resource: the server responded with a status of 500 ()
+index-jIeO4q_L.js:48 Query Response from /api/documents/deal/100: Object
+index-jIeO4q_L.js:48  Error response from /api/documents/deal/100: Object
+(anonymous) @ index-jIeO4q_L.js:48
+index-jIeO4q_L.js:48  Exception during query fetch to /api/documents/deal/100: TypeError: Failed to execute 'text' on 'Response': body stream already read
+    at Ole (index-jIeO4q_L.js:48:43202)
+    at index-jIeO4q_L.js:48:44655
+(anonymous) @ index-jIeO4q_L.js:48
+index-jIeO4q_L.js:457 Direct user fetch for avatar ID 1: Object
+index-jIeO4q_L.js:48 Query fetch request: /api/documents/deal/100 Object
+100:1 
+            
+            
+            Failed to load resource: the server responded with a status of 500 ()
+index-jIeO4q_L.js:48 Query Response from /api/documents/deal/100: {status: 500, statusText: '', ok: false}
+index-jIeO4q_L.js:48  Error response from /api/documents/deal/100: {status: 500, text: '{"message":"Failed to fetch documents","error":"column \\"metadata\\" does not exist"}'}
+(anonymous) @ index-jIeO4q_L.js:48
+index-jIeO4q_L.js:48  Exception during query fetch to /api/documents/deal/100: TypeError: Failed to execute 'text' on 'Response': body stream already read
+    at Ole (index-jIeO4q_L.js:48:43202)
+    at index-jIeO4q_L.js:48:44655
+(anonymous) @ index-jIeO4q_L.js:48
+index-jIeO4q_L.js:457 Using /me endpoint data for avatar {id: 4, username: 'Gonz', fullName: 'Brett Gonzalez', initials: 'BG', email: 'bgonzalez@doliveradvisors.com', …}
+index-jIeO4q_L.js:457 Direct user fetch for avatar ID 1: {id: 1, username: 'admin', fullName: 'Admin User', initials: 'AU', email: 'admin@example.com', …}
+index-jIeO4q_L.js:457 Using /me endpoint data for avatar {id: 4, username: 'Gonz', fullName: 'Brett Gonzalez', initials: 'BG', email: 'bgonzalez@doliveradvisors.com', …}
+index-jIeO4q_L.js:457 Direct user fetch for avatar ID 1: {id: 1, username: 'admin', fullName: 'Admin User', initials: 'AU', email: 'admin@example.com', …}

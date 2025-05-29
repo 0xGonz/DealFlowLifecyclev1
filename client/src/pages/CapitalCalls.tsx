@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { format, isPast, addDays, isToday } from 'date-fns';
 import { DATE_FORMATS } from '@/lib/constants/time-constants';
-import { formatCurrency, formatDate } from '@/lib/utils';
-import { formatAmountByType } from '@/lib/utils';
+import { formatCurrency, formatDate } from '@/lib/utils/formatters';
+import { formatAmountByType } from '@/lib/utils/format';
 import { 
   CAPITAL_CALL_STATUS, 
   CAPITAL_CALL_STATUS_COLORS, 

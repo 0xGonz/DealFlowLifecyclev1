@@ -1,0 +1,46 @@
+[vite] connecting...
+[vite] connected.
+✅ PDF.js worker configured correctly: https://unpkg.com/pdfjs-dist@4.8.69/build/pdf.worker.min.js
+ProtectedRoute for /deals/:id: isLoading=true, user=undefined
+Query fetch request: /api/system/health 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Fetching current user data
+Auth provider mounted - checking authentication status
+Manual auth refresh requested
+Query Response from /api/system/health: 
+Object {status: 200, statusText: "OK", ok: true}
+Current user data fetched successfully: 
+Object {id: 4, username: "Gonz", fullName: "Brett Gonzalez", initials: "BG", email: "bgonzalez@doliveradvisors.com", …}
+ProtectedRoute for /deals/:id: isLoading=false, user=Gonz
+ProtectedRoute /deals/:id: Rendering component for user Gonz
+Query fetch request: /api/notifications 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Query fetch request: /api/notifications/unread-count 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+UserAvatar: User 4 has color #D32F2F
+Avatar color changed to: null
+Query fetch request: /api/auth/me 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Query fetch request: /api/deals 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Query fetch request: /api/funds 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Query fetch request: /api/deals/100 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Query fetch request: /api/deals/100/stars 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+ProtectedRoute for /deals/:id: isLoading=false, user=Gonz
+ProtectedRoute /deals/:id: Rendering component for user Gonz
+Avatar color changed to: #D32F2F
+Query data received from /api/system/health: 
+Object {status: "ok", timestamp: "2025-05-28T01:19:18.211Z", storage: "pg", databaseConnected: true, environment: "development", …}
+Query Response from /api/notifications/unread-count: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/notifications/unread-count: 
+Object {count: 2}
+Query Response from /api/notifications: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/notifications: 
+(2) [{…}, {…}]
+Using /me endpoint data for avatar 
+Object {id: 4, username: "Gonz", fullName: "Brett Gonzalez", initials: "BG", email: "bgonzalez@doliveradvisors.com", …}

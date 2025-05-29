@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/Dashboard";
 import Pipeline from "@/pages/Pipeline";
+import Leaderboard from "@/pages/Leaderboard";
 import Funds from "@/pages/Funds";
 import FundDetail from "@/pages/FundDetail";
 import DealDetail from "@/pages/DealDetail";
@@ -14,6 +15,7 @@ import Settings from "@/pages/Settings";
 import Users from "@/pages/Users";
 import AuthPage from "@/pages/auth-page";
 import AIAnalysis from "@/pages/AIAnalysis";
+import StarTest from "@/pages/StarTest";
 import CapitalCalls from "@/pages/CapitalCalls";
 import CapitalCallsByAllocation from "@/pages/CapitalCallsByAllocation";
 import { AuthProvider } from "@/hooks/use-auth";
@@ -26,7 +28,7 @@ function Router() {
     <Switch>
       <ProtectedRoute path="/" component={Dashboard} />
       <ProtectedRoute path="/pipeline" component={Pipeline} />
-
+      <ProtectedRoute path="/leaderboard" component={Leaderboard} />
       <ProtectedRoute path="/funds" component={Funds} />
       <ProtectedRoute path="/funds/:id" component={FundDetail} />
       <ProtectedRoute path="/deals/:id" component={DealDetail} />
@@ -37,6 +39,7 @@ function Router() {
       <ProtectedRoute path="/settings" component={Settings} />
       <ProtectedRoute path="/users" component={Users} />
       <Route path="/auth" component={AuthPage} />
+      <Route path="/startest" component={StarTest} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -44,7 +47,12 @@ function Router() {
 
 function App() {
   return (
-    <ErrorBoundary>
+    <ErrorBoundary
+      onError={(error, info) => {
+        console.error("Global error caught by ErrorBoundary:", error, info);
+        // Here we could send to an error reporting service like Sentry
+      }}
+    >
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <TooltipProvider>

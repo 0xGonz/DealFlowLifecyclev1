@@ -1,0 +1,85 @@
+Query fetch request: /api/deals 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Query fetch request: /api/funds 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Query fetch request: /api/deals/85 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Query fetch request: /api/deals/85/stars 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Query Response from /api/notifications/unread-count: 
+Object {status: 200, statusText: "OK", ok: true}
+Query Response from /api/users: 
+Object {status: 200, statusText: "OK", ok: true}
+Query Response from /api/notifications: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/users: 
+(4) [{…}, {…}, {…}, {…}]
+Query data received from /api/notifications/unread-count: 
+Object {count: 1}
+Query data received from /api/notifications: 
+(2) [{…}, {…}]
+Query Response from /api/funds: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/funds: 
+(2) [{…}, {…}]
+Query Response from /api/deals: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/deals: 
+(78) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+Query Response from /api/deals/85: 
+Object {status: 200, statusText: "OK", ok: true}
+Query Response from /api/deals/85/stars: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/deals/85: 
+Object {id: 85, name: "Ryans Woofers", description: "Test", sector: "Real Estate", stage: "invested", …}
+Query data received from /api/deals/85/stars: 
+(2) [{…}, {…}]
+Query fetch request: /api/documents/deal/85 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Query Response from /api/documents/deal/85: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/documents/deal/85: 
+(2) [{…}, {…}]
+Warning: Setting up fake worker.
+Warning: Error: Setting up fake worker failed: "Failed to resolve module specifier 'pdf.worker.mjs'".
+at t.value (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400
+Error loading PDF: 
+Error {}
+
+at t.value (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400
+Query fetch request: /api/capital-calls/deal/85 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Query fetch request: /api/allocations/deal/85 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Query Response from /api/capital-calls/deal/85: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/capital-calls/deal/85: 
+Array [{…}]
+Query Response from /api/allocations/deal/85: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/allocations/deal/85: 
+Array [{…}]
+Query fetch request: /api/deals/85/timeline 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Query Response from /api/deals/85/timeline: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/deals/85/timeline: 
+(6) [{…}, {…}, {…}, {…}, {…}, {…}]
+Warning: Error: Setting up fake worker failed: "Failed to resolve module specifier 'pdf.worker.mjs'".
+at t.value (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400
+Error loading PDF: 
+Error {}
+
+at t.value (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400

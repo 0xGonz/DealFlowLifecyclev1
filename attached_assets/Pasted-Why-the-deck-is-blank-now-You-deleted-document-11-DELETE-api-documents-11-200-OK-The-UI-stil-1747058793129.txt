@@ -1,0 +1,81 @@
+Why the deck is blank now
+You deleted document #11 (DELETE /api/documents/11 → 200 OK).
+
+The UI still keeps that document selected in component state, so the viewer asks for
+
+bash
+Copy
+Edit
+GET /api/documents/11/download
+which comes back 404, raising MissingPDFException.
+
+React‑PDF swallows the exception and leaves an empty <canvas> → you see a white area.
+
+Nothing in the Calendar module or its CSS is at fault this time—the PDF viewer is simply trying to show a file that no longer exists.
+
+Fix it in three small patches
+File	Patch	Purpose
+client/src/hooks/useDeleteDocument.ts (or wherever you call the mutation)	```ts	
+onSuccess: () => {		
+queryClient.invalidateQueries(['documents', dealId]);		
+setSelectedDocument(null); // NEW: clear stale selection		
+},		
+
+|
+Copy
+Edit
+| **`DocumentsPanel.tsx`** | ```tsx
+// Guard before rendering <DocumentViewer/>
+if (!selectedDocument) {
+  return <p className="text-gray-500">Select a document to preview</p>;
+}
+``` | Prevent the viewer from mounting when nothing is selected. |
+| **`DocumentViewer.tsx`** | ```tsx
+const { data: blob, isError } = useDocumentBlob(doc.id);
+
+if (isError) {
+  return <p className="text-red-500">Couldn’t load PDF (it may have been removed).</p>;
+}
+``` | User‑friendly message when a document goes missing. |
+
+*(Names may differ—adapt to your folder structure.)*
+
+---
+
+## Optional UX polish
+
+1. **Auto‑select the next document**  
+   ```ts
+   if (documents.length) {
+     setSelectedDocument(documents[0]);
+   }
+inside a useEffect that runs after the query refreshes.
+
+Disable the “Delete” button while its document is open, or pop a confirm dialog saying “After delete, the preview will close”.
+
+Toast notifications on success/failure so users know what happened.
+
+Sanity test
+Open deal #83 and select the PDF.
+
+Click Delete.
+
+Expected:
+
+Document list refreshes.
+
+Preview pane shows “Select a document to preview” or auto‑loads the next file.
+
+No XHR for /documents/11/download, no MissingPDFException.
+
+If you upload a new deck and select it, the PDF should render exactly like before—fitting to width and responsive (the earlier CSS fixes still apply).
+
+Recap
+The white screen isn’t coming from the Calendar module; it’s a stale reference after you removed a file. Clear selectedDocument (or re‑select a valid one) when the list changes, and the viewer will behave again. Let me know once you patch—happy to review the exact code if you run into state‑management edge cases.
+
+
+
+
+
+
+

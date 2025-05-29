@@ -4,9 +4,9 @@ import StatsCard from "@/components/dashboard/StatsCard";
 import QuickActions from "@/components/dashboard/QuickActions";
 import RecentDeals from "@/components/dashboard/RecentDeals";
 import ActivityFeed from "@/components/dashboard/ActivityFeed";
-
+import LeaderboardWidget from "@/components/dashboard/LeaderboardWidget";
 import SectorDistributionChart from "@/components/dashboard/SectorDistributionChart";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils/format";
 import { PADDING, MARGIN, GAP } from "@/lib/constants/spacing-constants";
 import { 
   Activity, 
@@ -125,7 +125,7 @@ export default function Dashboard() {
           </div>
           
           <div className="md:col-span-5 flex w-full">
-            <SectorDistributionChart />
+            <LeaderboardWidget />
           </div>
         </div>
       </div>

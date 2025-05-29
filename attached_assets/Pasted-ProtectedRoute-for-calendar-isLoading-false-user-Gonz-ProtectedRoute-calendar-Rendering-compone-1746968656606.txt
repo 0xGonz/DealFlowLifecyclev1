@@ -1,0 +1,70 @@
+ProtectedRoute for /calendar: isLoading=false, user=Gonz
+ProtectedRoute /calendar: Rendering component for user Gonz
+Calendar page auth state: 
+Object {isAuthenticated: true, username: "Gonz"}
+Query fetch request: /api/notifications 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Query fetch request: /api/notifications/unread-count 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+UserAvatar: User 4 has color #D32F2F
+Avatar color changed to: null
+Query fetch request: /api/auth/me 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Query fetch request: /api/deals 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Query fetch request: /api/funds 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Query fetch request: /api/capital-calls 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Query fetch request: /api/closing-schedules 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+ProtectedRoute for /calendar: isLoading=false, user=Gonz
+ProtectedRoute /calendar: Rendering component for user Gonz
+Calendar page auth state: 
+Object {isAuthenticated: true, username: "Gonz"}
+Avatar color changed to: #D32F2F
+Query Response from /api/notifications/unread-count: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/notifications/unread-count: 
+Object {count: 0}
+Query Response from /api/notifications: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/notifications: 
+Array []
+Using /me endpoint data for avatar 
+Object {id: 4, username: "Gonz", fullName: "Brett Gonzalez", initials: "BG", email: "bgonzalez@doliveradvisors.com", …}
+Query Response from /api/capital-calls: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/capital-calls: 
+Array []
+Calendar page auth state: 
+Object {isAuthenticated: true, username: "Gonz"}
+Query Response from /api/closing-schedules: 
+Object {status: 500, statusText: "Internal Server Error", ok: false}
+Error response from /api/closing-schedules: 
+Object {status: 500, text: "{"message":"An unexpected error occurred","stack":"TypeError: Cannot read properties of…"}
+
+at t.value (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400
+Exception during query fetch to /api/closing-schedules: 
+TypeError {message: "Failed to execute 'text' on 'Response': body stream already read"}
+
+at t.value (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400
+Query Response from /api/auth/me: 
+Object {status: 401, statusText: "Unauthorized", ok: false}
+Returning null for 401 response from /api/auth/me as configured
+ProtectedRoute for /calendar: isLoading=false, user=undefined
+ProtectedRoute /calendar: User not authenticated, redirecting to /auth
+Query Response from /api/deals: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/deals: 
+(75) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+Query Response from /api/funds: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/funds: 
+(2) [{…}, {…}]

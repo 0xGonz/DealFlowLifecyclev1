@@ -1,0 +1,156 @@
+Okay, the network request details confirm it:
+
+Request URL: 
+https://deal-flow-lifecyclev-1-bgonzalez9.replit.app/api/documents/41/download
+
+Status Code: 
+404 Not Found
+
+This tells us definitively that the server is unable to find or serve the file for document ID 
+
+41
+
+ when requested by the 
+
+iframe
+
+ (or any other client).
+
+Even though we've (presumably) fixed the 
+
+iframe
+
+ 
+
+src
+
+ attribute on the client-side, the backend cannot fulfill the request.
+
+This means we need to shift our focus entirely to the server-side for this specific problem.
+
+The PDF.js "fake worker" error is a separate issue we can return to, but it's irrelevant if the server can't even provide the file in the first place.
+
+Server-Side Investigation (Recap from earlier):
+
+We need to look at the server logs for 
+
+server/routes/documents.ts
+
+ when this exact request (
+
+GET /api/documents/41/download
+
+) is made.
+
+Specifically, we're looking for these log lines from the download route handler:
+
+1.  console.log(\
+
+Attempting to serve document: ${document.fileName}`);`
+
+2.  console.log(\
+
+Checking these locations: ${JSON.stringify(filePaths)}`);`
+
+And, crucially, whether it logs 
+✅ Found and serving file from: <filePath>
+
+ or if it fails to find the file in any of the 
+
+filePaths
+
+ and thus returns the 404.
+
+Possible reasons for the 404 on the server:
+
+Document Record Not Found in DB: The line 
+const document = await storage.getDocument(id);
+
+ might not be finding a record for ID 
+
+41
+
+. (Unlikely if it's trying to generate a 
+
+content-disposition
+
+ filename, but possible).
+
+File Not in Expected Paths: The 
+document.filePath
+
+ from the database, combined with 
+
+document.dealId
+
+, doesn't lead to an existing file in any of the locations checked by 
+
+fs.existsSync(filePath)
+
+.
+
+The code checks paths like:
+·         data/uploads/deal-<dealId>/<filename>
+
+·         data/uploads/<filename>
+
+·         public/uploads/deal-<dealId>/<filename>
+
+·         public/uploads/<filename>
+
+Incorrect 
+filePath
+
+ in Database: The 
+
+filePath
+
+ field for document 
+
+41
+
+ in your database might be incorrect (e.g., wrong filename, wrong sub-path).
+
+File Never Uploaded/Saved Correctly: The original upload of this specific PDF (document 
+41
+
+) might have failed, so the file doesn't exist on disk where it's expected.
+
+Next Steps:
+
+Trigger the 404: Attempt to view the PDF for document ID 
+41
+
+ again to ensure the request hits the server.
+
+Examine Server Logs: Immediately check your Replit server logs. Filter or search for entries related to 
+/api/documents/41/download
+
+.
+
+Paste the relevant log section here. We need to see what the server is doing (or not doing) when it gets this request.
+Check Database (if necessary): If the logs suggest the document record is found but the file path is problematic, you might need to inspect the database record for document ID 
+41
+
+ to see its 
+
+filePath
+
+ and 
+
+dealId
+
+ values.
+
+Check File System (if necessary): Based on the "Checking these locations" log, you might need to SSH into your Replit environment (if possible, or use its file explorer) to manually verify if the file 
+Morgan Creek Digital Fund IV - Fact Sheet 2024-Q4.pdf
+
+ (or whatever its stored name is) actually exists in any of those paths for the correct 
+
+dealId
+
+.
+
+The server logs are the most critical piece of information now.
+
+ 

@@ -3,7 +3,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { ResponsiveContainer, PieChart, Pie, Cell, Legend, Tooltip } from 'recharts';
 import { FundAllocation, Deal } from "@/lib/types";
 import { getSectorColor } from "@/lib/constants/chart-constants";
-import { formatPercentage } from '@/lib/utils';
+import { formatPercentage } from '@/lib/utils/format';
 
 interface SectorData {
   sector: string;

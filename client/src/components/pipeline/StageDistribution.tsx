@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Deal, TimelineEvent } from "@/lib/types";
 import { DealStageLabels } from "@shared/schema";
-import { getDealStageBadgeClass, formatPercentage } from "@/lib/utils";
+import { getDealStageBadgeClass, formatPercentage } from "@/lib/utils/format";
 import { PIPELINE_METRICS } from "@/lib/constants/calculation-constants";
 
 type StageDistributionProps = {

@@ -1,0 +1,89 @@
+Exception during query fetch to /api/deals/84/activities: 
+TypeError {message: "Failed to execute 'text' on 'Response': body stream already read"}
+message: "Failed to execute 'text' on 'Response': body stream already read"
+stack: "TypeError: body stream already read↵ at throwIfResNotOk (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/src/lib/queryClient.ts:4:28)↵ at https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/src/lib/queryClient.ts:66:11"
+get stack: ƒ ()
+set stack: ƒ ()
+[[Prototype]]: Object
+
+Query Response from /api/deals/84/allocations: 
+Object {status: 404, statusText: "Not Found", ok: false}
+Error response from /api/deals/84/allocations: 
+Object {status: 404, text: "{"message":"Route not found: GET /api/deals/84/allocations"}"}
+status: 404
+text: "{"message":"Route not found: GET /api/deals/84/allocations"}"
+[[Prototype]]: Object
+
+Exception during query fetch to /api/deals/84/allocations: 
+TypeError {message: "Failed to execute 'text' on 'Response': body stream already read"}
+
+at t.value (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400
+Query Response from /api/documents/deal/84: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/documents/deal/84: 
+Array [{…}]
+Query Response from /api/ai-analysis/deals: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/ai-analysis/deals: 
+(89) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+Query Response from /api/deals/84/memos: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/deals/84/memos: 
+Array [{…}]
+Query Response from /api/deals/84: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/deals/84: 
+Object {id: 84, name: "High Road Partners", description: "Lease to own trucking paying 12% fixed with warrants ", sector: "Private Credit", stage: "closing", …}
+Query fetch request: /api/deals/84/activities 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Query fetch request: /api/deals/84/allocations 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Query Response from /api/deals/84/activities: 
+Object {status: 404, statusText: "Not Found", ok: false}
+Error response from /api/deals/84/activities: 
+Object {status: 404, text: "{"message":"Route not found: GET /api/deals/84/activities"}"}
+
+at t.value (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400
+Exception during query fetch to /api/deals/84/activities: 
+TypeError {message: "Failed to execute 'text' on 'Response': body stream already read"}
+
+at t.value (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400
+Query Response from /api/deals/84/allocations: 
+Object {status: 404, statusText: "Not Found", ok: false}
+Error response from /api/deals/84/allocations: 
+Object {status: 404, text: "{"message":"Route not found: GET /api/deals/84/allocations"}"}
+
+at t.value (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400
+Exception during query fetch to /api/deals/84/allocations: 
+TypeError {message: "Failed to execute 'text' on 'Response': body stream already read"}
+
+at t.value (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400
+Using /me endpoint data for avatar 
+Object {id: 4, username: "Gonz", fullName: "Brett Gonzalez", initials: "BG", email: "bgonzalez@doliveradvisors.com", …}
+Using /me endpoint data for avatar 
+Object {id: 4, username: "Gonz", fullName: "Brett Gonzalez", initials: "BG", email: "bgonzalez@doliveradvisors.com", …}
+ProtectedRoute for /ai-analysis: isLoading=false, user=Gonz
+ProtectedRoute /ai-analysis: Rendering component for user Gonz
+Query fetch request: /api/system/health 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Query Response from /api/system/health: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/system/health: 
+Object {status: "ok", timestamp: "2025-05-27T01:07:53.245Z", storage: "pg", databaseConnected: true, environment: "development", …}
+Using /me endpoint data for avatar 
+Object {id: 4, username: "Gonz", fullName: "Brett Gonzalez", initials: "BG", email: "bgonzalez@doliveradvisors.com", …}
