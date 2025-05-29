@@ -73,3 +73,26 @@ export function formatCurrency(amount: number | undefined | null): string {
     maximumFractionDigits: 0,
   }).format(amount)
 }
+
+/**
+ * Format date for display
+ */
+export function formatDate(date: string | Date): string {
+  if (!date) return ''
+  const dateObj = typeof date === 'string' ? new Date(date) : date
+  return dateObj.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  })
+}
+
+/**
+ * Format amount by type (percentage or dollar)
+ */
+export function formatAmountByType(amount: number, type: 'percentage' | 'dollar'): string {
+  if (type === 'percentage') {
+    return `${amount}%`
+  }
+  return formatCurrency(amount)
+}

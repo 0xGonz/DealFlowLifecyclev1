@@ -3,7 +3,7 @@ import { useParams } from 'wouter';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { DATE_FORMATS } from '@/lib/constants/time-constants';
-import { formatCurrency, formatDate } from '@/lib/utilsters';
+import { formatCurrency, formatDate } from '@/lib/utils';
 import { formatAmountByType } from '@/lib/utils';
 import { queryClient, apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
