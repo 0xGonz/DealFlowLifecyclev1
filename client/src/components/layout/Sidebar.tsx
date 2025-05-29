@@ -36,11 +36,7 @@ export default function Sidebar({ onCloseMobile }: SidebarProps) {
       label: "Pipeline", 
       icon: <Building className="h-5 w-5 mr-2" /> 
     },
-    { 
-      href: "/leaderboard", 
-      label: "Leaderboard", 
-      icon: <ChartPieIcon className="h-5 w-5 mr-2" /> 
-    },
+
     { 
       href: "/funds", 
       label: "Funds", 
