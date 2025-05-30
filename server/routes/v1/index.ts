@@ -13,7 +13,7 @@ import activityRoutes from '../activity';
 import dashboardRoutes from '../dashboard';
 import leaderboardRoutes from '../leaderboard';
 import notificationsRoutes from '../notifications';
-import documentsRoutes from '../documents-fixed';
+import documentsRoutes from '../documents-database';
 import aiAnalysisRoutes from '../ai-analysis';
 const v1Router = Router();
 

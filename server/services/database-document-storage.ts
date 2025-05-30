@@ -67,7 +67,7 @@ export class DatabaseDocumentStorage {
           fileData: fileDataBase64,
           uploadedBy: documentData.uploadedBy,
           description: documentData.description || null,
-          documentType: documentData.documentType || 'other'
+          documentType: (documentData.documentType as any) || 'other'
         })
         .returning();
       
@@ -142,7 +142,7 @@ export class DatabaseDocumentStorage {
         .set({
           fileName: updateData.fileName,
           description: updateData.description,
-          documentType: updateData.documentType,
+          documentType: (updateData.documentType as any),
           uploadedAt: new Date() // Update timestamp
         })
         .where(eq(documents.id, documentId))
