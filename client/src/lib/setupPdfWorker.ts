@@ -1,25 +1,23 @@
 import { pdfjs } from 'react-pdf';
+import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.min.js?url';
 
 /**
  * PDF.js Worker Configuration
  * 
- * This fixes the "fake worker" error by using the correct worker version
- * that matches the installed pdfjs-dist package version 4.8.69.
+ * This fixes the "fake worker" error by using Vite's bundled worker.
+ * This approach eliminates CORS issues and ensures version consistency.
  */
 
-// Use CDN for the exact version that matches our pdfjs-dist package
 const PDFJS_VERSION = '4.8.69';
-const CDN_WORKER_URL = `https://unpkg.com/pdfjs-dist@${PDFJS_VERSION}/build/pdf.worker.min.js`;
 
 try {
-  pdfjs.GlobalWorkerOptions.workerSrc = CDN_WORKER_URL;
-  console.log(`✅ PDF.js worker configured with CDN: ${CDN_WORKER_URL}`);
+  // Use Vite's URL import to bundle the worker with the application
+  pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorker;
+  console.log(`✅ PDF.js worker configured with bundled worker (version ${PDFJS_VERSION})`);
+  console.log('🔍 PDF.js worker configuration succeeded');
 } catch (error) {
   console.error('❌ Failed to configure PDF.js worker:', error);
-  // Fallback: use a different CDN
-  const fallbackUrl = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${PDFJS_VERSION}/pdf.worker.min.js`;
-  pdfjs.GlobalWorkerOptions.workerSrc = fallbackUrl;
-  console.warn(`⚠️ Using fallback CDN: ${fallbackUrl}`);
+  throw new Error(`PDF.js worker configuration failed: ${error.message}`);
 }
 
 // Export simple status function for debugging
@@ -28,6 +26,6 @@ export function getWorkerStatus() {
     workerSrc: pdfjs.GlobalWorkerOptions.workerSrc,
     version: PDFJS_VERSION,
     isConfigured: true,
-    usingCDN: true
+    usingBundledWorker: true
   };
 }

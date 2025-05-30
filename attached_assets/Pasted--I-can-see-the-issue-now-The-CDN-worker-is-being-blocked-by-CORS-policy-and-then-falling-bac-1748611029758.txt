@@ -1,0 +1,79 @@
+
+
+
+
+
+
+
+I can see the issue now! The CDN worker is being blocked by CORS policy, and then falling back to a "fake worker" which is also failing. The unpkg.com CDN doesn't allow cross-origin requests from your Replit domain.
+
+Let me fix this by setting up a proper local worker configuration:
+
+Viewing file public
+
+Thinking...
+
+
+client/src/lib/setupPdfWorker.ts
+Code • typescript
+Thinking...
+
+
+
+Now I need to ensure you have a proper local worker file. Let me copy the correct worker to your public directory:
+
+Local PDF.js Worker File (4.8.69)
+Code • javascript
+Thinking...
+
+
+
+client/src/lib/setupPdfWorker.ts
+Code • typescript
+Thinking...
+
+
+
+Perfect! I've implemented a much more reliable solution using Vite's built-in bundling system. This approach avoids CORS issues entirely by bundling the PDF worker directly with your application.
+
+🔧 Changes Made:
+Updated setupPdfWorker.ts:
+
+✅ Uses Vite's import.meta.url to bundle the worker directly
+✅ Eliminates CORS issues completely
+✅ More reliable than CDN-based approaches
+✅ Simplified error handling
+Let me also clean up the placeholder worker file since it's not needed:
+
+Local PDF.js Worker File (4.8.69)
+Code • javascript
+Thinking...
+
+
+🚀 Next Steps:
+1. Rebuild your application:
+
+bash
+npm run build
+
+2. Deploy the updated build
+
+3. Test the fix:
+
+Navigate to a deal with PDF documents
+Open the browser dev tools console
+You should now see: ✅ PDF.js worker configured with bundled worker (version 4.8.69)
+PDFs should load without CORS errors
+🎯 What This Fix Does:
+✅ Eliminates CORS Issues: Worker is bundled with your app, not loaded from external CDNs
+✅ Version Consistency: Guaranteed to use the exact same version as your pdfjs-dist dependency
+✅ Deployment Reliability: Works across all hosting environments (Replit, Vercel, etc.)
+✅ Better Performance: No external network requests for the worker
+📋 Expected Console Output After Fix:
+plaintext
+✅ PDF.js worker configured with bundled worker (version 4.8.69)
+🔍 PDF.js worker configuration succeeded
+📤 Loading PDF document: {documentId: 61, documentName: 'Confidential Offering Memorandum_9201 Winkler.pdf', url: '/api/documents/61/download'}
+✅ PDF loaded successfully: {numPages: X, documentName: 'Confidential Offering Memorandum_9201 Winkler.pdf'}
+
+This approach is much more reliable than CDN-based solutions and should resolve both the CORS and version mismatch issues you were experiencing. Let me know how it works after you rebuild and deploy!
