@@ -27,7 +27,7 @@ router.get('/:id/debug', requireAuth, async (req: Request, res: Response) => {
     console.log(`🔍 Debug request for document ${documentId}`);
     
     // Get document from database
-    const document = await storage.getDocumentById(documentId);
+    const document = await storage.getDocument(documentId);
     
     if (!document) {
       return res.status(404).json({ error: 'Document not found in database' });
@@ -454,12 +454,12 @@ router.post('/upload', requireAuth, upload.single('file'), async (req: Request, 
       eventType: 'document_upload',
       content: `${req.session.username || 'User'} uploaded document: ${req.file.originalname}`,
       createdBy: req.session.userId,
-      metadata: {
-        documentId: newDocument.id,
-        fileName: req.file.originalname,
-        fileType: req.file.mimetype,
-        documentType: documentType || 'other'
-      }
+      metadata: [
+        newDocument.id,
+        req.file.originalname,
+        req.file.mimetype,
+        documentType || 'other'
+      ]
     });
     
     console.log(`✅ Document uploaded successfully: ${req.file.originalname}`);

@@ -7,47 +7,17 @@ import crypto from 'crypto';
  * Provides consistent file storage, retrieval, and path resolution
  */
 export class FileManagerService {
-  private static readonly BASE_UPLOAD_DIR = 'uploads';
+  private static readonly BASE_UPLOAD_DIR = 'data/uploads';
   private static readonly SUPPORTED_EXTENSIONS = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.csv', '.ppt', '.pptx'];
   
   /**
    * Get the absolute base upload directory with production persistence
    */
   static getBaseUploadDir(): string {
-    // Use persistent storage path for production deployments
-    const isProd = process.env.NODE_ENV === 'production';
-    const replitStorage = process.env.REPLIT_STORAGE;
-    
-    if (isProd && replitStorage) {
-      // Use Replit's persistent storage if available
-      const persistentPath = path.join(replitStorage, this.BASE_UPLOAD_DIR);
-      console.log(`📁 Using persistent storage path: ${persistentPath}`);
-      return persistentPath;
-    } else if (isProd) {
-      // Try common persistent paths for production
-      const persistentPaths = [
-        '/tmp/persistent-uploads',
-        '/data/uploads', 
-        '/storage/uploads'
-      ];
-      
-      for (const persistentPath of persistentPaths) {
-        try {
-          if (!fs.existsSync(persistentPath)) {
-            fs.mkdirSync(persistentPath, { recursive: true });
-          }
-          console.log(`📁 Using production persistent path: ${persistentPath}`);
-          return persistentPath;
-        } catch (err) {
-          console.log(`⚠️ Could not use persistent path ${persistentPath}: ${err}`);
-        }
-      }
-    }
-    
-    // Fallback to local directory for development
-    const localPath = path.join(process.cwd(), this.BASE_UPLOAD_DIR);
-    console.log(`📁 Using local upload path: ${localPath}`);
-    return localPath;
+    // Always use data/uploads for persistent storage
+    const persistentPath = path.join(process.cwd(), this.BASE_UPLOAD_DIR);
+    console.log(`📁 Using persistent upload path: ${persistentPath}`);
+    return persistentPath;
   }
 
   /**

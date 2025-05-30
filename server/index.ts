@@ -175,16 +175,23 @@ async function initialize() {
     next();
   });
 
-  // Ensure the uploads directory exists
-  const uploadDir = path.join(process.cwd(), 'public/uploads');
+  // Ensure the persistent uploads directory exists
+  const uploadDir = path.join(process.cwd(), 'data/uploads');
   if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
-    console.log('Created uploads directory:', uploadDir);
+    console.log('Created persistent uploads directory:', uploadDir);
+  }
+  
+  // Also ensure old public/uploads exists for backwards compatibility
+  const publicUploadDir = path.join(process.cwd(), 'public/uploads');
+  if (!fs.existsSync(publicUploadDir)) {
+    fs.mkdirSync(publicUploadDir, { recursive: true });
   }
 
-  // Serve uploads and pdfjs dirs explicitly before other routes
+  // Serve uploads from persistent data directory and pdfjs from public
   const rootPublic = path.resolve(process.cwd(), 'public');
-  app.use('/uploads', express.static(path.join(rootPublic, 'uploads')));
+  const dataUploads = path.resolve(process.cwd(), 'data/uploads');
+  app.use('/uploads', express.static(dataUploads));
   app.use('/pdfjs', express.static(path.join(rootPublic, 'pdfjs')));
   
   // Serve PDF worker file directly from public root
