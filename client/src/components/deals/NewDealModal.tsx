@@ -136,14 +136,12 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
 
   const uploadDocumentMutation = useMutation({
     mutationFn: async (params: { formData: FormData, type: string, dealId?: number }) => {
-      console.log(`Uploading document of type: ${params.type}${params.dealId ? ` for deal ${params.dealId}` : ''}`);
       
       // Log the formData contents for debugging (except the file itself)
       const formDataEntries = Array.from(params.formData.entries());
       const formDataLog = formDataEntries
         .filter(([key]) => key !== 'file')
         .map(([key, value]) => `${key}: ${value}`);
-      console.log('FormData contents:', formDataLog);
       
       // Using standard fetch for FormData upload
       const response = await fetch('/api/documents/upload', {
@@ -161,7 +159,6 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
       return response.json();
     },
     onSuccess: (result, variables) => {
-      console.log(`Successfully uploaded document of type: ${variables.type}`, result);
       
       toast({
         title: 'Document uploaded',
@@ -189,7 +186,6 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
       // Parse the response JSON to get the deal data with ID
       try {
         const dealData = await response.json();
-        console.log('Deal created successfully with data:', dealData);
         return dealData;
       } catch (error) {
         console.error('Error parsing deal creation response:', error);
@@ -221,7 +217,6 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
       
       // Upload all documents if available
       if (documentUploads.length > 0) {
-        console.log(`Uploading ${documentUploads.length} documents for new deal ${dealId}`);
         
         // Keep track of successful uploads for toast notification summary
         let successCount = 0;
@@ -239,7 +234,6 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
           }
           
           try {
-            console.log(`Starting upload for ${doc.file.name} (${doc.type}) to deal ${dealId}`);
             const result = await uploadDocumentMutation.mutateAsync({ 
               formData: formData,
               type: doc.type,
@@ -247,7 +241,6 @@ export default function NewDealModal({ isOpen, onClose }: NewDealModalProps) {
             });
             
             if (result && result.id) {
-              console.log(`Uploaded document ${result.id} successfully`);
               successCount++;
               return { success: true, doc };
             }

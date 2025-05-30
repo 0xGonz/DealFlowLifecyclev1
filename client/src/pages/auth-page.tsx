@@ -127,14 +127,11 @@ export default function AuthPage() {
               <TabsContent value="login">
                 <LoginForm onSubmit={async (username, password) => {
                   try {
-                    console.log('Starting login process for username:', username);
                     setIsAuthenticating(true);
                     
                     // Print out login hook info to diagnose issues
-                    console.log('Login mutation state:', login);
                     
                     const result = await login.mutateAsync({ username, password });
-                    console.log('Login successful result:', result);
                     
                     // Add a slight delay before redirect to show the animation
                     setTimeout(() => {
@@ -168,7 +165,6 @@ export default function AuthPage() {
                       role: 'analyst'
                     });
                     
-                    console.log('Registration successful, showing animation');
                     
                     // Add a slight delay before redirect to show the animation
                     setTimeout(() => {
@@ -212,7 +208,6 @@ function LoginForm({ onSubmit, isLoading }: { onSubmit: (username: string, passw
       }
       
       const { username, password } = data;
-      console.log('Submitting login with credentials:', { username, password: '******' });
       await onSubmit(username, password);
     } catch (error) {
       // Error is handled in the auth context

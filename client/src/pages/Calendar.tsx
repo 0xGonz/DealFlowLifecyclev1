@@ -112,7 +112,6 @@ const CalendarPage = () => {
   const isLoading = isLoadingCalls || isLoadingEvents || isLoadingMeetings;
   
   // Debug authentication state
-  console.log('Calendar page auth state:', { 
     isAuthenticated: !!currentUser, 
     username: currentUser?.username
   });

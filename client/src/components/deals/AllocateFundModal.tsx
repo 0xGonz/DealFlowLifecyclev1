@@ -104,7 +104,6 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
         firstCallDate: formatDateForAPI(data.firstCallDate)
       };
       
-      console.log('Allocation dates:', {
         originalAllocationDate: data.allocationDate,
         originalFirstCallDate: data.firstCallDate,
         formattedAllocationDate: formattedData.allocationDate,
@@ -112,9 +111,7 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
       });
       
       try {
-        console.log('Sending API request to POST /api/allocations');
         const response = await apiRequest("POST", "/api/allocations", formattedData);
-        console.log('API response received:', response);
         
         // Check if response is not ok and handle the error
         if (!response.ok) {
@@ -123,9 +120,7 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
           let errorMessage = 'Failed to allocate investment';
           
           try {
-            console.log('Parsing error response...');
             const errorData = await errorClone.json();
-            console.log('Parsed error data:', errorData);
             errorMessage = errorData.message || errorMessage;
             if (errorData.errors && errorData.errors.length > 0) {
               // Add specific validation error details
@@ -138,7 +133,6 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
           throw new Error(errorMessage);
         }
         
-        console.log('Successful response, parsing JSON');
         return await response.json();
       } catch (error) {
         console.error('Exception in mutation function:', error);
@@ -277,7 +271,6 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
 
   const handleCreateAllocation = () => {
     // Log the allocation data for debugging
-    console.log('Allocation data being sent:', allocationData);
     
     if (!allocationData.fundId) {
       toast({

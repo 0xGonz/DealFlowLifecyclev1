@@ -14,7 +14,6 @@ const workerSrc = `https://unpkg.com/pdfjs-dist@${PDFJS_VERSION}/build/pdf.worke
 // Configure PDF.js worker to prevent "fake worker" errors
 pdfjs.GlobalWorkerOptions.workerSrc = workerSrc;
 
-console.log('✅ PDF.js worker configured correctly:', workerSrc);
 
 // Export simple status function for debugging
 export function getWorkerStatus() {

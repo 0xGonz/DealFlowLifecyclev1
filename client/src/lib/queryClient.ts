@@ -13,7 +13,6 @@ export async function apiRequest(
   data?: unknown | undefined,
   isFormData: boolean = false,
 ): Promise<Response> {
-  console.log(`API Request: ${method} ${url}`, data ? { data: isFormData ? 'FormData' : data } : 'No data');
   
   const options: RequestInit = {
     method,
@@ -31,9 +30,7 @@ export async function apiRequest(
   }
 
   try {
-    console.log(`Sending fetch request to ${url} with options:`, { ...options, body: options.body ? 'BODY_DATA' : undefined });
     const res = await fetch(url, options);
-    console.log(`API Response from ${url}:`, { status: res.status, statusText: res.statusText, ok: res.ok });
     
     // Create a clone of response before reading its body
     // This allows us to both log the error response and return the original response
@@ -68,17 +65,14 @@ export const getQueryFn: <T>(options: {
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
     const url = queryKey[0] as string;
-    console.log(`Query fetch request: ${url}`, { queryKey, unauthorizedBehavior });
     
     try {
       const res = await fetch(url, {
         credentials: "include",
       });
       
-      console.log(`Query Response from ${url}:`, { status: res.status, statusText: res.statusText, ok: res.ok });
       
       if (unauthorizedBehavior === "returnNull" && res.status === 401) {
-        console.log(`Returning null for 401 response from ${url} as configured`);
         return null;
       }
       
@@ -93,7 +87,6 @@ export const getQueryFn: <T>(options: {
       
       await throwIfResNotOk(res);
       const data = await res.json();
-      console.log(`Query data received from ${url}:`, data);
       return data;
     } catch (error) {
       console.error(`Exception during query fetch to ${url}:`, error);

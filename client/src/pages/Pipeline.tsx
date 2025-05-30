@@ -87,7 +87,6 @@ export default function Pipeline() {
     },
     onSuccess: async (data: any) => {
       // Log the data response
-      console.log('Deal update response:', data);
       
       // Get the stage label
       const stageLabel = data.stage ? DealStageLabels[data.stage as keyof typeof DealStageLabels] : 'a new stage';
