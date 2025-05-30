@@ -1,0 +1,1330 @@
+✅ PDF.js worker configured correctly: https://unpkg.com/pdfjs-dist@4.8.69/build/pdf.worker.min.js
+index-DEJlTvxE.js:48 Query fetch request: /api/system/health Object
+index-DEJlTvxE.js:457 Fetching current user data
+index-DEJlTvxE.js:457 Auth provider mounted - checking authentication status
+index-DEJlTvxE.js:457 Manual auth refresh requested
+index-DEJlTvxE.js:457 Current user data fetched successfully: Object
+index-DEJlTvxE.js:48 Query Response from /api/system/health: Object
+index-DEJlTvxE.js:48 Query fetch request: /api/notifications Object
+index-DEJlTvxE.js:48 Query fetch request: /api/notifications/unread-count Object
+index-DEJlTvxE.js:457 UserAvatar: User 4 has color #D32F2F
+index-DEJlTvxE.js:457 Avatar color changed to: null
+index-DEJlTvxE.js:48 Query fetch request: /api/auth/me Object
+index-DEJlTvxE.js:48 Query fetch request: /api/deals Object
+index-DEJlTvxE.js:48 Query fetch request: /api/funds Object
+index-DEJlTvxE.js:48 Query fetch request: /api/deals/84 Object
+index-DEJlTvxE.js:48 Query fetch request: /api/deals/84/stars Object
+index-DEJlTvxE.js:457 Avatar color changed to: #D32F2F
+index-DEJlTvxE.js:48 Query data received from /api/system/health: Object
+index-DEJlTvxE.js:457 Using /me endpoint data for avatar Object
+index-DEJlTvxE.js:48 Query Response from /api/notifications/unread-count: Object
+index-DEJlTvxE.js:48 Query data received from /api/notifications/unread-count: Object
+index-DEJlTvxE.js:48 Query Response from /api/notifications: Object
+index-DEJlTvxE.js:48 Query data received from /api/notifications: Array(2)
+index-DEJlTvxE.js:48 Query Response from /api/deals/84/stars: Object
+index-DEJlTvxE.js:48 Query data received from /api/deals/84/stars: Array(1)
+index-DEJlTvxE.js:48 Query Response from /api/auth/me: Object
+index-DEJlTvxE.js:48 Query data received from /api/auth/me: Object
+index-DEJlTvxE.js:48 Query Response from /api/funds: Object
+index-DEJlTvxE.js:48 Query data received from /api/funds: Array(2)
+index-DEJlTvxE.js:48 Query Response from /api/deals: Object
+index-DEJlTvxE.js:48 Query data received from /api/deals: Array(89)
+index-DEJlTvxE.js:48 Query Response from /api/deals/84: Object
+index-DEJlTvxE.js:48 Query data received from /api/deals/84: Object
+index-DEJlTvxE.js:457 UserAvatar: User 1 has color #4f46e5
+index-DEJlTvxE.js:457 UserAvatar: User 5 has color #6B7280
+index-DEJlTvxE.js:457 UserAvatar: User 4 has color #D32F2F
+index-DEJlTvxE.js:48 Query fetch request: /api/documents/deal/84 Object
+index-DEJlTvxE.js:546 🔍 useDealDocuments: Processing data for deal 84: undefined
+index-DEJlTvxE.js:546 ⚠️ useDealDocuments: No data received or data is not an array: undefined
+index-DEJlTvxE.js:48 Query Response from /api/documents/deal/84: Object
+index-DEJlTvxE.js:48 Query data received from /api/documents/deal/84: Array(0)
+index-DEJlTvxE.js:546 🔍 useDealDocuments: Processing data for deal 84: Array(0)
+index-DEJlTvxE.js:546 📝 useDealDocuments: Setting 0 documents in context: Array(0)
+index-DEJlTvxE.js:546 ❌ useDealDocuments: No documents found, clearing selection
+index-DEJlTvxE.js:457 Direct user fetch for avatar ID 1: Object
+index-DEJlTvxE.js:457 Using /me endpoint data for avatar Object
+index-DEJlTvxE.js:457 Direct user fetch for avatar ID 5: Object
+index-DEJlTvxE.js:457 Fetching current user data
+index-DEJlTvxE.js:48 Query fetch request: /api/system/health Object
+index-DEJlTvxE.js:48 Query fetch request: /api/deals/84 Object
+index-DEJlTvxE.js:48 Query fetch request: /api/deals/84/stars Object
+index-DEJlTvxE.js:48 Query fetch request: /api/deals Object
+index-DEJlTvxE.js:48 Query fetch request: /api/funds Object
+index-DEJlTvxE.js:48 Query fetch request: /api/notifications Object
+index-DEJlTvxE.js:48 Query fetch request: /api/notifications/unread-count Object
+index-DEJlTvxE.js:48 Query fetch request: /api/documents/deal/84 Object
+/api/notifications:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-DEJlTvxE.js:48 Query Response from /api/notifications: Object
+index-DEJlTvxE.js:48 Returning null for 401 response from /api/notifications as configured
+/api/deals:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-DEJlTvxE.js:48 Query Response from /api/deals: Object
+index-DEJlTvxE.js:48 Returning null for 401 response from /api/deals as configured
+index-DEJlTvxE.js:40 TypeError: Cannot read properties of null (reading 'filter')
+    at zye (index-DEJlTvxE.js:457:94065)
+    at GD (index-DEJlTvxE.js:38:17031)
+    at uP (index-DEJlTvxE.js:40:3143)
+    at LW (index-DEJlTvxE.js:40:44880)
+    at MW (index-DEJlTvxE.js:40:39822)
+    at coe (index-DEJlTvxE.js:40:39748)
+    at Pj (index-DEJlTvxE.js:40:39598)
+    at wP (index-DEJlTvxE.js:40:35960)
+    at _$ (index-DEJlTvxE.js:40:36765)
+    at jd (index-DEJlTvxE.js:38:3288)
+cP @ index-DEJlTvxE.js:40Understand this error
+index-DEJlTvxE.js:553 Error caught by boundary: TypeError: Cannot read properties of null (reading 'filter')
+    at zye (index-DEJlTvxE.js:457:94065)
+    at GD (index-DEJlTvxE.js:38:17031)
+    at uP (index-DEJlTvxE.js:40:3143)
+    at LW (index-DEJlTvxE.js:40:44880)
+    at MW (index-DEJlTvxE.js:40:39822)
+    at coe (index-DEJlTvxE.js:40:39748)
+    at Pj (index-DEJlTvxE.js:40:39598)
+    at wP (index-DEJlTvxE.js:40:35960)
+    at _$ (index-DEJlTvxE.js:40:36765)
+    at jd (index-DEJlTvxE.js:38:3288) Object
+componentDidCatch @ index-DEJlTvxE.js:553Understand this error
+/api/documents/deal/84:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-DEJlTvxE.js:48 Query Response from /api/documents/deal/84: Object
+index-DEJlTvxE.js:48 Returning null for 401 response from /api/documents/deal/84 as configured
+/api/deals/84:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-DEJlTvxE.js:48 Query Response from /api/deals/84: Object
+index-DEJlTvxE.js:48 Returning null for 401 response from /api/deals/84 as configured
+/api/notifications/unread-count:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-DEJlTvxE.js:48 Query Response from /api/notifications/unread-count: Object
+index-DEJlTvxE.js:48 Returning null for 401 response from /api/notifications/unread-count as configured
+/api/auth/me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-DEJlTvxE.js:457 User is not authenticated (401 response)
+/api/deals/84/stars:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-DEJlTvxE.js:48 Query Response from /api/deals/84/stars: Object
+index-DEJlTvxE.js:48 Returning null for 401 response from /api/deals/84/stars as configured
+/api/funds:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-DEJlTvxE.js:48 Query Response from /api/funds: Object
+index-DEJlTvxE.js:48 Returning null for 401 response from /api/funds as configured
+index-DEJlTvxE.js:48 Query Response from /api/system/health: Object
+index-DEJlTvxE.js:48 Query data received from /api/system/health: Object
+/api/auth/me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-DEJlTvxE.js:457 Error fetching from /me endpoint Error: HTTP 401
+    at queryFn (index-DEJlTvxE.js:457:87798)
+queryFn @ index-DEJlTvxE.js:457Understand this error
+/api/auth/me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-DEJlTvxE.js:457 Error fetching from /me endpoint Error: HTTP 401
+    at queryFn (index-DEJlTvxE.js:457:87798)
+queryFn @ index-DEJlTvxE.js:457Understand this error
+/api/users/4:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-DEJlTvxE.js:457 Direct user fetch for avatar ID 4: Object
+/api/auth/me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-DEJlTvxE.js:457 Error fetching from /me endpoint Error: HTTP 401
+    at queryFn (index-DEJlTvxE.js:457:87798)
+queryFn @ index-DEJlTvxE.js:457Understand this error
+/api/users/1:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-DEJlTvxE.js:457 Direct user fetch for avatar ID 1: Object
+/api/users/5:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-DEJlTvxE.js:457 Direct user fetch for avatar ID 5: Object
+index-DEJlTvxE.js:48 Query fetch request: /api/system/health Object
+index-DEJlTvxE.js:457 Fetching current user data
+index-DEJlTvxE.js:457 Auth provider mounted - checking authentication status
+index-DEJlTvxE.js:457 Manual auth refresh requested
+index-DEJlTvxE.js:48 Query Response from /api/system/health: Object
+index-DEJlTvxE.js:48 Query data received from /api/system/health: Object
+/api/auth/me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-DEJlTvxE.js:457 User is not authenticated (401 response)
+index-DEJlTvxE.js:457 Fetching current user data
+index-DEJlTvxE.js:48 Query fetch request: /api/system/health Object
+/api/auth/me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-DEJlTvxE.js:457 User is not authenticated (401 response)
+index-DEJlTvxE.js:48 Query Response from /api/system/health: Object
+index-DEJlTvxE.js:48 Query data received from /api/system/health: Object
+index-DEJlTvxE.js:457 Fetching current user data
+index-DEJlTvxE.js:48 Query fetch request: /api/system/health Object
+index-DEJlTvxE.js:48 Query Response from /api/system/health: Object
+index-DEJlTvxE.js:48 Query data received from /api/system/health: Object
+/api/auth/me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-DEJlTvxE.js:457 User is not authenticated (401 response)
+index-DEJlTvxE.js:553 Submitting login with credentials: Object
+index-DEJlTvxE.js:553 Starting login process for username: Gonz
+index-DEJlTvxE.js:553 Login mutation state: Object
+index-DEJlTvxE.js:457 Auth login mutation starting with credentials: Object
+index-DEJlTvxE.js:48 API Request: POST /api/auth/login Object
+index-DEJlTvxE.js:48 Sending fetch request to /api/auth/login with options: Object
+index-DEJlTvxE.js:48 API Response from /api/auth/login: Object
+index-DEJlTvxE.js:457 Login API response successful: Object
+index-DEJlTvxE.js:457 Login mutation onSuccess handler, setting user data: Object
+index-DEJlTvxE.js:457 Fetching current user data
+index-DEJlTvxE.js:48 Query fetch request: /api/system/health Object
+index-DEJlTvxE.js:457 Manual auth refresh requested
+index-DEJlTvxE.js:457 Fetching current user data
+index-DEJlTvxE.js:48 Query fetch request: /api/notifications Object
+index-DEJlTvxE.js:48 Query fetch request: /api/notifications/unread-count Object
+index-DEJlTvxE.js:457 UserAvatar: User 4 has color #D32F2F
+index-DEJlTvxE.js:457 Avatar color changed to: null
+index-DEJlTvxE.js:48 Query fetch request: /api/deals Object
+index-DEJlTvxE.js:48 Query fetch request: /api/funds Object
+index-DEJlTvxE.js:48 Query fetch request: /api/dashboard/sector-stats Object
+index-DEJlTvxE.js:48 Query fetch request: /api/activity Object
+index-DEJlTvxE.js:48 Query fetch request: /api/leaderboard Object
+index-DEJlTvxE.js:48 Query fetch request: /api/dashboard/stats Object
+index-DEJlTvxE.js:457 Avatar color changed to: #D32F2F
+index-DEJlTvxE.js:457 Current user data fetched successfully: Object
+index-DEJlTvxE.js:553 Login successful result: Object
+index-DEJlTvxE.js:48 Query Response from /api/notifications/unread-count: Object
+index-DEJlTvxE.js:48 Query data received from /api/notifications/unread-count: Object
+index-DEJlTvxE.js:48 Query Response from /api/system/health: Object
+index-DEJlTvxE.js:48 Query data received from /api/system/health: Object
+index-DEJlTvxE.js:48 Query Response from /api/dashboard/sector-stats: Object
+index-DEJlTvxE.js:48 Query data received from /api/dashboard/sector-stats: Array(9)
+index-DEJlTvxE.js:48 Query Response from /api/dashboard/stats: Object
+index-DEJlTvxE.js:48 Query data received from /api/dashboard/stats: Object
+index-DEJlTvxE.js:457 Current user data fetched successfully: Object
+index-DEJlTvxE.js:48 Query Response from /api/notifications: Object
+index-DEJlTvxE.js:48 Query data received from /api/notifications: Array(2)
+index-DEJlTvxE.js:48 Query Response from /api/funds: Object
+index-DEJlTvxE.js:48 Query data received from /api/funds: Array(2)
+index-DEJlTvxE.js:48 Query Response from /api/leaderboard: Object
+index-DEJlTvxE.js:48 Query Response from /api/deals: Object
+index-DEJlTvxE.js:457 Using /me endpoint data for avatar Object
+index-DEJlTvxE.js:48 Query data received from /api/leaderboard: Array(74)
+index-DEJlTvxE.js:48 Query data received from /api/deals: Array(91)
+index-DEJlTvxE.js:48 Query Response from /api/activity: Object
+index-DEJlTvxE.js:48 Query data received from /api/activity: Array(20)
+7index-DEJlTvxE.js:457 UserAvatar: User 4 has color #D32F2F
+6index-DEJlTvxE.js:457 UserAvatar: User 1 has color #4f46e5
+7index-DEJlTvxE.js:457 UserAvatar: User 4 has color #D32F2F
+index-DEJlTvxE.js:457 Using /me endpoint data for avatar Object
+index-DEJlTvxE.js:457 Direct user fetch for avatar ID 1: Object
+index-DEJlTvxE.js:457 Fetching current user data
+index-DEJlTvxE.js:48 Query fetch request: /api/system/health Object
+index-DEJlTvxE.js:48 Query fetch request: /api/dashboard/stats Object
+index-DEJlTvxE.js:48 Query fetch request: /api/deals Object
+index-DEJlTvxE.js:48 Query fetch request: /api/funds Object
+index-DEJlTvxE.js:48 Query fetch request: /api/notifications Object
+index-DEJlTvxE.js:48 Query fetch request: /api/notifications/unread-count Object
+index-DEJlTvxE.js:48 Query fetch request: /api/dashboard/sector-stats Object
+index-DEJlTvxE.js:48 Query fetch request: /api/activity Object
+index-DEJlTvxE.js:48 Query fetch request: /api/leaderboard Object
+index-DEJlTvxE.js:48 Query Response from /api/notifications: Object
+index-DEJlTvxE.js:48 Query data received from /api/notifications: Array(2)
+index-DEJlTvxE.js:48 Query Response from /api/system/health: Object
+index-DEJlTvxE.js:48 Query data received from /api/system/health: Object
+index-DEJlTvxE.js:457 Current user data fetched successfully: Object
+index-DEJlTvxE.js:48 Query Response from /api/dashboard/sector-stats: Object
+index-DEJlTvxE.js:48 Query Response from /api/dashboard/stats: Object
+index-DEJlTvxE.js:48 Query data received from /api/dashboard/sector-stats: Array(9)
+index-DEJlTvxE.js:48 Query data received from /api/dashboard/stats: Object
+index-DEJlTvxE.js:48 Query Response from /api/notifications/unread-count: Object
+index-DEJlTvxE.js:48 Query data received from /api/notifications/unread-count: Object
+index-DEJlTvxE.js:48 Query Response from /api/leaderboard: Object
+index-DEJlTvxE.js:48 Query Response from /api/deals: Object
+index-DEJlTvxE.js:48 Query data received from /api/deals: Array(91)
+index-DEJlTvxE.js:48 Query data received from /api/leaderboard: Array(74)
+index-DEJlTvxE.js:48 Query Response from /api/funds: Object
+index-DEJlTvxE.js:48 Query data received from /api/funds: Array(2)
+index-DEJlTvxE.js:457 Using /me endpoint data for avatar Object
+index-DEJlTvxE.js:48 Query Response from /api/activity: Object
+index-DEJlTvxE.js:48 Query data received from /api/activity: Array(20)
+index-DEJlTvxE.js:457 Direct user fetch for avatar ID 1: Object
+index-DEJlTvxE.js:457 Fetching current user data
+index-DEJlTvxE.js:48 Query fetch request: /api/system/health Object
+index-DEJlTvxE.js:48 Query fetch request: /api/dashboard/stats Object
+index-DEJlTvxE.js:48 Query fetch request: /api/deals Object
+index-DEJlTvxE.js:48 Query fetch request: /api/funds Object
+index-DEJlTvxE.js:48 Query fetch request: /api/notifications Object
+index-DEJlTvxE.js:48 Query fetch request: /api/notifications/unread-count Object
+index-DEJlTvxE.js:48 Query fetch request: /api/dashboard/sector-stats Object
+index-DEJlTvxE.js:48 Query fetch request: /api/activity Object
+index-DEJlTvxE.js:48 Query fetch request: /api/leaderboard Object
+index-DEJlTvxE.js:457 Current user data fetched successfully: Object
+index-DEJlTvxE.js:48 Query Response from /api/system/health: Object
+index-DEJlTvxE.js:48 Query data received from /api/system/health: Object
+index-DEJlTvxE.js:48 Query Response from /api/notifications/unread-count: Object
+index-DEJlTvxE.js:48 Query data received from /api/notifications/unread-count: Object
+index-DEJlTvxE.js:48 Query Response from /api/funds: Object
+index-DEJlTvxE.js:48 Query data received from /api/funds: Array(2)
+index-DEJlTvxE.js:48 Query Response from /api/notifications: Object
+index-DEJlTvxE.js:48 Query Response from /api/dashboard/sector-stats: Object
+index-DEJlTvxE.js:48 Query data received from /api/notifications: Array(2)
+index-DEJlTvxE.js:48 Query data received from /api/dashboard/sector-stats: Array(9)
+index-DEJlTvxE.js:48 Query Response from /api/dashboard/stats: Object
+index-DEJlTvxE.js:48 Query data received from /api/dashboard/stats: Object
+index-DEJlTvxE.js:457 Using /me endpoint data for avatar Object
+index-DEJlTvxE.js:48 Query Response from /api/deals: Object
+index-DEJlTvxE.js:48 Query data received from /api/deals: Array(91)
+index-DEJlTvxE.js:48 Query Response from /api/leaderboard: Object
+index-DEJlTvxE.js:48 Query data received from /api/leaderboard: Array(74)
+index-DEJlTvxE.js:457 Direct user fetch for avatar ID 1: Object
+index-DEJlTvxE.js:48 Query Response from /api/activity: Object
+index-DEJlTvxE.js:48 Query data received from /api/activity: Array(20)
+index-DEJlTvxE.js:457 Fetching current user data
+index-DEJlTvxE.js:48 Query fetch request: /api/system/health Object
+index-DEJlTvxE.js:48 Query fetch request: /api/dashboard/stats Object
+index-DEJlTvxE.js:48 Query fetch request: /api/deals Object
+index-DEJlTvxE.js:48 Query fetch request: /api/funds Object
+index-DEJlTvxE.js:48 Query fetch request: /api/notifications Object
+index-DEJlTvxE.js:48 Query fetch request: /api/notifications/unread-count Object
+index-DEJlTvxE.js:48 Query fetch request: /api/dashboard/sector-stats Object
+index-DEJlTvxE.js:48 Query fetch request: /api/activity Object
+index-DEJlTvxE.js:48 Query fetch request: /api/leaderboard Object
+index-DEJlTvxE.js:48 Query Response from /api/system/health: Object
+index-DEJlTvxE.js:48 Query data received from /api/system/health: Object
+index-DEJlTvxE.js:48 Query Response from /api/notifications/unread-count: Object
+index-DEJlTvxE.js:48 Query data received from /api/notifications/unread-count: Object
+index-DEJlTvxE.js:457 Current user data fetched successfully: Object
+index-DEJlTvxE.js:48 Query Response from /api/dashboard/stats: Object
+index-DEJlTvxE.js:48 Query data received from /api/dashboard/stats: Object
+index-DEJlTvxE.js:48 Query Response from /api/notifications: Object
+index-DEJlTvxE.js:48 Query data received from /api/notifications: Array(2)
+index-DEJlTvxE.js:48 Query Response from /api/dashboard/sector-stats: Object
+index-DEJlTvxE.js:48 Query data received from /api/dashboard/sector-stats: Array(9)
+index-DEJlTvxE.js:48 Query Response from /api/funds: Object
+index-DEJlTvxE.js:48 Query data received from /api/funds: Array(2)
+index-DEJlTvxE.js:48 Query Response from /api/leaderboard: Object
+index-DEJlTvxE.js:48 Query data received from /api/leaderboard: Array(74)
+index-DEJlTvxE.js:48 Query Response from /api/deals: Object
+index-DEJlTvxE.js:48 Query data received from /api/deals: Array(91)
+index-DEJlTvxE.js:457 Using /me endpoint data for avatar Object
+index-DEJlTvxE.js:457 Direct user fetch for avatar ID 1: Object
+index-DEJlTvxE.js:48 Query Response from /api/activity: Object
+index-DEJlTvxE.js:48 Query data received from /api/activity: Array(20)
+index-DEJlTvxE.js:457 Fetching current user data
+index-DEJlTvxE.js:48 Query fetch request: /api/system/health Object
+index-DEJlTvxE.js:48 Query fetch request: /api/dashboard/stats Object
+index-DEJlTvxE.js:48 Query fetch request: /api/deals Object
+index-DEJlTvxE.js:48 Query fetch request: /api/funds Object
+index-DEJlTvxE.js:48 Query fetch request: /api/notifications Object
+index-DEJlTvxE.js:48 Query fetch request: /api/notifications/unread-count Object
+index-DEJlTvxE.js:48 Query fetch request: /api/dashboard/sector-stats Object
+index-DEJlTvxE.js:48 Query fetch request: /api/activity Object
+index-DEJlTvxE.js:48 Query fetch request: /api/leaderboard Object
+index-DEJlTvxE.js:48 Query Response from /api/notifications/unread-count: Object
+index-DEJlTvxE.js:48 Query data received from /api/notifications/unread-count: Object
+index-DEJlTvxE.js:48 Query Response from /api/dashboard/sector-stats: Object
+index-DEJlTvxE.js:48 Query data received from /api/dashboard/sector-stats: Array(9)
+index-DEJlTvxE.js:48 Query Response from /api/system/health: Object
+index-DEJlTvxE.js:48 Query data received from /api/system/health: Object
+index-DEJlTvxE.js:457 Current user data fetched successfully: Object
+index-DEJlTvxE.js:48 Query Response from /api/dashboard/stats: Object
+index-DEJlTvxE.js:48 Query data received from /api/dashboard/stats: Object
+index-DEJlTvxE.js:48 Query Response from /api/funds: Object
+index-DEJlTvxE.js:48 Query data received from /api/funds: Array(2)
+index-DEJlTvxE.js:48 Query Response from /api/leaderboard: Object
+index-DEJlTvxE.js:48 Query data received from /api/leaderboard: Array(74)
+index-DEJlTvxE.js:48 Query Response from /api/notifications: Object
+index-DEJlTvxE.js:48 Query data received from /api/notifications: Array(2)
+index-DEJlTvxE.js:48 Query Response from /api/deals: Object
+index-DEJlTvxE.js:48 Query data received from /api/deals: Array(91)
+index-DEJlTvxE.js:457 Using /me endpoint data for avatar Object
+index-DEJlTvxE.js:48 Query Response from /api/activity: Object
+index-DEJlTvxE.js:48 Query data received from /api/activity: Array(20)
+index-DEJlTvxE.js:457 Direct user fetch for avatar ID 1: Object
+index-DEJlTvxE.js:48 Query fetch request: /api/auth/me Object
+index-DEJlTvxE.js:48 Query fetch request: /api/system/health Object
+index-DEJlTvxE.js:48 Query fetch request: /api/notifications Object
+index-DEJlTvxE.js:48 Query fetch request: /api/notifications/unread-count Object
+index-DEJlTvxE.js:48 Query Response from /api/system/health: Object
+index-DEJlTvxE.js:48 Query data received from /api/system/health: Object
+index-DEJlTvxE.js:48 Query Response from /api/notifications: Object
+index-DEJlTvxE.js:48 Query data received from /api/notifications: Array(2)
+index-DEJlTvxE.js:48 Query Response from /api/notifications/unread-count: Object
+index-DEJlTvxE.js:48 Query data received from /api/notifications/unread-count: Object
+index-DEJlTvxE.js:48 Query Response from /api/auth/me: Object
+index-DEJlTvxE.js:48 Query data received from /api/auth/me: Object
+index-DEJlTvxE.js:457 Using /me endpoint data for avatar Object
+index-DEJlTvxE.js:457 Direct user fetch for avatar ID 1: Object
+index-DEJlTvxE.js:457 Fetching current user data
+index-DEJlTvxE.js:48 Query fetch request: /api/system/health Object
+index-DEJlTvxE.js:48 Query fetch request: /api/dashboard/stats Object
+index-DEJlTvxE.js:48 Query fetch request: /api/deals Object
+index-DEJlTvxE.js:48 Query fetch request: /api/funds Object
+index-DEJlTvxE.js:48 Query fetch request: /api/notifications Object
+index-DEJlTvxE.js:48 Query fetch request: /api/notifications/unread-count Object
+index-DEJlTvxE.js:48 Query fetch request: /api/dashboard/sector-stats Object
+index-DEJlTvxE.js:48 Query fetch request: /api/activity Object
+index-DEJlTvxE.js:48 Query fetch request: /api/leaderboard Object
+index-DEJlTvxE.js:48 Query Response from /api/dashboard/sector-stats: Object
+index-DEJlTvxE.js:48 Query data received from /api/dashboard/sector-stats: Array(9)
+index-DEJlTvxE.js:48 Query Response from /api/dashboard/stats: Object
+index-DEJlTvxE.js:48 Query data received from /api/dashboard/stats: Object
+index-DEJlTvxE.js:457 Current user data fetched successfully: Object
+index-DEJlTvxE.js:48 Query Response from /api/notifications/unread-count: Object
+index-DEJlTvxE.js:48 Query data received from /api/notifications/unread-count: Object
+index-DEJlTvxE.js:48 Query Response from /api/system/health: Object
+index-DEJlTvxE.js:48 Query data received from /api/system/health: Object
+index-DEJlTvxE.js:48 Query Response from /api/notifications: Object
+index-DEJlTvxE.js:48 Query data received from /api/notifications: Array(2)
+index-DEJlTvxE.js:48 Query Response from /api/deals: Object
+index-DEJlTvxE.js:48 Query data received from /api/deals: Array(91)
+index-DEJlTvxE.js:48 Query Response from /api/funds: Object
+index-DEJlTvxE.js:48 Query data received from /api/funds: Array(2)
+index-DEJlTvxE.js:48 Query Response from /api/leaderboard: Object
+index-DEJlTvxE.js:48 Query data received from /api/leaderboard: Array(74)
+index-DEJlTvxE.js:457 Using /me endpoint data for avatar Object
+index-DEJlTvxE.js:48 Query Response from /api/activity: Object
+index-DEJlTvxE.js:457 Direct user fetch for avatar ID 1: Object
+index-DEJlTvxE.js:48 Query data received from /api/activity: Array(20)
+index-DEJlTvxE.js:457 Fetching current user data
+index-DEJlTvxE.js:48 Query fetch request: /api/system/health Object
+index-DEJlTvxE.js:48 Query fetch request: /api/dashboard/stats Object
+index-DEJlTvxE.js:48 Query fetch request: /api/deals Object
+index-DEJlTvxE.js:48 Query fetch request: /api/funds Object
+index-DEJlTvxE.js:48 Query fetch request: /api/notifications Object
+index-DEJlTvxE.js:48 Query fetch request: /api/notifications/unread-count Object
+index-DEJlTvxE.js:48 Query fetch request: /api/dashboard/sector-stats Object
+index-DEJlTvxE.js:48 Query fetch request: /api/activity Object
+index-DEJlTvxE.js:48 Query fetch request: /api/leaderboard Object
+index-DEJlTvxE.js:48 Query Response from /api/notifications/unread-count: Object
+index-DEJlTvxE.js:48 Query data received from /api/notifications/unread-count: Object
+index-DEJlTvxE.js:48 Query Response from /api/notifications: Object
+index-DEJlTvxE.js:48 Query data received from /api/notifications: Array(2)
+index-DEJlTvxE.js:48 Query Response from /api/dashboard/stats: Object
+index-DEJlTvxE.js:48 Query data received from /api/dashboard/stats: Object
+index-DEJlTvxE.js:48 Query Response from /api/dashboard/sector-stats: Object
+index-DEJlTvxE.js:48 Query data received from /api/dashboard/sector-stats: Array(9)
+index-DEJlTvxE.js:48 Query Response from /api/system/health: Object
+index-DEJlTvxE.js:48 Query data received from /api/system/health: Object
+index-DEJlTvxE.js:457 Current user data fetched successfully: Object
+index-DEJlTvxE.js:48 Query Response from /api/deals: Object
+index-DEJlTvxE.js:48 Query data received from /api/deals: Array(91)
+index-DEJlTvxE.js:48 Query Response from /api/funds: Object
+index-DEJlTvxE.js:48 Query data received from /api/funds: Array(2)
+index-DEJlTvxE.js:48 Query Response from /api/leaderboard: Object
+index-DEJlTvxE.js:48 Query data received from /api/leaderboard: Array(74)
+index-DEJlTvxE.js:457 Using /me endpoint data for avatar Object
+index-DEJlTvxE.js:48 Query Response from /api/activity: Object
+index-DEJlTvxE.js:48 Query data received from /api/activity: Array(20)
+index-DEJlTvxE.js:457 Direct user fetch for avatar ID 1: Object
+index-DEJlTvxE.js:457 Fetching current user data
+index-DEJlTvxE.js:48 Query fetch request: /api/system/health Object
+index-DEJlTvxE.js:48 Query fetch request: /api/dashboard/stats Object
+index-DEJlTvxE.js:48 Query fetch request: /api/deals Object
+index-DEJlTvxE.js:48 Query fetch request: /api/funds Object
+index-DEJlTvxE.js:48 Query fetch request: /api/notifications Object
+index-DEJlTvxE.js:48 Query fetch request: /api/notifications/unread-count Object
+index-DEJlTvxE.js:48 Query fetch request: /api/dashboard/sector-stats Object
+index-DEJlTvxE.js:48 Query fetch request: /api/activity Object
+index-DEJlTvxE.js:48 Query fetch request: /api/leaderboard Object
+/api/notifications/unread-count:1 
+            
+            
+           Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+index-DEJlTvxE.js:48 Exception during query fetch to /api/notifications/unread-count: TypeError: Failed to fetch
+    at index-DEJlTvxE.js:48:44233
+    at Object.i [as fn] (index-DEJlTvxE.js:48:14722)
+    at v (index-DEJlTvxE.js:48:10245)
+    at Object.start (index-DEJlTvxE.js:48:10706)
+    at B6.fetch (index-DEJlTvxE.js:48:16069)
+    at W6.Vy (index-DEJlTvxE.js:48:36426)
+    at W6.fetch (index-DEJlTvxE.js:48:33245)
+    at W6.refetch (index-DEJlTvxE.js:48:33041)
+    at B6.onOnline (index-DEJlTvxE.js:48:13455)
+    at index-DEJlTvxE.js:48:18893
+(anonymous) @ index-DEJlTvxE.js:48Understand this error
+/api/dashboard/sector-stats:1 
+            
+            
+           Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+index-DEJlTvxE.js:48 Exception during query fetch to /api/dashboard/sector-stats: TypeError: Failed to fetch
+    at index-DEJlTvxE.js:48:44233
+    at Object.i [as fn] (index-DEJlTvxE.js:48:14722)
+    at v (index-DEJlTvxE.js:48:10245)
+    at Object.start (index-DEJlTvxE.js:48:10706)
+    at B6.fetch (index-DEJlTvxE.js:48:16069)
+    at W6.Vy (index-DEJlTvxE.js:48:36426)
+    at W6.fetch (index-DEJlTvxE.js:48:33245)
+    at W6.refetch (index-DEJlTvxE.js:48:33041)
+    at B6.onOnline (index-DEJlTvxE.js:48:13455)
+    at index-DEJlTvxE.js:48:18893
+(anonymous) @ index-DEJlTvxE.js:48Understand this error
+/api/system/health:1 
+            
+            
+           Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+index-DEJlTvxE.js:48 Exception during query fetch to /api/system/health: TypeError: Failed to fetch
+    at index-DEJlTvxE.js:48:44233
+    at Object.i [as fn] (index-DEJlTvxE.js:48:14722)
+    at v (index-DEJlTvxE.js:48:10245)
+    at Object.start (index-DEJlTvxE.js:48:10706)
+    at B6.fetch (index-DEJlTvxE.js:48:16069)
+    at W6.Vy (index-DEJlTvxE.js:48:36426)
+    at W6.fetch (index-DEJlTvxE.js:48:33245)
+    at W6.refetch (index-DEJlTvxE.js:48:33041)
+    at B6.onOnline (index-DEJlTvxE.js:48:13455)
+    at index-DEJlTvxE.js:48:18893
+(anonymous) @ index-DEJlTvxE.js:48Understand this error
+/api/leaderboard:1 
+            
+            
+           Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+index-DEJlTvxE.js:48 Exception during query fetch to /api/leaderboard: TypeError: Failed to fetch
+    at index-DEJlTvxE.js:48:44233
+    at Object.i [as fn] (index-DEJlTvxE.js:48:14722)
+    at v (index-DEJlTvxE.js:48:10245)
+    at Object.start (index-DEJlTvxE.js:48:10706)
+    at B6.fetch (index-DEJlTvxE.js:48:16069)
+    at W6.Vy (index-DEJlTvxE.js:48:36426)
+    at W6.fetch (index-DEJlTvxE.js:48:33245)
+    at W6.refetch (index-DEJlTvxE.js:48:33041)
+    at B6.onOnline (index-DEJlTvxE.js:48:13455)
+    at index-DEJlTvxE.js:48:18893
+(anonymous) @ index-DEJlTvxE.js:48Understand this error
+/api/deals:1 
+            
+            
+           Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+index-DEJlTvxE.js:48 Exception during query fetch to /api/deals: TypeError: Failed to fetch
+    at index-DEJlTvxE.js:48:44233
+    at Object.i [as fn] (index-DEJlTvxE.js:48:14722)
+    at v (index-DEJlTvxE.js:48:10245)
+    at Object.start (index-DEJlTvxE.js:48:10706)
+    at B6.fetch (index-DEJlTvxE.js:48:16069)
+    at W6.Vy (index-DEJlTvxE.js:48:36426)
+    at W6.fetch (index-DEJlTvxE.js:48:33245)
+    at W6.refetch (index-DEJlTvxE.js:48:33041)
+    at B6.onOnline (index-DEJlTvxE.js:48:13455)
+    at index-DEJlTvxE.js:48:18893
+(anonymous) @ index-DEJlTvxE.js:48Understand this error
+/api/funds:1 
+            
+            
+           Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+index-DEJlTvxE.js:48 Exception during query fetch to /api/funds: TypeError: Failed to fetch
+    at index-DEJlTvxE.js:48:44233
+    at Object.i [as fn] (index-DEJlTvxE.js:48:14722)
+    at v (index-DEJlTvxE.js:48:10245)
+    at Object.start (index-DEJlTvxE.js:48:10706)
+    at B6.fetch (index-DEJlTvxE.js:48:16069)
+    at W6.Vy (index-DEJlTvxE.js:48:36426)
+    at W6.fetch (index-DEJlTvxE.js:48:33245)
+    at W6.refetch (index-DEJlTvxE.js:48:33041)
+    at B6.onOnline (index-DEJlTvxE.js:48:13455)
+    at index-DEJlTvxE.js:48:18893
+(anonymous) @ index-DEJlTvxE.js:48Understand this error
+/api/activity:1 
+            
+            
+           Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+index-DEJlTvxE.js:48 Exception during query fetch to /api/activity: TypeError: Failed to fetch
+    at index-DEJlTvxE.js:48:44233
+    at Object.i [as fn] (index-DEJlTvxE.js:48:14722)
+    at v (index-DEJlTvxE.js:48:10245)
+    at Object.start (index-DEJlTvxE.js:48:10706)
+    at B6.fetch (index-DEJlTvxE.js:48:16069)
+    at W6.Vy (index-DEJlTvxE.js:48:36426)
+    at W6.fetch (index-DEJlTvxE.js:48:33245)
+    at W6.refetch (index-DEJlTvxE.js:48:33041)
+    at B6.onOnline (index-DEJlTvxE.js:48:13455)
+    at index-DEJlTvxE.js:48:18893
+(anonymous) @ index-DEJlTvxE.js:48Understand this error
+/api/dashboard/stats:1 
+            
+            
+           Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+index-DEJlTvxE.js:48 Exception during query fetch to /api/dashboard/stats: TypeError: Failed to fetch
+    at index-DEJlTvxE.js:48:44233
+    at Object.i [as fn] (index-DEJlTvxE.js:48:14722)
+    at v (index-DEJlTvxE.js:48:10245)
+    at Object.start (index-DEJlTvxE.js:48:10706)
+    at B6.fetch (index-DEJlTvxE.js:48:16069)
+    at W6.Vy (index-DEJlTvxE.js:48:36426)
+    at W6.fetch (index-DEJlTvxE.js:48:33245)
+    at W6.refetch (index-DEJlTvxE.js:48:33041)
+    at B6.onOnline (index-DEJlTvxE.js:48:13455)
+    at index-DEJlTvxE.js:48:18893
+(anonymous) @ index-DEJlTvxE.js:48Understand this error
+/api/auth/me:1 
+            
+            
+           Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+index-DEJlTvxE.js:457 Exception in fetchCurrentUser: TypeError: Failed to fetch
+    at Uye (index-DEJlTvxE.js:457:97448)
+    at Object.i [as fn] (index-DEJlTvxE.js:48:14722)
+    at v (index-DEJlTvxE.js:48:10245)
+    at Object.start (index-DEJlTvxE.js:48:10706)
+    at B6.fetch (index-DEJlTvxE.js:48:16069)
+    at W6.Vy (index-DEJlTvxE.js:48:36426)
+    at W6.fetch (index-DEJlTvxE.js:48:33245)
+    at W6.refetch (index-DEJlTvxE.js:48:33041)
+    at B6.onOnline (index-DEJlTvxE.js:48:13455)
+    at index-DEJlTvxE.js:48:18893
+Uye @ index-DEJlTvxE.js:457Understand this error
+/api/notifications:1 
+            
+            
+           Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+index-DEJlTvxE.js:48 Exception during query fetch to /api/notifications: TypeError: Failed to fetch
+    at index-DEJlTvxE.js:48:44233
+    at Object.i [as fn] (index-DEJlTvxE.js:48:14722)
+    at v (index-DEJlTvxE.js:48:10245)
+    at Object.start (index-DEJlTvxE.js:48:10706)
+    at B6.fetch (index-DEJlTvxE.js:48:16069)
+    at W6.Vy (index-DEJlTvxE.js:48:36426)
+    at W6.fetch (index-DEJlTvxE.js:48:33245)
+    at W6.refetch (index-DEJlTvxE.js:48:33041)
+    at B6.onOnline (index-DEJlTvxE.js:48:13455)
+    at index-DEJlTvxE.js:48:18893
+(anonymous) @ index-DEJlTvxE.js:48Understand this error
+/api/auth/me:1 
+            
+            
+           Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+index-DEJlTvxE.js:457 Error fetching from /me endpoint TypeError: Failed to fetch
+    at queryFn (index-DEJlTvxE.js:457:87761)
+    at Object.i [as fn] (index-DEJlTvxE.js:48:14722)
+    at v (index-DEJlTvxE.js:48:10245)
+    at Object.start (index-DEJlTvxE.js:48:10706)
+    at B6.fetch (index-DEJlTvxE.js:48:16069)
+    at W6.Vy (index-DEJlTvxE.js:48:36426)
+    at W6.fetch (index-DEJlTvxE.js:48:33245)
+    at W6.refetch (index-DEJlTvxE.js:48:33041)
+    at B6.onOnline (index-DEJlTvxE.js:48:13455)
+    at index-DEJlTvxE.js:48:18893
+queryFn @ index-DEJlTvxE.js:457Understand this error
+/api/auth/me:1 
+            
+            
+           Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+index-DEJlTvxE.js:457 Error fetching from /me endpoint TypeError: Failed to fetch
+    at queryFn (index-DEJlTvxE.js:457:87761)
+    at Object.i [as fn] (index-DEJlTvxE.js:48:14722)
+    at v (index-DEJlTvxE.js:48:10245)
+    at Object.start (index-DEJlTvxE.js:48:10706)
+    at B6.fetch (index-DEJlTvxE.js:48:16069)
+    at W6.Vy (index-DEJlTvxE.js:48:36426)
+    at W6.fetch (index-DEJlTvxE.js:48:33245)
+    at W6.refetch (index-DEJlTvxE.js:48:33041)
+    at B6.onOnline (index-DEJlTvxE.js:48:13455)
+    at index-DEJlTvxE.js:48:18893
+queryFn @ index-DEJlTvxE.js:457Understand this error
+/api/users/4:1 
+            
+            
+           Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+index-DEJlTvxE.js:457 Error fetching user 4 TypeError: Failed to fetch
+    at queryFn (index-DEJlTvxE.js:457:88049)
+queryFn @ index-DEJlTvxE.js:457Understand this error
+/api/users/1:1 
+            
+            
+           Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+index-DEJlTvxE.js:457 Error fetching user 1 TypeError: Failed to fetch
+    at queryFn (index-DEJlTvxE.js:457:88049)
+queryFn @ index-DEJlTvxE.js:457Understand this error
+index-DEJlTvxE.js:457 Fetching current user data
+/api/auth/me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-DEJlTvxE.js:457 User is not authenticated (401 response)
+index-DEJlTvxE.js:457 Fetching current user data
+/api/auth/me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-DEJlTvxE.js:457 User is not authenticated (401 response)
+index-DEJlTvxE.js:457 Fetching current user data
+/api/auth/me:1 
+            
+            
+           Failed to load resource: net::ERR_NAME_NOT_RESOLVEDUnderstand this error
+index-DEJlTvxE.js:457 Exception in fetchCurrentUser: TypeError: Failed to fetch
+    at Uye (index-DEJlTvxE.js:457:97448)
+    at Object.i [as fn] (index-DEJlTvxE.js:48:14722)
+    at v (index-DEJlTvxE.js:48:10245)
+    at Object.start (index-DEJlTvxE.js:48:10706)
+    at B6.fetch (index-DEJlTvxE.js:48:16069)
+    at W6.Vy (index-DEJlTvxE.js:48:36426)
+    at W6.fetch (index-DEJlTvxE.js:48:33245)
+    at W6.refetch (index-DEJlTvxE.js:48:33041)
+    at B6.onOnline (index-DEJlTvxE.js:48:13455)
+    at index-DEJlTvxE.js:48:18893
+Uye @ index-DEJlTvxE.js:457Understand this error
+index-DEJlTvxE.js:457 Fetching current user data
+index-DEJlTvxE.js:48 Query fetch request: /api/system/health Object
+/api/auth/me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-DEJlTvxE.js:457 User is not authenticated (401 response)
+index-DEJlTvxE.js:48 Query Response from /api/system/health: Object
+index-DEJlTvxE.js:48 Query data received from /api/system/health: Object
+index-DEJlTvxE.js:457 Fetching current user data
+index-DEJlTvxE.js:48 Query fetch request: /api/system/health Object
+/api/auth/me:1 
+            
+            
+           Failed to load resource: net::ERR_NAME_NOT_RESOLVEDUnderstand this error
+index-DEJlTvxE.js:457 Exception in fetchCurrentUser: TypeError: Failed to fetch
+    at Uye (index-DEJlTvxE.js:457:97448)
+    at Object.i [as fn] (index-DEJlTvxE.js:48:14722)
+    at v (index-DEJlTvxE.js:48:10245)
+    at Object.start (index-DEJlTvxE.js:48:10706)
+    at B6.fetch (index-DEJlTvxE.js:48:16069)
+    at W6.Vy (index-DEJlTvxE.js:48:36426)
+    at W6.fetch (index-DEJlTvxE.js:48:33245)
+    at W6.refetch (index-DEJlTvxE.js:48:33041)
+    at B6.onOnline (index-DEJlTvxE.js:48:13455)
+    at index-DEJlTvxE.js:48:18893
+Uye @ index-DEJlTvxE.js:457Understand this error
+/api/system/health:1 
+            
+            
+           Failed to load resource: net::ERR_NAME_NOT_RESOLVEDUnderstand this error
+index-DEJlTvxE.js:48 Exception during query fetch to /api/system/health: TypeError: Failed to fetch
+    at index-DEJlTvxE.js:48:44233
+    at Object.i [as fn] (index-DEJlTvxE.js:48:14722)
+    at v (index-DEJlTvxE.js:48:10245)
+    at Object.start (index-DEJlTvxE.js:48:10706)
+    at B6.fetch (index-DEJlTvxE.js:48:16069)
+    at W6.Vy (index-DEJlTvxE.js:48:36426)
+    at W6.fetch (index-DEJlTvxE.js:48:33245)
+    at W6.refetch (index-DEJlTvxE.js:48:33041)
+    at B6.onOnline (index-DEJlTvxE.js:48:13455)
+    at index-DEJlTvxE.js:48:18893
+(anonymous) @ index-DEJlTvxE.js:48Understand this error
+index-DEJlTvxE.js:457 Fetching current user data
+/api/auth/me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-DEJlTvxE.js:457 User is not authenticated (401 response)
+index-DEJlTvxE.js:48 Query fetch request: /api/system/health Object
+index-DEJlTvxE.js:48 Query Response from /api/system/health: Object
+index-DEJlTvxE.js:48 Query data received from /api/system/health: Object
+index-DEJlTvxE.js:48 Query fetch request: /api/system/health Object
+index-DEJlTvxE.js:48 Query Response from /api/system/health: Object
+index-DEJlTvxE.js:48 Query data received from /api/system/health: Object
+index-DEJlTvxE.js:48 Query fetch request: /api/system/health Object
+index-DEJlTvxE.js:48 Query Response from /api/system/health: Object
+index-DEJlTvxE.js:48 Query data received from /api/system/health: Object
+index-DEJlTvxE.js:457 Fetching current user data
+index-DEJlTvxE.js:48 Query fetch request: /api/system/health Object
+index-DEJlTvxE.js:48 Query Response from /api/system/health: Object
+index-DEJlTvxE.js:48 Query data received from /api/system/health: Object
+/api/auth/me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-DEJlTvxE.js:457 User is not authenticated (401 response)
+index-DEJlTvxE.js:457 Fetching current user data
+index-DEJlTvxE.js:48 Query fetch request: /api/system/health Object
+/api/system/health:1 
+            
+            
+           Failed to load resource: net::ERR_NAME_NOT_RESOLVEDUnderstand this error
+index-DEJlTvxE.js:48 Exception during query fetch to /api/system/health: TypeError: Failed to fetch
+    at index-DEJlTvxE.js:48:44233
+    at Object.i [as fn] (index-DEJlTvxE.js:48:14722)
+    at v (index-DEJlTvxE.js:48:10245)
+    at Object.start (index-DEJlTvxE.js:48:10706)
+    at B6.fetch (index-DEJlTvxE.js:48:16069)
+    at W6.Vy (index-DEJlTvxE.js:48:36426)
+    at W6.fetch (index-DEJlTvxE.js:48:33245)
+    at W6.refetch (index-DEJlTvxE.js:48:33041)
+    at B6.onOnline (index-DEJlTvxE.js:48:13455)
+    at index-DEJlTvxE.js:48:18893
+(anonymous) @ index-DEJlTvxE.js:48Understand this error
+/api/auth/me:1 
+            
+            
+           Failed to load resource: net::ERR_NAME_NOT_RESOLVEDUnderstand this error
+index-DEJlTvxE.js:457 Exception in fetchCurrentUser: TypeError: Failed to fetch
+    at Uye (index-DEJlTvxE.js:457:97448)
+    at Object.i [as fn] (index-DEJlTvxE.js:48:14722)
+    at v (index-DEJlTvxE.js:48:10245)
+    at Object.start (index-DEJlTvxE.js:48:10706)
+    at B6.fetch (index-DEJlTvxE.js:48:16069)
+    at W6.Vy (index-DEJlTvxE.js:48:36426)
+    at W6.fetch (index-DEJlTvxE.js:48:33245)
+    at W6.refetch (index-DEJlTvxE.js:48:33041)
+    at B6.onOnline (index-DEJlTvxE.js:48:13455)
+    at index-DEJlTvxE.js:48:18893
+Uye @ index-DEJlTvxE.js:457Understand this error
+index-DEJlTvxE.js:457 Fetching current user data
+/api/auth/me:1 
+            
+            
+           Failed to load resource: net::ERR_NAME_NOT_RESOLVEDUnderstand this error
+index-DEJlTvxE.js:457 Exception in fetchCurrentUser: TypeError: Failed to fetch
+    at Uye (index-DEJlTvxE.js:457:97448)
+    at Object.i [as fn] (index-DEJlTvxE.js:48:14722)
+    at v (index-DEJlTvxE.js:48:10245)
+    at Object.start (index-DEJlTvxE.js:48:10706)
+    at B6.fetch (index-DEJlTvxE.js:48:16069)
+    at W6.Vy (index-DEJlTvxE.js:48:36426)
+    at W6.fetch (index-DEJlTvxE.js:48:33245)
+    at W6.refetch (index-DEJlTvxE.js:48:33041)
+    at B6.onOnline (index-DEJlTvxE.js:48:13455)
+    at index-DEJlTvxE.js:48:18893
+Uye @ index-DEJlTvxE.js:457Understand this error
+index-DEJlTvxE.js:457 Fetching current user data
+/api/auth/me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-DEJlTvxE.js:457 User is not authenticated (401 response)
+index-DEJlTvxE.js:457 Fetching current user data
+/api/auth/me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-DEJlTvxE.js:457 User is not authenticated (401 response)
+index-DEJlTvxE.js:457 Fetching current user data
+/api/auth/me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-DEJlTvxE.js:457 User is not authenticated (401 response)
+index-DEJlTvxE.js:457 Fetching current user data
+/api/auth/me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-DEJlTvxE.js:457 User is not authenticated (401 response)
+index-DEJlTvxE.js:457 Fetching current user data
+/api/auth/me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-DEJlTvxE.js:457 User is not authenticated (401 response)
+index-DEJlTvxE.js:457 Fetching current user data
+/api/auth/me:1 
+            
+            
+           Failed to load resource: net::ERR_NAME_NOT_RESOLVEDUnderstand this error
+index-DEJlTvxE.js:457 Exception in fetchCurrentUser: TypeError: Failed to fetch
+    at Uye (index-DEJlTvxE.js:457:97448)
+    at Object.i [as fn] (index-DEJlTvxE.js:48:14722)
+    at v (index-DEJlTvxE.js:48:10245)
+    at Object.start (index-DEJlTvxE.js:48:10706)
+    at B6.fetch (index-DEJlTvxE.js:48:16069)
+    at W6.Vy (index-DEJlTvxE.js:48:36426)
+    at W6.fetch (index-DEJlTvxE.js:48:33245)
+    at W6.refetch (index-DEJlTvxE.js:48:33041)
+    at B6.onOnline (index-DEJlTvxE.js:48:13455)
+    at index-DEJlTvxE.js:48:18893
+Uye @ index-DEJlTvxE.js:457Understand this error
+index-DEJlTvxE.js:457 Fetching current user data
+/api/auth/me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-DEJlTvxE.js:457 User is not authenticated (401 response)
+index-DEJlTvxE.js:457 Fetching current user data
+/api/auth/me:1 
+            
+            
+           Failed to load resource: net::ERR_NAME_NOT_RESOLVEDUnderstand this error
+index-DEJlTvxE.js:457 Exception in fetchCurrentUser: TypeError: Failed to fetch
+    at Uye (index-DEJlTvxE.js:457:97448)
+    at Object.i [as fn] (index-DEJlTvxE.js:48:14722)
+    at v (index-DEJlTvxE.js:48:10245)
+    at Object.start (index-DEJlTvxE.js:48:10706)
+    at B6.fetch (index-DEJlTvxE.js:48:16069)
+    at W6.Vy (index-DEJlTvxE.js:48:36426)
+    at W6.fetch (index-DEJlTvxE.js:48:33245)
+    at W6.refetch (index-DEJlTvxE.js:48:33041)
+    at B6.onOnline (index-DEJlTvxE.js:48:13455)
+    at index-DEJlTvxE.js:48:18893
+Uye @ index-DEJlTvxE.js:457Understand this error
+index-DEJlTvxE.js:457 Fetching current user data
+/api/auth/me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-DEJlTvxE.js:457 User is not authenticated (401 response)
+index-DEJlTvxE.js:457 Fetching current user data
+/api/auth/me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-DEJlTvxE.js:457 User is not authenticated (401 response)
+index-DEJlTvxE.js:457 Fetching current user data
+/api/auth/me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-DEJlTvxE.js:457 User is not authenticated (401 response)
+index-DEJlTvxE.js:457 Fetching current user data
+/api/auth/me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-DEJlTvxE.js:457 User is not authenticated (401 response)
+index-DEJlTvxE.js:457 Fetching current user data
+/api/auth/me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-DEJlTvxE.js:457 User is not authenticated (401 response)
+index-DEJlTvxE.js:457 Fetching current user data
+/api/auth/me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-DEJlTvxE.js:457 User is not authenticated (401 response)
+index-DEJlTvxE.js:457 Fetching current user data
+/api/auth/me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-DEJlTvxE.js:457 User is not authenticated (401 response)
+index-DEJlTvxE.js:457 Fetching current user data
+/api/auth/me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-DEJlTvxE.js:457 User is not authenticated (401 response)
+index-DEJlTvxE.js:48 Query fetch request: /api/system/health Object
+index-DEJlTvxE.js:48 Query Response from /api/system/health: Object
+index-DEJlTvxE.js:48 Query data received from /api/system/health: Object
+index-DEJlTvxE.js:553 Submitting login with credentials: Object
+index-DEJlTvxE.js:553 Starting login process for username: Gonz
+index-DEJlTvxE.js:553 Login mutation state: Object
+index-DEJlTvxE.js:457 Auth login mutation starting with credentials: Object
+index-DEJlTvxE.js:48 API Request: POST /api/auth/login Object
+index-DEJlTvxE.js:48 Sending fetch request to /api/auth/login with options: Object
+index-DEJlTvxE.js:48 API Response from /api/auth/login: Object
+index-DEJlTvxE.js:457 Login API response successful: Object
+index-DEJlTvxE.js:457 Login mutation onSuccess handler, setting user data: Object
+index-DEJlTvxE.js:457 Fetching current user data
+index-DEJlTvxE.js:48 Query fetch request: /api/system/health Object
+index-DEJlTvxE.js:457 Manual auth refresh requested
+index-DEJlTvxE.js:457 Fetching current user data
+index-DEJlTvxE.js:48 Query fetch request: /api/notifications Object
+index-DEJlTvxE.js:48 Query fetch request: /api/notifications/unread-count Object
+index-DEJlTvxE.js:457 UserAvatar: User 4 has color #D32F2F
+index-DEJlTvxE.js:457 Avatar color changed to: null
+index-DEJlTvxE.js:48 Query fetch request: /api/deals Object
+index-DEJlTvxE.js:48 Query fetch request: /api/funds Object
+index-DEJlTvxE.js:48 Query fetch request: /api/dashboard/sector-stats Object
+index-DEJlTvxE.js:48 Query fetch request: /api/activity Object
+index-DEJlTvxE.js:48 Query fetch request: /api/leaderboard Object
+index-DEJlTvxE.js:48 Query fetch request: /api/dashboard/stats Object
+index-DEJlTvxE.js:457 Avatar color changed to: #D32F2F
+index-DEJlTvxE.js:48 Query Response from /api/notifications/unread-count: Object
+index-DEJlTvxE.js:48 Query data received from /api/notifications/unread-count: Object
+index-DEJlTvxE.js:48 Query Response from /api/notifications: Object
+index-DEJlTvxE.js:48 Query data received from /api/notifications: Array(3)
+index-DEJlTvxE.js:48 Query Response from /api/system/health: Object
+index-DEJlTvxE.js:48 Query Response from /api/dashboard/stats: Object
+index-DEJlTvxE.js:48 Query data received from /api/system/health: Object
+index-DEJlTvxE.js:48 Query data received from /api/dashboard/stats: Object
+index-DEJlTvxE.js:457 Current user data fetched successfully: Object
+index-DEJlTvxE.js:553 Login successful result: Object
+index-DEJlTvxE.js:457 Current user data fetched successfully: Object
+index-DEJlTvxE.js:48 Query Response from /api/dashboard/sector-stats: Object
+index-DEJlTvxE.js:48 Query data received from /api/dashboard/sector-stats: Array(9)
+index-DEJlTvxE.js:48 API Request: POST /api/notifications/mark-all-read Object
+index-DEJlTvxE.js:48 Sending fetch request to /api/notifications/mark-all-read with options: Object
+index-DEJlTvxE.js:457 Using /me endpoint data for avatar Object
+index-DEJlTvxE.js:48 Query Response from /api/leaderboard: Object
+index-DEJlTvxE.js:48 Query data received from /api/leaderboard: Array(74)
+index-DEJlTvxE.js:48 Query Response from /api/deals: Object
+index-DEJlTvxE.js:48 Query data received from /api/deals: Array(91)
+index-DEJlTvxE.js:48 API Response from /api/notifications/mark-all-read: Object
+index-DEJlTvxE.js:48 Query fetch request: /api/notifications Object
+index-DEJlTvxE.js:48 Query fetch request: /api/notifications/unread-count Object
+index-DEJlTvxE.js:48 Query Response from /api/notifications: Object
+index-DEJlTvxE.js:48 Query data received from /api/notifications: Array(3)
+index-DEJlTvxE.js:48 Query Response from /api/notifications/unread-count: Object
+index-DEJlTvxE.js:48 Query data received from /api/notifications/unread-count: Object
+index-DEJlTvxE.js:48 Query Response from /api/funds: Object
+index-DEJlTvxE.js:48 Query data received from /api/funds: Array(2)
+index-DEJlTvxE.js:48 Query Response from /api/activity: Object
+index-DEJlTvxE.js:48 Query data received from /api/activity: Array(20)
+11index-DEJlTvxE.js:457 UserAvatar: User 4 has color #D32F2F
+6index-DEJlTvxE.js:457 UserAvatar: User 1 has color #4f46e5
+3index-DEJlTvxE.js:457 UserAvatar: User 4 has color #D32F2F
+index-DEJlTvxE.js:457 Using /me endpoint data for avatar Object
+index-DEJlTvxE.js:457 Direct user fetch for avatar ID 1: Object
+index-DEJlTvxE.js:457 UserAvatar: User 4 has color #D32F2F
+index-DEJlTvxE.js:457 Avatar color changed to: null
+index-DEJlTvxE.js:48 Query fetch request: /api/auth/me Object
+index-DEJlTvxE.js:48 Query fetch request: /api/deals/49 Object
+index-DEJlTvxE.js:48 Query fetch request: /api/deals/49/stars Object
+index-DEJlTvxE.js:457 Avatar color changed to: #D32F2F
+index-DEJlTvxE.js:457 Using /me endpoint data for avatar Object
+index-DEJlTvxE.js:48 Query Response from /api/deals/49/stars: Object
+index-DEJlTvxE.js:48 Query data received from /api/deals/49/stars: Array(1)
+index-DEJlTvxE.js:48 Query Response from /api/auth/me: Object
+index-DEJlTvxE.js:48 Query data received from /api/auth/me: Object
+index-DEJlTvxE.js:48 Query Response from /api/deals/49: Object
+index-DEJlTvxE.js:48 Query data received from /api/deals/49: Object
+index-DEJlTvxE.js:457 UserAvatar: User 1 has color #4f46e5
+index-DEJlTvxE.js:457 UserAvatar: User 5 has color #6B7280
+index-DEJlTvxE.js:457 UserAvatar: User 4 has color #D32F2F
+index-DEJlTvxE.js:457 UserAvatar: User 8 has color #388E3C
+index-DEJlTvxE.js:48 Query fetch request: /api/documents/deal/49 Object
+index-DEJlTvxE.js:546 🔍 useDealDocuments: Processing data for deal 49: undefined
+index-DEJlTvxE.js:546 ⚠️ useDealDocuments: No data received or data is not an array: undefined
+index-DEJlTvxE.js:48 Query Response from /api/documents/deal/49: Object
+index-DEJlTvxE.js:48 Query data received from /api/documents/deal/49: Array(1)
+index-DEJlTvxE.js:546 🔍 useDealDocuments: Processing data for deal 49: Array(1)
+index-DEJlTvxE.js:546 📝 useDealDocuments: Setting 1 documents in context: Array(1)
+index-DEJlTvxE.js:546 🎯 useDealDocuments: Auto-selecting first document: Object
+index-DEJlTvxE.js:546 🔍 useDealDocuments: Processing data for deal 49: Array(1)
+index-DEJlTvxE.js:546 📝 useDealDocuments: Setting 1 documents in context: Array(1)
+index-DEJlTvxE.js:457 Direct user fetch for avatar ID 1: Object
+/api/documents/62/download#zoom=100:1 
+            
+            
+           Failed to load resource: the server responded with a status of 404 ()Understand this error
+index-DEJlTvxE.js:457 Using /me endpoint data for avatar Object
+index-DEJlTvxE.js:457 Direct user fetch for avatar ID 5: Object
+index-DEJlTvxE.js:457 Direct user fetch for avatar ID 8: Object
+index-DEJlTvxE.js:457 Using /me endpoint data for avatar Object
+index-DEJlTvxE.js:457 Direct user fetch for avatar ID 1: Object
+index-DEJlTvxE.js:457 Direct user fetch for avatar ID 8: Object
+index-DEJlTvxE.js:457 Direct user fetch for avatar ID 5: Object
+index-DEJlTvxE.js:48 Query fetch request: /api/system/health Object
+index-DEJlTvxE.js:48 Query Response from /api/system/health: Object
+index-DEJlTvxE.js:48 Query data received from /api/system/health: Object
+index-DEJlTvxE.js:457 Using /me endpoint data for avatar Object
+index-DEJlTvxE.js:457 Direct user fetch for avatar ID 1: Object
+index-DEJlTvxE.js:457 Direct user fetch for avatar ID 8: Object
+index-DEJlTvxE.js:457 Direct user fetch for avatar ID 5: Object
+index-DEJlTvxE.js:48 Query fetch request: /api/auth/me Object
+index-DEJlTvxE.js:48 Query fetch request: /api/notifications/unread-count Object
+index-DEJlTvxE.js:48 Query Response from /api/auth/me: Object
+index-DEJlTvxE.js:48 Query data received from /api/auth/me: Object
+index-DEJlTvxE.js:48 Query Response from /api/notifications/unread-count: Object
+index-DEJlTvxE.js:48 Query data received from /api/notifications/unread-count: Object
+index-DEJlTvxE.js:457 Using /me endpoint data for avatar Object
+index-DEJlTvxE.js:457 Direct user fetch for avatar ID 1: Object
+index-DEJlTvxE.js:457 Direct user fetch for avatar ID 5: Object
+index-DEJlTvxE.js:457 Direct user fetch for avatar ID 8: Object
+index-DEJlTvxE.js:48 Query fetch request: /api/auth/me Object
+index-DEJlTvxE.js:48 Query fetch request: /api/system/health Object
+index-DEJlTvxE.js:48 Query fetch request: /api/notifications Object
+index-DEJlTvxE.js:48 Query Response from /api/system/health: Object
+index-DEJlTvxE.js:48 Query Response from /api/auth/me: Object
+index-DEJlTvxE.js:48 Query Response from /api/notifications: Object
+index-DEJlTvxE.js:48 Query data received from /api/auth/me: Object
+index-DEJlTvxE.js:48 Query data received from /api/notifications: Array(3)
+index-DEJlTvxE.js:48 Query data received from /api/system/health: Object
+index-DEJlTvxE.js:457 Using /me endpoint data for avatar Object
+index-DEJlTvxE.js:457 Direct user fetch for avatar ID 1: Object
+index-DEJlTvxE.js:457 Direct user fetch for avatar ID 5: Object
+index-DEJlTvxE.js:457 Direct user fetch for avatar ID 8: Object
+index-DEJlTvxE.js:457 Fetching current user data
+index-DEJlTvxE.js:48 Query fetch request: /api/system/health Object
+index-DEJlTvxE.js:48 Query fetch request: /api/deals Object
+index-DEJlTvxE.js:48 Query fetch request: /api/funds Object
+index-DEJlTvxE.js:48 Query fetch request: /api/notifications Object
+index-DEJlTvxE.js:48 Query fetch request: /api/notifications/unread-count Object
+index-DEJlTvxE.js:48 Query fetch request: /api/deals/49 Object
+index-DEJlTvxE.js:48 Query fetch request: /api/deals/49/stars Object
+index-DEJlTvxE.js:48 Query fetch request: /api/documents/deal/49 Object
+/api/funds:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-DEJlTvxE.js:48 Query Response from /api/funds: Object
+index-DEJlTvxE.js:48 Returning null for 401 response from /api/funds as configured
+index-DEJlTvxE.js:40 TypeError: Cannot read properties of null (reading 'filter')
+    at zye (index-DEJlTvxE.js:457:94138)
+    at GD (index-DEJlTvxE.js:38:17031)
+    at uP (index-DEJlTvxE.js:40:3143)
+    at LW (index-DEJlTvxE.js:40:44880)
+    at MW (index-DEJlTvxE.js:40:39822)
+    at coe (index-DEJlTvxE.js:40:39748)
+    at Pj (index-DEJlTvxE.js:40:39598)
+    at wP (index-DEJlTvxE.js:40:35960)
+    at _$ (index-DEJlTvxE.js:40:36765)
+    at jd (index-DEJlTvxE.js:38:3288)
+cP @ index-DEJlTvxE.js:40
+i.componentDidCatch.n.callback @ index-DEJlTvxE.js:40
+o$ @ index-DEJlTvxE.js:38
+j$ @ index-DEJlTvxE.js:40
+PW @ index-DEJlTvxE.js:40
+aoe @ index-DEJlTvxE.js:40
+doe @ index-DEJlTvxE.js:40
+Gd @ index-DEJlTvxE.js:40
+_$ @ index-DEJlTvxE.js:40
+jd @ index-DEJlTvxE.js:38
+(anonymous) @ index-DEJlTvxE.js:40Understand this error
+index-DEJlTvxE.js:553 Error caught by boundary: TypeError: Cannot read properties of null (reading 'filter')
+    at zye (index-DEJlTvxE.js:457:94138)
+    at GD (index-DEJlTvxE.js:38:17031)
+    at uP (index-DEJlTvxE.js:40:3143)
+    at LW (index-DEJlTvxE.js:40:44880)
+    at MW (index-DEJlTvxE.js:40:39822)
+    at coe (index-DEJlTvxE.js:40:39748)
+    at Pj (index-DEJlTvxE.js:40:39598)
+    at wP (index-DEJlTvxE.js:40:35960)
+    at _$ (index-DEJlTvxE.js:40:36765)
+    at jd (index-DEJlTvxE.js:38:3288) Object
+componentDidCatch @ index-DEJlTvxE.js:553
+i.componentDidCatch.n.callback @ index-DEJlTvxE.js:40
+o$ @ index-DEJlTvxE.js:38
+j$ @ index-DEJlTvxE.js:40
+PW @ index-DEJlTvxE.js:40
+aoe @ index-DEJlTvxE.js:40
+doe @ index-DEJlTvxE.js:40
+Gd @ index-DEJlTvxE.js:40
+_$ @ index-DEJlTvxE.js:40
+jd @ index-DEJlTvxE.js:38
+(anonymous) @ index-DEJlTvxE.js:40Understand this error
+/api/deals:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-DEJlTvxE.js:48 Query Response from /api/deals: Object
+index-DEJlTvxE.js:48 Returning null for 401 response from /api/deals as configured
+/api/auth/me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-DEJlTvxE.js:457 User is not authenticated (401 response)
+/api/notifications/unread-count:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-DEJlTvxE.js:48 Query Response from /api/notifications/unread-count: Object
+index-DEJlTvxE.js:48 Returning null for 401 response from /api/notifications/unread-count as configured
+/api/deals/49/stars:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-DEJlTvxE.js:48 Query Response from /api/deals/49/stars: Object
+index-DEJlTvxE.js:48 Returning null for 401 response from /api/deals/49/stars as configured
+/api/deals/49:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-DEJlTvxE.js:48 Query Response from /api/deals/49: Object
+index-DEJlTvxE.js:48 Returning null for 401 response from /api/deals/49 as configured
+/api/notifications:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-DEJlTvxE.js:48 Query Response from /api/notifications: Object
+index-DEJlTvxE.js:48 Returning null for 401 response from /api/notifications as configured
+/api/documents/deal/49:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-DEJlTvxE.js:48 Query Response from /api/documents/deal/49: Object
+index-DEJlTvxE.js:48 Returning null for 401 response from /api/documents/deal/49 as configured
+/api/auth/me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-DEJlTvxE.js:457 Error fetching from /me endpoint Error: HTTP 401
+    at queryFn (index-DEJlTvxE.js:457:87798)
+queryFn @ index-DEJlTvxE.js:457Understand this error
+index-DEJlTvxE.js:48 Query Response from /api/system/health: Object
+index-DEJlTvxE.js:48 Query data received from /api/system/health: Object
+/api/users/4:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+/api/auth/me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-DEJlTvxE.js:457 Error fetching from /me endpoint Error: HTTP 401
+    at queryFn (index-DEJlTvxE.js:457:87798)
+queryFn @ index-DEJlTvxE.js:457Understand this error
+index-DEJlTvxE.js:457 Direct user fetch for avatar ID 4: Object
+/api/users/1:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-DEJlTvxE.js:457 Direct user fetch for avatar ID 1: Object
+/api/auth/me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-DEJlTvxE.js:457 Error fetching from /me endpoint Error: HTTP 401
+    at queryFn (index-DEJlTvxE.js:457:87798)
+queryFn @ index-DEJlTvxE.js:457Understand this error
+/api/users/5:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-DEJlTvxE.js:457 Direct user fetch for avatar ID 5: Object
+/api/auth/me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-DEJlTvxE.js:457 Error fetching from /me endpoint Error: HTTP 401
+    at queryFn (index-DEJlTvxE.js:457:87798)
+queryFn @ index-DEJlTvxE.js:457Understand this error
+/api/users/8:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-DEJlTvxE.js:457 Direct user fetch for avatar ID 8: Object
+index-DEJlTvxE.js:457 Auth provider mounted - checking authentication status
+index-DEJlTvxE.js:457 Manual auth refresh requested
+index-DEJlTvxE.js:457 Fetching current user data
+/api/auth/me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-DEJlTvxE.js:457 User is not authenticated (401 response)
+index-DEJlTvxE.js:553 Submitting login with credentials: Object
+index-DEJlTvxE.js:553 Starting login process for username: Gonz
+index-DEJlTvxE.js:553 Login mutation state: Object
+index-DEJlTvxE.js:457 Auth login mutation starting with credentials: Object
+index-DEJlTvxE.js:48 API Request: POST /api/auth/login Object
+index-DEJlTvxE.js:48 Sending fetch request to /api/auth/login with options: Object
+index-DEJlTvxE.js:48 API Response from /api/auth/login: Object
+index-DEJlTvxE.js:457 Login API response successful: Object
+index-DEJlTvxE.js:457 Login mutation onSuccess handler, setting user data: Object
+index-DEJlTvxE.js:457 Fetching current user data
+index-DEJlTvxE.js:48 Query fetch request: /api/system/health Object
+index-DEJlTvxE.js:457 Manual auth refresh requested
+index-DEJlTvxE.js:457 Fetching current user data
+index-DEJlTvxE.js:40 TypeError: Cannot read properties of null (reading 'filter')
+    at zye (index-DEJlTvxE.js:457:94065)
+    at GD (index-DEJlTvxE.js:38:17031)
+    at LW (index-DEJlTvxE.js:40:44104)
+    at MW (index-DEJlTvxE.js:40:39822)
+    at coe (index-DEJlTvxE.js:40:39748)
+    at Pj (index-DEJlTvxE.js:40:39598)
+    at wP (index-DEJlTvxE.js:40:35960)
+    at _$ (index-DEJlTvxE.js:40:36765)
+    at jd (index-DEJlTvxE.js:38:3288)
+    at index-DEJlTvxE.js:40:34286
+cP @ index-DEJlTvxE.js:40Understand this error
+index-DEJlTvxE.js:553 Error caught by boundary: TypeError: Cannot read properties of null (reading 'filter')
+    at zye (index-DEJlTvxE.js:457:94065)
+    at GD (index-DEJlTvxE.js:38:17031)
+    at LW (index-DEJlTvxE.js:40:44104)
+    at MW (index-DEJlTvxE.js:40:39822)
+    at coe (index-DEJlTvxE.js:40:39748)
+    at Pj (index-DEJlTvxE.js:40:39598)
+    at wP (index-DEJlTvxE.js:40:35960)
+    at _$ (index-DEJlTvxE.js:40:36765)
+    at jd (index-DEJlTvxE.js:38:3288)
+    at index-DEJlTvxE.js:40:34286 Object
+componentDidCatch @ index-DEJlTvxE.js:553Understand this error
+index-DEJlTvxE.js:40 TypeError: Cannot read properties of null (reading 'filter')
+    at Kye (index-DEJlTvxE.js:457:127132)
+    at GD (index-DEJlTvxE.js:38:17031)
+    at LW (index-DEJlTvxE.js:40:44104)
+    at MW (index-DEJlTvxE.js:40:39822)
+    at coe (index-DEJlTvxE.js:40:39748)
+    at Pj (index-DEJlTvxE.js:40:39598)
+    at wP (index-DEJlTvxE.js:40:35960)
+    at _$ (index-DEJlTvxE.js:40:36765)
+    at jd (index-DEJlTvxE.js:38:3288)
+    at index-DEJlTvxE.js:40:34286
+cP @ index-DEJlTvxE.js:40Understand this error
+index-DEJlTvxE.js:553 Error caught by boundary: TypeError: Cannot read properties of null (reading 'filter')
+    at Kye (index-DEJlTvxE.js:457:127132)
+    at GD (index-DEJlTvxE.js:38:17031)
+    at LW (index-DEJlTvxE.js:40:44104)
+    at MW (index-DEJlTvxE.js:40:39822)
+    at coe (index-DEJlTvxE.js:40:39748)
+    at Pj (index-DEJlTvxE.js:40:39598)
+    at wP (index-DEJlTvxE.js:40:35960)
+    at _$ (index-DEJlTvxE.js:40:36765)
+    at jd (index-DEJlTvxE.js:38:3288)
+    at index-DEJlTvxE.js:40:34286 Object
+componentDidCatch @ index-DEJlTvxE.js:553Understand this error
+index-DEJlTvxE.js:457 Current user data fetched successfully: Object
+index-DEJlTvxE.js:457 Current user data fetched successfully: Object
+index-DEJlTvxE.js:553 Login successful result: Object
+index-DEJlTvxE.js:48 Query Response from /api/system/health: Object
+index-DEJlTvxE.js:48 Query data received from /api/system/health: Object
+index-DEJlTvxE.js:40 TypeError: Cannot read properties of null (reading 'filter')
+    at zye (index-DEJlTvxE.js:457:94065)
+    at GD (index-DEJlTvxE.js:38:17031)
+    at LW (index-DEJlTvxE.js:40:44104)
+    at MW (index-DEJlTvxE.js:40:39822)
+    at coe (index-DEJlTvxE.js:40:39748)
+    at Pj (index-DEJlTvxE.js:40:39598)
+    at wP (index-DEJlTvxE.js:40:35960)
+    at _$ (index-DEJlTvxE.js:40:36765)
+    at jd (index-DEJlTvxE.js:38:3288)
+    at index-DEJlTvxE.js:40:34286
+cP @ index-DEJlTvxE.js:40Understand this error
+index-DEJlTvxE.js:553 Error caught by boundary: TypeError: Cannot read properties of null (reading 'filter')
+    at zye (index-DEJlTvxE.js:457:94065)
+    at GD (index-DEJlTvxE.js:38:17031)
+    at LW (index-DEJlTvxE.js:40:44104)
+    at MW (index-DEJlTvxE.js:40:39822)
+    at coe (index-DEJlTvxE.js:40:39748)
+    at Pj (index-DEJlTvxE.js:40:39598)
+    at wP (index-DEJlTvxE.js:40:35960)
+    at _$ (index-DEJlTvxE.js:40:36765)
+    at jd (index-DEJlTvxE.js:38:3288)
+    at index-DEJlTvxE.js:40:34286 Object
+componentDidCatch @ index-DEJlTvxE.js:553Understand this error
+index-DEJlTvxE.js:40 TypeError: Cannot read properties of null (reading 'filter')
+    at Kye (index-DEJlTvxE.js:457:127132)
+    at GD (index-DEJlTvxE.js:38:17031)
+    at LW (index-DEJlTvxE.js:40:44104)
+    at MW (index-DEJlTvxE.js:40:39822)
+    at coe (index-DEJlTvxE.js:40:39748)
+    at Pj (index-DEJlTvxE.js:40:39598)
+    at wP (index-DEJlTvxE.js:40:35960)
+    at _$ (index-DEJlTvxE.js:40:36765)
+    at jd (index-DEJlTvxE.js:38:3288)
+    at index-DEJlTvxE.js:40:34286
+cP @ index-DEJlTvxE.js:40Understand this error
+index-DEJlTvxE.js:553 Error caught by boundary: TypeError: Cannot read properties of null (reading 'filter')
+    at Kye (index-DEJlTvxE.js:457:127132)
+    at GD (index-DEJlTvxE.js:38:17031)
+    at LW (index-DEJlTvxE.js:40:44104)
+    at MW (index-DEJlTvxE.js:40:39822)
+    at coe (index-DEJlTvxE.js:40:39748)
+    at Pj (index-DEJlTvxE.js:40:39598)
+    at wP (index-DEJlTvxE.js:40:35960)
+    at _$ (index-DEJlTvxE.js:40:36765)
+    at jd (index-DEJlTvxE.js:38:3288)
+    at index-DEJlTvxE.js:40:34286 Object
+componentDidCatch @ index-DEJlTvxE.js:553Understand this error
