@@ -4,15 +4,11 @@ import { createServer, type Server } from "http";
 // Route imports
 import dealsRoutes from './routes/new-deals'; // Using refactored modular structure
 import fundsRoutes from './routes/new-funds'; // Using refactored modular structure
-import usersRoutes from './routes/users';
-import authRoutes from './routes/auth';
-import dashboardRoutes from './routes/dashboard';
+// Users, auth, and dashboard routes removed during cleanup
 // Leaderboard routes removed during cleanup
 import activityRoutes from './routes/activity';
 import documentsRoutes from './routes/documents';
 // Capital calls and closing schedules routes removed during cleanup
-import meetingsRoutes from './routes/meetings';
-import calendarRoutes from './routes/calendar.routes';
 import { systemRouter } from './routes/system';
 // AI analysis routes removed during cleanup
 
@@ -77,12 +73,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register route modules
   app.use('/api/deals', dealsRoutes);
   app.use('/api/funds', fundsRoutes);
-  app.use('/api/users', usersRoutes);
-  app.use('/api/auth', authRoutes);
-  // Allocations, capital calls, and closing schedules routes removed during cleanup
-  app.use('/api/meetings', meetingsRoutes);
-  app.use('/api/calendar', calendarRoutes); // New unified calendar API endpoint
-  app.use('/api/dashboard', dashboardRoutes);
+  // Users, auth, allocations, meetings, calendar, and dashboard routes removed during cleanup
   app.use('/api/activity', activityRoutes);
   app.use('/api/documents', documentsRoutes); // PostgreSQL blob storage with deal isolation
   app.use('/api/system', systemRouter);
