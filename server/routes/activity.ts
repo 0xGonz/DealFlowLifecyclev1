@@ -43,11 +43,11 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
           try {
             // Only get the 5 most recent events per deal for better performance
             const eventsResult = await pool.query(
-              `SELECT a.*, u.full_name, u.initials, u.avatar_color, u.role 
-               FROM activities a 
-               LEFT JOIN users u ON a.created_by = u.id 
-               WHERE a.deal_id = $1 
-               ORDER BY a.created_at DESC 
+              `SELECT t.*, u.full_name, u.initials, u.avatar_color, u.role 
+               FROM timeline_events t 
+               LEFT JOIN users u ON t.created_by = u.id 
+               WHERE t.deal_id = $1 
+               ORDER BY t.created_at DESC 
                LIMIT 5`,
               [deal.id]
             );
