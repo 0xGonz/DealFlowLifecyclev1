@@ -118,4 +118,60 @@ export class UnifiedDocumentStorage {
       return null;
     }
   }
+
+  async updateDocument(documentId: number, updateData: Partial<any>) {
+    try {
+      console.log(`📝 Updating document ${documentId}`);
+      
+      const [updatedDocument] = await db
+        .update(documents)
+        .set({
+          fileName: updateData.fileName,
+          description: updateData.description,
+          documentType: updateData.documentType,
+          uploadedAt: new Date() // Update timestamp
+        })
+        .where(eq(documents.id, documentId))
+        .returning();
+
+      console.log(`✅ Document ${documentId} updated successfully`);
+      return updatedDocument;
+    } catch (error) {
+      console.error(`❌ Error updating document ${documentId}:`, error);
+      throw error;
+    }
+  }
+
+  async deleteDocument(documentId: number) {
+    try {
+      console.log(`🗑️ Deleting document ${documentId}`);
+      
+      // First get the document to access file path
+      const document = await this.getDocument(documentId);
+      if (!document) {
+        throw new Error('Document not found');
+      }
+
+      // Delete physical file
+      try {
+        const fullPath = path.join(process.cwd(), document.filePath);
+        await fs.unlink(fullPath);
+        console.log(`🗑️ Physical file deleted: ${document.filePath}`);
+      } catch (fileError) {
+        console.warn(`⚠️ Could not delete physical file: ${document.filePath}`, fileError);
+        // Continue with database deletion even if file deletion fails
+      }
+
+      // Delete database record
+      await db
+        .delete(documents)
+        .where(eq(documents.id, documentId));
+
+      console.log(`✅ Document ${documentId} deleted successfully`);
+      return { success: true, deletedDocument: document };
+    } catch (error) {
+      console.error(`❌ Error deleting document ${documentId}:`, error);
+      throw error;
+    }
+  }
 }
