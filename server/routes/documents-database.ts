@@ -112,7 +112,16 @@ router.get('/:id/download', requireAuth, async (req, res) => {
       console.log(`📥 Serving document ${documentId} from database: ${document.fileName}`);
       
       // Convert base64 back to buffer
-      const fileBuffer = Buffer.from(document.fileData, 'base64');
+      // Handle hex-encoded base64 data from PostgreSQL
+      let base64Data = document.fileData;
+      if (base64Data.startsWith('\\x')) {
+        // Convert hex to base64
+        const hexData = base64Data.slice(2); // Remove \x prefix
+        const buffer = Buffer.from(hexData, 'hex');
+        base64Data = buffer.toString('utf8');
+      }
+      
+      const fileBuffer = Buffer.from(base64Data, 'base64');
       
       // Set appropriate headers for file download
       res.setHeader('Content-Type', document.fileType);
@@ -184,7 +193,16 @@ router.get('/:id/view', requireAuth, async (req, res) => {
       console.log(`📖 Serving document ${documentId} for viewing from database: ${document.fileName}`);
       
       // Convert base64 back to buffer
-      const fileBuffer = Buffer.from(document.fileData, 'base64');
+      // Handle hex-encoded base64 data from PostgreSQL
+      let base64Data = document.fileData;
+      if (base64Data.startsWith('\\x')) {
+        // Convert hex to base64
+        const hexData = base64Data.slice(2); // Remove \x prefix
+        const buffer = Buffer.from(hexData, 'hex');
+        base64Data = buffer.toString('utf8');
+      }
+      
+      const fileBuffer = Buffer.from(base64Data, 'base64');
       
       // Set appropriate headers for inline viewing
       res.setHeader('Content-Type', document.fileType);
