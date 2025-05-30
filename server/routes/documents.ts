@@ -3,6 +3,8 @@ import { DatabaseStorage } from '../database-storage';
 import { DocumentService } from '../modules/documents/service';
 import { FileManagerService } from '../services/file-manager.service';
 import { DocumentUploadService } from '../services/document-upload.service';
+import path from 'path';
+import fs from 'fs';
 
 const router = Router();
 const storage = new DatabaseStorage();
@@ -85,25 +87,51 @@ router.get('/:id/download', requireAuth, async (req: Request, res: Response) => 
       return res.status(500).json({ message: 'Document missing file information' });
     }
     
-    // Build proper file paths with consistent handling
+    // Build comprehensive file paths for both dev and production environments
     const possiblePaths = [];
+    
+    // Environment-aware path resolution
+    const isProd = process.env.NODE_ENV === 'production';
+    const baseDir = process.cwd();
     
     if (filePath) {
       // Handle paths with or without leading slash
       const normalizedPath = filePath.startsWith('/') ? filePath.substring(1) : filePath;
-      possiblePaths.push(
-        path.join(process.cwd(), normalizedPath),
-        path.join(process.cwd(), 'public', normalizedPath),
-        path.join(process.cwd(), 'uploads', normalizedPath)
-      );
+      
+      // Production-first path resolution
+      if (isProd) {
+        possiblePaths.push(
+          path.join(baseDir, normalizedPath),
+          path.join(baseDir, 'public', normalizedPath),
+          path.join('/tmp', normalizedPath),
+          path.join('/app', normalizedPath),
+          path.join('/app/uploads', normalizedPath)
+        );
+      } else {
+        possiblePaths.push(
+          path.join(baseDir, normalizedPath),
+          path.join(baseDir, 'public', normalizedPath),
+          path.join(baseDir, 'uploads', normalizedPath)
+        );
+      }
     }
     
     if (fileName) {
-      possiblePaths.push(
-        path.join(process.cwd(), 'uploads', fileName),
-        path.join(process.cwd(), 'public', 'uploads', fileName),
-        path.join(process.cwd(), 'data', 'uploads', fileName)
-      );
+      if (isProd) {
+        possiblePaths.push(
+          path.join(baseDir, 'uploads', fileName),
+          path.join(baseDir, 'public', 'uploads', fileName),
+          path.join('/tmp/uploads', fileName),
+          path.join('/app/uploads', fileName),
+          path.join('/app/public/uploads', fileName)
+        );
+      } else {
+        possiblePaths.push(
+          path.join(baseDir, 'uploads', fileName),
+          path.join(baseDir, 'public', 'uploads', fileName),
+          path.join(baseDir, 'data', 'uploads', fileName)
+        );
+      }
     }
     
     let resolvedFilePath = null;
@@ -159,17 +187,43 @@ router.get('/:id/download', requireAuth, async (req: Request, res: Response) => 
     
     console.log(`📁 Serving file: ${document.fileName} from ${resolvedFilePath}`);
     
-    // Create and pipe file stream
-    const fileStream = fs.createReadStream(resolvedFilePath);
+    // Create and pipe file stream with comprehensive error handling
+    console.log(`📂 Creating read stream for: ${resolvedFilePath}`);
+    
+    let fileStream;
+    try {
+      fileStream = fs.createReadStream(resolvedFilePath);
+    } catch (streamError) {
+      console.error('❌ Failed to create file stream:', streamError);
+      return res.status(500).json({ 
+        error: 'Stream creation error',
+        message: 'Failed to access the document file'
+      });
+    }
     
     fileStream.on('error', (err) => {
-      console.error('Error streaming document:', err);
+      console.error('💥 Stream error while serving document:', err);
       if (!res.headersSent) {
         res.status(500).json({ 
           error: 'Stream error',
-          message: 'Error accessing the document file'
+          message: 'Error streaming the document file',
+          details: err.message
         });
       }
+    });
+    
+    fileStream.on('open', () => {
+      console.log(`✅ File stream opened successfully for document ${documentId}`);
+    });
+    
+    fileStream.on('end', () => {
+      console.log(`🏁 File stream completed for document ${documentId}`);
+    });
+    
+    // Set up response error handling
+    res.on('error', (err) => {
+      console.error('💥 Response error:', err);
+      fileStream.destroy();
     });
     
     fileStream.pipe(res);
