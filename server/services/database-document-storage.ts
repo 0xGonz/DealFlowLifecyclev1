@@ -1,6 +1,6 @@
 import { db } from '../db-read-replica.js';
 import { documents } from '../../shared/schema.js';
-import { eq } from 'drizzle-orm';
+import { eq, desc } from 'drizzle-orm';
 
 export class DatabaseDocumentStorage {
   private readonly MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
@@ -98,8 +98,8 @@ export class DatabaseDocumentStorage {
       const result = await db
         .select()
         .from(documents)
-        .where(eq(documents.deal_id, dealId))
-        .orderBy(documents.uploaded_at);
+        .where(eq(documents.dealId, dealId))
+        .orderBy(desc(documents.uploadedAt));
       
       return result;
     } catch (error) {
@@ -112,11 +112,16 @@ export class DatabaseDocumentStorage {
     try {
       const document = await this.getDocument(documentId);
       if (!document || !document.fileData) {
+        console.error(`Document ${documentId} not found or has no file data`);
         return null;
       }
 
+      console.log(`📥 Downloading document ${documentId}: ${document.fileName} (${document.fileSize} bytes)`);
+      
       // Convert base64 back to buffer
       const fileBuffer = Buffer.from(document.fileData, 'base64');
+      
+      console.log(`✅ Document ${documentId} converted to buffer: ${fileBuffer.length} bytes`);
       
       return {
         buffer: fileBuffer,
