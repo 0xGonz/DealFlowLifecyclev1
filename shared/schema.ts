@@ -12,6 +12,7 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   role: text("role", { enum: ["admin", "partner", "analyst", "observer", "intern"] }).notNull().default("analyst"),
   avatarColor: text("avatar_color").default("#0E4DA4"),
+  lastActive: timestamp("last_active").defaultNow(),
 });
 
 export const insertUserSchema = createInsertSchema(users).omit({

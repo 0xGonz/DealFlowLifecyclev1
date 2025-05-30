@@ -96,6 +96,15 @@ router.get('/me', asyncHandler(async (req: Request, res: Response) => {
     return res.status(401).json({ message: 'Not authenticated' });
   }
   
+  // Update last active timestamp for the user
+  try {
+    const storage = StorageFactory.getStorage();
+    await storage.updateUser(user.id, { lastActive: new Date() });
+  } catch (error) {
+    // Log error but don't fail the request
+    console.warn('Failed to update last active timestamp:', error);
+  }
+  
   // Return user info (without password)
   const { password: _, ...userWithoutPassword } = user;
   // Return user directly, not wrapped in an object

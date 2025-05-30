@@ -5,6 +5,30 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { UserAvatar } from "@/components/common/UserAvatar";
 
+// Helper function to format last active time
+const formatLastActive = (lastActive: string | undefined) => {
+  if (!lastActive) return "Never";
+  
+  const now = new Date();
+  const lastActiveDate = new Date(lastActive);
+  const diffInSeconds = Math.floor((now.getTime() - lastActiveDate.getTime()) / 1000);
+  
+  if (diffInSeconds < 60) {
+    return "Just now";
+  } else if (diffInSeconds < 3600) {
+    const minutes = Math.floor(diffInSeconds / 60);
+    return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+  } else if (diffInSeconds < 86400) {
+    const hours = Math.floor(diffInSeconds / 3600);
+    return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+  } else if (diffInSeconds < 604800) {
+    const days = Math.floor(diffInSeconds / 86400);
+    return `${days} day${days > 1 ? 's' : ''} ago`;
+  } else {
+    return lastActiveDate.toLocaleDateString();
+  }
+};
+
 interface User {
   id: number;
   fullName: string;
@@ -64,9 +88,22 @@ export default function UserCard({ user, onEdit, onDelete, listView = false }: U
           </Badge>
         </div>
         <div className="col-span-3 text-sm text-muted-foreground">
-          {user.lastActive 
-            ? `${new Date(user.lastActive).toLocaleDateString()} at ${new Date(user.lastActive).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
-            : "N/A"}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="cursor-help">
+                  {formatLastActive(user.lastActive)}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>
+                  {user.lastActive 
+                    ? `Last active: ${new Date(user.lastActive).toLocaleDateString()} at ${new Date(user.lastActive).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+                    : "No activity recorded"}
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
         <div className="col-span-1 flex">
           <TooltipProvider>
