@@ -148,9 +148,12 @@ router.patch('/:id', requireAuth, async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'User not found' });
     }
     
-    // Only allow updating safe fields (not password or critical fields)
-    const { fullName, role, avatarColor } = req.body;
+    // Allow updating more fields for admins
+    const { fullName, role, avatarColor, email, username } = req.body;
     const updateData: any = {};
+    
+    console.log(`Update request for user ${targetUserId} by user ${currentUserId} (admin: ${isAdmin})`);
+    console.log('Update data received:', { fullName, role, avatarColor, email, username });
     
     if (fullName) {
       updateData.fullName = fullName;
@@ -164,10 +167,28 @@ router.patch('/:id', requireAuth, async (req: Request, res: Response) => {
       }
     }
     
+    // Admins can update email and username
+    if (email && isAdmin) {
+      updateData.email = email;
+      console.log(`Admin updating email for user ${targetUserId} to: ${email}`);
+    }
+    
+    if (username && isAdmin) {
+      // Check if username is already taken by another user
+      const existingUserByUsername = await storage.getUserByUsername(username);
+      if (existingUserByUsername && existingUserByUsername.id !== targetUserId) {
+        return res.status(409).json({ 
+          message: 'Username already exists' 
+        });
+      }
+      updateData.username = username;
+      console.log(`Admin updating username for user ${targetUserId} to: ${username}`);
+    }
+    
     // Only admins can update roles
     if (role && isAdmin) {
       updateData.role = role;
-      console.log(`Admin (ID: ${currentUserId}) updating role for user ${targetUserId} to: ${role}`);
+      console.log(`Admin updating role for user ${targetUserId} to: ${role}`);
     } else if (role && !isAdmin) {
       return res.status(403).json({ 
         message: 'Only administrators can update user roles' 
@@ -177,18 +198,37 @@ router.patch('/:id', requireAuth, async (req: Request, res: Response) => {
     // Allow users to update their avatar color
     if (avatarColor) {
       updateData.avatarColor = avatarColor;
-      console.log(`User (ID: ${currentUserId}) updating avatar color for user ${targetUserId} to: ${avatarColor}`);
+      console.log(`Updating avatar color for user ${targetUserId} to: ${avatarColor}`);
     }
+    
+    // Check if there's actually something to update
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ message: 'No valid fields to update' });
+    }
+    
+    console.log('Final update data being sent to storage:', updateData);
     
     // Update the user
     const updatedUser = await storage.updateUser(targetUserId, updateData);
     if (!updatedUser) {
+      console.error(`Failed to update user ${targetUserId} in storage`);
       return res.status(500).json({ message: 'Failed to update user' });
     }
     
+    console.log(`Successfully updated user ${targetUserId}:`, updatedUser.fullName);
+    
     // Return the updated user without password
     const { password, ...userWithoutPassword } = updatedUser;
-    res.json(userWithoutPassword);
+    
+    // Add cache headers to prevent stale data
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    
+    res.json({
+      ...userWithoutPassword,
+      message: 'User updated successfully'
+    });
   } catch (error) {
     console.error('Error updating user:', error);
     res.status(500).json({ message: 'Failed to update user' });
