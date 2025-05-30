@@ -7,17 +7,9 @@ import { pdfjs } from 'react-pdf';
  * that matches the installed pdfjs-dist package.
  */
 
-// Use local worker file from node_modules to avoid CDN issues
-// This prevents external network requests and worker configuration errors
-try {
-  pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-    'pdfjs-dist/build/pdf.worker.min.js',
-    import.meta.url
-  ).toString();
-} catch (error) {
-  // Fallback: disable worker entirely for compatibility
-  pdfjs.GlobalWorkerOptions.workerSrc = '';
-}
+// Use local worker file served from public directory
+// This prevents external CDN issues and ensures correct MIME type
+pdfjs.GlobalWorkerOptions.workerSrc = `${import.meta.env.BASE_URL}pdf.worker.min.js`;
 
 console.log('✅ PDF.js worker configured correctly: local fallback mode');
 
