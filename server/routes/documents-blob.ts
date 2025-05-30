@@ -82,7 +82,18 @@ router.get('/deal/:dealId', requireAuth, async (req, res) => {
   try {
     const dealId = parseInt(req.params.dealId);
     const documents = await listDocumentsByDeal(dealId);
-    res.json(documents);
+    
+    // Transform the response to match frontend expectations
+    const transformedDocs = documents.map(doc => ({
+      id: doc.id,
+      fileName: doc.fileName,
+      fileType: doc.fileType,
+      fileSize: doc.fileSize,
+      dealId: doc.dealId,
+      documentType: 'other' // Default value for compatibility
+    }));
+    
+    res.json(transformedDocs);
   } catch (error) {
     console.error('Document list error:', error);
     res.status(500).json({ error: 'Failed to list documents' });

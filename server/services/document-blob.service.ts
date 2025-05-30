@@ -45,7 +45,7 @@ export async function listDocumentsByDeal(dealId: number): Promise<DocumentBlob[
     `SELECT id, file_name AS "fileName", file_type AS "fileType", file_size AS "fileSize", deal_id AS "dealId"
      FROM documents 
      WHERE deal_id = $1 
-     ORDER BY created_at DESC`,
+     ORDER BY uploaded_at DESC`,
     [dealId]
   );
   return rows;
