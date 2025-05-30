@@ -8,7 +8,6 @@ const router = Router();
 router.get('/', requireAuth, async (req: Request, res: Response) => {
   try {
     console.log('Activity feed request received');
-    const storage = StorageFactory.getStorage();
     
     // Use a timeout to prevent long-running queries
     const timeoutPromise = new Promise((_, reject) => 
@@ -16,10 +15,12 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
     );
     
     // First check if we can get deals to avoid long processing if database is unavailable
-    const deals = await Promise.race([
-      storage.getDeals(),
+    const dealsResult = await Promise.race([
+      pool.query('SELECT id, name FROM deals ORDER BY id DESC LIMIT 100'),
       timeoutPromise
-    ]) as any[];
+    ]) as any;
+    
+    const deals = dealsResult.rows;
     
     if (!deals || !Array.isArray(deals)) {
       console.error('Failed to retrieve deals for activity feed');
@@ -41,18 +42,31 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
         batch.map(async (deal) => {
           try {
             // Only get the 5 most recent events per deal for better performance
-            const events = await storage.getTimelineEventsByDeal(deal.id);
-            const recentEvents = events.sort((a, b) => 
-              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-            ).slice(0, 5);
+            const eventsResult = await pool.query(
+              `SELECT a.*, u.full_name, u.initials, u.avatar_color, u.role 
+               FROM activities a 
+               LEFT JOIN users u ON a.created_by = u.id 
+               WHERE a.deal_id = $1 
+               ORDER BY a.created_at DESC 
+               LIMIT 5`,
+              [deal.id]
+            );
+            const events = eventsResult.rows;
             
             // Add deal info to each event
-            return recentEvents.map(event => ({
+            return events.map((event: any) => ({
               ...event,
               deal: {
                 id: deal.id,
                 name: deal.name,
-                stageLabel: deal.stageLabel || deal.stage
+                stageLabel: deal.stage
+              },
+              user: {
+                id: event.created_by,
+                fullName: event.full_name,
+                initials: event.initials,
+                avatarColor: event.avatar_color,
+                role: event.role
               }
             }));
           } catch (err) {
@@ -71,37 +85,14 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
     console.log(`Retrieved ${allEvents.length} events for activity feed`);
     
     // Sort by date (descending) and limit to latest 20
-    const sortedEvents = allEvents.sort((a, b) => 
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    const sortedEvents = allEvents.sort((a: any, b: any) => 
+      new Date(b.created_at || b.createdAt).getTime() - new Date(a.created_at || a.createdAt).getTime()
     ).slice(0, 20);
     
-    // Get user info for each event
-    const userIds = Array.from(new Set(sortedEvents.map(e => e.createdBy)));
-    console.log(`Fetching information for ${userIds.length} users`);
+    console.log(`Retrieved ${sortedEvents.length} sorted events for activity feed`);
     
-    // Use Promise.allSettled to handle potential failures in user fetching
-    const userPromises = userIds.map(id => storage.getUser(id));
-    const userResults = await Promise.allSettled(userPromises);
-    
-    // Filter out the failed promises and extract values from fulfilled ones
-    const users = userResults
-      .filter((result): result is PromiseFulfilledResult<any> => result.status === 'fulfilled')
-      .map(result => result.value)
-      .filter(Boolean); // Remove any null values
-    
-    const eventsWithUserInfo = sortedEvents.map(event => {
-      const user = users.find(u => u?.id === event.createdBy);
-      return {
-        ...event,
-        user: user ? {
-          id: user.id,
-          fullName: user.fullName,
-          initials: user.initials,
-          avatarColor: user.avatarColor,
-          role: user.role
-        } : null
-      };
-    });
+    // Return the events (user info is already included from the join query)
+    const eventsWithUserInfo = sortedEvents;
     
     console.log('Activity feed successfully generated');
     res.json(eventsWithUserInfo);
