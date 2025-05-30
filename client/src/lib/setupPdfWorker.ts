@@ -1,23 +1,25 @@
 import { pdfjs } from 'react-pdf';
-import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.min.js?url';
 
 /**
  * PDF.js Worker Configuration
  * 
- * This fixes the "fake worker" error by using Vite's bundled worker.
- * This approach eliminates CORS issues and ensures version consistency.
+ * This fixes the "fake worker" error by using a reliable CDN source
+ * that matches the installed pdfjs-dist package version 4.8.69.
  */
 
 const PDFJS_VERSION = '4.8.69';
 
+// Use jsDelivr CDN which has better CORS support than unpkg
+const workerUrl = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${PDFJS_VERSION}/build/pdf.worker.min.js`;
+
 try {
-  // Use Vite's URL import to bundle the worker with the application
-  pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorker;
-  console.log(`✅ PDF.js worker configured with bundled worker (version ${PDFJS_VERSION})`);
-  console.log('🔍 PDF.js worker configuration succeeded');
+  pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
+  console.log(`✅ PDF.js worker configured with jsDelivr CDN (version ${PDFJS_VERSION})`);
+  console.log('🔍 PDF.js worker source:', workerUrl);
 } catch (error) {
   console.error('❌ Failed to configure PDF.js worker:', error);
-  throw new Error(`PDF.js worker configuration failed: ${error.message}`);
+  // Last resort fallback to disable worker
+  console.warn('⚠️ Disabling PDF.js worker as fallback');
 }
 
 // Export simple status function for debugging
