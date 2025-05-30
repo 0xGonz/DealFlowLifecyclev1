@@ -10,7 +10,7 @@ import dashboardRoutes from './routes/dashboard';
 import leaderboardRoutes from './routes/leaderboard';
 import activityRoutes from './routes/activity';
 import notificationsRoutes from './routes/notifications';
-import documentsRoutes from './routes/documents-simple';
+import documentsRoutes from './routes/documents-fixed';
 import allocationsRoutes from './routes/allocations';
 import capitalCallsRoutes from './routes/capital-calls';
 import closingSchedulesRoutes from './routes/closing-schedules';
