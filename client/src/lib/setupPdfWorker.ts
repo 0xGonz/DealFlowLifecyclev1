@@ -7,9 +7,11 @@ import { pdfjs } from 'react-pdf';
  * that matches the installed pdfjs-dist package.
  */
 
-// Use local worker file served from public directory
-// This prevents external CDN issues and ensures correct MIME type
-pdfjs.GlobalWorkerOptions.workerSrc = `${import.meta.env.BASE_URL}pdf.worker.min.js`;
+// Use Vite's import system to bundle the worker from the same pdfjs-dist package
+// This ensures the API and worker versions always match
+import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+
+pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
 
 console.log('✅ PDF.js worker configured correctly: local fallback mode');
 
