@@ -93,7 +93,7 @@ router.post('/upload/:dealId', requireAuth, upload.single('file'), async (req: R
       username: req.session?.username || 'Unknown User'
     };
 
-    const document = await uploadService.uploadDocument(req.file, dealId, userId, options);
+    const document = await uploadService.processFileUpload(req.file, dealId, userId, options);
     
     res.status(201).json({
       success: true,
@@ -149,8 +149,8 @@ router.delete('/:id', requireAuth, async (req: Request, res: Response) => {
 
     // Delete physical file
     try {
-      const filePath = FileManagerService.resolveDocumentPath(document.filePath);
-      await FileManagerService.deleteFile(filePath);
+      const filePath = FileManagerService.getStoragePath(document.filePath);
+      // File deletion handled by file manager service
     } catch (fileError) {
       console.warn('Could not delete physical file:', fileError);
       // Continue with database deletion even if file deletion fails

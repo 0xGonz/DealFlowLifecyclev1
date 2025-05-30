@@ -154,14 +154,14 @@ export class DatabaseStorage implements IStorage {
         projectedIrr: deal.projectedIrr || null,
         projectedMultiple: deal.projectedMultiple || null,
         score: deal.score || 0,
-        tags: deal.tags || [],
+        tags: (deal.tags || []) as string[],
         round: deal.round || null,
         targetRaise: deal.targetRaise || null,
         valuation: deal.valuation || null,
         leadInvestor: deal.leadInvestor || null
       };
       
-      const [newDeal] = await db.insert(deals).values([dealData]).returning();
+      const [newDeal] = await db.insert(deals).values(dealData).returning();
       return newDeal;
     } catch (error) {
       console.error('Error creating deal:', error);

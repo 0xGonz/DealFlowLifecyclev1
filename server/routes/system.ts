@@ -3,11 +3,6 @@ import { StorageFactory } from '../storage-factory';
 import { DatabaseStorage } from '../database-storage';
 import { MemStorage } from '../storage';
 import { pool } from '../db';
-import { metricsHandler } from '../middleware/metrics';
-import { MetricsService, LoggingService } from '../services';
-
-const metricsService = MetricsService.getInstance();
-const logger = LoggingService.getInstance();
 
 export const systemRouter = Router();
 
