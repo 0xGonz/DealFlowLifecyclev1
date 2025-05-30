@@ -1,0 +1,76 @@
+✅ PDF.js worker configured as: /pdf.worker.min.js
+index-BTLUiata.js:48 Query fetch request: /api/system/health Object
+index-BTLUiata.js:467 Fetching current user data
+index-BTLUiata.js:467 Auth provider mounted - checking authentication status
+index-BTLUiata.js:467 Manual auth refresh requested
+index-BTLUiata.js:467 Current user data fetched successfully: Object
+index-BTLUiata.js:48 Query fetch request: /api/notifications Object
+index-BTLUiata.js:48 Query fetch request: /api/notifications/unread-count Object
+index-BTLUiata.js:467 UserAvatar: User 4 has color #0E4DA4
+index-BTLUiata.js:467 Avatar color changed to: null
+index-BTLUiata.js:48 Query fetch request: /api/auth/me Object
+index-BTLUiata.js:48 Query fetch request: /api/deals Object
+index-BTLUiata.js:48 Query fetch request: /api/funds Object
+index-BTLUiata.js:48 Query fetch request: /api/deals/48 Object
+index-BTLUiata.js:48 Query fetch request: /api/deals/48/stars Object
+index-BTLUiata.js:467 Avatar color changed to: #0E4DA4
+index-BTLUiata.js:48 Query Response from /api/system/health: Object
+index-BTLUiata.js:48 Query data received from /api/system/health: Object
+index-BTLUiata.js:467 Using /me endpoint data for avatar Object
+index-BTLUiata.js:48 Query Response from /api/notifications/unread-count: Object
+index-BTLUiata.js:48 Query data received from /api/notifications/unread-count: Object
+index-BTLUiata.js:48 Query Response from /api/notifications: Object
+index-BTLUiata.js:48 Query data received from /api/notifications: Array(3)
+index-BTLUiata.js:48 Query Response from /api/deals/48/stars: Object
+index-BTLUiata.js:48 Query data received from /api/deals/48/stars: Array(0)
+index-BTLUiata.js:48 Query Response from /api/deals: Object
+index-BTLUiata.js:48 Query data received from /api/deals: Array(91)
+index-BTLUiata.js:48 Query Response from /api/auth/me: Object
+index-BTLUiata.js:48 Query data received from /api/auth/me: Object
+index-BTLUiata.js:48 Query Response from /api/deals/48: Object
+index-BTLUiata.js:48 Query data received from /api/deals/48: Object
+index-BTLUiata.js:467 UserAvatar: User 1 has color #F57C00
+index-BTLUiata.js:48 Query fetch request: /api/documents/deal/48 Object
+index-BTLUiata.js:567 🔍 useDealDocuments: Processing data for deal 48: undefined
+index-BTLUiata.js:567 ⚠️ useDealDocuments: No data received or data is not an array: undefined
+index-BTLUiata.js:48 Query Response from /api/funds: Object
+index-BTLUiata.js:48 Query data received from /api/funds: Array(2)
+/api/documents/deal/48:1 
+            
+            
+            Failed to load resource: the server responded with a status of 500 ()
+index-BTLUiata.js:48 Query Response from /api/documents/deal/48: Object
+index-BTLUiata.js:48  Error response from /api/documents/deal/48: Object
+(anonymous) @ index-BTLUiata.js:48
+index-BTLUiata.js:48  Exception during query fetch to /api/documents/deal/48: TypeError: Failed to execute 'text' on 'Response': body stream already read
+    at Tce (index-BTLUiata.js:48:43202)
+    at index-BTLUiata.js:48:44655
+(anonymous) @ index-BTLUiata.js:48
+index-BTLUiata.js:467 Direct user fetch for avatar ID 1: Object
+index-BTLUiata.js:48 Query fetch request: /api/documents/deal/48 Object
+/api/documents/deal/48:1 
+            
+            
+            Failed to load resource: the server responded with a status of 500 ()
+index-BTLUiata.js:48 Query Response from /api/documents/deal/48: Object
+index-BTLUiata.js:48  Error response from /api/documents/deal/48: Object
+(anonymous) @ index-BTLUiata.js:48
+index-BTLUiata.js:48  Exception during query fetch to /api/documents/deal/48: TypeError: Failed to execute 'text' on 'Response': body stream already read
+    at Tce (index-BTLUiata.js:48:43202)
+    at index-BTLUiata.js:48:44655
+(anonymous) @ index-BTLUiata.js:48
+index-BTLUiata.js:467 Using /me endpoint data for avatar Object
+index-BTLUiata.js:467 Direct user fetch for avatar ID 1: Object
+/api/documents/upload:1 
+            
+            
+            Failed to load resource: the server responded with a status of 404 ()
+/api/documents/upload:1 
+            
+            
+            Failed to load resource: the server responded with a status of 404 ()
+index-BTLUiata.js:467 Using /me endpoint data for avatar Object
+index-BTLUiata.js:467 Direct user fetch for avatar ID 1: {id: 1, username: 'admin', fullName: 'Admin User', initials: 'AU', email: 'admin@example.com', …}
+index-BTLUiata.js:48 Query fetch request: /api/system/health {queryKey: Array(1), unauthorizedBehavior: 'returnNull'}
+index-BTLUiata.js:48 Query Response from /api/system/health: {status: 200, statusText: '', ok: true}
+index-BTLUiata.js:48 Query data received from /api/system/health: {status: 'ok', timestamp: '2025-05-30T17:15:21.209Z', storage: 'pg', databaseConnected: true, environment: 'production', …}

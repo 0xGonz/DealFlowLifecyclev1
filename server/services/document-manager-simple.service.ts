@@ -1,6 +1,9 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { storage } from '../database-storage.js';
+import { documents } from '../../shared/schema.js';
+import { eq } from 'drizzle-orm';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -57,11 +60,73 @@ export class DocumentManagerService {
   }
 
   /**
+   * Get documents for a specific deal
+   */
+  async getDocumentsByDeal(dealId: number) {
+    try {
+      const dealDocuments = await db.select().from(documents).where(eq(documents.deal_id, dealId));
+      return dealDocuments.map(doc => ({
+        id: doc.id,
+        fileName: doc.file_name,
+        fileType: doc.file_type,
+        fileSize: doc.file_size,
+        dealId: doc.deal_id,
+        documentType: doc.document_type,
+        uploadedAt: doc.uploaded_at
+      }));
+    } catch (error) {
+      console.error('Error fetching documents by deal:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get a single document by ID
+   */
+  async getDocument(documentId: number) {
+    try {
+      const document = await db.select().from(documents).where(eq(documents.id, documentId)).limit(1);
+      
+      if (!document || document.length === 0) {
+        return null;
+      }
+
+      const doc = document[0];
+      return {
+        id: doc.id,
+        fileName: doc.file_name,
+        fileType: doc.file_type,
+        fileSize: doc.file_size,
+        dealId: doc.deal_id,
+        documentType: doc.document_type,
+        uploadedAt: doc.uploaded_at,
+        filePath: doc.file_path
+      };
+    } catch (error) {
+      console.error('Error fetching document:', error);
+      return null;
+    }
+  }
+
+  /**
    * Download document file content
    */
   async downloadDocument(documentId: number): Promise<Buffer | null> {
-    // For now, just return null - this needs to be implemented with proper database lookup
-    return null;
+    try {
+      const document = await db.select().from(documents).where(eq(documents.id, documentId)).limit(1);
+      
+      if (!document || document.length === 0) {
+        return null;
+      }
+
+      const doc = document[0];
+      const fullPath = path.join(process.cwd(), doc.file_path);
+      
+      return await fs.readFile(fullPath);
+    } catch (error) {
+      console.error('Error downloading document:', error);
+      return null;
+    }
   }
 
   /**
