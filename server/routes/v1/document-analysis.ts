@@ -1,7 +1,6 @@
 import { Router, Request, Response } from 'express';
-import { StorageFactory } from '../../storage-factory';
+import { pool } from '../../db';
 import { requireAuth } from '../../utils/auth';
-import { DocumentAnalyzer, type AnalysisRequest } from '../../modules/documents/document-analyzer';
 
 const router = Router();
 

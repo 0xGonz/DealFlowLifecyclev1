@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import { StorageFactory } from "../storage-factory";
+import { pool } from "../db";
 import { hashPassword, requireAuth } from "../utils/auth";
 import { z } from 'zod';
 import { createInsertSchema } from 'drizzle-zod';
