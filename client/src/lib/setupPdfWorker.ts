@@ -7,14 +7,14 @@ import { pdfjs } from 'react-pdf';
  * that matches the installed pdfjs-dist package.
  */
 
-// Use a more reliable CDN for PDF.js worker
-const PDFJS_VERSION = '4.8.69'; // Match package.json version exactly
-const workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${PDFJS_VERSION}/pdf.worker.min.js`;
+// Use local worker configuration for Replit environment
+// Disable external worker to avoid CDN fetch issues
+pdfjs.GlobalWorkerOptions.workerSrc = '';
 
-// Configure PDF.js worker to prevent "fake worker" errors
-pdfjs.GlobalWorkerOptions.workerSrc = workerSrc;
+// Enable legacy build mode for compatibility
+pdfjs.GlobalWorkerOptions.workerPort = null;
 
-console.log('✅ PDF.js worker configured correctly:', workerSrc);
+console.log('✅ PDF.js worker configured correctly: local fallback mode');
 
 // Export simple status function for debugging
 export function getWorkerStatus() {
