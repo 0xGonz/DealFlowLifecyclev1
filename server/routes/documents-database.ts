@@ -91,7 +91,7 @@ router.post('/upload', requireAuth, upload.single('file'), async (req, res) => {
   }
 });
 
-// Download document from database
+// Download document - handles both database and filesystem storage
 router.get('/:id/download', requireAuth, async (req, res) => {
   try {
     const documentId = parseInt(req.params.id);
@@ -100,19 +100,62 @@ router.get('/:id/download', requireAuth, async (req, res) => {
       return res.status(400).json({ error: 'Invalid document ID' });
     }
 
-    const result = await databaseDocumentStorage.downloadDocument(documentId);
-
-    if (!result) {
+    // First try to get document from database
+    const document = await databaseDocumentStorage.getDocument(documentId);
+    
+    if (!document) {
       return res.status(404).json({ error: 'Document not found' });
     }
 
-    // Set appropriate headers for file download
-    res.setHeader('Content-Type', result.mimeType);
-    res.setHeader('Content-Disposition', `attachment; filename="${result.fileName}"`);
-    res.setHeader('Content-Length', result.buffer.length.toString());
+    // Check if document has file data in database
+    if (document.fileData) {
+      console.log(`📥 Serving document ${documentId} from database: ${document.fileName}`);
+      
+      // Convert base64 back to buffer
+      const fileBuffer = Buffer.from(document.fileData, 'base64');
+      
+      // Set appropriate headers for file download
+      res.setHeader('Content-Type', document.fileType);
+      res.setHeader('Content-Disposition', `attachment; filename="${document.fileName}"`);
+      res.setHeader('Content-Length', fileBuffer.length.toString());
 
-    // Send the file data
-    res.send(result.buffer);
+      return res.send(fileBuffer);
+    } 
+    
+    // Fallback to filesystem for legacy documents
+    if (document.filePath) {
+      console.log(`📂 Serving legacy document ${documentId} from filesystem: ${document.filePath}`);
+      
+      const fs = await import('fs');
+      const path = await import('path');
+      
+      const fullPath = path.resolve(document.filePath);
+      
+      // Check if file exists
+      if (!fs.existsSync(fullPath)) {
+        console.error(`❌ Legacy file not found: ${fullPath}`);
+        return res.status(410).json({ error: 'Document file no longer available' });
+      }
+
+      // Set appropriate headers
+      res.setHeader('Content-Type', document.fileType);
+      res.setHeader('Content-Disposition', `attachment; filename="${document.fileName}"`);
+      
+      // Stream the file
+      const fileStream = fs.createReadStream(fullPath);
+      fileStream.on('error', (err) => {
+        console.error(`❌ Error reading legacy file ${fullPath}:`, err);
+        if (!res.headersSent) {
+          res.status(410).json({ error: 'Document file no longer available' });
+        }
+      });
+      
+      return fileStream.pipe(res);
+    }
+
+    // No file data available
+    console.error(`❌ Document ${documentId} has no file data in database or filesystem`);
+    return res.status(410).json({ error: 'Document content not available' });
 
   } catch (error) {
     console.error('Error downloading document:', error);
@@ -129,23 +172,65 @@ router.get('/:id/view', requireAuth, async (req, res) => {
       return res.status(400).json({ error: 'Invalid document ID' });
     }
 
-    const result = await databaseDocumentStorage.downloadDocument(documentId);
-
-    if (!result) {
+    // First try to get document from database
+    const document = await databaseDocumentStorage.getDocument(documentId);
+    
+    if (!document) {
       return res.status(404).json({ error: 'Document not found' });
     }
 
-    // Set appropriate headers for inline viewing
-    res.setHeader('Content-Type', result.mimeType);
-    res.setHeader('Content-Disposition', `inline; filename="${result.fileName}"`);
-    res.setHeader('Content-Length', result.buffer.length.toString());
-    
-    // Add caching headers for better performance
-    res.setHeader('Cache-Control', 'public, max-age=31536000');
-    res.setHeader('ETag', `"${documentId}-${Date.now()}"`);
+    // Check if document has file data in database
+    if (document.fileData) {
+      console.log(`📖 Serving document ${documentId} for viewing from database: ${document.fileName}`);
+      
+      // Convert base64 back to buffer
+      const fileBuffer = Buffer.from(document.fileData, 'base64');
+      
+      // Set appropriate headers for inline viewing
+      res.setHeader('Content-Type', document.fileType);
+      res.setHeader('Content-Disposition', `inline; filename="${document.fileName}"`);
+      res.setHeader('Content-Length', fileBuffer.length.toString());
+      res.setHeader('Cache-Control', 'public, max-age=31536000');
+      res.setHeader('ETag', `"${documentId}-${Date.now()}"`);
 
-    // Send the file data
-    res.send(result.buffer);
+      return res.send(fileBuffer);
+    } 
+    
+    // Fallback to filesystem for legacy documents
+    if (document.filePath) {
+      console.log(`📂 Serving legacy document ${documentId} for viewing from filesystem: ${document.filePath}`);
+      
+      const fs = await import('fs');
+      const path = await import('path');
+      
+      const fullPath = path.resolve(document.filePath);
+      
+      // Check if file exists
+      if (!fs.existsSync(fullPath)) {
+        console.error(`❌ Legacy file not found: ${fullPath}`);
+        return res.status(410).json({ error: 'Document file no longer available' });
+      }
+
+      // Set appropriate headers for inline viewing
+      res.setHeader('Content-Type', document.fileType);
+      res.setHeader('Content-Disposition', `inline; filename="${document.fileName}"`);
+      res.setHeader('Cache-Control', 'public, max-age=31536000');
+      
+      // Stream the file
+      const fileStream = fs.createReadStream(fullPath);
+      fileStream.on('error', (err) => {
+        console.error(`❌ Error reading legacy file ${fullPath}:`, err);
+        if (!res.headersSent) {
+          res.status(410).json({ error: 'Document file no longer available' });
+        }
+      });
+      
+      return fileStream.pipe(res);
+    }
+
+    // No file data available
+    console.error(`❌ Document ${documentId} has no file data in database or filesystem`);
+    return res.status(410).json({ error: 'Document content not available' });
 
   } catch (error) {
     console.error('Error viewing document:', error);
@@ -174,9 +259,10 @@ router.get('/deal/:dealId', requireAuth, async (req, res) => {
       description: doc.description,
       uploadedAt: doc.uploadedAt,
       uploadedBy: doc.uploadedBy,
+      hasFileData: !!doc.fileData, // Indicate if file has data in database
       // Add download/view URLs
-      downloadUrl: `/api/documents-db/${doc.id}/download`,
-      viewUrl: `/api/documents-db/${doc.id}/view`
+      downloadUrl: `/api/documents/${doc.id}/download`,
+      viewUrl: `/api/documents/${doc.id}/view`
     }));
 
     res.json(formattedDocuments);
