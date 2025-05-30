@@ -1,0 +1,57 @@
+✅ PDF.js worker configured as: /pdf.worker.min.js
+index-BTLUiata.js:48 Query fetch request: /api/system/health Object
+index-BTLUiata.js:467 Fetching current user data
+index-BTLUiata.js:467 Auth provider mounted - checking authentication status
+index-BTLUiata.js:467 Manual auth refresh requested
+index-BTLUiata.js:48 Query Response from /api/system/health: Object
+index-BTLUiata.js:48 Query data received from /api/system/health: Object
+index-BTLUiata.js:467 Current user data fetched successfully: Object
+index-BTLUiata.js:48 Query fetch request: /api/notifications Object
+index-BTLUiata.js:48 Query fetch request: /api/notifications/unread-count Object
+index-BTLUiata.js:467 UserAvatar: User 4 has color #0E4DA4
+index-BTLUiata.js:467 Avatar color changed to: null
+index-BTLUiata.js:48 Query fetch request: /api/auth/me Object
+index-BTLUiata.js:48 Query fetch request: /api/deals Object
+index-BTLUiata.js:48 Query fetch request: /api/funds Object
+index-BTLUiata.js:48 Query fetch request: /api/deals/102 Object
+index-BTLUiata.js:48 Query fetch request: /api/deals/102/stars Object
+index-BTLUiata.js:467 Avatar color changed to: #0E4DA4
+index-BTLUiata.js:467 Using /me endpoint data for avatar Object
+index-BTLUiata.js:48 Query Response from /api/notifications: Object
+index-BTLUiata.js:48 Query data received from /api/notifications: Array(3)
+index-BTLUiata.js:48 Query Response from /api/notifications/unread-count: Object
+index-BTLUiata.js:48 Query data received from /api/notifications/unread-count: Object
+index-BTLUiata.js:48 Query Response from /api/deals/102/stars: Object
+index-BTLUiata.js:48 Query data received from /api/deals/102/stars: Array(0)
+index-BTLUiata.js:48 Query Response from /api/deals: Object
+index-BTLUiata.js:48 Query data received from /api/deals: Array(91)
+index-BTLUiata.js:48 Query Response from /api/auth/me: Object
+index-BTLUiata.js:48 Query data received from /api/auth/me: Object
+index-BTLUiata.js:48 Query Response from /api/deals/102: Object
+index-BTLUiata.js:48 Query data received from /api/deals/102: Object
+index-BTLUiata.js:467 UserAvatar: User 8 has color #388E3C
+index-BTLUiata.js:467 UserAvatar: User 1 has color #F57C00
+index-BTLUiata.js:48 Query fetch request: /api/documents/deal/102 Object
+index-BTLUiata.js:567 🔍 useDealDocuments: Processing data for deal 102: undefined
+index-BTLUiata.js:567 ⚠️ useDealDocuments: No data received or data is not an array: undefined
+index-BTLUiata.js:48 Query Response from /api/funds: Object
+index-BTLUiata.js:48 Query data received from /api/funds: Array(2)
+index-BTLUiata.js:48 Query Response from /api/documents/deal/102: Object
+index-BTLUiata.js:48 Query data received from /api/documents/deal/102: Array(1)
+index-BTLUiata.js:567 🔍 useDealDocuments: Processing data for deal 102: Array(1)
+index-BTLUiata.js:567 📝 useDealDocuments: Setting 1 documents in context: Array(1)
+index-BTLUiata.js:567 🎯 useDealDocuments: Auto-selecting first document: Object
+index-BTLUiata.js:565 📤 Loading PDF document: Object
+index-BTLUiata.js:567 🔍 useDealDocuments: Processing data for deal 102: Array(1)
+index-BTLUiata.js:567 📝 useDealDocuments: Setting 1 documents in context: Array(1)
+index-BTLUiata.js:467 Direct user fetch for avatar ID 8: Object
+index-BTLUiata.js:467 Direct user fetch for avatar ID 1: Object
+ Warning: Indexing all PDF objects
+index-BTLUiata.js:565  ❌ PDF load error: jnemessage: "Invalid PDF structure."name: "InvalidPDFException"stack: "Error\n    at https://deal-flow-lifecyclev-1-bgonzalez9.replit.app/assets/index-BTLUiata.js:554:20115\n    at https://deal-flow-lifecyclev-1-bgonzalez9.replit.app/assets/index-BTLUiata.js:554:20143"[[Prototype]]: Errorconstructor: class jnelength: 1name: "jne"prototype: Error {stack: 'Error\n    at https://deal-flow-lifecyclev-1-bgonza…ez9.replit.app/assets/index-BTLUiata.js:554:20143'}arguments: (...)caller: (...)[[FunctionLocation]]: index-BTLUiata.js:554[[Prototype]]: ƒ e(n,r)[[Scopes]]: Scopes[2]stack: "Error\n    at https://deal-flow-lifecyclev-1-bgonzalez9.replit.app/assets/index-BTLUiata.js:554:20115\n    at https://deal-flow-lifecyclev-1-bgonzalez9.replit.app/assets/index-BTLUiata.js:554:20143"[[Prototype]]: Error
+    at https://deal-flow-lifecyclev-1-bgonzalez9.replit.app/assets/index-BTLUiata.js:554:20115
+    at https://deal-flow-lifecyclev-1-bgonzalez9.replit.app/assets/index-BTLUiata.js:554:20143stack: "Error\n    at https://deal-flow-lifecyclev-1-bgonzalez9.replit.app/assets/index-BTLUiata.js:554:20115\n    at https://deal-flow-lifecyclev-1-bgonzalez9.replit.app/assets/index-BTLUiata.js:554:20143"[[Prototype]]: Object
+(anonymous) @ index-BTLUiata.js:565
+index-BTLUiata.js:467 Using /me endpoint data for avatar {id: 4, username: 'Gonz', fullName: 'Brett Gonzalez', initials: 'BG', email: 'bgonzalez@doliveradvisors.com', …}
+index-BTLUiata.js:467 Direct user fetch for avatar ID 1: {id: 1, username: 'admin', fullName: 'Admin User', initials: 'AU', email: 'admin@example.com', …}
+index-BTLUiata.js:467 Direct user fetch for avatar ID 8: {id: 8, username: 'evankeppel', fullName: 'Emily', initials: 'Em', email: 'evankeppel@doliveradvisors.com', …}
+index-BTLUiata.js:467 Using /me endpoint data for avatar {id: 4, username: 'Gonz', fullName: 'Brett Gonzalez', initials: 'BG', email: 'bgonzalez@doliveradvisors.com', …}
