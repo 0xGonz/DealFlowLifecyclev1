@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, jsonb, timestamp, real, numeric, date } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, jsonb, timestamp, real, numeric, date, bytea } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -64,6 +64,7 @@ export const documents = pgTable("documents", {
   fileType: text("file_type").notNull(),
   fileSize: integer("file_size").notNull(),
   filePath: text("file_path").notNull(),
+  fileData: bytea("file_data"), // Store actual file content as binary data
   uploadedBy: integer("uploaded_by").notNull().references(() => users.id, { onDelete: "restrict" }),
   uploadedAt: timestamp("uploaded_at").defaultNow().notNull(),
   description: text("description"),
