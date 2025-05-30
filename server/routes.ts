@@ -2,19 +2,17 @@ import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 
 // Route imports
-import dealsRoutes from './routes/new-deals'; // Using refactored modular structure
-import fundsRoutes from './routes/new-funds'; // Using refactored modular structure
+import dealsRoutes from './routes/deals';
+import fundsRoutes from './routes/funds';
 import usersRoutes from './routes/users';
 import authRoutes from './routes/auth';
 import dashboardRoutes from './routes/dashboard';
 import leaderboardRoutes from './routes/leaderboard';
 import activityRoutes from './routes/activity';
 import notificationsRoutes from './routes/notifications';
-import documentsRoutes from './routes/documents';
+import documentsRoutes from './routes/documents-new';
 import allocationsRoutes from './routes/allocations';
 import capitalCallsRoutes from './routes/capital-calls';
-import closingSchedulesRoutes from './routes/closing-schedules';
-import meetingsRoutes from './routes/meetings';
 import calendarRoutes from './routes/calendar.routes'; // New unified calendar API
 import { systemRouter } from './routes/system';
 import v1Router from './routes/v1/index'; // V1 API routes including AI analysis
