@@ -5,11 +5,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Download, ZoomIn, ZoomOut, RotateCw, FileText, AlertTriangle } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 
-// Configure PDF.js worker - use local worker for better compatibility
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  'pdfjs-dist/build/pdf.worker.min.js',
-  import.meta.url,
-).toString();
+// Configure PDF.js worker - use inline worker for compatibility
+pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/4.8.69/pdf.worker.min.js`;
 
 interface EmbeddedPDFViewerProps {
   documentId: number;
@@ -200,10 +197,7 @@ const EmbeddedPDFViewer = ({ documentId, documentName, fileType }: EmbeddedPDFVi
       <div className="flex-1 overflow-auto p-4">
         <div className="flex justify-center">
           <Document
-            file={{
-              url: pdfUrl,
-              withCredentials: true
-            }}
+            file={pdfUrl}
             onLoadSuccess={onDocumentLoadSuccess}
             onLoadError={onDocumentLoadError}
             loading={
