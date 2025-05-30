@@ -9,7 +9,7 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import { drizzle } from 'drizzle-orm/neon-http';
 import { neon } from '@neondatabase/serverless';
-import { documents } from '../shared/schema.js';
+import { documents } from '../shared/schema.ts';
 import { eq, isNull } from 'drizzle-orm';
 
 const __filename = fileURLToPath(import.meta.url);
