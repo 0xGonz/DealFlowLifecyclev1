@@ -10,7 +10,7 @@ import AllocateFundModal from "@/components/deals/AllocateFundModal";
 import StageProgression from "@/components/deals/StageProgression";
 import { DocumentsTab } from "@/components/documents/DocumentsTab";
 import { MiniMemoForm } from "@/components/memos/MiniMemoForm";
-import { MiniMemoDisplay } from "@/components/memos/MiniMemoDisplay";
+
 import { MemoDetailDialog } from "@/components/memos/MemoDetailDialog";
 import { CreateCapitalCallForm } from "@/components/capitalcalls/CreateCapitalCallForm";
 import CapitalCallsList from "@/components/capitalcalls/CapitalCallsList";
@@ -672,14 +672,23 @@ export default function DealDetail() {
                       {/* Loop through deal's mini memos but display as multiple cards */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {deal.miniMemos.map((memo: MiniMemo) => (
-                          <MiniMemoDisplay 
+                          <Card 
                             key={memo.id} 
-                            memo={memo} 
+                            className="cursor-pointer hover:shadow-md transition-shadow"
                             onClick={() => {
                               setSelectedMemo(memo);
                               setIsMemoDetailOpen(true);
                             }}
-                          />
+                          >
+                            <CardHeader>
+                              <CardTitle className="text-sm">{memo.title}</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <p className="text-sm text-muted-foreground line-clamp-3">
+                                {memo.content}
+                              </p>
+                            </CardContent>
+                          </Card>
                         ))}
                       </div>
                     </div>

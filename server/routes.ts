@@ -83,8 +83,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/allocations', allocationsRoutes);
   app.use('/api/fund-allocations', allocationsRoutes); // Add this alias for client compatibility
   app.use('/api/capital-calls', capitalCallsRoutes);
-  app.use('/api/closing-schedules', closingSchedulesRoutes);
-  app.use('/api/meetings', meetingsRoutes);
   app.use('/api/calendar', calendarRoutes); // New unified calendar API endpoint
   app.use('/api/dashboard', dashboardRoutes);
   app.use('/api/leaderboard', leaderboardRoutes);
