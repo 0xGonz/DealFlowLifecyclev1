@@ -24,15 +24,14 @@ router.post('/upload', upload.single('file'), async (req, res) => {
       return res.status(400).json({ error: 'Deal ID is required' });
     }
 
-    // Validate file type
-    const validation = await documentStorage.validateFileType(req.file.originalname, req.file.mimetype);
+    // Validate file
+    const validation = await documentStorage.validateFile(req.file.originalname, req.file.mimetype, req.file.size);
     if (!validation.valid) {
       return res.status(400).json({ error: validation.reason });
     }
 
-    // Validate file size (10MB limit)
-    const maxSize = 10 * 1024 * 1024; // 10MB
-    if (req.file.size > maxSize) {
+    // Additional size check (already covered in validateFile but keeping for clarity)
+    if (req.file.size > 50 * 1024 * 1024) {
       return res.status(400).json({ error: 'File size exceeds 10MB limit' });
     }
 
