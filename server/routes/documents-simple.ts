@@ -1,7 +1,9 @@
 import { Router } from 'express';
 import multer from 'multer';
-import { StorageFactory } from '../storage-factory.js';
+import { UnifiedDocumentStorage } from '../services/unified-document-storage.js';
 import { requireAuth } from '../utils/auth.js';
+import * as fs from 'fs/promises';
+import * as path from 'path';
 
 const router = Router();
 
@@ -52,7 +54,7 @@ router.post('/upload', requireAuth, upload.single('file'), async (req, res) => {
       fileSize: req.file.size,
       documentType,
       filePath: `storage/documents/deal-${dealId}/${req.file.originalname}`,
-      uploadedBy: req.user?.id || 1
+      uploadedBy: 1
     });
 
     res.json({
@@ -98,6 +100,7 @@ router.get('/:id/download', requireAuth, async (req, res) => {
       return res.status(400).json({ error: 'Invalid document ID' });
     }
 
+    const storage = StorageFactory.getStorage();
     const document = await storage.getDocument(documentId);
     if (!document) {
       return res.status(404).json({ error: 'Document not found' });
