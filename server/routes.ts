@@ -94,8 +94,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/leaderboard', leaderboardRoutes);
   app.use('/api/activity', activityRoutes);
   app.use('/api/notifications', notificationsRoutes);
-  app.use('/api/documents', documentsRoutes);
-  app.use('/api/documents', createIsolatedDocumentsRoutes(pool)); // Modular deal-document isolation system
+  app.use('/api/documents', documentsRoutes); // PostgreSQL blob storage with deal isolation
   app.use('/api/system', systemRouter);
   app.use('/api/v1', v1Router); // V1 API routes including AI analysis
   app.use('/api/ai-analysis', aiAnalysisRoutes); // Direct access to AI analysis

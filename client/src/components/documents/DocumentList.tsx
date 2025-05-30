@@ -282,7 +282,7 @@ export default function DocumentList({ dealId }: DocumentListProps) {
 
     try {
       // Use a direct fetch call instead of apiRequest for FormData upload
-      const res = await fetch('/api/documents/upload', {
+      const res = await fetch(`/api/documents/${dealId}/upload`, {
         method: 'POST',
         body: formData,
         credentials: 'include', // Include cookies for authentication
