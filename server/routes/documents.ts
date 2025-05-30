@@ -454,12 +454,7 @@ router.post('/upload', requireAuth, upload.single('file'), async (req: Request, 
       eventType: 'document_upload',
       content: `${req.session.username || 'User'} uploaded document: ${req.file.originalname}`,
       createdBy: req.session.userId,
-      metadata: {
-        documentId: newDocument.id,
-        fileName: req.file.originalname,
-        fileType: req.file.mimetype,
-        documentType: documentType || 'other'
-      }
+      metadata: {}
     });
     
     console.log(`✅ Document uploaded successfully: ${req.file.originalname}`);
@@ -487,6 +482,39 @@ router.post('/upload', requireAuth, upload.single('file'), async (req: Request, 
       error: 'Failed to upload document',
       message: error instanceof Error ? error.message : 'Unknown error'
     });
+  }
+});
+
+// Bulletproof download route following the checklist specification
+router.get('/:id/download-new', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const documentId = parseInt(req.params.id);
+    console.log(`📥 New download request for document ID: ${documentId}`);
+    
+    const doc = await storage.getDocument(documentId);
+    if (!doc) return res.status(404).json({ error: 'Document not found' });
+
+    const UPLOAD_DIR = path.join(process.cwd(), 'data/uploads');
+    const fileName = path.basename(doc.filePath || doc.fileName);
+    const fullPath = path.join(UPLOAD_DIR, fileName);
+    
+    if (!fs.existsSync(fullPath)) {
+      return res.status(404).json({ error: 'File missing on disk' });
+    }
+
+    res
+      .type(doc.fileType || 'application/pdf')
+      .set({
+        'Content-Disposition': `inline; filename="${doc.fileName}"`,
+        'Cache-Control': 'no-store, must-revalidate',
+        'X-Content-Type-Options': 'nosniff',
+      })
+      .sendFile(fullPath);
+      
+    console.log(`✅ Serving file: ${doc.fileName} from ${fullPath}`);
+  } catch (error) {
+    console.error('Download error:', error);
+    return res.status(500).json({ error: 'Download failed' });
   }
 });
 
