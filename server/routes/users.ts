@@ -203,7 +203,8 @@ router.patch('/:id', requireAuth, async (req: Request, res: Response) => {
     
     // Handle password updates (admins can update any password, users can update their own)
     if (password && (isAdmin || isOwnProfile)) {
-      updateData.password = password;
+      // Hash the password before storing
+      updateData.password = await hashPassword(password);
       console.log(`Updating password for user ${targetUserId}`);
     } else if (password && !isAdmin && !isOwnProfile) {
       return res.status(403).json({ 
