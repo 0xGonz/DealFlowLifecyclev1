@@ -5,11 +5,13 @@ export interface DocumentBlob {
   fileName: string;
   fileType: string;
   fileSize: number;
-  dealId: number;
+  dealId: number | null;
+  documentType?: string;
+  uploadedAt?: string;
 }
 
 export async function saveDocumentBlob(
-  dealId: number, 
+  dealId: number | null, 
   fileName: string, 
   fileType: string, 
   fileSize: number,
@@ -21,7 +23,7 @@ export async function saveDocumentBlob(
   const { rows } = await pool.query(
     `INSERT INTO documents (deal_id, file_name, file_type, file_size, file_data, uploaded_by, description, document_type)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
-     RETURNING id, file_name AS "fileName", file_type AS "fileType", file_size AS "fileSize", deal_id AS "dealId"`,
+     RETURNING id, file_name AS "fileName", file_type AS "fileType", file_size AS "fileSize", deal_id AS "dealId", document_type AS "documentType", uploaded_at AS "uploadedAt"`,
     [dealId, fileName, fileType, fileSize, data, uploadedBy, description || '', documentType || 'other']
   );
   return rows[0];

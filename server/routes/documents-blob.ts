@@ -23,7 +23,53 @@ const upload = multer({
   },
 });
 
-// Upload document as blob to PostgreSQL
+// General upload endpoint for documents without dealId (used during deal creation)
+router.post('/upload', requireAuth, upload.single('file'), async (req, res) => {
+  try {
+    const user = await getCurrentUser(req);
+    
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    if (!user?.id) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
+    const { originalname, mimetype, size, buffer } = req.file;
+    const { description, documentType, dealId } = req.body;
+
+    // If dealId is provided, use it; otherwise, set to null for temporary storage
+    const targetDealId = dealId ? parseInt(dealId) : null;
+
+    const document = await saveDocumentBlob(
+      targetDealId,
+      originalname,
+      mimetype,
+      size,
+      buffer,
+      user.id,
+      description,
+      documentType
+    );
+
+    res.json({
+      success: true,
+      document: {
+        id: document.id,
+        fileName: document.fileName,
+        documentType: document.documentType,
+        fileSize: document.fileSize,
+        uploadedAt: document.uploadedAt
+      }
+    });
+  } catch (error) {
+    console.error('Document upload error:', error);
+    res.status(500).json({ error: 'Failed to upload document' });
+  }
+});
+
+// Upload document as blob to PostgreSQL for specific deal
 router.post('/:dealId/upload', requireAuth, upload.single('file'), async (req, res) => {
   try {
     const dealId = parseInt(req.params.dealId);
