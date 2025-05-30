@@ -413,8 +413,7 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getDocumentsByDeal(dealId: number): Promise<Document[]> {
-    // DocumentService module removed - functionality consolidated
-    return await DocumentService.getDocumentsByDeal(dealId);
+    return await db.select().from(documents).where(eq(documents.dealId, dealId));
   }
   
   async getDocumentsByType(dealId: number, documentType: string): Promise<Document[]> {
