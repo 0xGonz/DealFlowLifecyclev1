@@ -24,6 +24,7 @@ import aiAnalysisRoutes from './routes/ai-analysis';
 // Utils
 import { errorHandler, notFoundHandler, AppError } from './utils/errorHandlers';
 import { requireAuth, getCurrentUser } from './utils/auth';
+import { pool } from './db';
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
@@ -94,6 +95,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/activity', activityRoutes);
   app.use('/api/notifications', notificationsRoutes);
   app.use('/api/documents', documentsRoutes);
+  app.use('/api/documents', createIsolatedDocumentsRoutes(pool)); // Modular deal-document isolation system
   app.use('/api/system', systemRouter);
   app.use('/api/v1', v1Router); // V1 API routes including AI analysis
   app.use('/api/ai-analysis', aiAnalysisRoutes); // Direct access to AI analysis
