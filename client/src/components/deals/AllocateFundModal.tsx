@@ -104,12 +104,6 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
         firstCallDate: formatDateForAPI(data.firstCallDate)
       };
       
-        originalAllocationDate: data.allocationDate,
-        originalFirstCallDate: data.firstCallDate,
-        formattedAllocationDate: formattedData.allocationDate,
-        formattedFirstCallDate: formattedData.firstCallDate
-      });
-      
       try {
         const response = await apiRequest("POST", "/api/allocations", formattedData);
         

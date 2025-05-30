@@ -111,11 +111,6 @@ const CalendarPage = () => {
   
   const isLoading = isLoadingCalls || isLoadingEvents || isLoadingMeetings;
   
-  // Debug authentication state
-    isAuthenticated: !!currentUser, 
-    username: currentUser?.username
-  });
-  
   // Filter events based on selected date, tab and status filters
   const filteredCalls = React.useMemo(() => {
     if (!selectedDate) return [];

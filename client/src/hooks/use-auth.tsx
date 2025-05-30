@@ -172,11 +172,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const register = useMutation({
     mutationFn: async (userData: RegisterData) => {
       try {
-          ...userData, 
-          password: '******', 
-          passwordConfirm: '******' 
-        });
-        
         // Validate passwords match client-side as well
         if (userData.password !== userData.passwordConfirm) {
           console.error('Client-side password validation failed: passwords do not match');

@@ -31,6 +31,6 @@ v1Router.use('/leaderboard', leaderboardRoutes);
 v1Router.use('/notifications', notificationsRoutes);
 v1Router.use('/documents', documentsRoutes);
 v1Router.use('/ai-analysis', aiAnalysisRoutes);
-v1Router.use('/document-analysis', documentAnalysisRoutes);
+// v1Router.use('/document-analysis', documentAnalysisRoutes); // Temporarily disabled
 
 export default v1Router;
