@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Document, Page, pdfjs } from 'react-pdf';
+import { Document, Page } from 'react-pdf';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Download, ZoomIn, ZoomOut, RotateCw, FileText, AlertTriangle } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 
-// Configure PDF.js worker - use inline worker for compatibility
-pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/4.8.69/pdf.worker.min.js`;
+// Import the centralized PDF worker setup
+import '@/lib/setupPdfWorker';
 
 interface EmbeddedPDFViewerProps {
   documentId: number;
