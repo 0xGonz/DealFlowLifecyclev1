@@ -26,7 +26,7 @@ export const DocumentsPane: React.FC<DocumentsPaneProps> = ({ dealId }) => {
           </div>
         ) : (
           <div className="h-full overflow-hidden">
-            <SimpleDocumentViewer />
+            <SimpleDocumentViewer documentId={0} documentName="No document selected" />
           </div>
         )}
       </div>
