@@ -3,6 +3,8 @@ import { createServer, type Server } from "http";
 
 // Route imports - minimal working configuration
 import documentsRoutes from './routes/documents';
+import authRoutes from './routes/auth';
+import { systemRouter } from './routes/system';
 // AI analysis routes removed during cleanup
 
 // Utils
@@ -39,6 +41,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Authentication middleware removed during cleanup - minimal working configuration
   
   // Register route modules - minimal working configuration
+  app.use('/api/auth', authRoutes);
+  app.use('/api/system', systemRouter);
   app.use('/api/documents', documentsRoutes); // PostgreSQL blob storage with deal isolation
   // V1 and AI analysis routes removed during cleanup
   

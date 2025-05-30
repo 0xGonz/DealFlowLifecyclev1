@@ -1,0 +1,85 @@
+Error fetching user: 404 Not Found
+Exception in fetchCurrentUser: 
+Error {}
+
+Query Response from /api/system/health: 
+Object {status: 404, statusText: "Not Found", ok: false}
+ProtectedRoute for /: isLoading=false, user=undefined
+ProtectedRoute /: User not authenticated, redirecting to /auth
+Error response from /api/system/health: 
+Object {status: 404, text: "{"message":"Route not found: GET /api/system/health"}"}
+
+Exception during query fetch to /api/system/health: 
+TypeError {message: "Failed to execute 'text' on 'Response': body stream already read"}
+
+Query fetch request: /api/system/health 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Query Response from /api/system/health: 
+Object {status: 404, statusText: "Not Found", ok: false}
+Error response from /api/system/health: 
+Object {status: 404, text: "{"message":"Route not found: GET /api/system/health"}"}
+
+Exception during query fetch to /api/system/health: 
+TypeError {message: "Failed to execute 'text' on 'Response': body stream already read"}
+
+Query fetch request: /api/system/health 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Query Response from /api/system/health: 
+Object {status: 404, statusText: "Not Found", ok: false}
+Error response from /api/system/health: 
+Object {status: 404, text: "{"message":"Route not found: GET /api/system/health"}"}
+
+Exception during query fetch to /api/system/health: 
+TypeError {message: "Failed to execute 'text' on 'Response': body stream already read"}
+
+Query fetch request: /api/system/health 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Query Response from /api/system/health: 
+Object {status: 404, statusText: "Not Found", ok: false}
+Error response from /api/system/health: 
+Object {status: 404, text: "{"message":"Route not found: GET /api/system/health"}"}
+
+Exception during query fetch to /api/system/health: 
+TypeError {message: "Failed to execute 'text' on 'Response': body stream already read"}
+
+Submitting login with credentials: 
+Object {username: "Gonz", password: "******"}
+Starting login process for username: Gonz
+Login mutation state: 
+Object {context: undefined, data: undefined, error: null, failureCount: 0, failureReason: null, …}
+Auth login mutation starting with credentials: 
+Object {username: "Gonz", password: "******"}
+API Request: POST /api/auth/login 
+Object {data: {…}}
+Sending fetch request to /api/auth/login with options: 
+Object {method: "POST", credentials: "include", headers: {…}, body: "BODY_DATA"}
+API Response from /api/auth/login: 
+Object {status: 404, statusText: "Not Found", ok: false}
+Error response from /api/auth/login: 
+Object {status: 404, data: {…}}
+
+Login API error response: 404 {"message":"Route not found: POST /api/auth/login"}
+Login API request failed: 
+Error {}
+
+Auth login mutation starting with credentials: 
+Object {username: "Gonz", password: "******"}
+API Request: POST /api/auth/login 
+Object {data: {…}}
+Sending fetch request to /api/auth/login with options: 
+Object {method: "POST", credentials: "include", headers: {…}, body: "BODY_DATA"}
+API Response from /api/auth/login: 
+Object {status: 404, statusText: "Not Found", ok: false}
+Error response from /api/auth/login: 
+Object {status: 404, data: {…}}
+
+Login API error response: 404 {"message":"Route not found: POST /api/auth/login"}
+Login API request failed: 
+Error {}
+
+Login mutation onError handler: 
+Error {}
+
+Login error in auth-page.tsx: 
+Error {}
+
