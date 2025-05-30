@@ -7,9 +7,17 @@ import { pdfjs } from 'react-pdf';
  * that matches the installed pdfjs-dist package.
  */
 
-// Use a data URL to provide an inline worker for better compatibility
-// This avoids external CDN issues in Replit environment
-pdfjs.GlobalWorkerOptions.workerSrc = 'data:application/javascript;base64,aW1wb3J0U2NyaXB0cygnLi4vLi4vYnVpbGQvcGRmLndvcmtlci5taW4uanMnKTs=';
+// Use local worker file from node_modules to avoid CDN issues
+// This prevents external network requests and worker configuration errors
+try {
+  pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+    'pdfjs-dist/build/pdf.worker.min.js',
+    import.meta.url
+  ).toString();
+} catch (error) {
+  // Fallback: disable worker entirely for compatibility
+  pdfjs.GlobalWorkerOptions.workerSrc = '';
+}
 
 console.log('✅ PDF.js worker configured correctly: local fallback mode');
 
