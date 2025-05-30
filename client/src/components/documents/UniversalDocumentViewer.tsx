@@ -4,6 +4,7 @@ import { Download, FileText, FileSpreadsheet, FileImage, Eye } from 'lucide-reac
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import SimpleDocumentViewer from './SimpleDocumentViewer';
+import EmbeddedPDFViewer from './EmbeddedPDFViewer';
 
 interface UniversalDocumentViewerProps {
   documentId: number;
@@ -155,7 +156,7 @@ export default function UniversalDocumentViewer({ documentId, documentName, file
   const renderViewer = () => {
     switch (docConfig.viewerType) {
       case 'pdf':
-        return <SimpleDocumentViewer documentId={documentId} documentName={documentName} fileType={fileType} />;
+        return <EmbeddedPDFViewer documentId={documentId} documentName={documentName} fileType={fileType} />;
       
       case 'excel':
         return (
