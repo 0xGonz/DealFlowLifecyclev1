@@ -151,7 +151,7 @@ async function initialize() {
       cookie: {
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
         httpOnly: true,
-        secure: isProd, // Only set secure cookies in production
+        secure: false, // Set to false for both dev and prod to avoid HTTPS issues
         sameSite: 'lax',
       },
     })
