@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { capitalCallController } from '../controllers/capital-call.controller';
 import { requireAuth } from '../utils/auth';
-
+import { requirePermission } from '../utils/permissions';
 
 const router = Router();
 
@@ -23,18 +23,21 @@ router.get('/deal/:dealId', requireAuth, capitalCallController.getCapitalCallsBy
 // Create a new capital call
 router.post('/', 
   requireAuth,
+  requirePermission('create', 'capital-call'), 
   capitalCallController.createCapitalCall.bind(capitalCallController)
 );
 
 // Update capital call status
 router.patch('/:id/status', 
   requireAuth,
+  requirePermission('edit', 'capital-call'), 
   capitalCallController.updateCapitalCallStatus.bind(capitalCallController)
 );
 
 // Update capital call dates
 router.patch('/:id/dates', 
   requireAuth,
+  requirePermission('edit', 'capital-call'), 
   capitalCallController.updateCapitalCallDates.bind(capitalCallController)
 );
 

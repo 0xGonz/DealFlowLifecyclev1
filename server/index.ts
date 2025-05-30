@@ -15,7 +15,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 import connectPgSimple from 'connect-pg-simple';
 import memorystore from 'memorystore';
-// Metrics middleware removed during cleanup
+import { StorageFactory } from "./storage-factory";
+import { initJobQueues } from "./jobs";
+import { metricsMiddleware } from "./middleware/metrics";
 import { LoggingService } from "./services";
 
 // Main async function to allow using await
@@ -25,6 +27,8 @@ async function initialize() {
   app.use(express.urlencoded({ extended: false, limit: "1mb" }));
 
   // ─── SESSION CONFIGURATION - SINGLE POINT OF TRUTH ─────────────────────────
+  // Initialize the StorageFactory to use the hybrid storage implementation
+  const storage = StorageFactory.getStorage();
 
   // Create the appropriate session store classes
   const PgSession = connectPgSimple(session);
@@ -116,7 +120,8 @@ async function initialize() {
   // Debug the session store to verify it remains consistent
   console.log("⏱️  Session store is", sessionStore.constructor.name);
 
-  // Metrics middleware removed during cleanup
+  // Add metrics middleware to track request metrics
+  app.use(metricsMiddleware());
 
   // Configure CORS to allow cross-origin requests for development/embedding
   app.use((req, res, next) => {
@@ -193,7 +198,14 @@ async function initialize() {
   app.use(express.static(rootPublic));
   console.log('Configured static file serving for uploads and PDF.js worker');
 
-  // Background job processing removed during cleanup
+  // Initialize background job queues
+  try {
+    initJobQueues();
+    console.log('Background job processing system initialized');
+  } catch (error) {
+    console.error('Failed to initialize background jobs:', error);
+    console.log('Continuing without background processing');
+  }
   
   const server = await registerRoutes(app);
 

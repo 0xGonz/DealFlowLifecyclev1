@@ -173,7 +173,7 @@ export class DocumentIntegrityService {
         }
       }
     } catch (error) {
-      console.log(`Could not read directory ${dir}:`, error instanceof Error ? error.message : 'Unknown error');
+      console.log(`Could not read directory ${dir}:`, error.message);
     }
     
     return files;
@@ -259,7 +259,7 @@ export class DocumentIntegrityService {
       }
       
     } catch (error) {
-      console.error(`❌ Failed to fix document ${documentId}:`, error instanceof Error ? error.message : 'Unknown error');
+      console.error(`❌ Failed to fix document ${documentId}:`, error.message);
       return false;
     }
   }

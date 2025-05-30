@@ -10,15 +10,15 @@ import {
 import { z } from "zod";
 import { IStorage } from "../storage";
 import { requireAuth } from "../utils/auth";
-
+import { requirePermission } from "../utils/permissions";
 import { dealService } from "../services";
-import { pool } from "../db";
+import { StorageFactory } from "../storage-factory";
 
 const router = Router();
 
 // Helper function to get a fresh storage instance in each request
 function getStorage(): IStorage {
-  return pool;
+  return StorageFactory.getStorage();
 }
 
 // Get all deals or filter by stage
@@ -156,6 +156,7 @@ router.get('/:id', requireAuth, async (req: Request, res: Response) => {
 });
 
 // Create a new deal
+router.post('/', requirePermission('create', 'deal'), async (req: Request, res: Response) => {
   try {
     const user = (req as any).user;
     
@@ -198,6 +199,7 @@ router.get('/:id', requireAuth, async (req: Request, res: Response) => {
 });
 
 // Update a deal
+router.patch('/:id', requirePermission('edit', 'deal'), async (req: Request, res: Response) => {
   try {
     const dealId = Number(req.params.id);
     // Get user from request if available, or use a default system user ID if not
@@ -728,6 +730,7 @@ router.delete('/:dealId/assignments/:userId', requireAuth, async (req: Request, 
 });
 
 // Delete a deal
+router.delete('/:id', requirePermission('delete', 'deal'), async (req: Request, res: Response) => {
   try {
     // Check if the ID is valid
     if (req.params.id === 'undefined' || req.params.id === 'null') {
