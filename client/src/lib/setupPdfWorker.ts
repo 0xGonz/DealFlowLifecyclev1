@@ -7,12 +7,12 @@ import { pdfjs } from 'react-pdf';
  * that matches the installed pdfjs-dist package.
  */
 
-// Use local worker configuration for Replit environment
-// Disable external worker to avoid CDN fetch issues
-pdfjs.GlobalWorkerOptions.workerSrc = '';
-
-// Enable legacy build mode for compatibility
-pdfjs.GlobalWorkerOptions.workerPort = null;
+// Use bundled worker for Replit environment
+// This will use the worker from node_modules instead of external CDN
+pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+  'pdfjs-dist/build/pdf.worker.min.js',
+  import.meta.url
+).toString();
 
 console.log('✅ PDF.js worker configured correctly: local fallback mode');
 
