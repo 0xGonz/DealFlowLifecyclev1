@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import { StorageFactory } from "../storage-factory";
+import { pool } from "../db";
 import { DASHBOARD_METRICS, calculateDynamicBaselines } from "../config/dashboard-metrics";
 import { requireAuth } from "../utils/auth";
 

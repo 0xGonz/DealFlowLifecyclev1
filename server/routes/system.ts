@@ -1,5 +1,5 @@
 import { Request, Response, Router } from 'express';
-import { StorageFactory } from '../storage-factory';
+import { pool } from "../db";
 import { DatabaseStorage } from '../database-storage';
 import { MemStorage } from '../storage';
 import { pool } from '../db';

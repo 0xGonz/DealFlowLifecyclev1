@@ -12,7 +12,7 @@ import { IStorage } from "../storage";
 import { requireAuth } from "../utils/auth";
 import { requirePermission } from "../utils/permissions";
 import { dealService } from "../services";
-import { StorageFactory } from "../storage-factory";
+import { pool } from "../db";
 
 const router = Router();
 

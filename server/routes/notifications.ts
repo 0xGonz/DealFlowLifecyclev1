@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { StorageFactory } from '../storage-factory';
+import { pool } from '../db';
 import { insertNotificationSchema } from '@shared/schema';
 import { z } from 'zod';
 import { requireAuth } from '../utils/auth';

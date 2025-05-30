@@ -1,9 +1,8 @@
 import { Router, Request, Response } from 'express';
 import { insertCapitalCallSchema, insertFundAllocationSchema } from '@shared/schema';
-import { StorageFactory } from '../storage-factory';
+import { pool } from '../db';
 import { synchronizeAllocationDates } from '../utils/date-integration';
-import { capitalCallService } from '../services/capital-call.service';
-import { allocationService } from '../services/allocation.service';
+// Services removed during cleanup - now using direct database queries
 import { z } from 'zod';
 import { requireAuth } from '../utils/auth';
 import { requirePermission } from '../utils/permissions';

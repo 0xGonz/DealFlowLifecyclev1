@@ -1,6 +1,6 @@
 import express from 'express';
 import { z } from 'zod';
-import { StorageFactory } from '../storage-factory';
+import { pool } from "../db";
 import { insertCapitalCallSchema, insertCapitalCallPaymentSchema, capitalCalls } from '../../shared/schema';
 import { requireAuth } from '../utils/auth';
 import { requirePermission } from '../utils/permissions';

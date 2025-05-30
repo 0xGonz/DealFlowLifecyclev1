@@ -1,5 +1,5 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { StorageFactory } from '../storage-factory';
+import { pool } from "../db";
 import { insertClosingScheduleEventSchema, type Deal } from '@shared/schema';
 import { CLOSING_EVENT_STATUS } from '../constants/status-constants';
 import { requireAuth } from '../utils/auth';
