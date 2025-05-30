@@ -100,7 +100,7 @@ export const Sidebar = ({ dealId }: { dealId: number }) => {
   const updateDocumentTypeMutation = useMutation({
     mutationFn: async ({ id, documentType }: { id: number, documentType: string }) => {
       const response = await fetch(`/api/documents/${id}`, {
-        method: 'PATCH',
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
