@@ -3,31 +3,24 @@ import { pdfjs } from 'react-pdf';
 /**
  * PDF.js Worker Configuration
  * 
- * This fixes the "fake worker" error by using a reliable CDN source
- * that matches the installed pdfjs-dist package version 4.8.69.
+ * This configures PDF.js to use a local worker file served by the application,
+ * ensuring version consistency and eliminating CORS issues.
  */
 
-const PDFJS_VERSION = '4.8.69';
+// Use a local worker path that will be served by the application
+const workerUrl = '/pdf.worker.min.js';
 
-// Use jsDelivr CDN which has better CORS support than unpkg
-const workerUrl = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${PDFJS_VERSION}/build/pdf.worker.min.js`;
+// Configure PDF.js to use the local worker
+pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
 
-try {
-  pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
-  console.log(`✅ PDF.js worker configured with jsDelivr CDN (version ${PDFJS_VERSION})`);
-  console.log('🔍 PDF.js worker source:', workerUrl);
-} catch (error) {
-  console.error('❌ Failed to configure PDF.js worker:', error);
-  // Last resort fallback to disable worker
-  console.warn('⚠️ Disabling PDF.js worker as fallback');
-}
+console.log('✅ PDF.js worker configured as:', workerUrl);
 
 // Export simple status function for debugging
 export function getWorkerStatus() {
   return {
     workerSrc: pdfjs.GlobalWorkerOptions.workerSrc,
-    version: PDFJS_VERSION,
+    version: '4.8.69',
     isConfigured: true,
-    usingBundledWorker: true
+    usingLocalWorker: true
   };
 }

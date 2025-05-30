@@ -186,6 +186,9 @@ async function initialize() {
   const rootPublic = path.resolve(process.cwd(), 'public');
   app.use('/uploads', express.static(path.join(rootPublic, 'uploads')));
   app.use('/pdfjs', express.static(path.join(rootPublic, 'pdfjs')));
+  
+  // Serve PDF worker file directly from public root
+  app.use(express.static(rootPublic));
   console.log('Configured static file serving for uploads and PDF.js worker');
 
   // Initialize background job queues
