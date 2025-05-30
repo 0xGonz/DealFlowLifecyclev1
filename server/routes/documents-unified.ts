@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import multer from 'multer';
 import { z } from 'zod';
-import { documentManager } from '../services/document-manager.service.js';
+import { documentManager } from '../services/document-manager-simple.service.js';
 import { requireAuth } from '../utils/auth.js';
 
 const router = Router();
