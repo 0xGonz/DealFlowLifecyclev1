@@ -40,10 +40,19 @@ router.put('/:id', requireAuth, async (req: Request, res: Response) => {
       }
     }
 
-    // Validate and convert numeric fields
-    const numericFields = ['amount', 'portfolioWeight', 'interestPaid', 'distributionPaid', 'marketValue', 'moic', 'irr'];
-    for (const field of numericFields) {
-      if (updates[field] !== undefined && updates[field] !== null) {
+    // Validate and convert numeric fields safely
+    const allowedNumericFields = {
+      amount: true,
+      portfolioWeight: true,
+      interestPaid: true,
+      distributionPaid: true,
+      marketValue: true,
+      moic: true,
+      irr: true
+    } as const;
+    
+    for (const field in updates) {
+      if (field in allowedNumericFields && updates[field] !== undefined && updates[field] !== null) {
         updates[field] = Number(updates[field]) || 0;
       }
     }
