@@ -68,7 +68,7 @@ export class DocumentUploadService {
       filePath: FileManagerService.getStoragePath(file.filename),
       uploadedBy: userId,
       description: options.description || '',
-      documentType: options.documentType || 'other'
+      documentType: (options.documentType as any) || 'other'
     };
 
     const newDocument = await this.storage.createDocument(documentData);
@@ -80,10 +80,10 @@ export class DocumentUploadService {
       content: `${options.username || 'User'} uploaded document: ${file.originalname}`,
       createdBy: userId,
       metadata: {
-        documentId: newDocument.id,
-        fileName: file.originalname,
-        fileType: file.mimetype,
-        documentType: options.documentType || 'other'
+        documentId: [newDocument.id],
+        fileName: [file.originalname],
+        fileType: [file.mimetype],
+        documentType: [options.documentType || 'other']
       }
     });
 
