@@ -6,17 +6,17 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export class DocumentManagerService {
-  private readonly uploadsDir = path.join(process.cwd(), 'uploads');
+  private readonly storageDir = path.join(process.cwd(), 'storage', 'documents');
 
   constructor() {
-    this.ensureUploadsDirectory();
+    this.ensureStorageDirectory();
   }
 
-  private async ensureUploadsDirectory() {
+  private async ensureStorageDirectory() {
     try {
-      await fs.access(this.uploadsDir);
+      await fs.access(this.storageDir);
     } catch {
-      await fs.mkdir(this.uploadsDir, { recursive: true });
+      await fs.mkdir(this.storageDir, { recursive: true });
     }
   }
 
@@ -30,11 +30,14 @@ export class DocumentManagerService {
     buffer: Buffer,
     documentType: string = 'other'
   ) {
-    await this.ensureUploadsDirectory();
+    await this.ensureStorageDirectory();
 
     // Sanitize filename
     const sanitizedName = fileName.replace(/[^a-zA-Z0-9.-]/g, '_');
-    const filePath = `uploads/${sanitizedName}`;
+    const dealFolder = path.join(this.storageDir, `deal-${dealId}`);
+    await fs.mkdir(dealFolder, { recursive: true });
+    
+    const filePath = `storage/documents/deal-${dealId}/${sanitizedName}`;
     const fullPath = path.join(process.cwd(), filePath);
 
     // Save file to disk
@@ -72,9 +75,9 @@ export class DocumentManagerService {
     };
 
     try {
-      const files = await fs.readdir(this.uploadsDir);
+      const files = await fs.readdir(this.storageDir);
       for (const file of files) {
-        const filePath = path.join(this.uploadsDir, file);
+        const filePath = path.join(this.storageDir, file);
         const stat = await fs.stat(filePath);
         if (stat.isFile()) {
           stats.totalFiles++;

@@ -1,59 +1,65 @@
-# Document Management System Cleanup & Consolidation Checklist
+# Document System Cleanup Checklist
 
-## Current Scattered Storage Locations (PROBLEMS):
-- [ ] `./uploads/` - Main upload folder
-- [ ] `./data/uploads/` - Duplicate upload folder  
-- [ ] `./public/documents/` - Public documents folder
-- [ ] `./public/uploads/` - Public uploads folder
-- [ ] `./server/modules/documents/` - Server document modules
-- [ ] Multiple document service files scattered across codebase
+## ✅ COMPLETED TASKS
 
-## Target: Single Unified Document Storage System
+### 1. Storage Consolidation
+- [x] Moved all documents from scattered folders to unified `storage/documents/`
+- [x] Created deal-specific subfolders: `storage/documents/deal-84/`
+- [x] Created temp folder for processing: `storage/documents/temp/`
+- [x] Updated document manager service to use unified storage location
 
-### ✅ PHASE 1: CODE CONSOLIDATION (COMPLETED)
-- [x] Created unified document manager service
-- [x] Consolidated document routes into single endpoint
-- [x] Removed duplicate document route files
-- [x] Fixed database schema compatibility issues
+### 2. File Organization
+- [x] Consolidated documents from:
+  - `/uploads/` → `storage/documents/`
+  - `/public/documents/` → `storage/documents/`
+  - `/public/uploads/` → `storage/documents/`
+  - `/data/uploads/` → `storage/documents/`
 
-### 🔄 PHASE 2: STORAGE CONSOLIDATION (IN PROGRESS)
-- [ ] **Step 1**: Audit all document folders and their contents
-- [ ] **Step 2**: Migrate all documents to single `./storage/documents/` folder
-- [ ] **Step 3**: Update database records with correct file paths
-- [ ] **Step 4**: Remove empty/duplicate folders
-- [ ] **Step 5**: Update all references to use unified storage path
+### 3. Service Updates
+- [x] Updated `DocumentManagerService` to use `storage/documents/` directory
+- [x] Fixed file path references in upload and download methods
+- [x] Updated storage statistics to use unified directory
 
-### 📋 PHASE 3: SYSTEM VERIFICATION
-- [ ] **Step 1**: Test document upload functionality
-- [ ] **Step 2**: Test document viewing/download
-- [ ] **Step 3**: Verify database integrity
-- [ ] **Step 4**: Test PDF viewer functionality
-- [ ] **Step 5**: Confirm deal-document associations work
+## 🔄 CURRENT STATUS
 
-### 🎯 FINAL TARGET ARCHITECTURE:
-```
-./storage/
-  └── documents/
-      ├── deal-[id]/
-      │   ├── term-sheets/
-      │   ├── financial-models/
-      │   ├── legal-docs/
-      │   └── other/
-      └── temp/ (for processing)
-```
+### Active Documents in System:
+- **Deal 84 (High Road Partners)**: Term sheet PDF in `storage/documents/deal-84/`
+- **Valor Equity Partners**: Financial statements in `storage/documents/temp/`
+- **Sample documents**: Additional PDFs in `storage/documents/temp/`
 
-### 🔧 UNIFIED API ENDPOINTS:
-- `POST /api/documents/upload` - Upload documents
-- `GET /api/documents/deal/:dealId` - Get documents for deal
-- `GET /api/documents/:id/download` - Download document
-- `DELETE /api/documents/:id` - Delete document
+### Database Schema:
+- Documents table uses `snake_case` columns: `deal_id`, `file_name`, `file_path`
+- File paths stored without leading slashes: `storage/documents/deal-84/filename.pdf`
 
-### 📊 DATABASE INTEGRATION:
-- Single `documents` table with proper foreign keys
-- Consistent file path format: `storage/documents/deal-[id]/[filename]`
-- Metadata tracking: type, size, upload date, user
+## 📋 NEXT STEPS
 
-## NEXT IMMEDIATE ACTIONS NEEDED:
-1. Consolidate all document storage folders
-2. Update database file paths
-3. Test end-to-end document workflow
+### High Priority:
+1. Update database records to reflect new file paths
+2. Test document upload/download functionality
+3. Verify PDF viewer integration works with unified storage
+4. Update document routes to use simplified service
+
+### Medium Priority:
+1. Implement document validation and integrity checks
+2. Add automated cleanup for orphaned files
+3. Create document migration utilities
+4. Enhance error handling and logging
+
+### System Architecture:
+- **Storage**: Unified `storage/documents/` with deal-specific subfolders
+- **Database**: PostgreSQL with proper foreign key relationships
+- **Service**: Simplified document manager with clear separation of concerns
+- **API**: RESTful endpoints for document operations
+
+## 🔧 TECHNICAL DEBT RESOLVED
+- Eliminated multiple storage locations
+- Simplified file path management
+- Reduced complexity in document service
+- Improved maintainability and debugging
+
+## 🎯 SUCCESS CRITERIA
+- [x] Single source of truth for document storage
+- [x] Clear folder structure for deal organization
+- [x] Simplified service architecture
+- [ ] Full document workflow testing
+- [ ] Database path synchronization
