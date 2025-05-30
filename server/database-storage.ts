@@ -128,7 +128,10 @@ export class DatabaseStorage implements IStorage {
     
     try {
       const result = await db.delete(users).where(eq(users.id, id));
-      return !!result;
+      // Check if any rows were actually deleted
+      const rowsAffected = result.rowCount || 0;
+      console.log(`Database deleteUser: Attempted to delete user ${id}, rows affected: ${rowsAffected}`);
+      return rowsAffected > 0;
     } catch (error) {
       console.error('Error deleting user:', error);
       return false;

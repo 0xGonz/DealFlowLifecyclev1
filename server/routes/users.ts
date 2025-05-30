@@ -350,16 +350,29 @@ router.delete('/:id', requireAuth, async (req: Request, res: Response) => {
     // Make sure target user exists
     const userToDelete = await storage.getUser(targetUserId);
     if (!userToDelete) {
+      console.log(`Delete failed: User ID ${targetUserId} not found`);
       return res.status(404).json({ message: 'User not found' });
     }
     
+    console.log(`Found user to delete: ${userToDelete.username} (ID: ${targetUserId})`);
+    
     // Delete the user
     const success = await storage.deleteUser(targetUserId);
+    console.log(`Storage deleteUser result for user ${targetUserId}: ${success}`);
+    
     if (!success) {
+      console.log(`Delete failed: Storage deleteUser returned false for user ${targetUserId}`);
       return res.status(500).json({ message: 'Failed to delete user' });
     }
     
-    console.log(`User ID ${targetUserId} (${userToDelete.username}) deleted by admin (ID: ${currentUserId})`);
+    // Verify deletion by trying to fetch the user again
+    const verifyDeleted = await storage.getUser(targetUserId);
+    if (verifyDeleted) {
+      console.log(`Warning: User ${targetUserId} still exists after deletion attempt`);
+      return res.status(500).json({ message: 'User deletion verification failed' });
+    }
+    
+    console.log(`User ID ${targetUserId} (${userToDelete.username}) successfully deleted by admin (ID: ${currentUserId})`);
     res.json({ message: 'User deleted successfully' });
   } catch (error) {
     console.error('Error deleting user:', error);
