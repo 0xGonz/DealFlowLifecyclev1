@@ -1,10 +1,8 @@
 import { Router, Request, Response } from 'express';
-import path from 'path';
-import fs from 'fs';
-import multer from 'multer';
-import { v4 as uuidv4 } from 'uuid';
 import { DatabaseStorage } from '../database-storage';
 import { DocumentService } from '../modules/documents/service';
+import { FileManagerService } from '../services/file-manager.service';
+import { DocumentUploadService } from '../services/document-upload.service';
 
 const router = Router();
 const storage = new DatabaseStorage();
@@ -17,39 +15,8 @@ const requireAuth = (req: Request, res: Response, next: any) => {
   next();
 };
 
-// Configure multer for file uploads
-const uploadStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadDir = './uploads';
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueId = uuidv4();
-    const sanitizedName = file.originalname.toLowerCase().replace(/[^a-z0-9.-]/g, '_');
-    const filename = `${uniqueId}-${sanitizedName}`;
-    cb(null, filename);
-  }
-});
-
-const upload = multer({ 
-  storage: uploadStorage,
-  limits: {
-    fileSize: 50 * 1024 * 1024 // 50MB limit
-  },
-  fileFilter: (req, file, cb) => {
-    const allowedTypes = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.csv', '.ppt', '.pptx'];
-    const fileExt = path.extname(file.originalname).toLowerCase();
-    
-    if (allowedTypes.includes(fileExt)) {
-      cb(null, true);
-    } else {
-      cb(new Error(`File type ${fileExt} not allowed. Allowed types: ${allowedTypes.join(', ')}`));
-    }
-  }
-});
+// Configure multer for file uploads using the centralized service
+const upload = DocumentUploadService.getMulterConfig();
 
 // Get documents for a specific deal
 router.get('/deal/:dealId', requireAuth, async (req: Request, res: Response) => {
