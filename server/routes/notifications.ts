@@ -15,7 +15,7 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
       return res.status(401).json({ message: 'Unauthorized: Authentication required' });
     }
     
-    const storage = StorageFactory.getStorage();
+    const storage = pool;
     const notifications = await storage.getUserNotifications(user.id);
     return res.json(notifications);
   } catch (error) {
@@ -33,7 +33,7 @@ router.get('/unread-count', requireAuth, async (req: Request, res: Response) => 
       return res.status(401).json({ message: 'Unauthorized: Authentication required' });
     }
     
-    const storage = StorageFactory.getStorage();
+    const storage = pool;
     const count = await storage.getUnreadNotificationsCount(user.id);
     return res.json({ count });
   } catch (error) {
@@ -50,7 +50,7 @@ router.patch('/:id/read', requireAuth, async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'Invalid notification ID' });
     }
 
-    const storage = StorageFactory.getStorage();
+    const storage = pool;
     const success = await storage.markNotificationAsRead(id);
     if (!success) {
       return res.status(404).json({ message: 'Notification not found' });
@@ -72,7 +72,7 @@ router.post('/mark-all-read', requireAuth, async (req: Request, res: Response) =
       return res.status(401).json({ message: 'Unauthorized: Authentication required' });
     }
     
-    const storage = StorageFactory.getStorage();
+    const storage = pool;
     const success = await storage.markAllNotificationsAsRead(user.id);
     return res.json({ success });
   } catch (error) {
@@ -92,7 +92,7 @@ router.post('/', async (req: Request, res: Response) => {
       });
     }
 
-    const storage = StorageFactory.getStorage();
+    const storage = pool;
     const notification = await storage.createNotification(validationResult.data);
     return res.status(201).json(notification);
   } catch (error) {

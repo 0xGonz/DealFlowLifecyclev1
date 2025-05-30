@@ -3,13 +3,13 @@ import { z } from 'zod';
 import { pool } from "../db";
 import { insertCapitalCallSchema, insertCapitalCallPaymentSchema, capitalCalls } from '../../shared/schema';
 import { requireAuth } from '../utils/auth';
-import { requirePermission } from '../utils/permissions';
+
 import { eq } from 'drizzle-orm';
 import { capitalCallService } from '../services/capital-call.service';
 import { createDatabaseDate, parseUTCDate } from '../../shared/utils/dateUtils.js';
 
 const router = express.Router();
-const storage = StorageFactory.getStorage();
+const storage = pool;
 
 // Get all capital calls
 router.get('/', requireAuth, async (req, res) => {

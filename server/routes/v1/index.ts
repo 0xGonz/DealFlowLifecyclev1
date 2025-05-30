@@ -15,7 +15,7 @@ import leaderboardRoutes from '../leaderboard';
 import notificationsRoutes from '../notifications';
 import documentsRoutes from '../documents';
 import aiAnalysisRoutes from '../ai-analysis';
-import documentAnalysisRoutes from './document-analysis.js';
+// Document analysis routes removed during cleanup
 
 const v1Router = Router();
 
@@ -31,6 +31,6 @@ v1Router.use('/leaderboard', leaderboardRoutes);
 v1Router.use('/notifications', notificationsRoutes);
 v1Router.use('/documents', documentsRoutes);
 v1Router.use('/ai-analysis', aiAnalysisRoutes);
-v1Router.use('/document-analysis', documentAnalysisRoutes);
+// Document analysis routes removed during cleanup
 
 export default v1Router;

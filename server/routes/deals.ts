@@ -10,7 +10,7 @@ import {
 import { z } from "zod";
 import { IStorage } from "../storage";
 import { requireAuth } from "../utils/auth";
-import { requirePermission } from "../utils/permissions";
+
 import { dealService } from "../services";
 import { pool } from "../db";
 
@@ -18,7 +18,7 @@ const router = Router();
 
 // Helper function to get a fresh storage instance in each request
 function getStorage(): IStorage {
-  return StorageFactory.getStorage();
+  return pool;
 }
 
 // Get all deals or filter by stage

@@ -53,7 +53,7 @@ function calculateWeightedScore(params: {
 // Get leaderboard data
 router.get('/', requireAuth, async (req: Request, res: Response) => {
   try {
-    const storage = StorageFactory.getStorage();
+    const storage = pool;
     const allDeals = await storage.getDeals();
     
     // Filter out deals in the "invested" stage as they're no longer part of the evaluation process

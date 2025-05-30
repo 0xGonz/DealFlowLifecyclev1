@@ -1,7 +1,7 @@
 import { Router, Request, Response } from "express";
 import { dealController } from "../controllers/deal.controller";
 import { requireAuth } from "../utils/auth";
-import { requirePermission } from "../utils/permissions";
+
 import { z } from "zod";
 import { insertMiniMemoSchema, insertDealAssignmentSchema } from "@shared/schema";
 import { pool } from "../db";
@@ -10,7 +10,7 @@ const router = Router();
 
 // Helper function to get a fresh storage instance in each request
 function getStorage() {
-  return StorageFactory.getStorage();
+  return pool;
 }
 
 // Deal routes

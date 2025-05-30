@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { fundController } from "../controllers/fund.controller";
 import { requireAuth } from "../utils/auth";
-import { requirePermission } from "../utils/permissions";
+
 
 const router = Router();
 

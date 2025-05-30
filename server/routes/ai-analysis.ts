@@ -14,7 +14,7 @@ const analysisRequestSchema = z.object({
 router.get('/deals', requireAuth, async (req: Request, res: Response) => {
   try {
     const { StorageFactory } = await import('../storage-factory');
-    const storage = StorageFactory.getStorage();
+    const storage = pool;
     const deals = await storage.getDeals();
     
     res.json(deals);

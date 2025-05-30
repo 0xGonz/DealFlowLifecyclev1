@@ -37,7 +37,7 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
     const userData = userInsertSchema.parse(req.body);
     
     // Check if username already exists
-    const storage = StorageFactory.getStorage();
+    const storage = pool;
     const existingUser = await storage.getUserByUsername(userData.username);
     if (existingUser) {
       return res.status(409).json({ message: 'Username already exists' });
@@ -87,7 +87,7 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
 // Get all users
 router.get('/', requireAuth, async (req: Request, res: Response) => {
   try {
-    const storage = StorageFactory.getStorage();
+    const storage = pool;
     const users = await storage.getUsers();
     res.json(users.map(user => ({
       id: user.id,
@@ -106,7 +106,7 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
 // Get a specific user by ID
 router.get('/:id', requireAuth, async (req: Request, res: Response) => {
   try {
-    const storage = StorageFactory.getStorage();
+    const storage = pool;
     const user = await storage.getUser(Number(req.params.id));
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
@@ -140,7 +140,7 @@ router.patch('/:id', requireAuth, async (req: Request, res: Response) => {
       });
     }
     
-    const storage = StorageFactory.getStorage();
+    const storage = pool;
     
     // Make sure target user exists
     const existingUser = await storage.getUser(targetUserId);
@@ -230,7 +230,7 @@ router.post('/:id/change-password', requireAuth, async (req: Request, res: Respo
     }
     
     // Get user to verify current password
-    const storage = StorageFactory.getStorage();
+    const storage = pool;
     const user = await storage.getUser(targetUserId);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
@@ -293,7 +293,7 @@ router.delete('/:id', requireAuth, async (req: Request, res: Response) => {
     
     console.log(`Admin user (ID: ${currentUserId}) attempting to delete user ID: ${targetUserId}`);
     
-    const storage = StorageFactory.getStorage();
+    const storage = pool;
     
     // Make sure target user exists
     const userToDelete = await storage.getUser(targetUserId);

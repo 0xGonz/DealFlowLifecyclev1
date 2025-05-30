@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { capitalCallController } from '../controllers/capital-call.controller';
 import { requireAuth } from '../utils/auth';
-import { requirePermission } from '../utils/permissions';
+
 
 const router = Router();
 

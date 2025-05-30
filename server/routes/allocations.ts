@@ -1,14 +1,14 @@
 import { Router, Request, Response } from 'express';
 import { insertCapitalCallSchema, insertFundAllocationSchema } from '@shared/schema';
 import { pool } from '../db';
-import { synchronizeAllocationDates } from '../utils/date-integration';
+
 // Services removed during cleanup - now using direct database queries
 import { z } from 'zod';
 import { requireAuth } from '../utils/auth';
-import { requirePermission } from '../utils/permissions';
+
 
 const router = Router();
-const storage = StorageFactory.getStorage();
+const storage = pool;
 
 // Export the helper function from allocation service for backward compatibility
 async function updateAllocationStatusBasedOnCapitalCalls(allocationId: number): Promise<void> {

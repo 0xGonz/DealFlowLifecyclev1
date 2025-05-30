@@ -15,7 +15,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 import connectPgSimple from 'connect-pg-simple';
 import memorystore from 'memorystore';
-import { pool } from './db';
 import { metricsMiddleware } from "./middleware/metrics";
 import { LoggingService } from "./services";
 

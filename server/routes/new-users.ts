@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { userController } from '../controllers/user.controller';
 import { requireAuth } from '../utils/auth';
-import { requirePermission } from '../utils/permissions';
+
 
 const router = Router();
 

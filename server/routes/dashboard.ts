@@ -8,7 +8,7 @@ const router = Router();
 // Get dashboard stats - optimized for performance
 router.get('/stats', requireAuth, async (req: Request, res: Response) => {
   try {
-    const storage = StorageFactory.getStorage();
+    const storage = pool;
     
     // Fetch all data in parallel for optimal performance
     const [deals, funds] = await Promise.all([
@@ -97,7 +97,7 @@ router.get('/stats', requireAuth, async (req: Request, res: Response) => {
 // Helper function to get sector/industry stats to avoid code duplication
 async function getSectorStats(logPrefix: string, useIndustryField = false) {
   console.log(`${logPrefix}: Getting storage instance`);
-  const storage = StorageFactory.getStorage();
+  const storage = pool;
   console.log(`${logPrefix}: Fetching deals`);
   const deals = await storage.getDeals();
   console.log(`${logPrefix}: Retrieved ${deals ? deals.length : 0} deals`);
