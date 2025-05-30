@@ -6,7 +6,6 @@ import {
   listDocumentsByDeal, 
   deleteDocumentBlob 
 } from '../services/document-blob.service';
-// Auth utilities removed during cleanup
 import { pool } from '../db';
 
 const router = Router();
@@ -19,67 +18,8 @@ const upload = multer({
     fileSize: 50 * 1024 * 1024, // 50MB limit
   },
   fileFilter: (req, file, cb) => {
-    // Accept all file types for now, can be restricted later
     cb(null, true);
   },
-});
-
-// General upload endpoint for documents (used during deal creation)
-router.post('/upload', upload.single('file'), async (req, res) => {
-  try {
-    // Auth removed during cleanup - minimal working configuration
-    
-    if (!req.file) {
-      return res.status(400).json({ error: 'No file uploaded' });
-    }
-
-      return res.status(401).json({ error: 'User not authenticated' });
-    }
-
-    const { originalname, mimetype, size, buffer } = req.file;
-    const { description, documentType, dealId } = req.body;
-
-    // If dealId is provided, use it; otherwise, set to null for temporary storage
-    const targetDealId = dealId ? parseInt(dealId) : null;
-
-    const document = await saveDocumentBlob(
-      targetDealId,
-      originalname,
-      mimetype,
-      size,
-      buffer,
-      description,
-      documentType
-    );
-
-    // Log activity if dealId is provided
-    if (targetDealId) {
-      await pool.query(
-        `INSERT INTO activities (deal_id, event_type, content, created_by, metadata)
-         VALUES ($1, $2, $3, $4, $5)`,
-        [
-          targetDealId,
-          'document_upload',
-          `Document "${originalname}" uploaded`,
-          JSON.stringify({ documentId: document.id, documentType: documentType || 'other' })
-        ]
-      );
-    }
-
-    res.json({
-      success: true,
-      document: {
-        id: document.id,
-        fileName: document.fileName,
-        documentType: document.documentType,
-        fileSize: document.fileSize,
-        uploadedAt: document.uploadedAt
-      }
-    });
-  } catch (error) {
-    console.error('Document upload error:', error);
-    res.status(500).json({ error: 'Failed to upload document' });
-  }
 });
 
 // Upload document for specific deal
@@ -100,40 +40,32 @@ router.post('/:dealId/upload', upload.single('file'), async (req, res) => {
       mimetype,
       size,
       buffer,
-      description,
-      documentType
+      description || null,
+      documentType || 'other'
     );
 
-    // Log activity
-    await pool.query(
-      `INSERT INTO activities (deal_id, event_type, content, created_by, metadata)
-       VALUES ($1, $2, $3, $4, $5)`,
-      [
-        dealId,
-        'document_upload',
-        `Document "${originalname}" uploaded`,
-        JSON.stringify({ documentId: document.id, documentType: documentType || 'other' })
-      ]
-    );
-
-    res.json({
-      success: true,
+    res.status(201).json({
+      message: 'Document uploaded successfully',
       document: {
         id: document.id,
-        fileName: document.fileName,
-        documentType: document.documentType,
-        fileSize: document.fileSize,
-        uploadedAt: document.uploadedAt
+        filename: document.filename,
+        mimetype: document.mimetype,
+        size: document.size,
+        description: document.description,
+        documentType: document.document_type,
+        dealId: document.deal_id,
+        uploadedAt: document.uploaded_at
       }
     });
+
   } catch (error) {
     console.error('Document upload error:', error);
     res.status(500).json({ error: 'Failed to upload document' });
   }
 });
 
-// Get documents for a specific deal (enforces deal isolation)
-router.get('/deal/:dealId', async (req, res) => {
+// Get documents list for a deal
+router.get('/:dealId', async (req, res) => {
   try {
     const dealId = parseInt(req.params.dealId);
     const documents = await listDocumentsByDeal(dealId);
@@ -144,69 +76,45 @@ router.get('/deal/:dealId', async (req, res) => {
   }
 });
 
-// Download document by ID
-router.get('/:id/download', async (req, res) => {
+// Download document
+router.get('/:dealId/download/:documentId', async (req, res) => {
   try {
-    const documentId = parseInt(req.params.id);
-    const document = await getDocumentBlob(documentId);
+    const dealId = parseInt(req.params.dealId);
+    const documentId = parseInt(req.params.documentId);
+    
+    const document = await getDocumentBlob(documentId, dealId);
     
     if (!document) {
       return res.status(404).json({ error: 'Document not found' });
     }
 
-    res.set({
-      'Content-Type': document.fileType,
-      'Content-Disposition': `inline; filename="${document.fileName}"`,
-      'Content-Length': document.fileData.length.toString(),
-    });
+    res.setHeader('Content-Type', document.mimetype);
+    res.setHeader('Content-Disposition', `attachment; filename="${document.filename}"`);
+    res.setHeader('Content-Length', document.size.toString());
+    res.send(document.data);
 
-    res.send(document.fileData);
   } catch (error) {
-    console.error('Error downloading document:', error);
+    console.error('Document download error:', error);
     res.status(500).json({ error: 'Failed to download document' });
   }
 });
 
 // Delete document
-router.delete('/:id', async (req, res) => {
+router.delete('/:dealId/:documentId', async (req, res) => {
   try {
-    const documentId = parseInt(req.params.id);
-    const user = 
-
-      return res.status(401).json({ error: 'User not authenticated' });
-    }
-
-    // Get document info before deletion for activity logging
-    const { rows: docRows } = await pool.query(
-      'SELECT file_name, deal_id FROM documents WHERE id = $1',
-      [documentId]
-    );
-
-    if (docRows.length === 0) {
+    const dealId = parseInt(req.params.dealId);
+    const documentId = parseInt(req.params.documentId);
+    
+    const success = await deleteDocumentBlob(documentId, dealId);
+    
+    if (!success) {
       return res.status(404).json({ error: 'Document not found' });
     }
 
-    const document = docRows[0];
-    
-    await deleteDocumentBlob(documentId);
+    res.json({ message: 'Document deleted successfully' });
 
-    // Log activity if document was associated with a deal
-    if (document.deal_id) {
-      await pool.query(
-        `INSERT INTO activities (deal_id, event_type, content, created_by, metadata)
-         VALUES ($1, $2, $3, $4, $5)`,
-        [
-          document.deal_id,
-          'document_delete',
-          `Document "${document.file_name}" deleted`,
-          JSON.stringify({ documentId })
-        ]
-      );
-    }
-
-    res.json({ success: true });
   } catch (error) {
-    console.error('Error deleting document:', error);
+    console.error('Document deletion error:', error);
     res.status(500).json({ error: 'Failed to delete document' });
   }
 });
