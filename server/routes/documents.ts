@@ -454,12 +454,12 @@ router.post('/upload', requireAuth, upload.single('file'), async (req: Request, 
       eventType: 'document_upload',
       content: `${req.session.username || 'User'} uploaded document: ${req.file.originalname}`,
       createdBy: req.session.userId,
-      metadata: [
-        newDocument.id,
-        req.file.originalname,
-        req.file.mimetype,
-        documentType || 'other'
-      ]
+      metadata: {
+        documentId: newDocument.id,
+        fileName: req.file.originalname,
+        fileType: req.file.mimetype,
+        documentType: documentType || 'other'
+      }
     });
     
     console.log(`✅ Document uploaded successfully: ${req.file.originalname}`);
