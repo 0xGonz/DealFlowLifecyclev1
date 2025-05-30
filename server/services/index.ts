@@ -5,7 +5,3 @@ export { userService } from './user.service';
 export { capitalCallService } from './capital-call.service';
 export { allocationService } from './allocation.service';
 export { calendarService } from './calendar.service';
-
-// Export utility services
-export { MetricsService } from './MetricsService';
-export { LoggingService } from './LoggingService';

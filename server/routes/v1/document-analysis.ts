@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { StorageFactory } from '../../storage-factory';
 import { requireAuth } from '../../utils/auth';
-import { DocumentAnalyzer, type AnalysisRequest } from '../../modules/documents/document-analyzer';
+// DocumentAnalyzer module removed - functionality consolidated
 
 const router = Router();
 
