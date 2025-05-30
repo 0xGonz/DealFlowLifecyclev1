@@ -64,7 +64,7 @@ export class DatabaseDocumentStorage {
           fileType: documentData.fileType,
           fileSize: documentData.fileSize,
           filePath: `database://${documentData.dealId}/${documentData.fileName}`, // Virtual path for backward compatibility
-          fileData: fileDataBase64,
+          fileData: fileDataBase64, // Store as base64 text
           uploadedBy: documentData.uploadedBy,
           description: documentData.description || null,
           documentType: (documentData.documentType as any) || 'other'
@@ -98,8 +98,8 @@ export class DatabaseDocumentStorage {
       const result = await db
         .select()
         .from(documents)
-        .where(eq(documents.dealId, dealId))
-        .orderBy(documents.uploadedAt);
+        .where(eq(documents.deal_id, dealId))
+        .orderBy(documents.uploaded_at);
       
       return result;
     } catch (error) {
