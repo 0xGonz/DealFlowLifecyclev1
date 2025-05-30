@@ -1,0 +1,135 @@
+Thanks, Brett — this looks like a persistent documents upload and storage bug causing PDFs to disappear after initially rendering. Here's a deep technical breakdown based on your logs and app behavior:
+
+🧠 Root Cause Analysis
+✅ What’s Working
+/api/documents/deal/86 returns a valid response: status: 200, ok: true, with a document listed in the array.
+
+You initially see the PDF render, which means:
+
+It’s successfully uploaded.
+
+It’s saved in the database.
+
+It’s temporarily accessible in the file system.
+
+❌ What Fails
+Shortly after rendering, the PDF disappears and you get:
+
+makefile
+Copy
+MissingPDFException:
+"Missing PDF https://.../api/documents/18/download"
+This means:
+
+The frontend tries to fetch the file via /api/documents/18/download
+
+But the server returns a 404 — the file is no longer on disk.
+
+📍 Diagnosis
+💥 Primary Issue: File Deletion or Ephemeral Storage
+You're running on Replit, which resets file storage unless you're writing to a persistent path. Replit’s public/uploads/ is not guaranteed to persist across restarts unless you explicitly save it to Replit’s .replit.nix persistent volume or Repl storage APIs.
+
+That means:
+
+The database still has the document metadata.
+
+The actual file (PDF) is lost after restart or reload.
+
+So the /download endpoint 404s.
+
+🔒 Secondary Issues
+1. Download Endpoint Doesn’t Check for Missing File Gracefully
+Your backend /api/documents/:id/download should check if the file exists before streaming, and fall back to:
+
+A toast: “This file is no longer on disk.”
+
+A placeholder: “PDF missing — re-upload?”
+
+2. Frontend Trusts the /api/documents result too much
+You receive documents = [{ id: 18, fileName: "deck.pdf", filePath: "/uploads/abc.pdf" }] and assume it’s safe to show in the viewer. But:
+
+The frontend doesn’t confirm the /download endpoint is working before rendering the PDF.
+
+This results in the flicker: first you see the PDF, then the PDF worker crashes.
+
+🛠️ Recommended Fixes
+✅ Backend Fixes
+In routes/documents.ts, update /api/documents/:id/download:
+
+ts
+Copy
+const fs = require('fs');
+const path = require('path');
+
+router.get('/documents/:id/download', async (req, res) => {
+  const document = await storage.getDocumentById(Number(req.params.id));
+  if (!document) return res.status(404).send('Document not found');
+
+  const filePath = path.resolve('public', document.filePath);
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).send('File missing from storage');
+  }
+
+  return res.download(filePath, document.fileName);
+});
+✅ Frontend Fixes
+In PdfViewer.tsx:
+
+Use onLoadError or onError from react-pdf to catch the MissingPDFException and show a toast:
+
+tsx
+Copy
+<Document
+  file={url}
+  onLoadError={(err) => {
+    toast({ title: "PDF Error", description: "File missing or corrupted", variant: "destructive" });
+    console.error("PDF error:", err);
+  }}
+>
+✅ Upload Fixes
+Ensure the upload writes to a persistent directory in your Replit environment.
+
+In server/routes/documents.ts:
+
+When initializing multer, use:
+
+ts
+Copy
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, 'replit-storage/uploads'); // Make sure this is inside your persistent storage area
+    },
+    filename: (req, file, cb) => {
+      cb(null, `${uuid()}-${file.originalname}`);
+    },
+  }),
+});
+Create the folder if missing:
+
+ts
+Copy
+import fs from 'fs';
+import path from 'path';
+
+const UPLOAD_DIR = 'replit-storage/uploads';
+if (!fs.existsSync(UPLOAD_DIR)) {
+  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+}
+🧼 Optional Quality Improvements
+Add a cron script to clean up orphaned DB entries (documents without a file on disk).
+
+Add a re-upload button when a file is missing.
+
+Store files in S3 (or even Replit's new blob storage) to make it truly persistent.
+
+✅ Action Plan
+Fix the backend /download route to check for file existence.
+
+Fix the PDF viewer error fallback in the frontend.
+
+Confirm upload path is persisted between sessions (Replit volume or S3).
+
+Add missing file handling UX.
+
+Want me to implement these steps in your current codebase?

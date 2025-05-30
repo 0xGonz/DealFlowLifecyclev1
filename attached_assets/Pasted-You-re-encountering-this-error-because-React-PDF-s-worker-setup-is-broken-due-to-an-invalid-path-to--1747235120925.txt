@@ -1,0 +1,86 @@
+You're encountering this error because React-PDF’s worker setup is broken due to an invalid path to the pdf.worker.min.js file in your deployed environment. Here's the breakdown of what's wrong and how to fix it.
+
+❌ What's the Problem?
+🔴 Error Summary
+lua
+Copy
+Edit
+Setting up fake worker failed:
+"Failed to fetch dynamically imported module: https://deal-flow-lifecyclev-1-bgonzalez9.replit.app/assets/pdf.worker.min-GB3t0DcA.mjs"
+
+Failed to load module script: Expected a JavaScript module script but the server responded with a MIME type of "text/html".
+🔍 Root Cause
+Vite or Replit is hashing your pdf.worker.min.js filename, resulting in paths like pdf.worker.min-GB3t0DcA.mjs.
+
+When React-PDF tries to load the worker dynamically, it fails because the hashed path either:
+
+Doesn’t exist
+
+Returns HTML (404 page), not JS
+
+You're also seeing "Setting up fake worker" which means React-PDF is falling back to a non-functional default that doesn’t load PDFs correctly.
+
+✅ The Real Fix: Explicit Worker Path Setup
+You must explicitly define the worker path using the correct method for react-pdf v9.2.1 and pdfjs-dist v4.8.69.
+
+✅ Step-by-Step Fix
+Open this file (you likely already have it):
+client/src/lib/setupPdfWorker.ts
+
+Replace everything inside it with:
+
+ts
+Copy
+Edit
+import { pdfjs } from 'react-pdf';
+
+// This works with Vite if you're using an asset import:
+import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.js?url';
+
+pdfjs.GlobalWorkerOptions.workerSrc = pdfWorkerSrc;
+Ensure Vite knows to treat this as a raw JS module:
+Make sure your Vite config includes:
+
+ts
+Copy
+Edit
+// vite.config.ts or vite.config.js
+export default {
+  optimizeDeps: {
+    include: ['pdfjs-dist/build/pdf.worker.min.js']
+  }
+}
+🧪 Optional: Test It Locally
+If you're still getting MIME errors in Replit:
+
+Try running locally (npm run dev) to confirm that the correct worker path resolves.
+
+Use Chrome DevTools > Network > pdf.worker.min.js to check if it's loaded as application/javascript.
+
+✅ Bonus Fixes
+To prevent excessive re-renders:
+
+tsx
+Copy
+Edit
+<Document
+  options={useMemo(() => ({ cMapUrl: 'cmaps/', cMapPacked: true }), [])}
+  ...
+/>
+📌 Why This Happens on Replit
+Replit dynamically serves static assets, and the vite dev server hashes filenames like pdf.worker.min-GB3t0DcA.mjs.
+
+Without telling pdfjs where to look, it fails to load because React-PDF guesses wrong.
+
+✅ After the Fix
+Once this is set:
+
+No more “fake worker” warnings
+
+No MIME type errors
+
+Decks render consistently across environments
+
+Viewer is stable and doesn’t silently fail
+
+Let me know if you want me to test the full document module after this fix, or auto-apply the change across your codebase.

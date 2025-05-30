@@ -1,0 +1,140 @@
+so my problem is i upldoaded a document, serval actually and then i left and eixted out and i come back and the doeumnt says Dummy PDF file instae do fthe catual pdf file i uplaoded -- find teh problme 
+
+
+ChatGPT said:
+
+Thought for 16 seconds
+Why you’re seeing “Dummy PDF file” instead of the file you uploaded
+Fallback code is still active
+Back when we were troubleshooting the worker issue you added a safety net inside server/routes/documents.ts (or similarly named file).
+
+ts
+Copy
+Edit
+if (!fs.existsSync(absPath)) {
+  // ----- fallback -----
+  return res.sendFile(
+    path.resolve(__dirname, '../../public/sample-upload.pdf')
+  );
+}
+or
+
+ts
+Copy
+Edit
+if (!fileFound) {
+  return res.type('application/pdf').send(MINIMAL_PDF_BUFFER);
+}
+Whenever the real file cannot be found on disk, the route returns the dummy PDF instead of a hard 404.
+
+The real file disappears between sessions
+
+In Replit the container’s current working directory is persisted, but only if the path is within the project root.
+
+Your upload middleware currently saves files to /tmp (default for Multer) and then moves them to public/uploads with
+
+ts
+Copy
+Edit
+const dest = `/uploads/${uuid}-${file.originalname}`;
+fs.renameSync(file.path, `public${dest}`);
+When the process dies the temp location is wiped and renameSync can silently fail → the DB row is created but the file never lands in public/uploads.
+
+Next time you open the Deal page the list query loads the document row from Postgres and the viewer hits /api/documents/:id/download, which can’t find the file → the fallback kicks in → you see the dummy PDF.
+
+Step‑by‑step fix
+1  Remove the fallback
+diff
+Copy
+Edit
+- if (!fs.existsSync(absPath)) {
+-   console.warn('File missing, sending dummy PDF');
+-   return res.sendFile(path.resolve(__dirname, '../../public/sample-upload.pdf'));
+- }
++ if (!fs.existsSync(absPath)) {
++   return res.status(404).json({ error: 'Document not found' });
++ }
+Do this for both local‑disk and S3 code paths.
+
+2  Ensure uploads land in a persistent directory
+In your Multer config:
+
+ts
+Copy
+Edit
+import multer from 'multer';
+import path from 'path';
+import { v4 as uuid } from 'uuid';
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) =>
+    cb(null, path.join(process.cwd(), 'public', 'uploads')),   // project root = persisted
+  filename: (req, file, cb) =>
+    cb(null, `${uuid()}-${file.originalname.replace(/\s+/g, '_')}`),
+});
+export const upload = multer({ storage });
+3  Save the absolute or canonical path in the DB
+ts
+Copy
+Edit
+const filePath = `/uploads/${filename}`;   // relative to /public
+await db.insert(documents).values({
+  deal_id: +dealId,
+  filename: file.originalname,
+  path: filePath,          // store this
+});
+res.json({
+  id,
+  filename: file.originalname,
+  url: `/api/documents/${id}/download`,    // client never builds path itself
+});
+4  Download route should resolve from project root
+ts
+Copy
+Edit
+router.get('/:id/download', async (req, res) => {
+  const doc = await storage.getDoc(+req.params.id);
+  if (!doc) return res.status(404).end();
+
+  const abs = path.join(process.cwd(), 'public', doc.path);
+  if (!fs.existsSync(abs)) return res.status(404).end();  // <- no more dummy
+
+  res.sendFile(abs);
+});
+5  Client‑side guard (optional but nice)
+tsx
+Copy
+Edit
+if (err?.name === 'MissingPDFException' || err?.status === 404) {
+  toast.error('The original PDF is missing. Please re‑upload.');
+  removeDocFromList();   // already in blueprint
+}
+Quick verification
+Restart the workspace → container resets.
+
+Upload a new PDF; verify file exists:
+ls public/uploads | grep yourfilename.pdf
+
+Refresh the page; the PDF should render, not dummy.
+
+Manually delete the file on disk then refresh → viewer shows toast, no dummy PDF.
+
+Long‑term: move to object storage
+Local disk works for dev, but production should stream straight to S3/Supabase:
+
+POST /deals/:id/files → presigned PUT URL
+
+Client uploads directly → on success, POST metadata row
+
+GET /documents/:id/download → presigned GET (or 302 redirect)
+
+No more lost files and you can drop the disk‑path logic entirely.
+
+Let me know once you’ve removed the fallback and updated the upload destination—you should never see “Dummy PDF file” again. If you want the S3 wiring, I can give you a 15‑line patch using @aws-sdk/s3-presigned.
+
+
+
+
+
+
+

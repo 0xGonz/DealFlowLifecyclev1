@@ -1,0 +1,88 @@
+Tuesday, December 31, 2024
+
+Capital Calls
+84 Energy
+Paid
+
+Fund: Doliver Private Opportunity Fund III
+Amount: $1,000,000
+Call Date: Dec 30, 2024
+Due: Dec 30, 2024
+Paid: Dec 30, 2024
+Single payment allocation - automatically paid ---- so why dies the call, duem and paid all say the 30th but its on the 31st and i entered the paid date as the 31st --- small probalme but fund te. reason 
+
+
+ChatGPT said:
+
+Thought for 9 seconds
+What you’re seeing
+sql
+Copy
+Edit
+Calendar cell headline     →  Tue Dec 31 2024
+Details drawer “Call / Due / Paid” →  Dec 30 2024
+That one‑day skew is the classic timezone‑shift bug:
+
+Stage	What’s stored / parsed	Why it shifts
+1. React form	You pick 2024‑12‑31 (local)	Browser serialises it as 2024‑12‑31T00:00:00‑06:00 (CST)
+2. Server	new Date('2024‑12‑31') → ISO 2024‑12‑31T06:00:00.000Z	UTC conversion adds 6 h
+3. Postgres DATE column	Gets 2024‑12‑30 (UTC midnight rolls back to previous day)	
+4. Drawer formats date	Day.js prints raw DATE string → Dec 30	
+5. Calendar event	Code converts to JS Date, then React‑Big‑Calendar internally shifts back to local midnight → appears under Dec 31 cell	
+
+So the cell heading is right (local interpretation) but the drawer reads the raw value (UTC‑shifted one day earlier).
+
+Two‑line fix (store plain DATE strings, not JS Date objects)
+Server: when inserting
+ts
+Copy
+Edit
+// capitalCalls.route.ts  (create & pay endpoints)
+const dueDate = req.body.dueDate;          // "2024-12-31" as string—keep it
+await db.capital_calls.create({
+  data: { ...other, due_date: dueDate }    // DO NOT wrap in new Date()
+});
+Client: when mapping for calendar
+ts
+Copy
+Edit
+// FundCalendar.tsx
+event.start = new Date(`${call.due_date}T00:00:00`); // force local midnight
+event.end   = event.start;
+No timezone conversion—just treat the DATE literally.
+
+Additional hardening
+Zod schema for calls input
+
+ts
+Copy
+Edit
+z.object({
+  dueDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),   // YYYY‑MM‑DD
+  paidDate: z.string().optional(),
+});
+Database check – column type DATE, not TIMESTAMP, so Postgres never shifts.
+
+Consistent formatter – in drawers and tables always display with
+
+ts
+Copy
+Edit
+dayjs(call.due_date).format('MMM D, YYYY');
+Migration – update existing skewed rows:
+
+sql
+Copy
+Edit
+UPDATE capital_calls
+SET due_date = due_date + INTERVAL '1 day',
+    paid_at  = paid_at  + INTERVAL '1 day'
+WHERE due_date = '2024-12-30' AND investment_id = 84;
+Apply the two‑line patch, re‑create the call, and both the calendar cell and the drawer fields will read Dec 31 2024 exactly as you entered.
+
+
+
+
+
+
+

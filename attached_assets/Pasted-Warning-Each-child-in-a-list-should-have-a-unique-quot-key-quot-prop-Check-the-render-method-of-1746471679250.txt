@@ -1,0 +1,51 @@
+Warning: Each child in a list should have a unique &quot;key&quot; prop.
+
+Check the render method of `DealCard`. See https://reactjs.org/link/warning-keys for more information.
+    at _c (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/src/components/ui/avatar.tsx:21:11)
+    at DealCard (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/src/components/deals/DealCard.tsx:37:42)
+    at div
+    at div
+    at _c9 (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/src/components/ui/card.tsx:114:12)
+    at div
+    at _c (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/src/components/ui/card.tsx:20:11)
+    at div
+    at RecentDeals (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/src/components/dashboard/RecentDeals.tsx:34:24)
+    at div
+    at div
+    at div
+    at div
+    at main
+    at div
+    at div
+    at div
+    at AppLayout (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/src/components/layout/AppLayout.tsx:24:37)
+    at Dashboard (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/src/pages/Dashboard.tsx:35:57)
+    at Route (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=88eb2732:338:16)
+    at ProtectedRoute (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/src/components/common/ProtectedRoute.tsx:21:34)
+    at Switch (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=88eb2732:394:17)
+    at Router
+    at Provider (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=88eb2732:38:15)
+    at TooltipProvider (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=88eb2732:62:5)
+    at AuthProvider (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/src/hooks/use-auth.tsx:53:32)
+    at QueryClientProvider (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=88eb2732:2869:3)
+    at ErrorBoundary (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/src/components/common/ErrorBoundary.tsx:10:5)
+    at App
+    at ThemeProvider (https://3719d615-d375-4d11-b366-6e5abe95fce6-00-23dnoltc5ai2v.riker.replit.dev/src/components/theme-provider.tsx:25:3)
+Query fetch request: /api/users 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Query fetch request: /api/deals/7/stars 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Query fetch request: /api/deals/6/stars 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Query Response from /api/users: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/users: 
+(3) [{…}, {…}, {…}]
+Query Response from /api/deals/6/stars: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/deals/6/stars: 
+Array []
+Query Response from /api/deals/7/stars: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/deals/7/stars: 
+Array []

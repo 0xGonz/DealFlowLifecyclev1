@@ -110,6 +110,7 @@ export default function DealsTable({ deals, onEdit, onAllocate, onUpdateStatus, 
                             className="flex items-center justify-between text-xs sm:text-sm px-3 py-1.5"
                             onClick={(e) => {
                               e.stopPropagation();
+                              onUpdateStatus ? onUpdateStatus(deal.id, stage) : console.log(`Changed status to ${stage}`);
                             }}
                           >
                             <div className="flex items-center gap-2 flex-1 min-w-0">

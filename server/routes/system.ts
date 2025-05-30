@@ -3,6 +3,11 @@ import { StorageFactory } from '../storage-factory';
 import { DatabaseStorage } from '../database-storage';
 import { MemStorage } from '../storage';
 import { pool } from '../db';
+import { metricsHandler } from '../middleware/metrics';
+import { MetricsService, LoggingService } from '../services';
+
+const metricsService = MetricsService.getInstance();
+const logger = LoggingService.getInstance();
 
 export const systemRouter = Router();
 
@@ -112,13 +117,14 @@ systemRouter.get('/health', async (req: Request, res: Response) => {
     await pool.query('SELECT 1');
     databaseConnected = true;
   } catch (error) {
-    console.error('Health check database query failed:', error);
+    logger.error('Health check database query failed:', error as Error);
   }
   
   // Get application metrics
-  const httpRequestsTotal = 0;
-  const httpErrorsTotal = 0;
-  const appUptime = process.uptime();
+  const metrics = metricsService.getAllMetrics();
+  const httpRequestsTotal = metrics.get('http_requests_total')?.value || 0;
+  const httpErrorsTotal = metrics.get('http_requests_error_total')?.value || 0;
+  const appUptime = metrics.get('app_uptime_seconds')?.value || 0;
   
   // Return system health information with accurate storage type
   const response = {
@@ -140,6 +146,4 @@ systemRouter.get('/health', async (req: Request, res: Response) => {
 });
 
 // Endpoint to expose metrics in Prometheus format
-systemRouter.get('/metrics', (req, res) => {
-  res.json({ status: 'metrics simplified', uptime: process.uptime() });
-});
+systemRouter.get('/metrics', metricsHandler);

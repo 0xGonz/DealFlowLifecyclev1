@@ -1,0 +1,131 @@
+### Why your numbers and dates are still off
+
+Symptom you see	Root cause in code
+Calendar card shows the wrong date when a call is only partly paid	Drawer and card decide which date to show based on status. If status !== 'complete' they fall back to createdAt (the day the call row was saved) instead of due_date.
+Fund dashboard shows 100 % un‑called even after 40 % was paid	The stats query adds call_usd only when status = 'complete'. A partially‑paid call still has status = 'scheduled', so the paid 400 k never enters the sum.
+AUM doesn’t move after partial payment	AUM routine pulls the same “called USD” figure; because it’s zero, AUM remains zero.
+
+## Fix the model once, everything lines up everywhere
+
+### 1 Track the actual cash with a payments table
+
+You already created the table, but the fund stats still ignore it.
+Server migration (if you haven’t run it):
+
+sql
+Copy
+Edit
+CREATE TABLE payments (
+  id              serial primary key,
+  capital_call_id int references capital_calls(id) on delete cascade,
+  paid_date       date not null,
+  amount_usd      numeric(14,2) not null check (amount_usd > 0)
+);
+### 2 Service layer already guards over‑payment — good.
+Make sure it always updates capital_calls.status:
+
+ts
+Copy
+Edit
+const paid = await sumPayments(callId);
+const outstanding = call.call_usd - paid - amount;
+
+await db.capital_calls.update({
+  where:{id:callId},
+  data:{
+    status: outstanding === 0 ? 'complete'
+           : outstanding < call.call_usd ? 'partially_paid'
+           : 'scheduled'
+  }
+});
+### 3 Replace the fund stats query
+
+sql
+Copy
+Edit
+CREATE VIEW capital_call_totals_v AS
+SELECT
+  c.commitment_id,
+  SUM(c.call_usd)                                   AS planned_usd,
+  COALESCE(SUM(p.amount_usd),0)                     AS paid_usd,
+  SUM(c.call_usd) - COALESCE(SUM(p.amount_usd),0)   AS outstanding_usd
+FROM capital_calls   c
+LEFT JOIN payments   p ON p.capital_call_id = c.id
+GROUP BY c.commitment_id;
+GET /funds/:id/capital-calls/stats now returns:
+
+json
+Copy
+Edit
+{
+  "called_usd": 400000,
+  "uncalled_usd": 600000,
+  "called_pct": 40.0
+}
+### 4 Calendar card logic
+
+tsx
+Copy
+Edit
+const status = call.live_status; // from SQL view
+const lastPaymentDate = call.payments?.slice(-1)[0]?.paid_date;
+
+return (
+  <Card className={status}>
+    <div>{investment.name}</div>
+    <div>{currency(call.call_usd)}</div>
+    {status === 'partially_paid' && (
+       <small>{percent(call.paid_usd / call.call_usd)} paid</small>
+    )}
+    {status === 'complete' && (
+       <small>paid {formatDate(lastPaymentDate)}</small>
+    )}
+  </Card>
+);
+It always sits on due_date; the badge text changes with payments.
+
+### 5 Fund AUM and dashboard
+
+Wherever you compute “capital called”, switch from
+
+sql
+Copy
+Edit
+SUM(call_usd WHERE status='complete')
+to
+
+sql
+Copy
+Edit
+SUM(paid_usd)  -- from the view
+One source of truth: actual cash.
+
+### 6 Remove date fallback in drawer
+
+tsx
+Copy
+Edit
+const callDate = formatDate(call.due_date);
+const paidDate = formatDate(call.payments?.slice(-1)[0]?.paid_date ?? '—');
+No more createdAt use.
+
+## Integration checklist
+
+ Migrate DB to add payments table (if not present).
+
+ Replace stats SQL + update FundStats endpoint.
+
+ Refactor CalendarCard & CallDrawer to use paid_usd / live_status.
+
+ Invalidate ['fundStats', fundId] after every payment mutation.
+
+ Add Playwright test: commit 1 M → schedule 400 k → pay 400 k → dashboard shows 600 k uncalled / 40 % called; card green on due date.
+
+Implement these four code touches and every view—calendar, dashboard, deal tab—will show 40 % called / 60 % un‑called for Balerion Space Ventures II, and every future investment, with no hard‑coded numbers and full modularity.
+
+
+
+
+
+
+

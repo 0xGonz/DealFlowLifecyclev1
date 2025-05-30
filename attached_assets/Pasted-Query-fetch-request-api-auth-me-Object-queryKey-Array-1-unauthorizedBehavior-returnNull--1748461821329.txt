@@ -1,0 +1,46 @@
+Query fetch request: /api/auth/me 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Query Response from /api/auth/me: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/auth/me: 
+Object {id: 4, username: "Gonz", fullName: "Brett Gonzalez", initials: "BG", email: "bgonzalez@doliveradvisors.com", …}
+Using /me endpoint data for avatar 
+Object {id: 4, username: "Gonz", fullName: "Brett Gonzalez", initials: "BG", email: "bgonzalez@doliveradvisors.com", …}
+Direct user fetch for avatar ID 1: 
+Object {id: 1, username: "admin", fullName: "Admin User", initials: "AU", email: "admin@example.com", …}
+Using /me endpoint data for avatar 
+Object {id: 4, username: "Gonz", fullName: "Brett Gonzalez", initials: "BG", email: "bgonzalez@doliveradvisors.com", …}
+Direct user fetch for avatar ID 1: 
+Object {id: 1, username: "admin", fullName: "Admin User", initials: "AU", email: "admin@example.com", …}
+Query fetch request: /api/system/health 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Query Response from /api/system/health: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/system/health: 
+Object {status: "ok", timestamp: "2025-05-28T19:49:18.529Z", storage: "pg", databaseConnected: true, environment: "development", …}
+Using /me endpoint data for avatar 
+Object {id: 4, username: "Gonz", fullName: "Brett Gonzalez", initials: "BG", email: "bgonzalez@doliveradvisors.com", …}
+Direct user fetch for avatar ID 1: 
+Object {id: 1, username: "admin", fullName: "Admin User", initials: "AU", email: "admin@example.com", …}
+Query fetch request: /api/auth/me 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Query Response from /api/auth/me: 
+Object {status: 200, statusText: "OK", ok: true}
+Query data received from /api/auth/me: 
+Object {id: 4, username: "Gonz", fullName: "Brett Gonzalez", initials: "BG", email: "bgonzalez@doliveradvisors.com", …}
+Using /me endpoint data for avatar 
+Object {id: 4, username: "Gonz", fullName: "Brett Gonzalez", initials: "BG", email: "bgonzalez@doliveradvisors.com", …}
+Direct user fetch for avatar ID 1: 
+Object {id: 1, username: "admin", fullName: "Admin User", initials: "AU", email: "admin@example.com", …}
+ProtectedRoute for /deals/:id: isLoading=false, user=Gonz
+ProtectedRoute /deals/:id: Rendering component for user Gonz
+Using /me endpoint data for avatar 
+Object {id: 4, username: "Gonz", fullName: "Brett Gonzalez", initials: "BG", email: "bgonzalez@doliveradvisors.com", …}
+Direct user fetch for avatar ID 1: 
+Object {id: 1, username: "admin", fullName: "Admin User", initials: "AU", email: "admin@example.com", …}
+ProtectedRoute for /deals/:id: isLoading=false, user=Gonz
+ProtectedRoute /deals/:id: Rendering component for user Gonz
+Query fetch request: /api/system/health 
+Object {queryKey: Array(1), unauthorizedBehavior: "returnNull"}
+Query Response from /api/system/health: 
+Object {status: 200, statusText: "OK", ok: true}

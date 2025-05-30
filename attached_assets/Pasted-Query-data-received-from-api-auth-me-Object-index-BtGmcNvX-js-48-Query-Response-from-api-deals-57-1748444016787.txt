@@ -1,0 +1,32 @@
+Query data received from /api/auth/me: Object
+index-BtGmcNvX.js:48 Query Response from /api/deals/57: Object
+index-BtGmcNvX.js:48 Query data received from /api/deals/57: Object
+index-BtGmcNvX.js:457 UserAvatar: User 5 has color #6B7280
+index-BtGmcNvX.js:48 Query fetch request: /api/documents/deal/57 Object
+index-BtGmcNvX.js:546 🔍 useDealDocuments: Processing data for deal 57: undefined
+index-BtGmcNvX.js:546 ⚠️ useDealDocuments: No data received or data is not an array: undefined
+index-BtGmcNvX.js:48 Query Response from /api/documents/deal/57: Object
+index-BtGmcNvX.js:48 Query data received from /api/documents/deal/57: Array(0)
+index-BtGmcNvX.js:546 🔍 useDealDocuments: Processing data for deal 57: Array(0)
+index-BtGmcNvX.js:546 📝 useDealDocuments: Setting 0 documents in context: Array(0)
+index-BtGmcNvX.js:546 ❌ useDealDocuments: No documents found, clearing selection
+index-BtGmcNvX.js:457 Direct user fetch for avatar ID 5: Object
+index-BtGmcNvX.js:457 Using /me endpoint data for avatar Object
+/api/documents/undefined:1 
+            
+            
+            Failed to load resource: the server responded with a status of 500 ()
+/api/documents/undefined:1 
+            
+            
+            Failed to load resource: the server responded with a status of 500 ()
+index-BtGmcNvX.js:457 Direct user fetch for avatar ID 5: Object
+index-BtGmcNvX.js:457 Using /me endpoint data for avatar Object
+index-BtGmcNvX.js:457 Direct user fetch for avatar ID 5: Object
+index-BtGmcNvX.js:48 Query fetch request: /api/system/health {queryKey: Array(1), unauthorizedBehavior: 'returnNull'}
+index-BtGmcNvX.js:48 Query Response from /api/system/health: {status: 200, statusText: '', ok: true}
+index-BtGmcNvX.js:48 Query data received from /api/system/health: {status: 'ok', timestamp: '2025-05-28T14:53:18.819Z', storage: 'pg', databaseConnected: true, environment: 'production', …}
+index-BtGmcNvX.js:457 Using /me endpoint data for avatar {id: 4, username: 'Gonz', fullName: 'Brett Gonzalez', initials: 'BG', email: 'bgonzalez@doliveradvisors.com', …}
+index-BtGmcNvX.js:48 Query fetch request: /api/auth/me {queryKey: Array(1), unauthorizedBehavior: 'returnNull'}
+index-BtGmcNvX.js:48 Query Response from /api/auth/me: {status: 200, statusText: '', ok: true}
+index-BtGmcNvX.js:48 Query data received from /api/auth/me: {id: 4, username: 'Gonz', fullName: 'Brett Gonzalez', initials: 'BG', email: 'bgonzalez@doliveradvisors.com', …}

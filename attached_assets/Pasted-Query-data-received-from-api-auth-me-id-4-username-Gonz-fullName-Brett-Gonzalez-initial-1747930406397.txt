@@ -1,0 +1,144 @@
+Query data received from /api/auth/me: {id: 4, username: 'Gonz', fullName: 'Brett Gonzalez', initials: 'BG', email: 'bgonzalez@doliveradvisors.com', …}
+index-tjmE9XOq.js:48 Query Response from /api/deals/100: {status: 200, statusText: '', ok: true}
+index-tjmE9XOq.js:48 Query data received from /api/deals/100: {id: 100, name: 'Morgan Creek Digital Fund IV', description: 'Primarily equity investments in Digital \nInnovatio…gy companies with optionality for \nDigital Assets', sector: 'Venture', stage: 'screening', …}
+index-tjmE9XOq.js:412 UserAvatar: User 1 has color #4f46e5
+index-tjmE9XOq.js:48 Query fetch request: /api/documents/deal/100 {queryKey: Array(1), unauthorizedBehavior: 'returnNull'}
+index-tjmE9XOq.js:48 Query Response from /api/documents/deal/100: {status: 200, statusText: '', ok: true}
+index-tjmE9XOq.js:48 Query data received from /api/documents/deal/100: (2) [{…}, {…}]
+index-tjmE9XOq.js:412 Direct user fetch for avatar ID 1: {id: 1, username: 'admin', fullName: 'Admin User', initials: 'AU', email: 'admin@example.com', …}
+index-tjmE9XOq.js:499 Warning: Setting up fake worker.
+index-tjmE9XOq.js:500 
+            
+            
+           GET https://cdn.jsdelivr.net/npm/pdfjs-dist@4.8.69/build/pdf.worker.min.js net::ERR_ABORTED 404 (Not Found)
+(anonymous) @ index-tjmE9XOq.js:500
+get _setupFakeWorkerGlobal @ index-tjmE9XOq.js:500
+_setupFakeWorker @ index-tjmE9XOq.js:500
+s @ index-tjmE9XOq.js:500
+n.addEventListener.signal @ index-tjmE9XOq.js:500Understand this error
+index-tjmE9XOq.js:510 Error loading PDF: Error: Setting up fake worker failed: "Failed to fetch dynamically imported module: https://cdn.jsdelivr.net/npm/pdfjs-dist@4.8.69/build/pdf.worker.min.js".
+    at index-tjmE9XOq.js:500:185425
+(anonymous) @ index-tjmE9XOq.js:510
+Ie @ index-tjmE9XOq.js:510
+(anonymous) @ index-tjmE9XOq.js:510
+z_ @ index-tjmE9XOq.js:40
+dm @ index-tjmE9XOq.js:40
+(anonymous) @ index-tjmE9XOq.js:40
+j @ index-tjmE9XOq.js:25
+O @ index-tjmE9XOq.js:25Understand this error
+index-tjmE9XOq.js:510 PDF.js worker status: {workerSrc: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.8.69/build/pdf.worker.min.js', isConfigured: true, version: '4.8.69', isViteBundled: false, selectedSource: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.8.69/build/pdf.worker.min.js'}
+index-tjmE9XOq.js:510 Detected PDF.js worker configuration error, switching to fallback viewer
+index-tjmE9XOq.js:40 
+            
+            
+           GET https://deal-flow-lifecyclev-1-bgonzalez9.replit.app/api/documents/41/download 404 (Not Found)
+yP @ index-tjmE9XOq.js:40
+yo @ index-tjmE9XOq.js:40
+FW @ index-tjmE9XOq.js:40
+wa @ index-tjmE9XOq.js:40
+FW @ index-tjmE9XOq.js:40
+wa @ index-tjmE9XOq.js:40
+FW @ index-tjmE9XOq.js:40
+wa @ index-tjmE9XOq.js:40
+FW @ index-tjmE9XOq.js:40
+wa @ index-tjmE9XOq.js:40
+FW @ index-tjmE9XOq.js:40
+wa @ index-tjmE9XOq.js:40
+FW @ index-tjmE9XOq.js:40
+wa @ index-tjmE9XOq.js:40
+FW @ index-tjmE9XOq.js:40
+wa @ index-tjmE9XOq.js:40
+FW @ index-tjmE9XOq.js:40
+wa @ index-tjmE9XOq.js:40
+FW @ index-tjmE9XOq.js:40
+wa @ index-tjmE9XOq.js:40
+FW @ index-tjmE9XOq.js:40
+wa @ index-tjmE9XOq.js:40
+FW @ index-tjmE9XOq.js:40
+wa @ index-tjmE9XOq.js:40
+FW @ index-tjmE9XOq.js:40
+wa @ index-tjmE9XOq.js:40
+FW @ index-tjmE9XOq.js:40
+wa @ index-tjmE9XOq.js:40
+FW @ index-tjmE9XOq.js:40
+wa @ index-tjmE9XOq.js:40
+FW @ index-tjmE9XOq.js:40
+wa @ index-tjmE9XOq.js:40
+FW @ index-tjmE9XOq.js:40
+wa @ index-tjmE9XOq.js:40
+FW @ index-tjmE9XOq.js:40
+wa @ index-tjmE9XOq.js:40
+FW @ index-tjmE9XOq.js:40
+wa @ index-tjmE9XOq.js:40
+FW @ index-tjmE9XOq.js:40
+wa @ index-tjmE9XOq.js:40
+FW @ index-tjmE9XOq.js:40
+wa @ index-tjmE9XOq.js:40
+FW @ index-tjmE9XOq.js:40
+wa @ index-tjmE9XOq.js:40
+FW @ index-tjmE9XOq.js:40
+wa @ index-tjmE9XOq.js:40
+FW @ index-tjmE9XOq.js:40
+wa @ index-tjmE9XOq.js:40
+FW @ index-tjmE9XOq.js:40
+wa @ index-tjmE9XOq.js:40
+FW @ index-tjmE9XOq.js:40
+wa @ index-tjmE9XOq.js:40
+FW @ index-tjmE9XOq.js:40
+wa @ index-tjmE9XOq.js:40
+FW @ index-tjmE9XOq.js:40
+wa @ index-tjmE9XOq.js:40
+FW @ index-tjmE9XOq.js:40
+wa @ index-tjmE9XOq.js:40
+FW @ index-tjmE9XOq.js:40
+wa @ index-tjmE9XOq.js:40
+FW @ index-tjmE9XOq.js:40
+wa @ index-tjmE9XOq.js:40
+FW @ index-tjmE9XOq.js:40
+wa @ index-tjmE9XOq.js:40
+FW @ index-tjmE9XOq.js:40
+wa @ index-tjmE9XOq.js:40
+FW @ index-tjmE9XOq.js:40
+wa @ index-tjmE9XOq.js:40
+FW @ index-tjmE9XOq.js:40
+wa @ index-tjmE9XOq.js:40
+FW @ index-tjmE9XOq.js:40
+wa @ index-tjmE9XOq.js:40
+FW @ index-tjmE9XOq.js:40
+wa @ index-tjmE9XOq.js:40
+FW @ index-tjmE9XOq.js:40
+wa @ index-tjmE9XOq.js:40
+FW @ index-tjmE9XOq.js:40
+wa @ index-tjmE9XOq.js:40
+FW @ index-tjmE9XOq.js:40
+wa @ index-tjmE9XOq.js:40
+FW @ index-tjmE9XOq.js:40
+wa @ index-tjmE9XOq.js:40
+FW @ index-tjmE9XOq.js:40
+wa @ index-tjmE9XOq.js:40
+FW @ index-tjmE9XOq.js:40
+wa @ index-tjmE9XOq.js:40
+FW @ index-tjmE9XOq.js:40
+wa @ index-tjmE9XOq.js:40
+FW @ index-tjmE9XOq.js:40
+wa @ index-tjmE9XOq.js:40
+FW @ index-tjmE9XOq.js:40
+wa @ index-tjmE9XOq.js:40
+FW @ index-tjmE9XOq.js:40
+wa @ index-tjmE9XOq.js:40
+FW @ index-tjmE9XOq.js:40
+wa @ index-tjmE9XOq.js:40
+FW @ index-tjmE9XOq.js:40
+wa @ index-tjmE9XOq.js:40
+FW @ index-tjmE9XOq.js:40
+wa @ index-tjmE9XOq.js:40
+FW @ index-tjmE9XOq.js:40
+wa @ index-tjmE9XOq.js:40
+FW @ index-tjmE9XOq.js:40
+xoe @ index-tjmE9XOq.js:40
+Yd @ index-tjmE9XOq.js:40
+UW @ index-tjmE9XOq.js:40
+j @ index-tjmE9XOq.js:25
+O @ index-tjmE9XOq.js:25Understand this error
+index-tjmE9XOq.js:412 Using /me endpoint data for avatar {id: 4, username: 'Gonz', fullName: 'Brett Gonzalez', initials: 'BG', email: 'bgonzalez@doliveradvisors.com', …}
+index-tjmE9XOq.js:412 Direct user fetch for avatar ID 1: {id: 1, username: 'admin', fullName: 'Admin User', initials: 'AU', email: 'admin@example.com', …}

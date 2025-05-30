@@ -1,0 +1,307 @@
+Below is a ready‑to‑drop‑in blueprint for the Documents tab inside Deal Details.
+It assumes the codebase you just uploaded (zip #6) still follows the stack we have been discussing:
+
+React 18 + Vite + TypeScript
+
+TanStack Query for data
+
+Tailwind + shadcn for UI
+
+react‑pdf 7.2.x / pdfjs‑dist 4.8.x
+
+Copy the files into the indicated locations, wire one provider into your existing DealLayout, and everything—upload, switch, delete, view, paginate—will “just work”.
+
+1 | Shared Context (central state, no prop‑drill)
+src/context/DocumentsContext.tsx
+
+tsx
+Copy
+Edit
+import React, { createContext, useContext, useState } from 'react';
+
+export interface DocMeta {
+  id: number;
+  name: string;
+  downloadUrl: string;
+}
+
+interface DocsCtx {
+  docs: DocMeta[];
+  setDocs: (d: DocMeta[]) => void;
+  current: DocMeta | null;
+  setCurrent: (d: DocMeta | null) => void;
+}
+
+const Ctx = createContext<DocsCtx | null>(null);
+
+export const DocumentsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [docs, setDocs] = useState<DocMeta[]>([]);
+  const [current, setCurrent] = useState<DocMeta | null>(null);
+  return <Ctx.Provider value={{ docs, setDocs, current, setCurrent }}>{children}</Ctx.Provider>;
+};
+
+export const useDocs = () => {
+  const ctx = useContext(Ctx);
+  if (!ctx) throw new Error('useDocs must be used inside <DocumentsProvider>');
+  return ctx;
+};
+Mount once
+Add the provider around your deal detail page (or higher):
+
+tsx
+Copy
+Edit
+// src/pages/DealDetails.tsx
+<DocumentsProvider>
+  <DealDetailsInner />   {/* existing component tree */}
+</DocumentsProvider>
+2 | Data hook (fetch list once, keep in context)
+src/hooks/useDealDocuments.ts
+
+tsx
+Copy
+Edit
+import { useQuery } from '@tanstack/react-query';
+import { useDocs } from '@/context/DocumentsContext';
+
+export const useDealDocuments = (dealId: number) => {
+  const { setDocs, setCurrent } = useDocs();
+  return useQuery({
+    queryKey: ['documents', dealId],
+    queryFn: () =>
+      fetch(`/api/documents/deal/${dealId}`, { credentials: 'include' }).then(r => r.json()),
+    onSuccess: (data) => {
+      setDocs(data);
+      setCurrent(data[0] ?? null);
+    },
+  });
+};
+Call it inside DocumentsPane (see below); it will refresh automatically after uploads.
+
+3 | Sidebar (list + upload + delete)
+src/components/documents/Sidebar.tsx
+
+tsx
+Copy
+Edit
+import { useDocs } from '@/context/DocumentsContext';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Button } from '@/components/ui/button';
+import { Trash, Upload } from 'lucide-react';
+
+export const Sidebar = ({ dealId }: { dealId: number }) => {
+  const { docs, current, setCurrent, setDocs } = useDocs();
+  const qc = useQueryClient();
+
+  /* -------- upload ---------- */
+  const upload = useMutation({
+    mutationFn: async (file: File) => {
+      const form = new FormData();
+      form.append('file', file);
+      const res = await fetch(`/api/deals/${dealId}/documents`, {
+        method: 'POST',
+        credentials: 'include',
+        body: form,
+      });
+      return res.json();
+    },
+    onSuccess: (newDoc) => {
+      setDocs(prev => [...prev, newDoc]);
+      setCurrent(newDoc);
+      qc.invalidateQueries(['documents', dealId]);
+    },
+  });
+
+  /* -------- delete ---------- */
+  const del = useMutation({
+    mutationFn: async (id: number) =>
+      fetch(`/api/documents/${id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      }),
+    onSuccess: (_, id) => {
+      setDocs(prev => prev.filter(d => d.id !== id));
+      if (current?.id === id) setCurrent(null);
+      qc.invalidateQueries(['documents', dealId]);
+    },
+  });
+
+  return (
+    <aside className="w-64 shrink-0 border-r overflow-y-auto p-2 space-y-4">
+      <label className="flex items-center gap-2 cursor-pointer">
+        <Upload size={16} />
+        <span className="text-sm">Upload PDF</span>
+        <input
+          type="file"
+          accept="application/pdf"
+          className="hidden"
+          onChange={(e) => e.target.files?.[0] && upload.mutate(e.target.files[0])}
+        />
+      </label>
+
+      <ul className="space-y-1">
+        {docs.map((d) => (
+          <li
+            key={d.id}
+            className={`flex items-center justify-between rounded px-2 py-1 ${
+              current?.id === d.id ? 'bg-sky-600 text-white' : 'hover:bg-gray-100'
+            }`}
+          >
+            <button className="flex-1 text-left truncate" onClick={() => setCurrent(d)}>
+              {d.name}
+            </button>
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={() => del.mutate(d.id)}
+              disabled={del.isLoading}
+            >
+              <Trash size={14} />
+            </Button>
+          </li>
+        ))}
+      </ul>
+    </aside>
+  );
+};
+4 | Viewer (single page with toolbar; switch pages & docs)
+src/components/documents/PdfViewer.tsx
+
+tsx
+Copy
+Edit
+import { useState, useCallback, useEffect } from 'react';
+import { Document, Page, pdfjs } from 'react-pdf';
+import { useDocs } from '@/context/DocumentsContext';
+import { Button } from '@/components/ui/button';
+import '@/styles/pdf-layers.css';
+
+import workerURL from 'pdfjs-dist/build/pdf.worker.min.js?url';
+pdfjs.GlobalWorkerOptions.workerSrc = workerURL;
+
+export const PdfViewer = () => {
+  const { current, setDocs, setCurrent } = useDocs();
+  const [numPages, setNumPages] = useState(0);
+  const [page, setPage] = useState(1);
+
+  useEffect(() => setPage(1), [current?.id]);          // reset on doc change
+
+  const handleLoad = ({ numPages }: { numPages: number }) => setNumPages(numPages);
+
+  const handleError = (err: any) => {
+    if (err?.name === 'MissingPDFException') {
+      // remove broken doc from list
+      setDocs(prev => prev.filter(d => d.id !== current?.id));
+      setCurrent(null);
+    }
+  };
+
+  if (!current) {
+    return <p className="flex-1 flex items-center justify-center text-gray-400">Select a PDF</p>;
+  }
+
+  return (
+    <div className="flex-1 flex flex-col overflow-hidden">
+      {/* toolbar */}
+      <div className="flex items-center gap-2 border-b bg-gray-50 px-4 py-2">
+        <Button size="icon" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>
+          ‹
+        </Button>
+        <span className="text-sm">{page} / {numPages}</span>
+        <Button
+          size="icon"
+          onClick={() => setPage(p => Math.min(numPages, p + 1))}
+          disabled={page >= numPages}
+        >
+          ›
+        </Button>
+        <Button size="sm" className="ml-auto" onClick={() => setPage(numPages)}>
+          Last page
+        </Button>
+      </div>
+
+      {/* canvas */}
+      <div className="flex-1 overflow-auto">
+        <Document
+          key={current.id}           // forces full unload/reload
+          file={current.downloadUrl}
+          onLoadSuccess={handleLoad}
+          onLoadError={handleError}
+          loading={<p className="p-4">Loading…</p>}
+        >
+          <Page pageNumber={page} width={900} renderTextLayer={false} />
+        </Document>
+      </div>
+    </div>
+  );
+};
+src/styles/pdf-layers.css
+
+css
+Copy
+Edit
+@import 'react-pdf/dist/esm/Page/TextLayer.css';
+@import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
+
+.react-pdf__Page__canvas {
+  width: 100% !important;
+  height: auto !important;
+  display: block;
+}
+5 | Combine into pane
+src/components/documents/DocumentsPane.tsx
+
+tsx
+Copy
+Edit
+import { useDealDocuments } from '@/hooks/useDealDocuments';
+import { Sidebar } from './Sidebar';
+import { PdfViewer } from './PdfViewer';
+
+export const DocumentsPane = ({ dealId }: { dealId: number }) => {
+  useDealDocuments(dealId);          // keeps context in sync
+  return (
+    <div className="flex h-full">
+      <Sidebar dealId={dealId} />
+      <PdfViewer />
+    </div>
+  );
+};
+Render this inside your tab view:
+
+tsx
+Copy
+Edit
+<Tabs defaultValue="overview">
+  {/* … */}
+  <TabsContent value="documents" className="h-[calc(100vh-10rem)]">
+    <DocumentsPane dealId={deal.id} />
+  </TabsContent>
+</Tabs>
+(Adjust height calc to fit your own layout header/footer.)
+
+6 | Back‑end tweaks (if not already)
+POST /deals/:id/documents should return { id, name, downloadUrl } exactly as used above.
+
+For local dev, serve /uploads via express.static. In prod, redirect to S3 presigned URL.
+
+DELETE route already exists; ensure it returns 200 quickly so mutation resolves.
+
+7 | What you now have
+One Viewer – always fills the right pane, no reflow.
+
+Instant switching – clicking a filename replaces the PDF and resets to page 1.
+
+Pagination controls – small but extensible (add keyboard hotkeys later).
+
+Upload & delete – sidebar handles both; list refreshes automatically.
+
+Broken‑file guard – if storage loses a PDF, viewer removes the row and shows a toast (you can plug your toast component in the error handler).
+
+Drop this in, restart your dev server, and the Documents tab will behave exactly like you described—clean, toggle‑able, and resilient. Ping me if any TypeScript paths or component names differ in zip #6 and I’ll adjust the import lines for you.
+
+
+
+
+
+

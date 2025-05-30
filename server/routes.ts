@@ -2,8 +2,8 @@ import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 
 // Route imports
-import dealsRoutes from './routes/deals';
-import fundsRoutes from './routes/funds';
+import dealsRoutes from './routes/new-deals'; // Using refactored modular structure
+import fundsRoutes from './routes/new-funds'; // Using refactored modular structure
 import usersRoutes from './routes/users';
 import authRoutes from './routes/auth';
 import dashboardRoutes from './routes/dashboard';
@@ -13,6 +13,8 @@ import notificationsRoutes from './routes/notifications';
 import documentsRoutes from './routes/documents';
 import allocationsRoutes from './routes/allocations';
 import capitalCallsRoutes from './routes/capital-calls';
+import closingSchedulesRoutes from './routes/closing-schedules';
+import meetingsRoutes from './routes/meetings';
 import calendarRoutes from './routes/calendar.routes'; // New unified calendar API
 import { systemRouter } from './routes/system';
 import v1Router from './routes/v1/index'; // V1 API routes including AI analysis
@@ -83,6 +85,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/allocations', allocationsRoutes);
   app.use('/api/fund-allocations', allocationsRoutes); // Add this alias for client compatibility
   app.use('/api/capital-calls', capitalCallsRoutes);
+  app.use('/api/closing-schedules', closingSchedulesRoutes);
+  app.use('/api/meetings', meetingsRoutes);
   app.use('/api/calendar', calendarRoutes); // New unified calendar API endpoint
   app.use('/api/dashboard', dashboardRoutes);
   app.use('/api/leaderboard', leaderboardRoutes);

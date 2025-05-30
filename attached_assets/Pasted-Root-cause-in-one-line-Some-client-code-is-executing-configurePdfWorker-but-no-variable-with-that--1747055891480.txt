@@ -1,0 +1,78 @@
+Root cause in one line
+Some client code is executing configurePdfWorker() but no variable with that name is in scope, so the bundle throws ReferenceError: configurePdfWorker is not defined.
+
+Why it happened
+You probably copy‑pasted two different snippets:
+
+You added a helper (e.g., setupPdfWorker.ts) that registers the worker as a side‑effect.
+
+Somewhere else—maybe in DocumentViewer.tsx—you call configurePdfWorker() even though that function was never exported/imported.
+
+Because the variable isn’t declared in that module (and tree‑shaking removed the helper if it wasn’t imported), the runtime can’t find it.
+
+Two clean ways to fix it (pick ONE)
+Option A – Side‑effect import (simplest)
+Delete every configurePdfWorker() call in your React components.
+
+Make sure your worker helper is only this:
+
+ts
+Copy
+Edit
+// src/lib/setupPdfWorker.ts
+import { pdfjs } from 'react-pdf';
+import workerURL from 'pdfjs-dist/build/pdf.worker.min.js?url';
+
+pdfjs.GlobalWorkerOptions.workerSrc = workerURL;   // side effect
+Import it once, early—no function call needed:
+
+ts
+Copy
+Edit
+// src/main.tsx (or App.tsx very top)
+import './lib/setupPdfWorker';
+Option B – Explicit function (if you prefer calling it)
+Modify the helper to export a function:
+
+ts
+Copy
+Edit
+// src/lib/setupPdfWorker.ts
+import { pdfjs } from 'react-pdf';
+import workerURL from 'pdfjs-dist/build/pdf.worker.min.js?url';
+
+export function configurePdfWorker() {
+  pdfjs.GlobalWorkerOptions.workerSrc = workerURL;
+}
+Wherever you currently call it → import then call:
+
+tsx
+Copy
+Edit
+import { configurePdfWorker } from '@/lib/setupPdfWorker';
+
+configurePdfWorker();   // now defined
+Make sure the import path is correct and that the call happens before the first <Document/> mounts.
+
+Sanity check after patching
+Dev mode:
+Reload the app; open the PDF page.
+
+DevTools console should show no “fake worker” or ReferenceError.
+
+Network tab should display the worker file (e.g., /assets/pdf.worker.min.3fe1d8.js) with 200 OK.
+
+Prod build (pnpm build && pnpm preview):
+Repeat the check.
+
+If hosted under a sub‑path, confirm vite.config.ts base matches.*
+
+TL;DR
+Either remove the stray call and rely on a simple side‑effect import, or export‑and‑import the function properly. Once the variable is defined in scope, the ReferenceError disappears and PDFs render normally. Let me know if any other console warnings pop up!
+
+
+
+
+
+
+

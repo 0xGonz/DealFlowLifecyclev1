@@ -154,7 +154,7 @@ export class DatabaseStorage implements IStorage {
         projectedIrr: deal.projectedIrr || null,
         projectedMultiple: deal.projectedMultiple || null,
         score: deal.score || 0,
-        tags: (deal.tags || []) as string[],
+        tags: deal.tags || [],
         round: deal.round || null,
         targetRaise: deal.targetRaise || null,
         valuation: deal.valuation || null,
@@ -413,7 +413,8 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getDocumentsByDeal(dealId: number): Promise<Document[]> {
-    return await db.select().from(documents).where(eq(documents.dealId, dealId));
+    const { DocumentService } = await import('./modules/documents/service');
+    return await DocumentService.getDocumentsByDeal(dealId);
   }
   
   async getDocumentsByType(dealId: number, documentType: string): Promise<Document[]> {
@@ -423,7 +424,7 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           eq(documents.dealId, dealId),
-          eq(documents.documentType, documentType as any)
+          eq(documents.documentType, documentType)
         )
       );
   }
@@ -997,41 +998,6 @@ export class DatabaseStorage implements IStorage {
       .delete(closingScheduleEvents)
       .where(eq(closingScheduleEvents.id, id));
       
-    return result.rowCount ? result.rowCount > 0 : false;
-  }
-
-  // Missing batch methods
-  async getDealStarsBatch(dealIds: number[]): Promise<DealStar[]> {
-    return await db.select().from(dealStars).where(inArray(dealStars.dealId, dealIds));
-  }
-
-  async getMiniMemosBatch(dealIds: number[]): Promise<MiniMemo[]> {
-    return await db.select().from(miniMemos).where(inArray(miniMemos.dealId, dealIds));
-  }
-
-  // Distribution methods (placeholder implementation)
-  async createDistribution(distribution: any): Promise<any> {
-    throw new Error("Distribution functionality not yet implemented");
-  }
-
-  async getDistribution(id: number): Promise<any | undefined> {
-    throw new Error("Distribution functionality not yet implemented");
-  }
-
-  async getDistributionsByAllocation(allocationId: number): Promise<any[]> {
-    return [];
-  }
-
-  async updateDistribution(id: number, distribution: any): Promise<any | undefined> {
-    throw new Error("Distribution functionality not yet implemented");
-  }
-
-  async deleteDistribution(id: number): Promise<boolean> {
-    throw new Error("Distribution functionality not yet implemented");
-  }
-
-  async recalculateAllocationMetrics(allocationId: number): Promise<void> {
-    // Implementation for recalculating allocation metrics
-    // This would update IRR, multiple, and other performance metrics
+    return result.rowCount > 0;
   }
 }

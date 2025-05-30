@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { insertCapitalCallSchema, insertFundAllocationSchema } from '@shared/schema';
 import { StorageFactory } from '../storage-factory';
+import { synchronizeAllocationDates } from '../utils/date-integration';
 import { capitalCallService } from '../services/capital-call.service';
 import { allocationService } from '../services/allocation.service';
 import { z } from 'zod';

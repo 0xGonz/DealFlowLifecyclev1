@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Sidebar } from './Sidebar';
-import SimpleDocumentViewer from './SimpleDocumentViewer';
+import { PdfViewer } from './PdfViewer';
 import { useDealDocuments } from '@/hooks/useDealDocuments';
 
 interface DocumentsPaneProps {
@@ -26,7 +26,7 @@ export const DocumentsPane: React.FC<DocumentsPaneProps> = ({ dealId }) => {
           </div>
         ) : (
           <div className="h-full overflow-hidden">
-            <SimpleDocumentViewer documentId={0} documentName="No document selected" />
+            <PdfViewer />
           </div>
         )}
       </div>

@@ -15,12 +15,12 @@ import Settings from "@/pages/Settings";
 import Users from "@/pages/Users";
 import AuthPage from "@/pages/auth-page";
 import AIAnalysis from "@/pages/AIAnalysis";
-
+import StarTest from "@/pages/StarTest";
 import CapitalCalls from "@/pages/CapitalCalls";
 import CapitalCallsByAllocation from "@/pages/CapitalCallsByAllocation";
 import { AuthProvider } from "@/hooks/use-auth";
 import ErrorBoundary from "@/components/common/ErrorBoundary";
-import ProtectedRoute from "@/components/common/ProtectedRoute";
+import { ProtectedRoute } from "@/components/common/ProtectedRoute";
 import { DatabaseStatusAlert } from "@/components/system/DatabaseStatusAlert";
 
 function Router() {
@@ -39,7 +39,7 @@ function Router() {
       <ProtectedRoute path="/settings" component={Settings} />
       <ProtectedRoute path="/users" component={Users} />
       <Route path="/auth" component={AuthPage} />
-
+      <Route path="/startest" component={StarTest} />
       <Route component={NotFound} />
     </Switch>
   );

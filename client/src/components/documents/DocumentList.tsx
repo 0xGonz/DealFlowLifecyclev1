@@ -78,6 +78,7 @@ export default function DocumentList({ dealId }: DocumentListProps) {
   // Add useEffect to log when documents data changes
   useEffect(() => {
     if (documents) {
+      console.log(`📊 Documents query SUCCESS for dealId=${dealId}:`, documents);
     }
   }, [documents, dealId]);
   
@@ -86,6 +87,7 @@ export default function DocumentList({ dealId }: DocumentListProps) {
   useEffect(() => {
     if (documents && documents.length > 0 && !selectedDocument) {
       setSelectedDocument(documents[0]);
+      console.log(`📋 Auto-selected first document: ${documents[0]?.fileName}`);
     }
   }, [documents]); // Removed selectedDocument from dependency array
 
@@ -106,6 +108,7 @@ export default function DocumentList({ dealId }: DocumentListProps) {
       queryClient.setQueryData([`/api/documents/deal/${dealId}`], (oldDocs: Document[] | undefined) => {
         if (!oldDocs) return oldDocs;
         const filteredDocs = oldDocs.filter(doc => doc.id !== deletedDocumentId);
+        console.log(`🗑️ Removed document ${deletedDocumentId} from cache, ${filteredDocs.length} documents remaining`);
         return filteredDocs;
       });
       
@@ -131,14 +134,17 @@ export default function DocumentList({ dealId }: DocumentListProps) {
   // Edit document mutation - now saves both type and description
   const editDocumentMutation = useMutation({
     mutationFn: async ({ documentId, documentType, description }: { documentId: number, documentType: string, description?: string }) => {
+      console.log(`🔄 Starting document update mutation: documentId=${documentId}, documentType=${documentType}, description=${description}`);
       const updateData: any = { documentType };
       if (description !== undefined) {
         updateData.description = description;
       }
       const result = await apiRequest('PATCH', `/api/documents/${documentId}`, updateData);
+      console.log(`✅ Document update mutation completed:`, result);
       return result;
     },
     onSuccess: (data, variables) => {
+      console.log(`🎉 Document update mutation onSuccess triggered for documentId=${variables.documentId}, newType=${variables.documentType}, newDescription=${variables.description}`);
       setIsEditDialogOpen(false);
       setEditingDocument(null);
 
@@ -154,6 +160,7 @@ export default function DocumentList({ dealId }: DocumentListProps) {
               }
             : doc
         );
+        console.log(`🔄 Updated documents cache directly:`, updatedDocs);
         return updatedDocs;
       });
 
@@ -170,17 +177,20 @@ export default function DocumentList({ dealId }: DocumentListProps) {
             documentType: variables.documentType,
             description: variables.description 
           };
+          console.log(`📝 Updated selectedDocument state:`, updated);
           return updated;
         }
         return prev;
       });
       
+      console.log(`✅ Cache updated directly - no need for invalidation or refetch!`);
       
       toast({
         title: 'Document updated',
         description: 'Document type has been successfully updated.',
       });
       
+      console.log(`✨ Document update process completed successfully`);
     },
     onError: (error) => {
       toast({
@@ -199,14 +209,19 @@ export default function DocumentList({ dealId }: DocumentListProps) {
   };
 
   const handleSaveDocumentType = () => {
+    console.log(`💾 Save button clicked! editingDocument:`, editingDocument);
+    console.log(`💾 editDocumentType:`, editDocumentType);
+    console.log(`💾 editDescription:`, editDescription);
     
     if (editingDocument) {
+      console.log(`✨ Calling mutation with documentId=${editingDocument.id}, documentType=${editDocumentType}, description=${editDescription}`);
       editDocumentMutation.mutate({
         documentId: editingDocument.id,
         documentType: editDocumentType,
         description: editDescription,
       });
     } else {
+      console.log(`❌ No editingDocument found, cannot save`);
     }
   };
 
@@ -239,6 +254,7 @@ export default function DocumentList({ dealId }: DocumentListProps) {
       setUploadingFile(e.dataTransfer.files[0]);
       
       // Log for debugging
+      console.log('File dropped:', e.dataTransfer.files[0].name);
     }
   }, []);
 
@@ -257,6 +273,7 @@ export default function DocumentList({ dealId }: DocumentListProps) {
     }
 
     // Debug logging
+    console.log('📤 Starting upload for:', {
       fileName: uploadingFile.name,
       dealId: dealId.toString(),
       documentType,
@@ -271,6 +288,7 @@ export default function DocumentList({ dealId }: DocumentListProps) {
         credentials: 'include', // Include cookies for authentication
       });
       
+      console.log('📡 Upload response status:', res.status);
       
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
@@ -279,6 +297,7 @@ export default function DocumentList({ dealId }: DocumentListProps) {
       }
       
       const responseData = await res.json();
+      console.log('✅ Upload successful:', responseData);
       
       // Invalidate queries to refresh the document list
       queryClient.invalidateQueries({ queryKey: [`/api/documents/deal/${dealId}`] });
@@ -542,6 +561,7 @@ export default function DocumentList({ dealId }: DocumentListProps) {
                       <p className="text-xs text-neutral-500 truncate">
                         {(() => {
                           const label = getDocumentTypeLabel(document.documentType);
+                          console.log(`🏷️ Document ${document.id} (${document.fileName}): documentType="${document.documentType}" → label="${label}"`);
                           return label;
                         })()} • {formatBytes(document.fileSize)}
                       </p>

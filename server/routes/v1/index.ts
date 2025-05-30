@@ -13,9 +13,9 @@ import activityRoutes from '../activity';
 import dashboardRoutes from '../dashboard';
 import leaderboardRoutes from '../leaderboard';
 import notificationsRoutes from '../notifications';
-import documentsRoutes from '../documents';
+import documentsRoutes from '../documents-new';
 import aiAnalysisRoutes from '../ai-analysis';
-// import documentAnalysisRoutes from './document-analysis.js'; // Temporarily disabled
+import documentAnalysisRoutes from './document-analysis.js';
 
 const v1Router = Router();
 
@@ -31,6 +31,6 @@ v1Router.use('/leaderboard', leaderboardRoutes);
 v1Router.use('/notifications', notificationsRoutes);
 v1Router.use('/documents', documentsRoutes);
 v1Router.use('/ai-analysis', aiAnalysisRoutes);
-// v1Router.use('/document-analysis', documentAnalysisRoutes); // Temporarily disabled
+v1Router.use('/document-analysis', documentAnalysisRoutes);
 
 export default v1Router;

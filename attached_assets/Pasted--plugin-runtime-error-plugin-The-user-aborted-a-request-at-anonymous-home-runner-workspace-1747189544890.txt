@@ -1,0 +1,96 @@
+[plugin:runtime-error-plugin] The user aborted a request.
+    at <anonymous> (/home/runner/workspace/node_modules/@replit/vite-plugin-runtime-error-modal/src/index.ts:29:37)
+    at <anonymous> (/home/runner/workspace/node_modules/vite/dist/node/chunks/dep-CHZK6zbr.js:59415:39)
+    at Set.forEach (<anonymous>)
+    at WebSocket.<anonymous> (/home/runner/workspace/node_modules/vite/dist/node/chunks/dep-CHZK6zbr.js:59415:17)
+    at WebSocket.emit (node:events:518:28)
+    at Receiver.receiverOnMessage (/home/runner/workspace/node_modules/vite/dist/node/chunks/dep-CHZK6zbr.js:58409:22)
+    at Receiver.emit (node:events:518:28)
+    at Receiver.dataMessage (/home/runner/workspace/node_modules/vite/dist/node/chunks/dep-CHZK6zbr.js:55989:14)
+    at Receiver.getData (/home/runner/workspace/node_modules/vite/dist/node/chunks/dep-CHZK6zbr.js:55889:10)
+    at Receiver.startLoop (/home/runner/workspace/node_modules/vite/dist/node/chunks/dep-CHZK6zbr.js:55560:16)
+    at Receiver._write (/home/runner/workspace/node_modules/vite/dist/node/chunks/dep-CHZK6zbr.js:55487:10)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Socket.socketOnData (/home/runner/workspace/node_modules/vite/dist/node/chunks/dep-CHZK6zbr.js:58544:37)
+    at Socket.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+    at Readable.push (node:internal/streams/readable:392:5)
+    at TCP.onStreamRead (node:internal/stream_base_commons:191:23
+Click outside, press Esc key, or fix the code to dismiss.
+You can also disable this overlay by setting server.hmr.overlay to false in vite.config.js.
+
+
+ChatGPT said:
+This error:
+
+css
+Copy
+Edit
+[plugin:runtime-error-plugin] The user aborted a request.
+is emitted by Vite’s development server—specifically the @replit/vite-plugin-runtime-error-modal when a client (e.g., browser tab) cancels a pending request. This is not a code-breaking bug. It typically appears during:
+
+Page refreshes
+
+Navigating away while a fetch or module import is in-flight
+
+Vite's HMR (Hot Module Replacement) restarting the module graph
+
+react-pdf or pdfjs-dist worker failing to load (as in your case)
+
+✅ Why You're Seeing It
+In your logs, this is likely triggered by this error:
+
+txt
+Copy
+Edit
+Failed to fetch dynamically imported module: pdf.worker.js?import
+Which causes the PDF render to fail, triggering React-PDF to abort the stream. Vite reports this as a “user aborted” error when a dynamic import fails or is canceled.
+
+🔧 How to Fix It (Real Cause: PDF Worker Not Bundled Correctly)
+We already diagnosed the root issue earlier:
+
+You’re using React-PDF ^9.2.1 with pdfjs-dist@4.8.69, but the pdf.worker.js is not being bundled correctly in your Vite app.
+
+✅ Fix
+In client/src/lib/setupPdfWorker.ts, replace your manual fallback logic with Vite’s built-in worker bundling:
+
+ts
+Copy
+Edit
+import { pdfjs } from 'react-pdf';
+import pdfWorker from 'pdfjs-dist/build/pdf.worker.min.js?url';
+
+pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker;
+Also, remove or disable any fallback like:
+
+ts
+Copy
+Edit
+pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.js';
+🧠 ?url tells Vite to bundle and serve the file with a hashed path like /assets/pdf.worker-abc123.js.
+
+📌 Optional: Disable Runtime Overlay (if annoying)
+To disable the big red overlay during dev:
+
+ts
+Copy
+Edit
+// vite.config.ts
+export default defineConfig({
+  server: {
+    hmr: {
+      overlay: false
+    }
+  }
+});
+But this is not recommended unless you're confident in catching errors another way.
+
+✅ Final Notes
+This runtime error is just a symptom of deeper issues (in this case, the broken PDF worker import).
+
+Fixing the worker path as shown will eliminate the MissingPDFException and prevent this Vite overlay.
+
+Let me know if you'd like me to patch your setupPdfWorker.ts or your vite.config.ts directly.
