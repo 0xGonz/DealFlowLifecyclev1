@@ -1,0 +1,157 @@
+Here’s a start-to-finish overhaul of your Documents → PDF pipeline, plus a clear checklist to get you to “✅ Works in production”:
+
+A. End-to-End Diagnosis
+Upload & Storage
+
+What: Multer writes files under uploads/… and you save that path in PostgreSQL.
+
+Works: Your curl test against /api/documents/61/download once showed 200 OK with Content-Type: application/pdf.
+
+Download Route
+
+What: GET /api/documents/:id/download looks up the DB, resolves one of several possible disk paths, then streams via fs.createReadStream.
+
+Potential Gap: If none of the candidate paths match (due to ephemeral storage or a mismatched filePath), you fall through to your catch-all route and return index.html (HTML!), which the PDF viewer then tr ies to parse.
+
+Static & API Routing Order
+
+What: Express is serving your React build via express.static(...) and then a app.get('*', send index.html) before your /api routes.
+
+Symptom: /api/documents/61/download is intercepted by the catch-all, returning index.html → invalid PDF structure.
+
+PDF.js Worker Setup
+
+What: You’ve finally switched to bundling the worker via Vite’s ?url import in setupPdfWorker.ts.
+
+Good: Now the worker loads from /assets/pdf.worker.<hash>.js.
+
+Remaining: The download itself is still returning HTML, so PDF.js errors out with “Invalid PDF structure.”
+
+B. Modular, Production-Proof Redesign
+1. Ensure Persistent File Storage
+Action: Move your uploads directory into a guaranteed persistent folder (e.g. path.join(__dirname, '../data/uploads')), and ensure it exists on startup:
+
+js
+Copy
+Edit
+const uploadsDir = process.env.UPLOAD_DIR || path.join(__dirname, '../data/uploads');
+fs.mkdirSync(uploadsDir, { recursive: true });
+const storage = multer.diskStorage({
+  destination: (_req, _file, cb) => cb(null, uploadsDir),
+  filename: (_req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`)
+});
+Why: On Replit your working directory can reset, but a dedicated data/ folder persists.
+
+2. Fix Express Route Ordering
+Make sure your server mounting looks like:
+
+ts
+Copy
+Edit
+// 1) Serve API under /api
+app.use('/api', apiRouter);
+
+// 2) Serve React build and static assets
+const clientDist = path.join(__dirname, '../client/dist');
+app.use(express.static(clientDist));
+
+// 3) Fallback ONLY _non-API_ routes to index.html
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api')) return next();
+  res.sendFile(path.join(clientDist, 'index.html'));
+});
+Why: This way /api/documents/... will always hit your download logic, never return index.html.
+
+3. Tighten Your Download Handler
+In apiRouter:
+
+ts
+Copy
+Edit
+router.get('/documents/:id/download', requireAuth, async (req, res) => {
+  const doc = await findDocumentById(req.params.id);
+  if (!doc) return res.status(404).json({ error: 'Document not found' });
+
+  const fullPath = path.join(uploadsDir, path.basename(doc.filePath));
+  if (!fs.existsSync(fullPath)) {
+    return res.status(404).json({ error: 'File missing on disk' });
+  }
+
+  res.setHeader('Content-Type', doc.fileType);
+  res.setHeader('Content-Disposition', 'inline; filename="' + doc.fileName + '"');
+  res.setHeader('Cache-Control', 'no-store, must-revalidate');
+  fs.createReadStream(fullPath).pipe(res);
+});
+Why:
+
+Returns 404 JSON if missing.
+
+Streams only real PDF data.
+
+Prevents HTML from slipping through.
+
+4. One-Time PDF.js Worker Setup
+In client/src/lib/setupPdfWorker.ts:
+
+ts
+Copy
+Edit
+import { pdfjs } from 'react-pdf';
+import workerUrl from 'pdfjs-dist/build/pdf.worker.min.js?url';
+
+pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
+console.log('✅ PDF.js worker configured:', workerUrl);
+Why: Vite’s ?url import guarantees the correct hashed path and MIME type.
+
+5. Client Side: Verify Fetch & Render
+In your <PDFViewer> component:
+
+tsx
+Copy
+Edit
+const { selected } = useDocuments();
+useEffect(() => {
+  if (!selected) return;
+  console.log('📤 Fetching PDF at', selected.downloadUrl);
+  setUrl(selected.downloadUrl);
+}, [selected]);
+Why: You’ll see exactly when the viewer tries to fetch, and can watch the Network tab.
+
+C. 🔖 Comprehensive Fix Checklist
+[ ] Pin pdfjs-dist version in client/package.json.
+
+[ ] Remove all legacy pdf.worker.min.js files from public/ or src/assets/.
+
+[ ] Implement persistent upload dir under data/uploads (and migrate existing files).
+
+[ ] Reconfigure Multer to write to that persistent directory.
+
+[ ] Refactor Express to mount /api before static and have a catch-all that skips /api.
+
+[ ] Harden download route: explicit 404 JSON, correct headers, no HTML fallback.
+
+[ ] Create setupPdfWorker.ts with ?url import, and import it exactly once in your client bootstrap.
+
+[ ] In your viewer, log the fetch URL and watch the browser’s Network tab for /api/documents/.../download.
+
+[ ] Rebuild both client and server, redeploy.
+
+[ ] Smoke-test:
+
+Network → /assets/pdf.worker.*.js 200 OK, JS MIME
+
+Network → /api/documents/61/download 200 OK, PDF MIME
+
+Console → no “fake worker” or “Invalid PDF structure”
+
+UI → PDF pages render
+
+Once you’ve checked off every item, your upload → storage → download → rendering pipeline will be bullet-proof in production. Let me know when you’ve run through it or if any single step still misbehaves!
+
+
+
+
+
+
+
+

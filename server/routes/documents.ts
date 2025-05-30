@@ -20,6 +20,77 @@ const requireAuth = (req: Request, res: Response, next: any) => {
 // Configure multer for file uploads using the centralized service
 const upload = DocumentUploadService.getMulterConfig();
 
+// Debug endpoint to investigate file serving issues
+router.get('/:id/debug', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const documentId = parseInt(req.params.id);
+    console.log(`🔍 Debug request for document ${documentId}`);
+    
+    // Get document from database
+    const document = await storage.getDocumentById(documentId);
+    
+    if (!document) {
+      return res.status(404).json({ error: 'Document not found in database' });
+    }
+
+    // Build all possible file paths
+    const isProd = process.env.NODE_ENV === 'production';
+    const baseDir = process.cwd();
+    const filePath = document.filePath;
+    const fileName = document.fileName;
+    
+    const possiblePaths = [];
+    
+    if (filePath) {
+      const normalizedPath = filePath.startsWith('/') ? filePath.substring(1) : filePath;
+      
+      // All the paths the download endpoint checks
+      possiblePaths.push(
+        path.join(baseDir, normalizedPath),
+        path.join(baseDir, 'public', normalizedPath),
+        path.join(baseDir, 'uploads', path.basename(normalizedPath)),
+        path.join(baseDir, 'public/uploads', path.basename(normalizedPath)),
+        path.join('/app', normalizedPath),
+        path.join('/app/uploads', path.basename(normalizedPath)),
+        path.join('/app/public/uploads', path.basename(normalizedPath))
+      );
+    }
+
+    // Check which paths actually exist
+    const pathChecks = possiblePaths.map(p => ({
+      path: p,
+      exists: fs.existsSync(p),
+      isFile: fs.existsSync(p) ? fs.statSync(p).isFile() : false
+    }));
+
+    const foundPaths = pathChecks.filter(p => p.exists && p.isFile);
+
+    // Return debug information
+    return res.json({
+      document: {
+        id: document.id,
+        fileName: document.fileName,
+        filePath: document.filePath,
+        fileType: document.fileType,
+        fileSize: document.fileSize
+      },
+      environment: isProd ? 'production' : 'development',
+      baseDir,
+      pathChecks,
+      foundPaths: foundPaths.map(p => p.path),
+      summary: {
+        totalPathsChecked: pathChecks.length,
+        validFilesFound: foundPaths.length,
+        hasValidFile: foundPaths.length > 0
+      }
+    });
+
+  } catch (error) {
+    console.error('Debug endpoint error:', error);
+    return res.status(500).json({ error: 'Debug failed', details: String(error) });
+  }
+});
+
 // Get documents for a specific deal
 router.get('/deal/:dealId', requireAuth, async (req: Request, res: Response) => {
   try {
