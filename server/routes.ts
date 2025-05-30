@@ -7,16 +7,13 @@ import fundsRoutes from './routes/new-funds'; // Using refactored modular struct
 import usersRoutes from './routes/users';
 import authRoutes from './routes/auth';
 import dashboardRoutes from './routes/dashboard';
-import leaderboardRoutes from './routes/leaderboard';
+// Leaderboard routes removed during cleanup
 import activityRoutes from './routes/activity';
-import notificationsRoutes from './routes/notifications';
 import documentsRoutes from './routes/documents';
-import allocationsRoutes from './routes/allocations';
 // Capital calls and closing schedules routes removed during cleanup
 import meetingsRoutes from './routes/meetings';
-import calendarRoutes from './routes/calendar.routes'; // New unified calendar API
+import calendarRoutes from './routes/calendar.routes';
 import { systemRouter } from './routes/system';
-import v1Router from './routes/v1/index'; // V1 API routes including AI analysis
 // AI analysis routes removed during cleanup
 
 // Utils
@@ -86,13 +83,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/meetings', meetingsRoutes);
   app.use('/api/calendar', calendarRoutes); // New unified calendar API endpoint
   app.use('/api/dashboard', dashboardRoutes);
-  app.use('/api/leaderboard', leaderboardRoutes);
   app.use('/api/activity', activityRoutes);
-  app.use('/api/notifications', notificationsRoutes);
   app.use('/api/documents', documentsRoutes); // PostgreSQL blob storage with deal isolation
   app.use('/api/system', systemRouter);
-  app.use('/api/v1', v1Router); // V1 API routes including AI analysis
-  app.use('/api/ai-analysis', aiAnalysisRoutes); // Direct access to AI analysis
+  // V1 and AI analysis routes removed during cleanup
   
   // Catch-all route for 404s
   app.use('/api/*', notFoundHandler);
