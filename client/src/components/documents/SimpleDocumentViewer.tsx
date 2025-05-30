@@ -84,40 +84,62 @@ const SimpleDocumentViewer = ({ documentId, documentName, fileType }: SimpleDocu
     const documentUrl = `/api/documents/${documentId}/download`;
     const fileName = documentName.toLowerCase();
 
-    // PDF Viewer with enhanced error handling
+    // PDF Viewer with authenticated blob URL approach
     if (fileName.includes('.pdf')) {
       return (
         <div className="w-full h-full bg-gray-100 rounded-lg overflow-hidden">
-          <iframe
-            src={`${documentUrl}#zoom=${zoom}&toolbar=1&navpanes=0&scrollbar=1`}
-            className="w-full h-full border-0 max-w-full max-h-full"
-            style={{ 
-              width: '100%', 
-              height: '100%', 
-              maxWidth: '100%', 
-              maxHeight: '100%',
-              overflow: 'hidden'
-            }}
-            title={documentName}
-            onLoad={(e) => {
-              setLoading(false);
-              // Check if iframe loaded successfully
-              try {
-                const iframe = e.target as HTMLIFrameElement;
-                const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
-                if (iframeDoc?.body?.innerText?.includes('can\'t open') || 
-                    iframeDoc?.body?.innerText?.includes('error')) {
-                  setError('PDF could not be displayed. Please download to view.');
-                }
-              } catch (err) {
-                // Cross-origin restrictions - this is normal
-              }
-            }}
-            onError={() => {
-              setError('Failed to load PDF document. Please try downloading the file.');
-              setLoading(false);
-            }}
-          />
+          {loading && (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                <p className="text-sm text-gray-600">Loading PDF...</p>
+              </div>
+            </div>
+          )}
+          {error && (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center p-4">
+                <FileText className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                <p className="text-sm text-gray-600 mb-2">{error}</p>
+                <Button onClick={handleDownload} size="sm">
+                  <Download className="h-4 w-4 mr-2" />
+                  Download PDF
+                </Button>
+              </div>
+            </div>
+          )}
+          {!loading && !error && (
+            <object
+              data={documentUrl}
+              type="application/pdf"
+              className="w-full h-full"
+              style={{ 
+                width: '100%', 
+                height: '100%',
+                minHeight: '600px'
+              }}
+              onLoad={() => {
+                setLoading(false);
+                console.log('PDF loaded successfully');
+              }}
+              onError={() => {
+                console.error('PDF failed to load');
+                setError('Failed to load PDF document. Please try downloading the file.');
+                setLoading(false);
+              }}
+            >
+              <embed
+                src={documentUrl}
+                type="application/pdf"
+                className="w-full h-full"
+                style={{ 
+                  width: '100%', 
+                  height: '100%',
+                  minHeight: '600px'
+                }}
+              />
+            </object>
+          )}
         </div>
       );
     }
