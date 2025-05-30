@@ -4,7 +4,7 @@ import { requireAuth } from "../utils/auth";
 import { requirePermission } from "../utils/permissions";
 import { z } from "zod";
 import { insertMiniMemoSchema, insertDealAssignmentSchema } from "@shared/schema";
-import { StorageFactory } from "../storage-factory";
+import { pool } from "../db";
 
 const router = Router();
 

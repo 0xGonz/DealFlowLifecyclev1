@@ -2,7 +2,7 @@ import express, { Request, Response, NextFunction } from 'express';
 import { asyncHandler, AppError } from '../utils/errorHandlers';
 import { login, logout, getCurrentUser, hashPassword, registerUser } from '../utils/auth';
 import { z, ZodError } from 'zod';
-import { StorageFactory } from '../storage-factory';
+import { pool } from '../db';
 import { insertUserSchema } from '@shared/schema';
 import { AUTH_ERRORS } from '../constants/auth-constants';
 
