@@ -161,7 +161,7 @@ export class DatabaseStorage implements IStorage {
         leadInvestor: deal.leadInvestor || null
       };
       
-      const [newDeal] = await db.insert(deals).values(dealData).returning();
+      const [newDeal] = await db.insert(deals).values([dealData]).returning();
       return newDeal;
     } catch (error) {
       console.error('Error creating deal:', error);
@@ -423,7 +423,7 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           eq(documents.dealId, dealId),
-          eq(documents.documentType, documentType)
+          eq(documents.documentType, documentType as any)
         )
       );
   }
