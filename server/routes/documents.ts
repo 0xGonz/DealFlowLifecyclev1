@@ -3,6 +3,7 @@ import { DatabaseStorage } from '../database-storage';
 import { DocumentService } from '../modules/documents/service';
 import { FileManagerService } from '../services/file-manager.service';
 import { DocumentUploadService } from '../services/document-upload.service';
+import { universalPathResolver } from '../services/universal-path-resolver';
 import path from 'path';
 import fs from 'fs';
 
@@ -20,52 +21,23 @@ const requireAuth = (req: Request, res: Response, next: any) => {
 // Configure multer for file uploads using the centralized service
 const upload = DocumentUploadService.getMulterConfig();
 
-// Debug endpoint to investigate file serving issues
+// Universal debug endpoint using path resolver
 router.get('/:id/debug', requireAuth, async (req: Request, res: Response) => {
   try {
     const documentId = parseInt(req.params.id);
-    console.log(`🔍 Debug request for document ${documentId}`);
+    console.log(`🔍 Universal debug request for document ${documentId}`);
     
-    // Get document from database
     const document = await storage.getDocument(documentId);
-    
     if (!document) {
       return res.status(404).json({ error: 'Document not found in database' });
     }
 
-    // Build all possible file paths
-    const isProd = process.env.NODE_ENV === 'production';
-    const baseDir = process.cwd();
-    const filePath = document.filePath;
-    const fileName = document.fileName;
-    
-    const possiblePaths = [];
-    
-    if (filePath) {
-      const normalizedPath = filePath.startsWith('/') ? filePath.substring(1) : filePath;
-      
-      // All the paths the download endpoint checks
-      possiblePaths.push(
-        path.join(baseDir, normalizedPath),
-        path.join(baseDir, 'public', normalizedPath),
-        path.join(baseDir, 'uploads', path.basename(normalizedPath)),
-        path.join(baseDir, 'public/uploads', path.basename(normalizedPath)),
-        path.join('/app', normalizedPath),
-        path.join('/app/uploads', path.basename(normalizedPath)),
-        path.join('/app/public/uploads', path.basename(normalizedPath))
-      );
-    }
+    // Use universal path resolver for comprehensive diagnostics
+    const diagnostics = universalPathResolver.getDiagnostics(
+      document.filePath, 
+      document.fileName
+    );
 
-    // Check which paths actually exist
-    const pathChecks = possiblePaths.map(p => ({
-      path: p,
-      exists: fs.existsSync(p),
-      isFile: fs.existsSync(p) ? fs.statSync(p).isFile() : false
-    }));
-
-    const foundPaths = pathChecks.filter(p => p.exists && p.isFile);
-
-    // Return debug information
     return res.json({
       document: {
         id: document.id,
@@ -74,19 +46,16 @@ router.get('/:id/debug', requireAuth, async (req: Request, res: Response) => {
         fileType: document.fileType,
         fileSize: document.fileSize
       },
-      environment: isProd ? 'production' : 'development',
-      baseDir,
-      pathChecks,
-      foundPaths: foundPaths.map(p => p.path),
-      summary: {
-        totalPathsChecked: pathChecks.length,
-        validFilesFound: foundPaths.length,
-        hasValidFile: foundPaths.length > 0
+      universalResolver: diagnostics,
+      recommendations: {
+        fileFound: diagnostics.resolution.found,
+        actionNeeded: !diagnostics.resolution.found ? 'Run file migration script' : 'None',
+        downloadUrl: `/api/documents/${documentId}/download`
       }
     });
 
   } catch (error) {
-    console.error('Debug endpoint error:', error);
+    console.error('Universal debug error:', error);
     return res.status(500).json({ error: 'Debug failed', details: String(error) });
   }
 });
@@ -485,36 +454,73 @@ router.post('/upload', requireAuth, upload.single('file'), async (req: Request, 
   }
 });
 
-// Bulletproof download route following the checklist specification
-router.get('/:id/download-new', requireAuth, async (req: Request, res: Response) => {
+// Universal download route with proper error handling
+router.get('/:id/download-universal', requireAuth, async (req: Request, res: Response) => {
   try {
     const documentId = parseInt(req.params.id);
-    console.log(`📥 New download request for document ID: ${documentId}`);
+    console.log(`📥 Universal download request for document ID: ${documentId}`);
     
-    const doc = await storage.getDocument(documentId);
-    if (!doc) return res.status(404).json({ error: 'Document not found' });
-
-    const UPLOAD_DIR = path.join(process.cwd(), 'data/uploads');
-    const fileName = path.basename(doc.filePath || doc.fileName);
-    const fullPath = path.join(UPLOAD_DIR, fileName);
-    
-    if (!fs.existsSync(fullPath)) {
-      return res.status(404).json({ error: 'File missing on disk' });
+    const document = await storage.getDocument(documentId);
+    if (!document) {
+      console.log(`❌ Document ${documentId} not found in database`);
+      return res.status(404).json({ error: 'Document not found' });
     }
 
+    // Use universal path resolver
+    const resolution = universalPathResolver.resolveFilePath(
+      document.filePath, 
+      document.fileName
+    );
+
+    if (!resolution.found || !resolution.path) {
+      console.log(`❌ File not found for document ${documentId}:`, resolution.error);
+      return res.status(404).json({ 
+        error: 'File not found',
+        details: resolution.error,
+        searchedLocations: resolution.searchedPaths.length
+      });
+    }
+
+    // Validate file before serving
+    const validation = universalPathResolver.validateFile(resolution.path);
+    if (!validation.exists || !validation.isFile) {
+      console.log(`❌ Invalid file for document ${documentId}:`, validation.error);
+      return res.status(404).json({ 
+        error: 'Invalid file',
+        details: validation.error
+      });
+    }
+
+    // Set proper headers
     res
-      .type(doc.fileType || 'application/pdf')
+      .type(document.fileType || 'application/pdf')
       .set({
-        'Content-Disposition': `inline; filename="${doc.fileName}"`,
+        'Content-Disposition': `inline; filename="${document.fileName}"`,
         'Cache-Control': 'no-store, must-revalidate',
         'X-Content-Type-Options': 'nosniff',
-      })
-      .sendFile(fullPath);
-      
-    console.log(`✅ Serving file: ${doc.fileName} from ${fullPath}`);
+        'Content-Length': validation.size?.toString() || '0'
+      });
+
+    console.log(`✅ Serving ${document.fileName} from ${resolution.path}`);
+    
+    // Use sendFile for reliable serving
+    res.sendFile(resolution.path, (err) => {
+      if (err) {
+        console.error(`💥 Error serving file ${documentId}:`, err);
+        if (!res.headersSent) {
+          res.status(500).json({ error: 'File serving error' });
+        }
+      } else {
+        console.log(`🎉 Successfully served document ${documentId}`);
+      }
+    });
+
   } catch (error) {
-    console.error('Download error:', error);
-    return res.status(500).json({ error: 'Download failed' });
+    console.error(`💥 Universal download error for ${req.params.id}:`, error);
+    return res.status(500).json({ 
+      error: 'Download failed', 
+      details: String(error)
+    });
   }
 });
 
