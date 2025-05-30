@@ -11,10 +11,43 @@ export class FileManagerService {
   private static readonly SUPPORTED_EXTENSIONS = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.csv', '.ppt', '.pptx'];
   
   /**
-   * Get the absolute base upload directory
+   * Get the absolute base upload directory with production persistence
    */
   static getBaseUploadDir(): string {
-    return path.join(process.cwd(), this.BASE_UPLOAD_DIR);
+    // Use persistent storage path for production deployments
+    const isProd = process.env.NODE_ENV === 'production';
+    const replitStorage = process.env.REPLIT_STORAGE;
+    
+    if (isProd && replitStorage) {
+      // Use Replit's persistent storage if available
+      const persistentPath = path.join(replitStorage, this.BASE_UPLOAD_DIR);
+      console.log(`📁 Using persistent storage path: ${persistentPath}`);
+      return persistentPath;
+    } else if (isProd) {
+      // Try common persistent paths for production
+      const persistentPaths = [
+        '/tmp/persistent-uploads',
+        '/data/uploads', 
+        '/storage/uploads'
+      ];
+      
+      for (const persistentPath of persistentPaths) {
+        try {
+          if (!fs.existsSync(persistentPath)) {
+            fs.mkdirSync(persistentPath, { recursive: true });
+          }
+          console.log(`📁 Using production persistent path: ${persistentPath}`);
+          return persistentPath;
+        } catch (err) {
+          console.log(`⚠️ Could not use persistent path ${persistentPath}: ${err}`);
+        }
+      }
+    }
+    
+    // Fallback to local directory for development
+    const localPath = path.join(process.cwd(), this.BASE_UPLOAD_DIR);
+    console.log(`📁 Using local upload path: ${localPath}`);
+    return localPath;
   }
 
   /**
@@ -75,6 +108,8 @@ export class FileManagerService {
    * Returns the actual file system path or null if not found
    */
   static resolveFilePath(storedPath: string, fileName?: string): string | null {
+    console.log(`🔍 Resolving file path for: ${storedPath}, fileName: ${fileName}`);
+    
     const possiblePaths: string[] = [];
     
     // Primary: Use stored path as-is

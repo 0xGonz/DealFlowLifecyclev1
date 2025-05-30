@@ -177,6 +177,16 @@ router.get('/:id/download', requireAuth, async (req: Request, res: Response) => 
     res.setHeader('Content-Type', mimeType);
     res.setHeader('Content-Disposition', `inline; filename="${document.fileName}"`);
     
+    // Prevent caching issues in production
+    res.setHeader('Cache-Control', 'no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    
+    // Security headers
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+    res.setHeader('Accept-Ranges', 'bytes');
+    
     // Set file size header
     try {
       const stats = fs.statSync(resolvedFilePath);
