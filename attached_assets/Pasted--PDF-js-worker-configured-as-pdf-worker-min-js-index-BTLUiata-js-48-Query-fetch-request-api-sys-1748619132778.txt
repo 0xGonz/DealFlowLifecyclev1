@@ -1,0 +1,73 @@
+✅ PDF.js worker configured as: /pdf.worker.min.js
+index-BTLUiata.js:48 Query fetch request: /api/system/health {queryKey: Array(1), unauthorizedBehavior: 'returnNull'}
+index-BTLUiata.js:467 Fetching current user data
+index-BTLUiata.js:467 Auth provider mounted - checking authentication status
+index-BTLUiata.js:467 Manual auth refresh requested
+index-BTLUiata.js:48 Query Response from /api/system/health: {status: 200, statusText: '', ok: true}
+index-BTLUiata.js:48 Query data received from /api/system/health: {status: 'ok', timestamp: '2025-05-30T15:31:28.329Z', storage: 'pg', databaseConnected: true, environment: 'production', …}
+index-BTLUiata.js:467 Current user data fetched successfully: {id: 4, username: 'Gonz', fullName: 'Brett Gonzalez', initials: 'BG', email: 'bgonzalez@doliveradvisors.com', …}
+index-BTLUiata.js:48 Query fetch request: /api/notifications {queryKey: Array(1), unauthorizedBehavior: 'returnNull'}
+index-BTLUiata.js:48 Query fetch request: /api/notifications/unread-count {queryKey: Array(1), unauthorizedBehavior: 'returnNull'}
+index-BTLUiata.js:467 UserAvatar: User 4 has color #0E4DA4
+index-BTLUiata.js:467 Avatar color changed to: null
+index-BTLUiata.js:48 Query fetch request: /api/auth/me {queryKey: Array(1), unauthorizedBehavior: 'returnNull'}
+index-BTLUiata.js:48 Query fetch request: /api/deals {queryKey: Array(1), unauthorizedBehavior: 'returnNull'}
+index-BTLUiata.js:48 Query fetch request: /api/funds {queryKey: Array(1), unauthorizedBehavior: 'returnNull'}
+index-BTLUiata.js:48 Query fetch request: /api/deals/101 {queryKey: Array(1), unauthorizedBehavior: 'returnNull'}
+index-BTLUiata.js:48 Query fetch request: /api/deals/101/stars {queryKey: Array(1), unauthorizedBehavior: 'returnNull'}
+index-BTLUiata.js:467 Avatar color changed to: #0E4DA4
+index-BTLUiata.js:48 Query Response from /api/notifications: {status: 200, statusText: '', ok: true}
+index-BTLUiata.js:48 Query data received from /api/notifications: (3) [{…}, {…}, {…}]
+index-BTLUiata.js:48 Query Response from /api/notifications/unread-count: {status: 200, statusText: '', ok: true}
+index-BTLUiata.js:48 Query data received from /api/notifications/unread-count: {count: 0}
+index-BTLUiata.js:467 Using /me endpoint data for avatar {id: 4, username: 'Gonz', fullName: 'Brett Gonzalez', initials: 'BG', email: 'bgonzalez@doliveradvisors.com', …}
+index-BTLUiata.js:48 Query Response from /api/deals/101/stars: {status: 200, statusText: '', ok: true}
+index-BTLUiata.js:48 Query data received from /api/deals/101/stars: []
+index-BTLUiata.js:48 Query Response from /api/deals: {status: 200, statusText: '', ok: true}
+index-BTLUiata.js:48 Query data received from /api/deals: (91) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+index-BTLUiata.js:48 Query Response from /api/auth/me: {status: 200, statusText: '', ok: true}
+index-BTLUiata.js:48 Query data received from /api/auth/me: {id: 4, username: 'Gonz', fullName: 'Brett Gonzalez', initials: 'BG', email: 'bgonzalez@doliveradvisors.com', …}
+index-BTLUiata.js:48 Query Response from /api/deals/101: {status: 200, statusText: '', ok: true}
+index-BTLUiata.js:48 Query data received from /api/deals/101: {id: 101, name: 'LakeVue Apartments(Mazoch Capital)', description: 'LakeVue Apartments, a 352-unit multifamily complex in Clute, TX.', sector: 'Real Estate', stage: 'screening', …}
+index-BTLUiata.js:467 UserAvatar: User 1 has color #F57C00
+index-BTLUiata.js:48 Query fetch request: /api/documents/deal/101 {queryKey: Array(1), unauthorizedBehavior: 'returnNull'}
+index-BTLUiata.js:567 🔍 useDealDocuments: Processing data for deal 101: undefined
+index-BTLUiata.js:567 ⚠️ useDealDocuments: No data received or data is not an array: undefined
+index-BTLUiata.js:48 Query Response from /api/funds: {status: 200, statusText: '', ok: true}
+index-BTLUiata.js:48 Query data received from /api/funds: (2) [{…}, {…}]
+index-BTLUiata.js:48 Query Response from /api/documents/deal/101: {status: 200, statusText: '', ok: true}
+index-BTLUiata.js:48 Query data received from /api/documents/deal/101: [{…}]
+index-BTLUiata.js:567 🔍 useDealDocuments: Processing data for deal 101: [{…}]
+index-BTLUiata.js:567 📝 useDealDocuments: Setting 1 documents in context: [{…}]
+index-BTLUiata.js:567 🎯 useDealDocuments: Auto-selecting first document: {id: 60, name: 'Confidential Offering Memorandum_Lake Vue Apartments.pdf', fileName: 'Confidential Offering Memorandum_Lake Vue Apartments.pdf', fileType: 'application/pdf', downloadUrl: '/api/documents/60/download', …}
+index-BTLUiata.js:565 📤 Loading PDF document: {documentId: 60, documentName: 'Confidential Offering Memorandum_Lake Vue Apartments.pdf', url: '/api/documents/60/download'}
+index-BTLUiata.js:567 🔍 useDealDocuments: Processing data for deal 101: [{…}]
+index-BTLUiata.js:567 📝 useDealDocuments: Setting 1 documents in context: [{…}]
+index-BTLUiata.js:467 Direct user fetch for avatar ID 1: {id: 1, username: 'admin', fullName: 'Admin User', initials: 'AU', email: 'admin@example.com', …}
+index-BTLUiata.js:565  ❌ PDF load error: jne {message: 'The PDF file is empty, i.e. its size is zero bytes.', name: 'InvalidPDFException', stack: 'Error\n    at https://deal-flow-lifecyclev-1-bgonza…ez9.replit.app/assets/index-BTLUiata.js:554:20143'}message: "The PDF file is empty, i.e. its size is zero bytes."name: "InvalidPDFException"stack: "Error\n    at https://deal-flow-lifecyclev-1-bgonzalez9.replit.app/assets/index-BTLUiata.js:554:20115\n    at https://deal-flow-lifecyclev-1-bgonzalez9.replit.app/assets/index-BTLUiata.js:554:20143"[[Prototype]]: Error
+(anonymous) @ index-BTLUiata.js:565
+me @ index-BTLUiata.js:565
+(anonymous) @ index-BTLUiata.js:565
+nN @ index-BTLUiata.js:40
+pm @ index-BTLUiata.js:40
+(anonymous) @ index-BTLUiata.js:40
+A @ index-BTLUiata.js:25
+P @ index-BTLUiata.js:25
+index-BTLUiata.js:467 Using /me endpoint data for avatar {id: 4, username: 'Gonz', fullName: 'Brett Gonzalez', initials: 'BG', email: 'bgonzalez@doliveradvisors.com', …}
+index-BTLUiata.js:467 Direct user fetch for avatar ID 1: {id: 1, username: 'admin', fullName: 'Admin User', initials: 'AU', email: 'admin@example.com', …}
+index-BTLUiata.js:48 Query fetch request: /api/auth/me {queryKey: Array(1), unauthorizedBehavior: 'returnNull'}
+index-BTLUiata.js:48 Query fetch request: /api/system/health {queryKey: Array(1), unauthorizedBehavior: 'returnNull'}
+index-BTLUiata.js:48 Query Response from /api/auth/me: {status: 200, statusText: '', ok: true}
+index-BTLUiata.js:48 Query data received from /api/auth/me: {id: 4, username: 'Gonz', fullName: 'Brett Gonzalez', initials: 'BG', email: 'bgonzalez@doliveradvisors.com', …}
+index-BTLUiata.js:467 Using /me endpoint data for avatar {id: 4, username: 'Gonz', fullName: 'Brett Gonzalez', initials: 'BG', email: 'bgonzalez@doliveradvisors.com', …}
+index-BTLUiata.js:48 Query Response from /api/system/health: {status: 200, statusText: '', ok: true}
+index-BTLUiata.js:48 Query data received from /api/system/health: {status: 'ok', timestamp: '2025-05-30T15:31:48.035Z', storage: 'pg', databaseConnected: true, environment: 'production', …}
+index-BTLUiata.js:467 Direct user fetch for avatar ID 1: {id: 1, username: 'admin', fullName: 'Admin User', initials: 'AU', email: 'admin@example.com', …}
+index-BTLUiata.js:48 Query fetch request: /api/auth/me {queryKey: Array(1), unauthorizedBehavior: 'returnNull'}
+index-BTLUiata.js:48 Query fetch request: /api/notifications/unread-count {queryKey: Array(1), unauthorizedBehavior: 'returnNull'}
+index-BTLUiata.js:48 Query Response from /api/auth/me: {status: 200, statusText: '', ok: true}
+index-BTLUiata.js:48 Query data received from /api/auth/me: {id: 4, username: 'Gonz', fullName: 'Brett Gonzalez', initials: 'BG', email: 'bgonzalez@doliveradvisors.com', …}
+index-BTLUiata.js:467 Using /me endpoint data for avatar {id: 4, username: 'Gonz', fullName: 'Brett Gonzalez', initials: 'BG', email: 'bgonzalez@doliveradvisors.com', …}
+index-BTLUiata.js:48 Query Response from /api/notifications/unread-count: {status: 200, statusText: '', ok: true}
+index-BTLUiata.js:48 Query data received from /api/notifications/unread-count: {count: 0}
+index-BTLUiata.js:467 Direct user fetch for avatar ID 1: {id: 1, username: 'admin', fullName: 'Admin User', initials: 'AU', email: 'admin@example.com', …}
