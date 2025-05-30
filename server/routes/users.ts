@@ -7,13 +7,17 @@ import * as schema from '@shared/schema';
 
 const router = Router();
 
-// Create user validation schema
-const userInsertSchema = createInsertSchema(schema.users, {
+// Create user validation schema - custom schema to avoid database field requirements
+const userInsertSchema = z.object({
   username: z.string().min(3, 'Username must be at least 3 characters long'),
   password: z.string().min(6, 'Password must be at least 6 characters long'),
   email: z.string().email('Invalid email address'),
+  fullName: z.string().min(1, 'Full name is required'),
   role: z.enum(['admin', 'partner', 'analyst', 'observer', 'intern']),
-}).omit({ id: true });
+  // Optional fields that we generate if not provided
+  initials: z.string().optional(),
+  avatarColor: z.string().optional(),
+});
 
 // Create a new user with password hashing - ADMIN ONLY
 router.post('/', requireAuth, async (req: Request, res: Response) => {
