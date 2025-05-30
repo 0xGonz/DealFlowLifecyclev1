@@ -149,7 +149,7 @@ router.patch('/:id', requireAuth, async (req: Request, res: Response) => {
     }
     
     // Allow updating more fields for admins
-    const { fullName, role, avatarColor, email, username } = req.body;
+    const { fullName, role, avatarColor, email, username, password } = req.body;
     const updateData: any = {};
     
     console.log(`Update request for user ${targetUserId} by user ${currentUserId} (admin: ${isAdmin})`);
@@ -201,6 +201,16 @@ router.patch('/:id', requireAuth, async (req: Request, res: Response) => {
       console.log(`Updating avatar color for user ${targetUserId} to: ${avatarColor}`);
     }
     
+    // Handle password updates (admins can update any password, users can update their own)
+    if (password && (isAdmin || isOwnProfile)) {
+      updateData.password = password;
+      console.log(`Updating password for user ${targetUserId}`);
+    } else if (password && !isAdmin && !isOwnProfile) {
+      return res.status(403).json({ 
+        message: 'You can only update your own password' 
+      });
+    }
+    
     // Check if there's actually something to update
     if (Object.keys(updateData).length === 0) {
       return res.status(400).json({ message: 'No valid fields to update' });
@@ -218,7 +228,7 @@ router.patch('/:id', requireAuth, async (req: Request, res: Response) => {
     console.log(`Successfully updated user ${targetUserId}:`, updatedUser.fullName);
     
     // Return the updated user without password
-    const { password, ...userWithoutPassword } = updatedUser;
+    const { password: userPassword, ...userWithoutPassword } = updatedUser;
     
     // Add cache headers to prevent stale data
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');

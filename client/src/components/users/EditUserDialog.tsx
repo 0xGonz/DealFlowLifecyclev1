@@ -81,20 +81,42 @@ export default function EditUserDialog({ isOpen, onClose, user }: EditUserDialog
   // Update user mutation
   const updateUserMutation = useMutation({
     mutationFn: async (userData: EditUserFormValues & { id: number }) => {
-      const { id, ...data } = userData;
-      const res = await apiRequest("PATCH", `/api/users/${id}`, data);
+      const { id, newPassword, ...data } = userData;
+      
+      // Prepare the payload, including password if provided
+      const payload: any = { ...data };
+      if (newPassword && newPassword.trim()) {
+        payload.password = newPassword;
+      }
+      
+      console.log(`Sending update request for user ${id}:`, payload);
+      
+      const res = await apiRequest("PATCH", `/api/users/${id}`, payload);
+      
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || 'Failed to update user');
+      }
+      
       return await res.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('User update successful:', data);
       toast({
         title: "User updated successfully",
-        description: "User information has been updated",
+        description: `${data.fullName || 'User'} information has been updated`,
       });
       onClose();
+      
+      // Force refresh all user-related queries
       queryClient.invalidateQueries({ queryKey: ["/api/users"] });
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      
+      // Refetch users data immediately
+      queryClient.refetchQueries({ queryKey: ["/api/users"] });
     },
     onError: (error: Error) => {
+      console.error('User update failed:', error);
       toast({
         title: "Failed to update user",
         description: error.message,
@@ -212,7 +234,7 @@ export default function EditUserDialog({ isOpen, onClose, user }: EditUserDialog
                   <div className="flex flex-wrap gap-2 pt-1">
                     {Object.entries(AVATAR_COLORS).map(([name, color]) => (
                       <div
-                        key={color}
+                        key={`${name}-${color}`}
                         className={`w-8 h-8 rounded-full cursor-pointer transition-all ${
                           field.value === color
                             ? "ring-2 ring-offset-2 ring-accent"
@@ -220,6 +242,7 @@ export default function EditUserDialog({ isOpen, onClose, user }: EditUserDialog
                         }`}
                         style={{ backgroundColor: color }}
                         onClick={() => form.setValue("avatarColor", color)}
+                        title={name}
                       />
                     ))}
                   </div>
