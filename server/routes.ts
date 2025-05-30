@@ -1,15 +1,8 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 
-// Route imports
-import dealsRoutes from './routes/new-deals'; // Using refactored modular structure
-import fundsRoutes from './routes/new-funds'; // Using refactored modular structure
-// Users, auth, and dashboard routes removed during cleanup
-// Leaderboard routes removed during cleanup
-import activityRoutes from './routes/activity';
+// Route imports - minimal working configuration
 import documentsRoutes from './routes/documents';
-// Capital calls and closing schedules routes removed during cleanup
-import { systemRouter } from './routes/system';
 // AI analysis routes removed during cleanup
 
 // Utils
@@ -70,13 +63,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     requireAuth(req, res, next);
   });
   
-  // Register route modules
-  app.use('/api/deals', dealsRoutes);
-  app.use('/api/funds', fundsRoutes);
-  // Users, auth, allocations, meetings, calendar, and dashboard routes removed during cleanup
-  app.use('/api/activity', activityRoutes);
+  // Register route modules - minimal working configuration
   app.use('/api/documents', documentsRoutes); // PostgreSQL blob storage with deal isolation
-  app.use('/api/system', systemRouter);
   // V1 and AI analysis routes removed during cleanup
   
   // Catch-all route for 404s
