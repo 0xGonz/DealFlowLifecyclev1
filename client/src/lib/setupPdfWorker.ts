@@ -7,9 +7,9 @@ import { pdfjs } from 'react-pdf';
  * that matches the installed pdfjs-dist package.
  */
 
-// Use CDN worker that matches our exact pdfjs-dist version
+// Use a more reliable CDN for PDF.js worker
 const PDFJS_VERSION = '4.8.69'; // Match package.json version exactly
-const workerSrc = `https://unpkg.com/pdfjs-dist@${PDFJS_VERSION}/build/pdf.worker.min.js`;
+const workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${PDFJS_VERSION}/pdf.worker.min.js`;
 
 // Configure PDF.js worker to prevent "fake worker" errors
 pdfjs.GlobalWorkerOptions.workerSrc = workerSrc;
