@@ -1,135 +1,107 @@
-import { Router, Request, Response } from 'express';
+import { Router } from 'express';
 import multer from 'multer';
-import { DatabaseStorage } from '../database-storage';
-import * as documentBlobService from '../services/document-blob.service';
+import { 
+  saveDocumentBlob, 
+  getDocumentBlob, 
+  listDocumentsByDeal, 
+  deleteDocumentBlob 
+} from '../services/document-blob.service';
+import { requireAuth, getCurrentUser } from '../utils/auth';
 
 const router = Router();
-const storage = new DatabaseStorage();
 
 // Configure multer for memory storage
-const upload = multer({ storage: multer.memoryStorage() });
+const storage = multer.memoryStorage();
+const upload = multer({
+  storage,
+  limits: {
+    fileSize: 50 * 1024 * 1024, // 50MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    // Accept all file types for now, can be restricted later
+    cb(null, true);
+  },
+});
 
-const requireAuth = (req: Request, res: Response, next: any) => {
-  if (!req.session?.userId) {
-    return res.status(401).json({ error: 'Authentication required' });
-  }
-  next();
-};
-
-// Upload document as blob
-router.post('/upload', requireAuth, upload.single('file'), async (req: Request, res: Response) => {
+// Upload document as blob to PostgreSQL
+router.post('/:dealId/upload', requireAuth, upload.single('file'), async (req, res) => {
   try {
-    const { dealId, description, documentType } = req.body;
+    const dealId = parseInt(req.params.dealId);
+    const user = await getCurrentUser(req);
     
     if (!req.file) {
-      return res.status(400).json({ error: 'No file provided' });
+      return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    if (!dealId) {
-      return res.status(400).json({ error: 'Deal ID is required' });
+    if (!user?.id) {
+      return res.status(401).json({ error: 'User not authenticated' });
     }
 
-    console.log(`📤 Blob upload: ${req.file.originalname} for deal ${dealId}`);
+    const { originalname, mimetype, size, buffer } = req.file;
+    const { description, documentType } = req.body;
 
-    const document = await documentBlobService.saveDocumentBlob(
-      parseInt(dealId),
-      req.file.originalname,
-      req.file.mimetype,
-      req.file.size,
-      req.file.buffer,
-      req.session.userId,
+    const document = await saveDocumentBlob(
+      dealId,
+      originalname,
+      mimetype,
+      size,
+      buffer,
+      user.id,
       description,
       documentType
     );
 
-    // Create timeline event
-    await storage.createTimelineEvent({
-      dealId: parseInt(dealId),
-      eventType: 'document_upload',
-      content: `${req.session.username || 'User'} uploaded document: ${req.file.originalname}`,
-      createdBy: req.session.userId,
-      metadata: {}
-    });
-
-    console.log(`✅ Blob upload complete: ${req.file.originalname}`);
-
-    res.json({
-      success: true,
-      document,
-      id: document.id,
-      documentId: document.id,
-      fileName: document.fileName,
-      fileType: document.fileType,
-      message: 'Document uploaded successfully'
-    });
-
+    res.json(document);
   } catch (error) {
-    console.error('💥 Blob upload error:', error);
-    res.status(500).json({ 
-      error: 'Failed to upload document',
-      details: String(error)
-    });
+    console.error('Document upload error:', error);
+    res.status(500).json({ error: 'Failed to upload document' });
+  }
+});
+
+// Download document blob from PostgreSQL
+router.get('/:id/download', requireAuth, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const document = await getDocumentBlob(id);
+
+    if (!document) {
+      return res.status(404).json({ error: 'Document not found' });
+    }
+
+    res.setHeader('Content-Type', document.fileType);
+    res.setHeader('Content-Disposition', `inline; filename="${document.fileName}"`);
+    res.send(document.fileData);
+  } catch (error) {
+    console.error('Document download error:', error);
+    res.status(500).json({ error: 'Failed to download document' });
   }
 });
 
 // List documents for a deal
-router.get('/deal/:dealId', requireAuth, async (req: Request, res: Response) => {
+router.get('/deal/:dealId', requireAuth, async (req, res) => {
   try {
     const dealId = parseInt(req.params.dealId);
-    const documents = await documentBlobService.listDocumentsByDeal(dealId);
+    const documents = await listDocumentsByDeal(dealId);
     res.json(documents);
   } catch (error) {
-    console.error('Error listing documents:', error);
+    console.error('Document list error:', error);
     res.status(500).json({ error: 'Failed to list documents' });
   }
 });
 
-// Download document blob
-router.get('/:id/download', requireAuth, async (req: Request, res: Response) => {
-  try {
-    const documentId = parseInt(req.params.id);
-    console.log(`📥 Blob download request for document ID: ${documentId}`);
-    
-    const document = await documentBlobService.getDocumentBlob(documentId);
-    
-    if (!document) {
-      console.log(`❌ Document ${documentId} not found`);
-      return res.status(404).json({ error: 'Document not found' });
-    }
-
-    console.log(`✅ Serving blob: ${document.fileName}`);
-
-    res
-      .type(document.fileType)
-      .set({
-        'Content-Disposition': `inline; filename="${document.fileName}"`,
-        'Cache-Control': 'no-store, must-revalidate',
-        'X-Content-Type-Options': 'nosniff',
-      })
-      .send(document.fileData);
-
-  } catch (error) {
-    console.error(`💥 Blob download error for ${req.params.id}:`, error);
-    res.status(500).json({ 
-      error: 'Download failed', 
-      details: String(error)
-    });
-  }
-});
-
 // Delete document
-router.delete('/:id', requireAuth, async (req: Request, res: Response) => {
+router.delete('/:id', requireAuth, async (req, res) => {
   try {
-    const documentId = parseInt(req.params.id);
-    const deleted = await documentBlobService.deleteDocumentBlob(documentId);
-    
-    if (!deleted) {
+    const id = parseInt(req.params.id);
+    const success = await deleteDocumentBlob(id);
+
+    if (!success) {
       return res.status(404).json({ error: 'Document not found' });
     }
 
-    res.json({ success: true, message: 'Document deleted successfully' });
+    res.json({ success: true });
   } catch (error) {
-    console.error('Error deleting document:', error);
+    console.error('Document delete error:', error);
     res.status(500).json({ error: 'Failed to delete document' });
   }
 });
