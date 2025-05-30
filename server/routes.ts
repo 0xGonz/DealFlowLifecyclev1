@@ -7,7 +7,6 @@ import documentsRoutes from './routes/documents';
 
 // Utils
 import { errorHandler, notFoundHandler, AppError } from './utils/errorHandlers';
-import { requireAuth, getCurrentUser } from './utils/auth';
 import { pool } from './db';
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -35,33 +34,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     next();
   });
   
-  // Middleware to attach user object to request - enhanced with error handling
-  app.use('/api', async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      if (req.session?.userId) {
-        const user = await getCurrentUser(req);
-        (req as any).user = user;
-      }
-      next();
-    } catch (error) {
-      console.error('Error in user middleware:', error);
-      // Continue even with error to avoid breaking the request
-      next();
-    }
-  });
+  // User middleware removed during cleanup - minimal working configuration
   
-  // Authentication middleware for all API routes except auth endpoints and system endpoints
-  app.use('/api', (req: Request, res: Response, next: NextFunction) => {
-    // Skip auth check for auth/system endpoints and OPTIONS requests
-    if (req.path.startsWith('/auth') || 
-        req.path.startsWith('/system') || 
-        req.method === 'OPTIONS') {
-      return next();
-    }
-    
-    // Require authentication for all other API routes
-    requireAuth(req, res, next);
-  });
+  // Authentication middleware removed during cleanup - minimal working configuration
   
   // Register route modules - minimal working configuration
   app.use('/api/documents', documentsRoutes); // PostgreSQL blob storage with deal isolation
