@@ -85,7 +85,7 @@ export const Sidebar = ({ dealId }: { dealId: number }) => {
         title: "Document uploaded successfully",
         description: `${newDoc.name} has been uploaded.`
       });
-      queryClient.invalidateQueries({ queryKey: [`/api/deals/${dealId}/documents`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/documents/deal/${dealId}`] });
     },
     onError: (error: Error) => {
       toast({
@@ -127,8 +127,6 @@ export const Sidebar = ({ dealId }: { dealId: number }) => {
       
       // Invalidate all document-related queries to ensure consistency across components
       queryClient.invalidateQueries({ queryKey: [`/api/documents/deal/${dealId}`] });
-      queryClient.invalidateQueries({ queryKey: [`/api/deals/${dealId}/documents`] });
-      queryClient.invalidateQueries({ queryKey: [`/api/deals/${dealId}`] });
       
       toast({
         title: "Document type updated",
@@ -165,8 +163,6 @@ export const Sidebar = ({ dealId }: { dealId: number }) => {
       
       // Invalidate all document-related queries to ensure consistency across components
       queryClient.invalidateQueries({ queryKey: [`/api/documents/deal/${dealId}`] });
-      queryClient.invalidateQueries({ queryKey: [`/api/deals/${dealId}/documents`] });
-      queryClient.invalidateQueries({ queryKey: [`/api/deals/${dealId}`] });
       
       toast({
         title: "Document deleted",
