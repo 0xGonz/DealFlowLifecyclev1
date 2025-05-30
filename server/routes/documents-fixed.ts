@@ -110,4 +110,52 @@ router.get('/:documentId/download', async (req, res) => {
   }
 });
 
+// PUT /api/documents/:documentId - Update document metadata
+router.put('/:documentId', async (req, res) => {
+  try {
+    const documentId = parseInt(req.params.documentId);
+    if (isNaN(documentId)) {
+      return res.status(400).json({ error: 'Invalid document ID' });
+    }
+
+    const { fileName, description, documentType } = req.body;
+
+    const updatedDocument = await documentStorage.updateDocument(documentId, {
+      fileName,
+      description,
+      documentType
+    });
+
+    res.json({
+      success: true,
+      document: updatedDocument,
+      message: 'Document updated successfully'
+    });
+  } catch (error) {
+    console.error('Error updating document:', error);
+    res.status(500).json({ error: 'Failed to update document' });
+  }
+});
+
+// DELETE /api/documents/:documentId - Delete a document
+router.delete('/:documentId', async (req, res) => {
+  try {
+    const documentId = parseInt(req.params.documentId);
+    if (isNaN(documentId)) {
+      return res.status(400).json({ error: 'Invalid document ID' });
+    }
+
+    const result = await documentStorage.deleteDocument(documentId);
+
+    res.json({
+      success: true,
+      message: 'Document deleted successfully',
+      deletedDocument: result.deletedDocument
+    });
+  } catch (error) {
+    console.error('Error deleting document:', error);
+    res.status(500).json({ error: 'Failed to delete document' });
+  }
+});
+
 export default router;
