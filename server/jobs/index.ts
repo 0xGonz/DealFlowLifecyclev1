@@ -18,7 +18,6 @@ export function initJobQueues() {
   
   try {
     // Initialize each queue
-    initDocumentProcessingQueue();
     initNotificationQueue();
     initReportGenerationQueue();
     
@@ -30,7 +29,6 @@ export function initJobQueues() {
 
 // Export queue functions for use in routes and services
 export {
-  queueDocumentForProcessing,
   queueNotification,
   queueReportGeneration
 };
