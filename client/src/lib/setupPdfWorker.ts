@@ -7,9 +7,9 @@ import { pdfjs } from 'react-pdf';
  * that matches the installed pdfjs-dist package.
  */
 
-// Disable worker to use main thread processing for better compatibility
-// This avoids worker loading issues in Replit environment
-pdfjs.GlobalWorkerOptions.workerSrc = false;
+// Use a data URL to provide an inline worker for better compatibility
+// This avoids external CDN issues in Replit environment
+pdfjs.GlobalWorkerOptions.workerSrc = 'data:application/javascript;base64,aW1wb3J0U2NyaXB0cygnLi4vLi4vYnVpbGQvcGRmLndvcmtlci5taW4uanMnKTs=';
 
 console.log('✅ PDF.js worker configured correctly: local fallback mode');
 
