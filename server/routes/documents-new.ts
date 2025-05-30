@@ -4,7 +4,9 @@ import fs from 'fs';
 import multer from 'multer';
 import crypto from 'crypto';
 import { DatabaseStorage } from '../database-storage';
-import { DocumentService } from '../modules/documents/service';
+import { DocumentService } from '../services/document.service';
+import { FileManagerService } from '../services/file-manager.service';
+import { DocumentUploadService } from '../services/document-upload.service';
 
 const router = Router();
 const storage = new DatabaseStorage();

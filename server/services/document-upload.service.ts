@@ -80,10 +80,10 @@ export class DocumentUploadService {
       content: `${options.username || 'User'} uploaded document: ${file.originalname}`,
       createdBy: userId,
       metadata: {
-        documentId: [newDocument.id],
-        fileName: [file.originalname],
-        fileType: [file.mimetype],
-        documentType: [options.documentType || 'other']
+        documentId: newDocument.id,
+        fileName: file.originalname,
+        fileType: file.mimetype,
+        documentType: options.documentType || 'other'
       }
     });
 
