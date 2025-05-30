@@ -18,29 +18,47 @@ router.post('/upload', upload.single('file'), async (req, res) => {
       return res.status(400).json({ error: 'No file provided' });
     }
 
-    const { dealId, documentType = 'other' } = req.body;
+    const { dealId, documentType = 'other', description } = req.body;
     
     if (!dealId) {
       return res.status(400).json({ error: 'Deal ID is required' });
     }
 
+    // Validate file type
+    const validation = await documentStorage.validateFileType(req.file.originalname, req.file.mimetype);
+    if (!validation.valid) {
+      return res.status(400).json({ error: validation.reason });
+    }
+
+    // Validate file size (10MB limit)
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (req.file.size > maxSize) {
+      return res.status(400).json({ error: 'File size exceeds 10MB limit' });
+    }
+
     // Create deal-specific directory
     const dealDir = `storage/documents/deal-${dealId}`;
-    await fs.mkdir(dealDir, { recursive: true });
+    await documentStorage.ensureDirectoryExists(dealDir);
+
+    // Generate unique filename to prevent conflicts
+    const timestamp = Date.now();
+    const sanitizedName = req.file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
+    const uniqueFileName = `${timestamp}-${sanitizedName}`;
+    const filePath = `${dealDir}/${uniqueFileName}`;
 
     // Save file to disk
-    const filePath = `${dealDir}/${req.file.originalname}`;
     await fs.writeFile(filePath, req.file.buffer);
 
-    // Use unified document storage to create document
+    // Use unified document storage to create document record
     const document = await documentStorage.createDocument({
       dealId: parseInt(dealId),
-      fileName: req.file.originalname,
+      fileName: req.file.originalname, // Keep original name for display
       fileType: req.file.mimetype,
       fileSize: req.file.size,
       documentType,
-      filePath: `storage/documents/deal-${dealId}/${req.file.originalname}`,
-      uploadedBy: 1
+      filePath: `storage/documents/deal-${dealId}/${uniqueFileName}`,
+      uploadedBy: 1, // TODO: Get from authenticated user session
+      description: description || null
     });
 
     res.json({
