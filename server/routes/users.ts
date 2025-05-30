@@ -96,7 +96,8 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
       initials: user.initials,
       email: user.email,
       role: user.role,
-      avatarColor: user.avatarColor
+      avatarColor: user.avatarColor,
+      lastActive: user.lastActive
     })));
   } catch (error) {
     res.status(500).json({ message: 'Failed to fetch users' });
