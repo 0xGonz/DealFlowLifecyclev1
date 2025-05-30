@@ -49,7 +49,7 @@ export class DocumentUploadService {
     userId: number,
     options: {
       description?: string;
-      documentType?: string;
+      documentType?: 'pitch_deck' | 'financial_model' | 'legal_document' | 'diligence_report' | 'investor_report' | 'term_sheet' | 'cap_table' | 'subscription_agreement' | 'other';
       username?: string;
     } = {}
   ) {
@@ -68,7 +68,7 @@ export class DocumentUploadService {
       filePath: FileManagerService.getStoragePath(file.filename),
       uploadedBy: userId,
       description: options.description || '',
-      documentType: options.documentType || 'other'
+      documentType: options.documentType || 'other' as const
     };
 
     const newDocument = await this.storage.createDocument(documentData);
@@ -76,14 +76,14 @@ export class DocumentUploadService {
     // Add timeline event for document upload
     await this.storage.createTimelineEvent({
       dealId,
-      eventType: 'document_upload',
+      eventType: 'document_upload' as const,
       content: `${options.username || 'User'} uploaded document: ${file.originalname}`,
       createdBy: userId,
       metadata: {
-        documentId: newDocument.id,
-        fileName: file.originalname,
-        fileType: file.mimetype,
-        documentType: options.documentType || 'other'
+        documentId: [newDocument.id],
+        fileName: [file.originalname],
+        fileType: [file.mimetype],
+        documentType: [options.documentType || 'other']
       }
     });
 
