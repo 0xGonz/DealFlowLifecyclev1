@@ -29,7 +29,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from '@/components/ui/button';
-import { MiniMemoDisplay } from './MiniMemoDisplay';
+
 import { MiniMemoForm } from './MiniMemoForm';
 import {
   Card,
@@ -257,7 +257,14 @@ export function MemoDetailDialog({ isOpen, onOpenChange, memo, dealId, onDelete,
           </DialogHeader>
           
           <div className="mt-4">
-            <MiniMemoDisplay memo={memo} expanded={true} />
+            <Card>
+              <CardHeader>
+                <CardTitle>{memo.title || 'Memo'}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="whitespace-pre-wrap">{memo.content || memo.notes}</p>
+              </CardContent>
+            </Card>
           </div>
           
           <div className="mt-6">
