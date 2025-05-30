@@ -1,0 +1,62 @@
+✅ PDF.js worker configured as: /pdf.worker.min.js
+index-BXtnLxA7.js:48 Query fetch request: /api/system/health Object
+index-BXtnLxA7.js:467 Fetching current user data
+index-BXtnLxA7.js:467 Auth provider mounted - checking authentication status
+index-BXtnLxA7.js:467 Manual auth refresh requested
+index-BXtnLxA7.js:48 Query Response from /api/system/health: Object
+index-BXtnLxA7.js:48 Query data received from /api/system/health: Object
+index-BXtnLxA7.js:467 Current user data fetched successfully: Object
+index-BXtnLxA7.js:48 Query fetch request: /api/notifications Object
+index-BXtnLxA7.js:48 Query fetch request: /api/notifications/unread-count Object
+index-BXtnLxA7.js:467 UserAvatar: User 4 has color #0E4DA4
+index-BXtnLxA7.js:467 Avatar color changed to: null
+index-BXtnLxA7.js:48 Query fetch request: /api/auth/me Object
+index-BXtnLxA7.js:48 Query fetch request: /api/deals Object
+index-BXtnLxA7.js:48 Query fetch request: /api/funds Object
+index-BXtnLxA7.js:48 Query fetch request: /api/deals/101 Object
+index-BXtnLxA7.js:48 Query fetch request: /api/deals/101/stars Object
+index-BXtnLxA7.js:467 Avatar color changed to: #0E4DA4
+index-BXtnLxA7.js:48 Query Response from /api/notifications: Object
+index-BXtnLxA7.js:48 Query data received from /api/notifications: Array(3)
+index-BXtnLxA7.js:467 Using /me endpoint data for avatar Object
+index-BXtnLxA7.js:48 Query Response from /api/notifications/unread-count: Object
+index-BXtnLxA7.js:48 Query data received from /api/notifications/unread-count: Object
+index-BXtnLxA7.js:48 Query Response from /api/deals/101/stars: Object
+index-BXtnLxA7.js:48 Query data received from /api/deals/101/stars: Array(0)
+index-BXtnLxA7.js:48 Query Response from /api/deals: Object
+index-BXtnLxA7.js:48 Query data received from /api/deals: Array(91)
+index-BXtnLxA7.js:48 Query Response from /api/auth/me: Object
+index-BXtnLxA7.js:48 Query data received from /api/auth/me: Object
+index-BXtnLxA7.js:48 Query Response from /api/deals/101: Object
+index-BXtnLxA7.js:48 Query data received from /api/deals/101: Object
+index-BXtnLxA7.js:467 UserAvatar: User 1 has color #F57C00
+index-BXtnLxA7.js:48 Query fetch request: /api/documents/deal/101 Object
+index-BXtnLxA7.js:567 🔍 useDealDocuments: Processing data for deal 101: undefined
+index-BXtnLxA7.js:567 ⚠️ useDealDocuments: No data received or data is not an array: undefined
+index-BXtnLxA7.js:48 Query Response from /api/funds: Object
+index-BXtnLxA7.js:48 Query data received from /api/funds: Array(2)
+index-BXtnLxA7.js:48 Query Response from /api/documents/deal/101: Object
+index-BXtnLxA7.js:48 Query data received from /api/documents/deal/101: Array(1)
+index-BXtnLxA7.js:567 🔍 useDealDocuments: Processing data for deal 101: Array(1)0: {id: 70, dealId: 101, fileName: 'Confidential Offering Memorandum_Lake Vue Apartments.pdf', fileType: 'application/pdf', fileSize: 7865208, …}length: 1[[Prototype]]: Array(0)
+index-BXtnLxA7.js:567 📝 useDealDocuments: Setting 1 documents in context: Array(1)0: {id: 70, name: 'Confidential Offering Memorandum_Lake Vue Apartments.pdf', fileName: 'Confidential Offering Memorandum_Lake Vue Apartments.pdf', fileType: 'application/pdf', downloadUrl: '/api/documents/70/download', …}length: 1[[Prototype]]: Array(0)
+index-BXtnLxA7.js:567 🎯 useDealDocuments: Auto-selecting first document: ObjectdocumentType: "other"downloadUrl: "/api/documents/70/download"fileName: "Confidential Offering Memorandum_Lake Vue Apartments.pdf"fileType: "application/pdf"id: 70name: "Confidential Offering Memorandum_Lake Vue Apartments.pdf"[[Prototype]]: Object
+index-BXtnLxA7.js:565 📤 Loading PDF document: ObjectdocumentId: 70documentName: "Confidential Offering Memorandum_Lake Vue Apartments.pdf"url: "/api/documents/70/download"[[Prototype]]: Object
+index-BXtnLxA7.js:567 🔍 useDealDocuments: Processing data for deal 101: Array(1)0: {id: 70, dealId: 101, fileName: 'Confidential Offering Memorandum_Lake Vue Apartments.pdf', fileType: 'application/pdf', fileSize: 7865208, …}length: 1[[Prototype]]: Array(0)
+index-BXtnLxA7.js:567 📝 useDealDocuments: Setting 1 documents in context: Array(1)0: {id: 70, name: 'Confidential Offering Memorandum_Lake Vue Apartments.pdf', fileName: 'Confidential Offering Memorandum_Lake Vue Apartments.pdf', fileType: 'application/pdf', downloadUrl: '/api/documents/70/download', …}length: 1[[Prototype]]: Array(0)
+index-BXtnLxA7.js:467 Direct user fetch for avatar ID 1: ObjectavatarColor: "#F57C00"email: "admin@example.com"fullName: "Admin User"id: 1initials: "AU"role: "admin"username: "admin"[[Prototype]]: Object
+/api/documents/70/download:1 
+            
+            
+            Failed to load resource: the server responded with a status of 404 ()
+index-BXtnLxA7.js:565  ❌ PDF load error: wpmessage: "Missing PDF \"https://deal-flow-lifecyclev-1-bgonzalez9.replit.app/api/documents/70/download\"."name: "MissingPDFException"stack: "Error\n    at https://deal-flow-lifecyclev-1-bgonzalez9.replit.app/assets/index-BXtnLxA7.js:554:19884\n    at https://deal-flow-lifecyclev-1-bgonzalez9.replit.app/assets/index-BXtnLxA7.js:554:19912"[[Prototype]]: Error
+(anonymous) @ index-BXtnLxA7.js:565
+me @ index-BXtnLxA7.js:565
+(anonymous) @ index-BXtnLxA7.js:565
+nN @ index-BXtnLxA7.js:40
+pm @ index-BXtnLxA7.js:40
+(anonymous) @ index-BXtnLxA7.js:40
+A @ index-BXtnLxA7.js:25
+P @ index-BXtnLxA7.js:25
+index-BXtnLxA7.js:467 Using /me endpoint data for avatar Object
+index-BXtnLxA7.js:467 Direct user fetch for avatar ID 1: Object
+index-BXtnLxA7.js:467 Using /me endpoint data for avatar Object

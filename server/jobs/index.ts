@@ -3,7 +3,6 @@
  * This file initializes all job queues and exports queue functions
  */
 
-import { initDocumentProcessingQueue, queueDocumentForProcessing } from './documentProcessor';
 import { initNotificationQueue, queueNotification } from './notificationProcessor';
 import { initReportGenerationQueue, queueReportGeneration } from './reportGenerator';
 import { JobQueueService } from '../services/JobQueue';
