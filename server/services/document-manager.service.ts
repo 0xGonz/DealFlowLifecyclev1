@@ -51,7 +51,7 @@ export class DocumentManagerService {
       fileType,
       fileSize: buffer.length,
       documentType,
-      uploadedAt: new Date(),
+      uploadedBy: 1, // Default to admin user for now
     }).returning();
 
     return document;
