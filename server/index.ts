@@ -16,9 +16,8 @@ import * as path from 'path';
 import connectPgSimple from 'connect-pg-simple';
 import memorystore from 'memorystore';
 import { StorageFactory } from "./storage-factory";
-import { initJobQueues } from "./jobs";
-import { metricsMiddleware } from "./middleware/metrics";
-import { LoggingService } from "./services";
+// Job queues and metrics middleware removed during cleanup
+// LoggingService removed during cleanup
 
 // Main async function to allow using await
 async function initialize() {
@@ -121,7 +120,7 @@ async function initialize() {
   console.log("⏱️  Session store is", sessionStore.constructor.name);
 
   // Add metrics middleware to track request metrics
-  app.use(metricsMiddleware());
+  // Metrics middleware removed during cleanup
 
   // Configure CORS to allow cross-origin requests for development/embedding
   app.use((req, res, next) => {
@@ -190,7 +189,7 @@ async function initialize() {
 
   // Initialize background job queues
   try {
-    initJobQueues();
+    // Job queues removed during cleanup
     console.log('Background job processing system initialized');
   } catch (error) {
     console.error('Failed to initialize background jobs:', error);

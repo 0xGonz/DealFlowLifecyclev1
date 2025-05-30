@@ -997,6 +997,41 @@ export class DatabaseStorage implements IStorage {
       .delete(closingScheduleEvents)
       .where(eq(closingScheduleEvents.id, id));
       
-    return result.rowCount > 0;
+    return result.rowCount ? result.rowCount > 0 : false;
+  }
+
+  // Missing batch methods
+  async getDealStarsBatch(dealIds: number[]): Promise<DealStar[]> {
+    return await db.select().from(dealStars).where(inArray(dealStars.dealId, dealIds));
+  }
+
+  async getMiniMemosBatch(dealIds: number[]): Promise<MiniMemo[]> {
+    return await db.select().from(miniMemos).where(inArray(miniMemos.dealId, dealIds));
+  }
+
+  // Distribution methods (placeholder implementation)
+  async createDistribution(distribution: any): Promise<any> {
+    throw new Error("Distribution functionality not yet implemented");
+  }
+
+  async getDistribution(id: number): Promise<any | undefined> {
+    throw new Error("Distribution functionality not yet implemented");
+  }
+
+  async getDistributionsByAllocation(allocationId: number): Promise<any[]> {
+    return [];
+  }
+
+  async updateDistribution(id: number, distribution: any): Promise<any | undefined> {
+    throw new Error("Distribution functionality not yet implemented");
+  }
+
+  async deleteDistribution(id: number): Promise<boolean> {
+    throw new Error("Distribution functionality not yet implemented");
+  }
+
+  async recalculateAllocationMetrics(allocationId: number): Promise<void> {
+    // Implementation for recalculating allocation metrics
+    // This would update IRR, multiple, and other performance metrics
   }
 }
