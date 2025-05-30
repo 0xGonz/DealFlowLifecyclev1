@@ -1,6 +1,5 @@
 import { Router, Request, Response } from "express";
 import { pool } from "../db";
-import { DASHBOARD_METRICS, calculateDynamicBaselines } from "../config/dashboard-metrics";
 import { requireAuth } from "../utils/auth";
 
 const router = Router();
@@ -43,7 +42,6 @@ router.get('/stats', requireAuth, async (req: Request, res: Response) => {
     const earlyStageDeals = totalDeals - lateStageDeals;
     
     // Calculate dynamic baselines based on historical deal data
-    const baselines = calculateDynamicBaselines(deals || []);
     
     // Get baseline constants from calculated values
     const {

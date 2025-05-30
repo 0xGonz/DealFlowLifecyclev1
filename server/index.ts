@@ -15,7 +15,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import connectPgSimple from 'connect-pg-simple';
 import memorystore from 'memorystore';
-import { metricsMiddleware } from "./middleware/metrics";
+// Metrics middleware removed during cleanup
 import { LoggingService } from "./services";
 
 // Main async function to allow using await
@@ -194,14 +194,7 @@ async function initialize() {
   app.use(express.static(rootPublic));
   console.log('Configured static file serving for uploads and PDF.js worker');
 
-  // Initialize background job queues
-  try {
-    initJobQueues();
-    console.log('Background job processing system initialized');
-  } catch (error) {
-    console.error('Failed to initialize background jobs:', error);
-    console.log('Continuing without background processing');
-  }
+  // Background job processing removed during cleanup
   
   const server = await registerRoutes(app);
 

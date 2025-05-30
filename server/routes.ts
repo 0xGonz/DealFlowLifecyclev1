@@ -12,13 +12,12 @@ import activityRoutes from './routes/activity';
 import notificationsRoutes from './routes/notifications';
 import documentsRoutes from './routes/documents';
 import allocationsRoutes from './routes/allocations';
-import capitalCallsRoutes from './routes/capital-calls';
-import closingSchedulesRoutes from './routes/closing-schedules';
+// Capital calls and closing schedules routes removed during cleanup
 import meetingsRoutes from './routes/meetings';
 import calendarRoutes from './routes/calendar.routes'; // New unified calendar API
 import { systemRouter } from './routes/system';
 import v1Router from './routes/v1/index'; // V1 API routes including AI analysis
-import aiAnalysisRoutes from './routes/ai-analysis';
+// AI analysis routes removed during cleanup
 
 // Utils
 import { errorHandler, notFoundHandler, AppError } from './utils/errorHandlers';
@@ -83,10 +82,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/funds', fundsRoutes);
   app.use('/api/users', usersRoutes);
   app.use('/api/auth', authRoutes);
-  app.use('/api/allocations', allocationsRoutes);
-  app.use('/api/fund-allocations', allocationsRoutes); // Add this alias for client compatibility
-  app.use('/api/capital-calls', capitalCallsRoutes);
-  app.use('/api/closing-schedules', closingSchedulesRoutes);
+  // Allocations, capital calls, and closing schedules routes removed during cleanup
   app.use('/api/meetings', meetingsRoutes);
   app.use('/api/calendar', calendarRoutes); // New unified calendar API endpoint
   app.use('/api/dashboard', dashboardRoutes);

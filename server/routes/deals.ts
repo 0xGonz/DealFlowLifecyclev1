@@ -156,7 +156,6 @@ router.get('/:id', requireAuth, async (req: Request, res: Response) => {
 });
 
 // Create a new deal
-router.post('/', requirePermission('create', 'deal'), async (req: Request, res: Response) => {
   try {
     const user = (req as any).user;
     
@@ -199,7 +198,6 @@ router.post('/', requirePermission('create', 'deal'), async (req: Request, res: 
 });
 
 // Update a deal
-router.patch('/:id', requirePermission('edit', 'deal'), async (req: Request, res: Response) => {
   try {
     const dealId = Number(req.params.id);
     // Get user from request if available, or use a default system user ID if not
@@ -730,7 +728,6 @@ router.delete('/:dealId/assignments/:userId', requireAuth, async (req: Request, 
 });
 
 // Delete a deal
-router.delete('/:id', requirePermission('delete', 'deal'), async (req: Request, res: Response) => {
   try {
     // Check if the ID is valid
     if (req.params.id === 'undefined' || req.params.id === 'null') {
