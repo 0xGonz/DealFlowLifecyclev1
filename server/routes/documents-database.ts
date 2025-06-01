@@ -107,44 +107,23 @@ router.get('/:id/download', requireAuth, async (req, res) => {
       return res.status(404).json({ error: 'Document not found' });
     }
 
-    // Check if document has file data in database
-    if (document.fileData) {
-      console.log(`📥 Serving document ${documentId} from database: ${document.fileName}`);
-      console.log(`📊 Database record shows fileSize: ${document.fileSize} bytes`);
-      console.log(`📄 Document ${documentId} has fileData field with length: ${document.fileData.length} characters`);
-      console.log(`🔍 First 50 chars of fileData: ${document.fileData.substring(0, 50)}...`);
-      
-      // Convert base64 back to buffer (direct conversion, no hex handling needed)
-      let fileBuffer;
-      try {
-        fileBuffer = Buffer.from(document.fileData, 'base64');
-        console.log(`✅ Document ${documentId} converted to buffer: ${fileBuffer.length} bytes`);
+    // 1) If there is nonzero fileData in the DB, send it:
+    if (document.fileData && document.fileData.length > 0) {
+      const fileBuffer = Buffer.from(document.fileData, 'base64');
+      if (fileBuffer.length > 0) {
+        console.log(`📥 Serving document ${documentId} from database: ${document.fileName} (${fileBuffer.length} bytes)`);
         
-        // Validate buffer has content
-        if (fileBuffer.length === 0) {
-          console.error(`❌ Document ${documentId} converted to empty buffer`);
-          console.error(`❌ Original fileData was: "${document.fileData}"`);
-          return res.status(410).json({ error: 'Document content is empty' });
-        }
-      } catch (error) {
-        console.error(`❌ Error converting document ${documentId} from base64:`, error);
-        console.error(`❌ FileData that failed conversion: ${document.fileData.substring(0, 100)}...`);
-        return res.status(500).json({ error: 'Failed to process document content' });
+        res.removeHeader('ETag');
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+        res.setHeader('Content-Type', document.fileType);
+        const disposition = document.fileType === 'application/pdf' ? 'inline' : 'attachment';
+        res.setHeader('Content-Disposition', `${disposition}; filename="${encodeURIComponent(document.fileName)}"`);
+        res.setHeader('Content-Length', fileBuffer.length.toString());
+        return res.send(fileBuffer);
       }
-      
-      // Set appropriate headers for inline viewing (especially PDFs)
-      res.setHeader('Content-Type', document.fileType);
-      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
-      res.setHeader('Pragma', 'no-cache');
-      res.setHeader('Expires', '0');
-      res.removeHeader('ETag');
-      
-      // Use inline for PDFs to enable browser viewing, attachment for others
-      const disposition = document.fileType === 'application/pdf' ? 'inline' : 'attachment';
-      res.setHeader('Content-Disposition', `${disposition}; filename="${encodeURIComponent(document.fileName)}"`);
-      res.setHeader('Content-Length', fileBuffer.length.toString());
-
-      return res.send(fileBuffer);
+      // If fileBuffer.length is actually 0, skip to the filesystem fallback
     } 
     
     // Fallback to filesystem for legacy documents
