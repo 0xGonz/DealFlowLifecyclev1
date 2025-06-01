@@ -52,9 +52,12 @@ export class DatabaseDocumentStorage {
   }) {
     try {
       console.log(`📄 Creating document: ${documentData.fileName} for deal ${documentData.dealId}`);
+      console.log(`📊 Original buffer size: ${documentData.fileBuffer.length} bytes`);
       
       // Convert buffer to base64 for storage
       const fileDataBase64 = documentData.fileBuffer.toString('base64');
+      console.log(`📝 Base64 string length: ${fileDataBase64.length} characters`);
+      console.log(`🔍 First 50 chars of base64: ${fileDataBase64.substring(0, 50)}...`);
       
       const [newDocument] = await db
         .insert(documents)

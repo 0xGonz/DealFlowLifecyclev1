@@ -109,8 +109,10 @@ router.get('/:id/download', requireAuth, async (req, res) => {
 
     // Check if document has file data in database
     if (document.fileData) {
-      console.log(`📥 Serving document ${documentId} from database: ${document.fileName} (${document.fileSize} bytes)`);
-      console.log(`📄 Document ${documentId} has fileData of length: ${document.fileData.length}`);
+      console.log(`📥 Serving document ${documentId} from database: ${document.fileName}`);
+      console.log(`📊 Database record shows fileSize: ${document.fileSize} bytes`);
+      console.log(`📄 Document ${documentId} has fileData field with length: ${document.fileData.length} characters`);
+      console.log(`🔍 First 50 chars of fileData: ${document.fileData.substring(0, 50)}...`);
       
       // Convert base64 back to buffer (direct conversion, no hex handling needed)
       let fileBuffer;
@@ -121,10 +123,12 @@ router.get('/:id/download', requireAuth, async (req, res) => {
         // Validate buffer has content
         if (fileBuffer.length === 0) {
           console.error(`❌ Document ${documentId} converted to empty buffer`);
+          console.error(`❌ Original fileData was: "${document.fileData}"`);
           return res.status(410).json({ error: 'Document content is empty' });
         }
       } catch (error) {
         console.error(`❌ Error converting document ${documentId} from base64:`, error);
+        console.error(`❌ FileData that failed conversion: ${document.fileData.substring(0, 100)}...`);
         return res.status(500).json({ error: 'Failed to process document content' });
       }
       
