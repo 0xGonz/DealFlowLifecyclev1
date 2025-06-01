@@ -1,0 +1,439 @@
+The error you’re seeing—
+
+lua
+Copy
+Edit
+❌ PDF load error: jnemessage: "The PDF file is empty, i.e. its size is zero bytes."
+name: "InvalidPDFException"
+—means that when your PDF viewer (PDF.js, via React-PDF or a similar wrapper) tried to fetch the PDF bytes, it got back a zero-byte response. In other words, the URL you passed into PDF.js did not actually return a valid PDF blob; it returned an empty body instead. In practice, this can happen for a handful of reasons:
+
+The document URL is wrong (404 or empty).
+The front-end component builds a URL (e.g. "/api/documents/<docId>/file") but that endpoint either doesn’t exist or isn’t returning the file. Instead of serving the real PDF bytes, it returns undefined or the empty string.
+
+Static‐file serving is not configured (or misconfigured).
+If your PDFs live in, say, an uploads/ folder on disk but you never told Express (or Vite) to serve /uploads as a static directory, a request to /uploads/whatever.pdf will come back with HTTP 200 + zero bytes—or perhaps a Vite index.html, which PDF.js treats as “this isn’t a PDF.” Either way it’s “no data.”
+
+The component is attempting to render before the metadata has loaded.
+I noticed in your logs:
+
+javascript
+Copy
+Edit
+useDealDocuments: Processing data for deal 108: undefined
+...
+useDealDocuments: Processing data for deal 108: Array(3)
+That means initially useDealDocuments() returned undefined, the component tried to render a PDF with fileUrl={undefined} (or ""), and PDF.js immediately says “Empty file.” You need to guard your <PDFViewer> so it doesn’t run until you actually have a non‐empty URL.
+
+Below are the main steps you can take to fix this. In most cases you’ll need to do two things:
+
+Confirm (and fix) how your backend serves PDF bytes.
+
+Ensure your front-end only hands PDF.js a real, nonempty URL.
+
+1) Verify your “get document” endpoint actually returns bytes
+If you look at how your front‐end loads documents, you probably have something like:
+
+js
+Copy
+Edit
+// Pseudo-code from your hook/component
+const { data: documents } = useQuery(`/api/documents/deal/${dealId}`);  
+// …
+// assume documents = [{ id, name, filePath, … }, …]
+
+const firstDoc = documents[0];
+// then you do <PDFViewer fileUrl={ firstDoc.filePath /* or fileUrl: `/api/documents/${firstDoc.id}/file` */ } />
+a) Check in the browser’s Network tab:
+In Chrome (or Safari/Firefox), open DevTools → Network → select “XHR/Fetch.”
+
+Trigger the code path that loads the PDF. You will see a request like
+
+bash
+Copy
+Edit
+GET https://your-app.com/api/documents/123/file
+Click that request and verify:
+
+Response status is 200 (not 404 or 500).
+
+Response Size is nonzero (at least several kilobytes), and the “Content-Type” header is application/pdf.
+
+If the response size is 0 B or 1 KB (HTML), then PDF.js is literally receiving no PDF bytes. In that case:
+
+Either your server’s route /api/documents/:id/file isn’t implemented at all (so Express/Vite falls back to index.html, returning HTML, which PDF.js also rejects as “empty”).
+
+Or it is implemented but not streaming the file off disk; it’s sending back an empty response.
+
+How to fix it on the backend
+Let’s say you store uploaded PDFs in ./uploads/. You need something like this in your Node/Express (or equivalent) server:
+
+js
+Copy
+Edit
+// In your server.js (or wherever you set up routes)
+import express from "express";
+import path from "path";
+
+const app = express();
+
+// ⚠️ Make sure this is ABOVE any “catch-all” route like `app.get("*", ...)`
+app.use(
+  "/uploads",
+  express.static(path.join(__dirname, "uploads"), {
+    // optional: set headers like Cache-Control, CORS, etc.
+  })
+);
+
+// Example: If you store metadata in your DB, each document record has a field like 
+//   fileName = "someUniqueFile.pdf"
+//   filePath = "/uploads/deal-108/someUniqueFile.pdf"
+//
+// Then your front-end can just call:
+//   <PDFViewer fileUrl={`/uploads/deal-${dealId}/${fileName}`} />
+//
+// If instead you want a dedicated route that streams from the DB record:
+app.get("/api/documents/:docId/file", async (req, res, next) => {
+  try {
+    // 1) Look up in your DB the _path_ on disk (or S3 key, etc.)
+    const docRecord = await DocumentModel.findByPk(req.params.docId);
+    if (!docRecord) return res.status(404).end();
+    const absolutePath = path.join(__dirname, "uploads", docRecord.relativePath);
+
+    // 2) Make sure the file actually exists:
+    if (!fs.existsSync(absolutePath)) {
+      return res.status(404).json({ error: "File not found on disk." });
+    }
+
+    // 3) Stream the PDF file
+    res.setHeader("Content-Type", "application/pdf");
+    const stream = fs.createReadStream(absolutePath);
+    stream.pipe(res);
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
+});
+If you omit app.use("/uploads", express.static(...)) or the streaming route, React/Vite will return index.html (or a 200 with no content), which makes PDF.js complain about “size zero bytes.”
+
+2) Make sure the front-end only tries to load once you have a real URL
+In your logs, you see:
+
+kotlin
+Copy
+Edit
+useDealDocuments: Processing data for deal 108: undefined
+⚠️ useDealDocuments: No data received or data is not an array: undefined
+That means at first render, your hook returned undefined (or an empty array), and your component immediately tried to pass that into <PDFViewer>. PDF.js loads “undefined” as a URL, sees zero bytes, and throws “InvalidPDFException.”
+
+You need to guard against that. For example, if you’re using React-PDF (version 9.x+), your code might look like this:
+
+jsx
+Copy
+Edit
+import { pdfjs, Document, Page } from "react-pdf"; 
+pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js"; // ensure this file lives in /public
+
+function DealDocuments({ dealId }) {
+  const { data: docs, isLoading, error } = useQuery(
+    ["dealDocuments", dealId],
+    () => fetch(`/api/documents/deal/${dealId}`).then((r) => r.json())
+  );
+
+  if (isLoading) return <p>Loading documents…</p>;
+  if (error) return <p>Error loading documents</p>;
+  if (!docs || docs.length === 0) return <p>No documents for this deal.</p>;
+
+  // For simplicity, pick the first doc:
+  const first = docs[0];
+  // Suppose first.filePath is something like "/api/documents/108/file" 
+  // or "/uploads/deal-108/contract.pdf":
+  const urlToLoad = first.filePath;
+
+  // Guard: only render <PDFViewer> if urlToLoad is a non-empty string
+  if (!urlToLoad) {
+    return <p>Unable to load: missing file URL</p>;
+  }
+
+  return (
+    <div style={{ border: "1px solid #ccc", padding: 8 }}>
+      <Document
+        file={urlToLoad}
+        onLoadError={(e) => console.error("PDF load error:", e)}
+        renderMode="canvas"
+      >
+        <Page pageNumber={1} />
+        {/* Or use <Document file={urlToLoad} > … </Document> the way your lib expects */}
+      </Document>
+    </div>
+  );
+}
+
+export default DealDocuments;
+Key points here:
+
+Don’t call <Document file={…}> until you know file is a non‐empty URL.
+In the example above, if (!docs || docs.length === 0) return prevents passing {} or undefined into <Document>.
+
+Set workerSrc (for React-PDF) to match where pdf.worker.min.js lives.
+If your pdf.worker.min.js is not in /public/pdf.worker.min.js, you will get a separate “worker not found” warning—but your error about “file is empty” is distinct. Still, double-check that you have copied pdf.worker.min.js (the same version that React-PDF expects) into public/ (or your Vite public/ folder), and then do:
+
+js
+Copy
+Edit
+import { pdfjs } from "react-pdf";
+pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
+If that is mis-pointed, React-PDF might fail to load the worker, but the symptom is usually a console warning about “Worker version mismatch.” In your case, however, you see “file is empty,” so the worker is loading, but the file payload is zero bytes.
+
+3) Double-check your document metadata vs. your file URL
+Often a typical mistake is: you fetch “document metadata” from /api/documents/deal/:id—and those objects each look like:
+
+jsonc
+Copy
+Edit
+[
+  {
+    "id": 42,
+    "name": "Loandoc.pdf",
+    "relativePath": "deal-108/Loandoc.pdf",
+    "mimeType": "application/pdf",
+    // …other fields you wrote…
+  },
+  { … },
+  { … }
+]
+But then your front-end assumes it can do:
+
+jsx
+Copy
+Edit
+<PDFViewer fileUrl={doc.relativePath} />
+If doc.relativePath is just "deal-108/Loandoc.pdf", that’s not a valid URL. You actually need to build it like:
+
+jsx
+Copy
+Edit
+const url = `/uploads/${doc.relativePath}`; 
+// which becomes "/uploads/deal-108/Loandoc.pdf"
+…and your Express side must serve /uploads via express.static(...). If you forget the "/uploads" prefix, fetch("deal-108/Loandoc.pdf") will literally request "https://your-site.com/deal-108/Loandoc.pdf", which 404s. The browser returns index.html (or an empty body), causing PDF.js to say “Empty file.”
+
+So audit the value of first.filePath (or first.relativePath). In DevTools → Network, look at the actual request URL and confirm the server sends back the PDF bytes.
+
+4) Example “complete” flow
+Below is a small end-to-end sketch. Adapt it to your folder structure:
+
+a) Put pdf.worker.min.js in public/
+bash
+Copy
+Edit
+/your-repo
+  /public
+    pdf.worker.min.js     ← copy this directly from the same version of pdfjs-dist that react-pdf uses
+  /uploads
+    /deal-108
+       Loandoc.pdf
+       … (other PDF files) …
+  /server
+    server.js
+  /client
+    (React or Vite app that uses react-pdf)
+b) In server.js (Node/Express)
+js
+Copy
+Edit
+import express from "express";
+import path from "path";
+import fs from "fs";
+
+const app = express();
+
+// 1) Serve static assets and React build (if you build into client/dist)
+app.use(express.static(path.join(__dirname, "../client/dist"))); 
+
+// 2) Serve uploaded PDFs under /uploads
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+
+// 3) Return an array of metadata for each deal’s docs
+app.get("/api/documents/deal/:dealId", async (req, res, next) => {
+  const dealId = req.params.dealId;
+  // Imagine you store these in a JSON or DB:
+  // docs = [ { id: 42, name: "Loandoc.pdf", relativePath: `deal-${dealId}/Loandoc.pdf` }, … ]
+  const docs = await DocumentModel.findAll({ where: { dealId } });
+  // Map to only the fields you want the front-end to see:
+  const payload = docs.map((d) => ({
+    id: d.id,
+    name: d.name,
+    fileUrl: `/uploads/${d.relativePath}`, // e.g. "/uploads/deal-108/Loandoc.pdf"
+  }));
+  res.json(payload);
+});
+
+// 4) (Optional) A dedicated route to stream from DB if you prefer not to leak folder structure
+app.get("/api/documents/:docId/file", async (req, res, next) => {
+  const id = req.params.docId;
+  const d = await DocumentModel.findByPk(id);
+  if (!d) return res.status(404).json({ error: "Not found" });
+  const fullPath = path.join(__dirname, "../uploads", d.relativePath);
+  if (!fs.existsSync(fullPath)) {
+    return res.status(404).json({ error: "File missing on disk" });
+  }
+  res.setHeader("Content-Type", "application/pdf");
+  fs.createReadStream(fullPath).pipe(res);
+});
+c) In your React (client) code
+jsx
+Copy
+Edit
+// Client/src/components/DealDocuments.jsx
+import React from "react";
+import { useQuery } from "react-query";
+import { pdfjs, Document, Page } from "react-pdf";
+
+// Point pdfjs to the worker in /public
+pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
+
+export default function DealDocuments({ dealId }) {
+  const { data: docs, isLoading, isError } = useQuery(
+    ["dealDocuments", dealId],
+    () =>
+      fetch(`/api/documents/deal/${dealId}`)
+        .then((r) => {
+          if (!r.ok) throw new Error("Network response was not OK");
+          return r.json();
+        })
+  );
+
+  if (isLoading) return <p>Loading documents…</p>;
+  if (isError) return <p>Could not load documents.</p>;
+  if (!docs || docs.length === 0) return <p>No documents available for this deal.</p>;
+
+  // Pick the first doc for demo
+  const first = docs[0];
+  // pretend payload format was { id, name, fileUrl: "/uploads/deal-108/Loandoc.pdf" }
+  if (!first.fileUrl) {
+    return <p>Unexpected: file URL is missing.</p>;
+  }
+
+  return (
+    <div>
+      <h2>Documents for Deal {dealId}</h2>
+      <p>Showing “{first.name}”</p>
+      <div style={{ border: "1px solid #ddd", padding: 12 }}>
+        <Document
+          file={first.fileUrl}
+          onLoadError={(err) => console.error("PDF load error:", err)}
+        >
+          <Page pageNumber={1} /> {/* render page 1 for a preview */}
+        </Document>
+      </div>
+    </div>
+  );
+}
+Why this fixes it:
+Because /api/documents/deal/:dealId returns something like
+
+json
+Copy
+Edit
+[
+  {
+    "id": 42,
+    "name": "Loandoc.pdf",
+    "fileUrl": "/uploads/deal-108/Loandoc.pdf"
+  },
+  …
+]
+the front end can directly give PDF.js the fileUrl (which is a /uploads/… path).
+
+express.static("/uploads") ensures that when the browser hits /uploads/deal-108/Loandoc.pdf, Express actually streams that PDF file (nonzero bytes).
+
+We only render <Document file={…}> once docs is a non-empty array, so we never pass undefined or an empty string to PDF.js. That eliminates “file is empty” on first render.
+
+4) Recap of the specific things to check/fix in your code
+Is the document metadata coming back empty at first?
+In your hook you saw Processing data for deal 108: undefined. Make sure the hook or query only returns when you have an array. If you’re using React Query, that usually means waiting for isLoading or status === "success". Only attempt <Document file={…}> after status === "success" && docs.length > 0.
+
+Is /api/documents/deal/:id returning only metadata (not file bytes)?
+If so, your front-end must use that metadata to build a second URL (e.g. /uploads/<relativePath>) to pass into PDF.js. You cannot pass the metadata‐only endpoint (which likely returns JSON) directly to PDF.js.
+
+Are your uploaded PDFs actually stored on disk under the path you think?
+Confirm on the server filesystem that uploads/deal-108/Loandoc.pdf (or whatever your first PDF is named) actually exists, and is nonzero. If it doesn’t exist, upload it, or correct the path in your DB.
+
+Is static-serving set up?
+In an Express server that sits next to Vite/React, you must do something like:
+
+js
+Copy
+Edit
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+(Adjust the __dirname/relative path based on where your server.js lives.)
+
+Is the value you pass into <Document file={…}> exactly equal to a URL that returns PDF bytes?
+Test that URL in a browser tab by pasting it. If it immediately downloads or displays the PDF, you’re good. If it 404s or shows HTML, then PDF.js will treat it as “empty.”
+
+Is your pdf.worker.min.js actually located in public/ (for Vite) or static/ (for Create-React-App)?
+Make sure pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js" matches. Otherwise, you’ll see a different kind of console error (worker not found), but in most cases the “invalid PDF” is about the document itself, not the worker.
+
+A quick debugging checklist
+In the Network tab, find the request that PDF.js is making.
+
+Confirm it’s requesting, e.g., GET /uploads/deal-108/Loandoc.pdf (or whatever your endpoint is).
+
+Confirm status 200 and that Response size is a few KB or MB (not 0).
+
+Paste that same URL into your browser’s address bar.
+
+If you immediately get “404 Not Found,” fix your routing or express.static setup.
+
+If you get your PDF shown/ downloaded, you know the back end is serving correctly.
+
+Make sure your React component does not try to render before it has data.
+
+Simple guard:
+
+jsx
+Copy
+Edit
+if (!docs || docs.length === 0) return <p>No document to display</p>;
+Then only render <Document file={docs[0].fileUrl}>.
+
+Check the actual value of fileUrl in your React code.
+
+Add a console.log("loading PDF from:", first.fileUrl) right before <Document file={…}>.
+
+Copy-paste that URL and confirm in a separate tab it “works.”
+
+TL;DR
+Your “InvalidPDFException: The PDF file is empty” happens because:
+
+PDF.js is fetching a URL that returns zero bytes, not a proper PDF.
+
+At least one of these is true:
+
+Your endpoint (/api/documents/:id/file or /uploads/…) is misconfigured or missing.
+
+The fileUrl you pass into PDF.js is undefined or an empty string—often because you tried to render before the data had come back from your /api/documents/deal/:id call.
+
+You never told Express (or Vite) to serve the uploads/ folder, so when the browser asks for /uploads/foo.pdf, it returns your index.html (zero PDF bytes).
+
+To fix it:
+
+On the server
+
+Add app.use("/uploads", express.static(path.join(__dirname, "uploads"))); (or your equivalent) so that GET /uploads/whatever.pdf returns actual PDF bytes from disk.
+
+If you prefer a “stream from DB” approach, implement /api/documents/:docId/file that does fs.createReadStream(...).pipe(res).
+
+On the client
+
+Only call <Document file={…}> once you know file is a nonempty string (i.e. docs && docs.length > 0).
+
+Confirm with console.log and by pasting that URL into your browser that it actually returns a PDF (not a 404 or blank).
+
+Once you correct the path so that PDF.js sees real bytes, the “PDF file is empty” error will disappear.
+
+
+
+
+
+
+

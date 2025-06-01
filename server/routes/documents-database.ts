@@ -123,9 +123,13 @@ router.get('/:id/download', requireAuth, async (req, res) => {
       
       const fileBuffer = Buffer.from(base64Data, 'base64');
       
-      // Set appropriate headers for file download
+      // Set appropriate headers for inline viewing (especially PDFs)
       res.setHeader('Content-Type', document.fileType);
-      res.setHeader('Content-Disposition', `attachment; filename="${document.fileName}"`);
+      res.setHeader('Cache-Control', 'no-store');
+      
+      // Use inline for PDFs to enable browser viewing, attachment for others
+      const disposition = document.fileType === 'application/pdf' ? 'inline' : 'attachment';
+      res.setHeader('Content-Disposition', `${disposition}; filename="${encodeURIComponent(document.fileName)}"`);
       res.setHeader('Content-Length', fileBuffer.length.toString());
 
       return res.send(fileBuffer);

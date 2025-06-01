@@ -229,13 +229,14 @@ const EmbeddedPDFViewer = ({ documentId, documentName, fileType }: EmbeddedPDFVi
                 variant="outline"
                 size="sm"
                 onClick={changeRotation}
+                aria-label="Rotate document 90 degrees clockwise"
               >
                 <RotateCw className="h-4 w-4" />
               </Button>
             </>
           )}
           
-          <Button onClick={handleDownload} size="sm">
+          <Button onClick={handleDownload} size="sm" aria-label="Download document">
             <Download className="h-4 w-4 mr-2" />
             Download
           </Button>
@@ -249,6 +250,7 @@ const EmbeddedPDFViewer = ({ documentId, documentName, fileType }: EmbeddedPDFVi
             file={pdfUrl}
             onLoadSuccess={onDocumentLoadSuccess}
             onLoadError={onDocumentLoadError}
+            options={pdfOptions}
             loading={
               <div className="flex items-center justify-center p-8">
                 <div className="text-center">

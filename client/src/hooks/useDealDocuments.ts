@@ -15,8 +15,33 @@ interface Document {
  * Custom hook to fetch and manage document data for a specific deal
  * and sync it with the DocumentsContext
  */
-export function useDealDocuments(dealId: number) {
-  const { setDocs, setCurrent, current } = useDocs();
+export function useDealDocuments(dealId: number | undefined) {
+  // Early return if dealId is undefined
+  if (!dealId) {
+    return {
+      isLoading: false,
+      error: null,
+      refetch: () => Promise.resolve(),
+      hasDocuments: false,
+      documentCount: 0,
+    };
+  }
+
+  const documentsContext = useDocs();
+  
+  // Safe fallback if DocumentsContext not mounted
+  if (!documentsContext) {
+    console.warn('useDealDocuments: DocumentsContext not available');
+    return {
+      isLoading: false,
+      error: new Error('DocumentsContext not available'),
+      refetch: () => Promise.resolve(),
+      hasDocuments: false,
+      documentCount: 0,
+    };
+  }
+
+  const { setDocs, setCurrent, current } = documentsContext;
   
   // Query to fetch documents for this deal
   const { data, isLoading, error, refetch } = useQuery<Document[]>({
@@ -28,8 +53,9 @@ export function useDealDocuments(dealId: number) {
   useEffect(() => {
     console.log(`🔍 useDealDocuments: Processing data for deal ${dealId}:`, data);
     if (data && Array.isArray(data)) {
-      // Convert API data to DocMeta format with proper file type info
-      const docMetas: DocMeta[] = data.map(doc => ({
+      // Filter out corrupt documents and convert to DocMeta format
+      const validDocs = data.filter(doc => doc && doc.id && doc.fileName);
+      const docMetas: DocMeta[] = validDocs.map(doc => ({
         id: doc.id,
         name: doc.fileName,
         fileName: doc.fileName,
@@ -43,23 +69,32 @@ export function useDealDocuments(dealId: number) {
       // Update docs state
       setDocs(docMetas);
       
-      // Only select first document if no current selection exists
-      // This prevents overriding user selections when data refetches
-      if (docMetas.length > 0 && !current) {
-        console.log(`🎯 useDealDocuments: Auto-selecting first document:`, docMetas[0]);
-        setCurrent(docMetas[0]);
-      } else if (docMetas.length === 0) {
+      // Preserve current selection if it's still valid, otherwise auto-select first
+      if (docMetas.length > 0) {
+        const currentStillValid = current && docMetas.some(doc => doc.id === current.id);
+        if (!current || !currentStillValid) {
+          console.log(`🎯 useDealDocuments: Auto-selecting first document:`, docMetas[0]);
+          setCurrent(docMetas[0]);
+        }
+      } else {
         console.log(`❌ useDealDocuments: No documents found, clearing selection`);
         setCurrent(null);
       }
     } else {
       console.log(`⚠️ useDealDocuments: No data received or data is not an array:`, data);
+      setDocs([]);
+      setCurrent(null);
     }
   }, [data, setDocs, setCurrent, current, dealId]);
+  
+  const documentCount = Array.isArray(data) ? data.length : 0;
+  const hasDocuments = documentCount > 0;
   
   return {
     isLoading,
     error,
     refetch,
+    hasDocuments,
+    documentCount,
   };
 }
