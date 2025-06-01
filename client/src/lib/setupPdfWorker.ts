@@ -7,8 +7,8 @@ import { pdfjs } from 'react-pdf';
  * ensuring version consistency and eliminating CORS issues.
  */
 
-// Configure PDF.js to use the CDN worker with proper versioning
-pdfjs.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@4.8.69/build/pdf.worker.min.js';
+// Configure PDF.js to use a local worker file served by the application
+pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
 
 console.log('✅ PDF.js worker configured correctly:', pdfjs.GlobalWorkerOptions.workerSrc);
 
