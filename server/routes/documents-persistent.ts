@@ -44,7 +44,7 @@ router.post('/upload', requireAuth, upload.single('file'), async (req, res) => {
       return res.status(400).json({ error: 'Deal ID is required' });
     }
 
-    const userId = req.session.userId;
+    const userId = req.session.userId!;
     const fileName = req.file.originalname;
     const fileType = req.file.mimetype;
     const tempFilePath = req.file.path;
