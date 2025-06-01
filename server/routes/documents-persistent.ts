@@ -227,6 +227,42 @@ router.patch('/:id', requireAuth, async (req, res) => {
   }
 });
 
+// Update document metadata (PUT method for compatibility)
+router.put('/:id', requireAuth, async (req, res) => {
+  try {
+    const documentId = parseInt(req.params.id);
+
+    if (isNaN(documentId)) {
+      return res.status(400).json({ error: 'Invalid document ID' });
+    }
+
+    const { fileName, description, documentType } = req.body;
+
+    const result = await DocumentBlobStorage.updateDocument(documentId, {
+      fileName,
+      description,
+      documentType
+    });
+
+    if (!result.success) {
+      return res.status(404).json({ error: result.error || 'Document not found' });
+    }
+
+    console.log(`✅ Document ${documentId} updated successfully via PUT`);
+    res.json({
+      id: result.document.id,
+      fileName: result.document.fileName,
+      documentType: result.document.documentType,
+      description: result.document.description,
+      message: 'Document updated successfully'
+    });
+
+  } catch (error) {
+    console.error('Error updating document via PUT:', error);
+    res.status(500).json({ error: 'Internal server error during update' });
+  }
+});
+
 // Delete document
 router.delete('/:id', requireAuth, async (req, res) => {
   try {
