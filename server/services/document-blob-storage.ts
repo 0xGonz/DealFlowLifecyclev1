@@ -136,6 +136,95 @@ export class DocumentBlobStorage {
   }
 
   /**
+   * Update document metadata
+   */
+  static async updateDocument(documentId: number, updates: {
+    fileName?: string;
+    description?: string;
+    documentType?: string;
+  }): Promise<{
+    success: boolean;
+    document?: any;
+    error?: string;
+  }> {
+    try {
+      const updateFields = [];
+      const updateValues = [];
+      let paramCount = 1;
+
+      if (updates.fileName !== undefined) {
+        updateFields.push(`file_name = $${paramCount++}`);
+        updateValues.push(updates.fileName);
+      }
+      if (updates.description !== undefined) {
+        updateFields.push(`description = $${paramCount++}`);
+        updateValues.push(updates.description);
+      }
+      if (updates.documentType !== undefined) {
+        updateFields.push(`document_type = $${paramCount++}`);
+        updateValues.push(updates.documentType);
+      }
+
+      if (updateFields.length === 0) {
+        return { success: false, error: 'No updates provided' };
+      }
+
+      updateValues.push(documentId);
+
+      const result = await pool.query(
+        `UPDATE documents 
+         SET ${updateFields.join(', ')} 
+         WHERE id = $${paramCount}
+         RETURNING id, file_name, file_type, document_type, description`,
+        updateValues
+      );
+
+      if (result.rows.length === 0) {
+        return { success: false, error: 'Document not found' };
+      }
+
+      const document = {
+        id: result.rows[0].id,
+        fileName: result.rows[0].file_name,
+        fileType: result.rows[0].file_type,
+        documentType: result.rows[0].document_type,
+        description: result.rows[0].description,
+      };
+
+      console.log(`✓ Document ${documentId} updated in database`);
+      return { success: true, document };
+    } catch (error) {
+      console.error('Error updating document:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Delete document from database
+   */
+  static async deleteDocument(documentId: number): Promise<{
+    success: boolean;
+    error?: string;
+  }> {
+    try {
+      const result = await pool.query(
+        'DELETE FROM documents WHERE id = $1',
+        [documentId]
+      );
+
+      if (result.rowCount === 0) {
+        return { success: false, error: 'Document not found' };
+      }
+
+      console.log(`✓ Document ${documentId} deleted from database`);
+      return { success: true };
+    } catch (error) {
+      console.error('Error deleting document:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
    * Migrate existing filesystem documents to database storage
    */
   static async migrateFilesystemDocuments(): Promise<{
