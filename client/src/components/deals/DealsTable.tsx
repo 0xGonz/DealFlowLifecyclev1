@@ -72,10 +72,11 @@ export default function DealsTable({ deals, onEdit, onAllocate, onUpdateStatus, 
                 .toUpperCase();
                 
               return (
-                <TableRow key={deal.id} className="group hover:bg-blue-50 hover:shadow-sm transition-all cursor-pointer" onClick={() => window.location.href = `/deals/${deal.id}`}>
+                <TableRow key={deal.id} className="group hover:bg-blue-50 hover:shadow-sm transition-all cursor-pointer">
                   <TableCell className="py-1.5 sm:py-2.5 px-2 sm:px-4">
-                    <div className="flex flex-col">
+                    <Link href={`/deals/${deal.id}`} className="flex flex-col">
                       <div className="font-medium text-xs sm:text-sm md:text-base text-neutral-900 truncate group-hover:text-blue-700 transition-colors">{deal.name}</div>
+                    </Link>
                     </div>
                   </TableCell>
                   <TableCell className="py-2 sm:py-3 px-2 sm:px-4 hidden xs:table-cell">

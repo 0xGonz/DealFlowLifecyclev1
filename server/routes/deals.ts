@@ -7,6 +7,7 @@ import {
   insertMemoCommentSchema,
   DealStageLabels
 } from "@shared/schema";
+import type { DealAssignment, DealStar, MiniMemo } from "@shared/schema";
 import { z } from "zod";
 import { IStorage } from "../storage";
 import { requireAuth } from "../utils/auth";
@@ -82,13 +83,13 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
       // Calculate score from mini memos
       let score = 0;
       if (miniMemos.length > 0) {
-        score = Math.floor(miniMemos.reduce((sum, memo) => sum + memo.score, 0) / miniMemos.length);
+        score = Math.floor(miniMemos.reduce((sum: number, memo: MiniMemo) => sum + (memo.score || 0), 0) / miniMemos.length);
       }
       
       return {
         ...deal,
-        stageLabel: DealStageLabels[deal.stage],
-        assignedUsers: assignments.map(a => a.userId),
+        stageLabel: DealStageLabels[deal.stage as keyof typeof DealStageLabels] || deal.stage,
+        assignedUsers: assignments.map((a: DealAssignment) => a.userId),
         starCount: stars.length,
         score
       };

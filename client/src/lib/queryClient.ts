@@ -104,11 +104,21 @@ export const getQueryFn: <T>(options: {
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      queryFn: getQueryFn({ on401: "returnNull" }), // Change to returnNull to handle auth gracefully
+      queryFn: getQueryFn({ on401: "returnNull" }),
       refetchInterval: false,
-      refetchOnWindowFocus: true, // Enable to refresh on tab focus
-      staleTime: 5 * 60 * 1000, // 5 minutes instead of Infinity
-      retry: 1,
+      refetchOnWindowFocus: false, // Disable to prevent excessive refetching
+      staleTime: 10 * 60 * 1000, // 10 minutes for better caching
+      gcTime: 15 * 60 * 1000, // 15 minutes garbage collection time (React Query v5)
+      retry: (failureCount, error) => {
+        // Don't retry on 4xx errors except 401
+        if (error && typeof error === 'object' && 'message' in error) {
+          const status = parseInt(error.message.split(':')[0]);
+          if (status >= 400 && status < 500 && status !== 401) {
+            return false;
+          }
+        }
+        return failureCount < 2;
+      },
       retryDelay: 1000,
     },
     mutations: {

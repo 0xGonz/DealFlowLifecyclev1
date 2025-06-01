@@ -90,7 +90,13 @@ router.get('/stats', requireAuth, async (req: Request, res: Response) => {
     res.json(response);
   } catch (error) {
     console.error('Error fetching dashboard stats:', error);
-    res.status(500).json({ message: 'Failed to fetch dashboard stats' });
+    res.status(500).json({ 
+      error: { 
+        code: 'DASHBOARD_STATS_ERROR', 
+        message: 'Failed to fetch dashboard stats',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      } 
+    });
   }
 });
 
