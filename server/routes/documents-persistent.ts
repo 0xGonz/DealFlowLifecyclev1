@@ -91,16 +91,44 @@ router.get('/:id/download', requireAuth, async (req, res) => {
       return res.status(400).json({ error: 'Invalid document ID' });
     }
 
+    console.log(`📥 Download request for document ${documentId}`);
+
     const result = await DocumentBlobStorage.retrieveDocument(documentId);
 
     if (!result.success) {
+      console.error(`❌ Document ${documentId} not found: ${result.error}`);
       return res.status(404).json({ error: result.error || 'Document not found' });
     }
 
+    // Check if file data actually exists
+    if (!result.data || result.data.length === 0) {
+      console.error(`❌ Document ${documentId} has no file data in database`);
+      return res.status(410).json({ 
+        error: 'Document content not available',
+        details: {
+          documentId,
+          fileName: result.fileName,
+          hasData: !!result.data,
+          dataLength: result.data?.length || 0,
+          fileSize: result.fileSize,
+          recommendation: 'Document needs to be re-uploaded - no content data found in database'
+        }
+      });
+    }
+
+    console.log(`✅ Serving document ${documentId} from database: ${result.fileName} (${result.data.length} bytes)`);
+
+    // Remove caching headers to prevent 304 responses
+    res.removeHeader('ETag');
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+
     // Set appropriate headers for file download
-    res.setHeader('Content-Type', result.fileType || 'application/octet-stream');
-    res.setHeader('Content-Disposition', `attachment; filename="${result.fileName}"`);
-    res.setHeader('Content-Length', result.fileSize?.toString() || '0');
+    res.setHeader('Content-Type', result.fileType || 'application/pdf');
+    const disposition = result.fileType === 'application/pdf' ? 'inline' : 'attachment';
+    res.setHeader('Content-Disposition', `${disposition}; filename="${encodeURIComponent(result.fileName || 'document')}"`);
+    res.setHeader('Content-Length', result.data.length.toString());
 
     // Send the file data
     res.send(result.data);
