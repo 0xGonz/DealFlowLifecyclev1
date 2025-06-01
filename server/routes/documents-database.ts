@@ -126,44 +126,64 @@ router.get('/:id/download', requireAuth, async (req, res) => {
       // If fileBuffer.length is actually 0, skip to the filesystem fallback
     } 
     
-    // Fallback to filesystem for legacy documents
+    // 2) Otherwise, try to stream from the filesystem:
     if (document.filePath) {
-      console.log(`📂 Serving legacy document ${documentId} from filesystem: ${document.filePath}`);
-      
       const fs = await import('fs');
       const path = await import('path');
       
+      // Make sure filePath is stored as something like "storage/documents/deal-108/foo.pdf"
       const fullPath = path.resolve(document.filePath);
-      
-      // Check if file exists
       if (!fs.existsSync(fullPath)) {
         console.error(`❌ Legacy file not found: ${fullPath}`);
-        return res.status(410).json({ error: 'Document file no longer available' });
+        console.error(`📊 Document ${documentId} metadata: fileSize=${document.fileSize}, hasFileData=${!!document.fileData}`);
+        return res.status(410).json({ 
+          error: 'Document file no longer available on disk',
+          details: {
+            documentId,
+            fileName: document.fileName,
+            expectedPath: fullPath,
+            hasDbData: !!document.fileData,
+            fileSize: document.fileSize
+          }
+        });
       }
 
-      // Set appropriate headers
-      res.setHeader('Content-Type', document.fileType);
+      console.log(`📂 Serving legacy document ${documentId} from filesystem: ${document.filePath}`);
+      
+      // Remove any ETag and force 200 + document bytes:
+      res.removeHeader('ETag');
       res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
       res.setHeader('Pragma', 'no-cache');
       res.setHeader('Expires', '0');
-      res.removeHeader('ETag');
-      res.setHeader('Content-Disposition', `attachment; filename="${document.fileName}"`);
-      
-      // Stream the file
+
+      // Set content type and disposition
+      res.setHeader('Content-Type', document.fileType);
+      const disposition = document.fileType === 'application/pdf' ? 'inline' : 'attachment';
+      res.setHeader('Content-Disposition', `${disposition}; filename="${encodeURIComponent(document.fileName)}"`);
+
+      // Stream file off disk:
       const fileStream = fs.createReadStream(fullPath);
       fileStream.on('error', (err) => {
-        console.error(`❌ Error reading legacy file ${fullPath}:`, err);
+        console.error(`❌ Error streaming file ${fullPath}:`, err);
         if (!res.headersSent) {
-          res.status(410).json({ error: 'Document file no longer available' });
+          res.status(500).json({ error: 'Error reading file from disk' });
         }
       });
-      
       return fileStream.pipe(res);
     }
 
-    // No file data available
-    console.error(`❌ Document ${documentId} has no file data in database or filesystem`);
-    return res.status(410).json({ error: 'Document content not available' });
+    // 3) If neither branch worked:
+    console.error(`❌ Document ${documentId} has no fileData and no filePath`);
+    return res.status(410).json({ 
+      error: 'Document content not available',
+      details: {
+        documentId,
+        fileName: document.fileName,
+        hasDbData: !!document.fileData,
+        hasFilePath: !!document.filePath,
+        fileSize: document.fileSize
+      }
+    });
 
   } catch (error) {
     console.error('Error downloading document:', error);
@@ -187,37 +207,22 @@ router.get('/:id/view', requireAuth, async (req, res) => {
       return res.status(404).json({ error: 'Document not found' });
     }
 
-    // Check if document has file data in database
-    if (document.fileData) {
-      console.log(`📖 Serving document ${documentId} for viewing from database: ${document.fileName} (${document.fileSize} bytes)`);
-      console.log(`📄 Document ${documentId} has fileData of length: ${document.fileData.length}`);
-      
-      // Convert base64 back to buffer (direct conversion, no hex handling needed)
-      let fileBuffer;
-      try {
-        fileBuffer = Buffer.from(document.fileData, 'base64');
-        console.log(`✅ Document ${documentId} converted to buffer: ${fileBuffer.length} bytes`);
+    // 1) If there is nonzero fileData in the DB, send it:
+    if (document.fileData && document.fileData.length > 0) {
+      const fileBuffer = Buffer.from(document.fileData, 'base64');
+      if (fileBuffer.length > 0) {
+        console.log(`📖 Serving document ${documentId} for viewing from database: ${document.fileName} (${fileBuffer.length} bytes)`);
         
-        // Validate buffer has content
-        if (fileBuffer.length === 0) {
-          console.error(`❌ Document ${documentId} converted to empty buffer`);
-          return res.status(410).json({ error: 'Document content is empty' });
-        }
-      } catch (error) {
-        console.error(`❌ Error converting document ${documentId} from base64:`, error);
-        return res.status(500).json({ error: 'Failed to process document content' });
+        res.removeHeader('ETag');
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+        res.setHeader('Content-Type', document.fileType);
+        res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(document.fileName)}"`);
+        res.setHeader('Content-Length', fileBuffer.length.toString());
+        return res.send(fileBuffer);
       }
-      
-      // Set appropriate headers for inline viewing
-      res.setHeader('Content-Type', document.fileType);
-      res.setHeader('Content-Disposition', `inline; filename="${document.fileName}"`);
-      res.setHeader('Content-Length', fileBuffer.length.toString());
-      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
-      res.setHeader('Pragma', 'no-cache');
-      res.setHeader('Expires', '0');
-      res.removeHeader('ETag');
-
-      return res.send(fileBuffer);
+      // If fileBuffer.length is actually 0, skip to the filesystem fallback
     } 
     
     // Fallback to filesystem for legacy documents
