@@ -125,7 +125,10 @@ router.get('/:id/download', requireAuth, async (req, res) => {
       
       // Set appropriate headers for inline viewing (especially PDFs)
       res.setHeader('Content-Type', document.fileType);
-      res.setHeader('Cache-Control', 'no-store');
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      res.removeHeader('ETag');
       
       // Use inline for PDFs to enable browser viewing, attachment for others
       const disposition = document.fileType === 'application/pdf' ? 'inline' : 'attachment';
@@ -152,6 +155,10 @@ router.get('/:id/download', requireAuth, async (req, res) => {
 
       // Set appropriate headers
       res.setHeader('Content-Type', document.fileType);
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      res.removeHeader('ETag');
       res.setHeader('Content-Disposition', `attachment; filename="${document.fileName}"`);
       
       // Stream the file
@@ -212,8 +219,10 @@ router.get('/:id/view', requireAuth, async (req, res) => {
       res.setHeader('Content-Type', document.fileType);
       res.setHeader('Content-Disposition', `inline; filename="${document.fileName}"`);
       res.setHeader('Content-Length', fileBuffer.length.toString());
-      res.setHeader('Cache-Control', 'public, max-age=31536000');
-      res.setHeader('ETag', `"${documentId}-${Date.now()}"`);
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      res.removeHeader('ETag');
 
       return res.send(fileBuffer);
     } 
@@ -236,7 +245,10 @@ router.get('/:id/view', requireAuth, async (req, res) => {
       // Set appropriate headers for inline viewing
       res.setHeader('Content-Type', document.fileType);
       res.setHeader('Content-Disposition', `inline; filename="${document.fileName}"`);
-      res.setHeader('Cache-Control', 'public, max-age=31536000');
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      res.removeHeader('ETag');
       
       // Stream the file
       const fileStream = fs.createReadStream(fullPath);

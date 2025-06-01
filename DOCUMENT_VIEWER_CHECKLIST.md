@@ -29,5 +29,5 @@
 - [ ] Confirm inline viewing works
 - [ ] Test error states and recovery
 
-## Current Status: Phase 2 - Backend Fixes Needed
-The documents exist but have no file data stored. Need to fix storage mechanism.
+## Current Status: Phase 5 - Testing Critical 304 Fix
+Fixed the "304 Not Modified" issue that was causing empty PDF errors. Documents should now load properly with cache-busting headers.
