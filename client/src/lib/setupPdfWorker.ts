@@ -3,17 +3,14 @@ import { pdfjs } from 'react-pdf';
 /**
  * PDF.js Worker Configuration
  * 
- * This configures PDF.js to use a local worker file served by the application,
+ * This configures PDF.js to use a properly bundled worker via Vite,
  * ensuring version consistency and eliminating CORS issues.
  */
 
-// Use a local worker path that will be served by the application
-const workerUrl = '/pdf.worker.min.js';
+// Configure PDF.js to use the CDN worker with proper versioning
+pdfjs.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@4.8.69/build/pdf.worker.min.js';
 
-// Configure PDF.js to use the local worker
-pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
-
-console.log('✅ PDF.js worker configured as:', workerUrl);
+console.log('✅ PDF.js worker configured correctly:', pdfjs.GlobalWorkerOptions.workerSrc);
 
 // Export simple status function for debugging
 export function getWorkerStatus() {

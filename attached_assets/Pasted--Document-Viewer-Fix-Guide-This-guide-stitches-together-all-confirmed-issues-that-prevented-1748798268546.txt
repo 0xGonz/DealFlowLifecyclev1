@@ -1,0 +1,163 @@
+# 📑 Document Viewer Fix Guide
+
+This guide stitches together **all confirmed issues** that prevented PDFs and other deal documents from rendering, _and_ the code changes required to get the viewer rock-solid in both **development** and **production** (Replit).
+
+---
+
+## 1  Why the Viewer Failed
+
+| # | Failure Mode | Where It Happened | Root Cause |
+|---|--------------|------------------|------------|
+| 1 | _“Failed to fetch dynamically imported module: `pdf.worker.js?import`”_ &nbsp;/&nbsp; fake-worker warning | Browser console | `setupPdfWorker.ts` forced a **static** `/pdf.worker.js` path. Vite never bundled that file, so React-PDF fell back to a “fake worker” that crashed. |
+| 2 | _MissingPDFException — file is empty or 404_ | React-PDF load error | New uploads landed in `process.cwd()/data/uploads` (ephemeral on Replit). After each restart the file disappeared but the DB row remained. |
+| 3 | 404 from **download** API even when file exists on disk | `/api/documents/:id/download` | Document `filePath` stored as `/uploads/foo.pdf` (leading slash). Later `path.join(process.cwd(),'public',filePath)` produced `/uploads/...` (root), missing the real file. |
+| 4 | UI crashes (UniversalDocumentViewer / DocumentsPane) | React components | Hooks assumed happy-path data; any `null`, empty array or HEAD-404 bubbled up as uncaught exception. |
+| 5 | Extra network churn & zoom/rotate buttons inaccessible | PdfViewer | Inline `options` object re-created every render; toolbar buttons lacked `aria-label`. |
+
+---
+
+## 2  Frontend Fixes
+
+### 2.1  Bundle-safe PDF worker
+
+`client/src/lib/setupPdfWorker.ts`
+
+```ts
+import { pdfjs } from 'react-pdf';
+import workerUrl from 'pdfjs-dist/build/pdf.worker.min.js?url'; // ✅ Vite turns this into a real URL
+
+pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
+console.log('✅ PDF.js worker configured:', workerUrl);
+```
+
+_No more fake-worker fallback or manual URL juggling._
+
+### 2.2  Hardened Embedded PDF Viewer
+
+Key upgrades (see `client/src/components/documents/EmbeddedPDFViewer.tsx`):
+
+* **HEAD check** before render – instant “File not found” toast instead of React crash.  
+* **Memoised** `pdfOptions` → no “options prop changed” warnings.  
+* Graceful error UI with **Retry** + **Download** buttons.  
+* Full toolbar `aria-label`s.  
+* Rotation, zoom & page navigation remain intact.
+
+### 2.3  Robust `useDealDocuments` hook
+
+* Early-return when `dealId` undefined.  
+* Safe fallbacks if DocumentsContext not yet mounted.  
+* Filters out corrupt rows, preserves current selection if still valid.  
+* Provides helper flags `hasDocuments` / `documentCount` for UI.
+
+### 2.4  Version alignment
+
+Ensure **one** copy of each dependency:
+
+```
+"react-pdf": "9.4.0",
+"pdfjs-dist": "4.8.69"
+```
+
+> Remove any yarn/npm aliasing hacks – mismatched versions recreate worker errors.
+
+### 2.5  Universal Viewer Quality-of-Life
+
+* Non-PDF types auto-preview (CSV first 10 rows, images, Office 365 embed for XLSX).  
+* Unknown types fall back to a download card.
+
+---
+
+## 3  Backend Fixes
+
+### 3.1  Persistent storage on Replit
+
+```ts
+// server/upload.ts
+const UPLOAD_DIR = path.join(process.cwd(), 'replit-storage', 'uploads');
+if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+
+multer.diskStorage({
+  destination: (_req, _file, cb) => cb(null, UPLOAD_DIR),
+  filename: (_req, file, cb) => cb(null, Date.now() + '-' + file.originalname),
+});
+```
+
+### 3.2  Store paths **without** leading slash
+
+```ts
+// when saving Document row
+const relPath = path.join('uploads', path.basename(file.path)); // e.g. uploads/abc.pdf
+await prisma.document.create({ data: { filePath: relPath, ... } });
+```
+
+### 3.3  Simplified & fast-fail download route
+
+```ts
+router.get('/:id/download', async (req, res) => {
+  const doc = await prisma.document.findUnique({ where: { id: +req.params.id } });
+  if (!doc) return res.status(404).json({ error: 'Not found' });
+
+  const candidates = [
+    path.join(PERSIST_DIR, doc.filePath),
+    path.join(PUBLIC_DIR,  doc.filePath),
+  ];
+  const found = candidates.find(p => fs.existsSync(p));
+
+  if (!found) {
+    console.error('File missing:', candidates);
+    return res.status(404).json({ error: 'File not found', message: 'Please re-upload.' });
+  }
+
+  res.setHeader('Cache-Control', 'no-store');
+  res.setHeader('Content-Type', doc.fileType);
+  res.setHeader('Content-Disposition',
+    (doc.fileType === 'application/pdf' ? 'inline' : 'attachment') +
+    `; filename="${encodeURIComponent(doc.fileName)}"`);
+
+  fs.createReadStream(found).pipe(res);
+});
+```
+
+### 3.4  (Opt-in) Blob storage
+
+Long-term, migrate documents to Postgres `bytea` or S3 ‑- the above still works, but removes host-disk dependence.
+
+---
+
+## 4  Data Migration
+
+Run once after deploying backend patches:
+
+```bash
+node scripts/fix-document-paths-comprehensive.ts   # strips leading slashes
+node scripts/migrate-documents-to-replit-storage.ts # copies files to persistent dir
+```
+
+Confirm each doc row now references `uploads/<file>` and physical files live under `replit-storage/uploads`.
+
+---
+
+## 5  End-to-End QA Checklist
+
+1. **Upload** a new PDF → DB row created, file present in persistent dir.  
+2. Refresh browser / restart Replit → PDF still renders.  
+3. Inspect Network tab → `pdf.worker.min.js` 200 + correct version.  
+4. Delete file manually → Viewer shows “Document Unavailable” with retry/download disabled.  
+5. Non-PDF (CSV / JPG / XLSX) previews behave as expected.  
+6. Axe or Lighthouse → No missing `aria-label` violations in viewer toolbar.
+
+---
+
+## 6  Roll-Out Steps
+
+1. Merge PR with **frontend** commits (setupPdfWorker, EmbeddedPDFViewer, hooks).  
+2. Deploy **backend** with storage & path fixes.  
+3. Run migration scripts.  
+4. Re-upload any previously broken documents if still missing.  
+5. Monitor logs:  
+   * Worker configured → `✅ PDF.js worker configured:`  
+   * Download route errors should drop to _zero_.  
+
+---
+
+👷‍♂️ Your document pipeline is now **version-safe**, **persistent**, and **accessible**. Happy viewing!

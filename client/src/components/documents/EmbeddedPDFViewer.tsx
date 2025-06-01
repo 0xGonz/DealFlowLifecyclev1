@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Document, Page } from 'react-pdf';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Download, ZoomIn, ZoomOut, RotateCw, FileText, AlertTriangle } from 'lucide-react';
+import { Download, ZoomIn, ZoomOut, RotateCw, FileText, AlertTriangle, RefreshCw } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 
 // Import the centralized PDF worker setup
@@ -23,15 +23,42 @@ const EmbeddedPDFViewer = ({ documentId, documentName, fileType }: EmbeddedPDFVi
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string>('');
+  const [fileExists, setFileExists] = useState<boolean | null>(null);
 
-  // Generate PDF URL
+  // Memoize PDF options to prevent unnecessary re-renders
+  const pdfOptions = useMemo(() => ({
+    cMapUrl: 'https://unpkg.com/pdfjs-dist@4.8.69/cmaps/',
+    cMapPacked: true,
+    standardFontDataUrl: 'https://unpkg.com/pdfjs-dist@4.8.69/standard_fonts/',
+  }), []);
+
+  // Check if file exists before attempting to load
+  const checkFileExists = useCallback(async (url: string) => {
+    try {
+      const response = await fetch(url, { method: 'HEAD' });
+      return response.ok;
+    } catch {
+      return false;
+    }
+  }, []);
+
+  // Generate PDF URL and verify file exists
   useEffect(() => {
     if (documentId) {
       const url = `/api/documents/${documentId}/download`;
       console.log('📤 Loading PDF document:', { documentId, documentName, url });
       setPdfUrl(url);
+      
+      // Check if file exists before attempting to render
+      checkFileExists(url).then(exists => {
+        setFileExists(exists);
+        if (!exists) {
+          setError('Document file not found. Please try re-uploading the document.');
+          setLoading(false);
+        }
+      });
     }
-  }, [documentId, documentName]);
+  }, [documentId, documentName, checkFileExists]);
 
   const onDocumentLoadSuccess = useCallback(({ numPages }: { numPages: number }) => {
     console.log('✅ PDF loaded successfully:', { numPages, documentName });
@@ -92,6 +119,23 @@ const EmbeddedPDFViewer = ({ documentId, documentName, fileType }: EmbeddedPDFVi
     setRotation(prevRotation => (prevRotation + 90) % 360);
   };
 
+  const handleRetry = useCallback(() => {
+    setError(null);
+    setLoading(true);
+    setFileExists(null);
+    
+    // Re-check file existence
+    if (pdfUrl) {
+      checkFileExists(pdfUrl).then(exists => {
+        setFileExists(exists);
+        if (!exists) {
+          setError('Document file not found. Please try re-uploading the document.');
+          setLoading(false);
+        }
+      });
+    }
+  }, [pdfUrl, checkFileExists]);
+
   if (!pdfUrl) {
     return (
       <div className="h-full flex items-center justify-center">
@@ -111,10 +155,11 @@ const EmbeddedPDFViewer = ({ documentId, documentName, fileType }: EmbeddedPDFVi
           <h3 className="text-lg font-semibold mb-2">PDF Load Error</h3>
           <p className="text-gray-600 mb-4">{error}</p>
           <div className="space-x-2">
-            <Button onClick={() => window.location.reload()} variant="outline">
+            <Button onClick={handleRetry} variant="outline" disabled={fileExists === false}>
+              <RefreshCw className="h-4 w-4 mr-2" />
               Retry
             </Button>
-            <Button onClick={handleDownload} variant="default">
+            <Button onClick={handleDownload} variant="default" disabled={fileExists === false}>
               <Download className="h-4 w-4 mr-2" />
               Download Instead
             </Button>
@@ -141,6 +186,7 @@ const EmbeddedPDFViewer = ({ documentId, documentName, fileType }: EmbeddedPDFVi
                 size="sm"
                 onClick={() => changePage(-1)}
                 disabled={pageNumber <= 1}
+                aria-label="Previous page"
               >
                 Previous
               </Button>
@@ -152,6 +198,7 @@ const EmbeddedPDFViewer = ({ documentId, documentName, fileType }: EmbeddedPDFVi
                 size="sm"
                 onClick={() => changePage(1)}
                 disabled={pageNumber >= numPages}
+                aria-label="Next page"
               >
                 Next
               </Button>
@@ -162,6 +209,7 @@ const EmbeddedPDFViewer = ({ documentId, documentName, fileType }: EmbeddedPDFVi
                   size="sm"
                   onClick={() => changeScale(scale - 0.1)}
                   disabled={scale <= 0.5}
+                  aria-label="Zoom out"
                 >
                   <ZoomOut className="h-4 w-4" />
                 </Button>
@@ -171,6 +219,7 @@ const EmbeddedPDFViewer = ({ documentId, documentName, fileType }: EmbeddedPDFVi
                   size="sm"
                   onClick={() => changeScale(scale + 0.1)}
                   disabled={scale >= 2.0}
+                  aria-label="Zoom in"
                 >
                   <ZoomIn className="h-4 w-4" />
                 </Button>
