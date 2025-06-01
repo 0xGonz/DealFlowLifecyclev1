@@ -28,45 +28,49 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
     let deals;
     
     if (req.query.stage) {
-      // Use the service to get deals by stage
-      deals = await dealService.getDealsByStage(req.query.stage as any);
+      // Validate stage parameter
+      const validStages = ["initial_review", "screening", "diligence", "ic_review", "closing", "closed", "invested", "rejected"];
+      const stage = req.query.stage as string;
+      if (!validStages.includes(stage)) {
+        return res.status(400).json({ error: `Invalid stage. Must be one of: ${validStages.join(', ')}` });
+      }
+      deals = await dealService.getDealsByStage(stage as any);
     } else {
-      // Use the service to get all deals
       deals = await dealService.getAllDeals();
     }
     
     // Optimize: Get all supplementary data in 3 batch queries instead of N+1 queries
     const dealIds = deals.map(d => d.id);
     const [allAssignments, allStars, allMiniMemos] = await Promise.all([
-      storage.getDealAssignmentsBatch(dealIds),
+      Promise.all(dealIds.map(id => storage.getDealAssignments(id))).then(results => results.flat()),
       storage.getDealStarsBatch(dealIds),
       storage.getMiniMemosBatch(dealIds)
     ]);
     
     // Group data by dealId for efficient lookup
-    const assignmentsByDeal = new Map();
-    const starsByDeal = new Map();
-    const memosByDeal = new Map();
+    const assignmentsByDeal = new Map<number, DealAssignment[]>();
+    const starsByDeal = new Map<number, DealStar[]>();
+    const memosByDeal = new Map<number, MiniMemo[]>();
     
-    allAssignments.forEach(assignment => {
+    allAssignments.forEach((assignment: DealAssignment) => {
       if (!assignmentsByDeal.has(assignment.dealId)) {
         assignmentsByDeal.set(assignment.dealId, []);
       }
-      assignmentsByDeal.get(assignment.dealId).push(assignment);
+      assignmentsByDeal.get(assignment.dealId)!.push(assignment);
     });
     
-    allStars.forEach(star => {
+    allStars.forEach((star: DealStar) => {
       if (!starsByDeal.has(star.dealId)) {
         starsByDeal.set(star.dealId, []);
       }
-      starsByDeal.get(star.dealId).push(star);
+      starsByDeal.get(star.dealId)!.push(star);
     });
     
-    allMiniMemos.forEach(memo => {
+    allMiniMemos.forEach((memo: MiniMemo) => {
       if (!memosByDeal.has(memo.dealId)) {
         memosByDeal.set(memo.dealId, []);
       }
-      memosByDeal.get(memo.dealId).push(memo);
+      memosByDeal.get(memo.dealId)!.push(memo);
     });
     
     // Build enhanced deals with optimized data lookup
@@ -92,7 +96,14 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
     
     res.json(dealsWithExtras);
   } catch (error) {
-    res.status(500).json({ message: 'Failed to fetch deals' });
+    console.error('Error fetching deals:', error);
+    res.status(500).json({ 
+      error: { 
+        code: 'DEALS_FETCH_ERROR', 
+        message: 'Failed to fetch deals',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      } 
+    });
   }
 });
 

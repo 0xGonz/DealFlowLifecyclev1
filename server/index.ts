@@ -157,20 +157,13 @@ async function initialize() {
     })
   );
 
-  // Debug session usage on specific requests to help understand session issues
+  // Session debugging (only in development and only for login/logout)
   app.use((req, res, next) => {
-    // Only log for auth-related endpoints to avoid excessive logging
-    if (req.path.startsWith('/api/auth')) {
+    if (!isProd && (req.path === '/api/auth/login' || req.path === '/api/auth/logout')) {
       const sessionID = req.sessionID?.substring(0, 10) + '...';
       const hasSession = !!req.session;
       const userId = req.session?.userId;
-      const sessionCookies = req.headers.cookie || '';
-      console.log(`Session debug [${req.method} ${req.path}]: sessionID=${sessionID}, hasSession=${hasSession}, userId=${userId}, headers="${sessionCookies.substring(0, 25)}"`);
-      
-      if (req.path === '/api/auth/me') {
-        console.log('Session cookies:', req.headers.cookie);
-        console.log('Session object:', req.session);
-      }
+      console.log(`Session debug [${req.method} ${req.path}]: sessionID=${sessionID}, hasSession=${hasSession}, userId=${userId}`);
     }
     next();
   });

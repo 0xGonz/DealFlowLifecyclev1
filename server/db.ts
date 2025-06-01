@@ -17,9 +17,9 @@ console.log('Initializing database connection...');
 // Configure the pool with optimized settings for document access
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  max: 3, // Reduced connections for stability
-  idleTimeoutMillis: 10000, // 10 seconds
-  connectionTimeoutMillis: 5000, // 5 second connection timeout
+  max: 10, // Increased for better performance
+  idleTimeoutMillis: 30000, // 30 seconds
+  connectionTimeoutMillis: 10000, // 10 second connection timeout
   allowExitOnIdle: false,
   ssl: { rejectUnauthorized: false }
 });
@@ -58,56 +58,20 @@ pool.query('SELECT 1 AS test')
     }, 5000); // Try again after 5 seconds
   });
 
-// Create a function to check pool health periodically
+// Create a simple health check that doesn't interfere with the main pool
 const checkPoolHealth = async () => {
   try {
-    const result = await pool.query('SELECT NOW()');
-    console.log('Database health check passed at:', result.rows[0].now);
+    const client = await pool.connect();
+    await client.query('SELECT 1');
+    client.release();
   } catch (err) {
     console.error('Database health check failed:', err);
-    
-    // Attempt reconnection logic
-    console.log('Health check failed - attempting to reconnect database pool...');
-    
-    // Close any existing connections in the pool
-    try {
-      await pool.end();
-      console.log('Successfully closed existing connection pool');
-    } catch (endErr) {
-      console.error('Error closing connection pool:', endErr);
-      // Continue anyway, don't return here
-    }
-    
-    // Create a new pool instance with the same configuration
-    try {
-      // We can't recreate and reassign the pool here because it's exported
-      // But we can try a new connection to test if the database is back
-      const testPool = new Pool({
-        connectionString: process.env.DATABASE_URL,
-        max: 1,
-        connectionTimeoutMillis: 10000,
-        ssl: { rejectUnauthorized: false }
-      });
-      
-      await testPool.query('SELECT 1');
-      console.log('Test connection successful - database is accessible again');
-      await testPool.end();
-      
-      // Refresh a connection in the main pool
-      pool.connect().then(client => {
-        console.log('Successfully reconnected a client to the main pool');
-        client.release();
-      }).catch(connErr => {
-        console.error('Failed to connect client to main pool:', connErr);
-      });
-    } catch (testErr) {
-      console.error('Test connection failed - database still unavailable:', testErr);
-    }
+    // Log error but don't attempt to recreate pools
   }
 };
 
-// Run health check every 5 minutes
-setInterval(checkPoolHealth, 5 * 60 * 1000);
+// Run health check every 10 minutes (reduced frequency)
+setInterval(checkPoolHealth, 10 * 60 * 1000);
 
 export { pool };
 export const db = drizzle(pool, { schema });
