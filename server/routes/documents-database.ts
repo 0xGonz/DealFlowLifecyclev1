@@ -109,19 +109,24 @@ router.get('/:id/download', requireAuth, async (req, res) => {
 
     // Check if document has file data in database
     if (document.fileData) {
-      console.log(`📥 Serving document ${documentId} from database: ${document.fileName}`);
+      console.log(`📥 Serving document ${documentId} from database: ${document.fileName} (${document.fileSize} bytes)`);
+      console.log(`📄 Document ${documentId} has fileData of length: ${document.fileData.length}`);
       
-      // Convert base64 back to buffer
-      // Handle hex-encoded base64 data from PostgreSQL
-      let base64Data = document.fileData;
-      if (base64Data.startsWith('\\x')) {
-        // Convert hex to base64
-        const hexData = base64Data.slice(2); // Remove \x prefix
-        const buffer = Buffer.from(hexData, 'hex');
-        base64Data = buffer.toString('utf8');
+      // Convert base64 back to buffer (direct conversion, no hex handling needed)
+      let fileBuffer;
+      try {
+        fileBuffer = Buffer.from(document.fileData, 'base64');
+        console.log(`✅ Document ${documentId} converted to buffer: ${fileBuffer.length} bytes`);
+        
+        // Validate buffer has content
+        if (fileBuffer.length === 0) {
+          console.error(`❌ Document ${documentId} converted to empty buffer`);
+          return res.status(410).json({ error: 'Document content is empty' });
+        }
+      } catch (error) {
+        console.error(`❌ Error converting document ${documentId} from base64:`, error);
+        return res.status(500).json({ error: 'Failed to process document content' });
       }
-      
-      const fileBuffer = Buffer.from(base64Data, 'base64');
       
       // Set appropriate headers for inline viewing (especially PDFs)
       res.setHeader('Content-Type', document.fileType);
@@ -201,19 +206,24 @@ router.get('/:id/view', requireAuth, async (req, res) => {
 
     // Check if document has file data in database
     if (document.fileData) {
-      console.log(`📖 Serving document ${documentId} for viewing from database: ${document.fileName}`);
+      console.log(`📖 Serving document ${documentId} for viewing from database: ${document.fileName} (${document.fileSize} bytes)`);
+      console.log(`📄 Document ${documentId} has fileData of length: ${document.fileData.length}`);
       
-      // Convert base64 back to buffer
-      // Handle hex-encoded base64 data from PostgreSQL
-      let base64Data = document.fileData;
-      if (base64Data.startsWith('\\x')) {
-        // Convert hex to base64
-        const hexData = base64Data.slice(2); // Remove \x prefix
-        const buffer = Buffer.from(hexData, 'hex');
-        base64Data = buffer.toString('utf8');
+      // Convert base64 back to buffer (direct conversion, no hex handling needed)
+      let fileBuffer;
+      try {
+        fileBuffer = Buffer.from(document.fileData, 'base64');
+        console.log(`✅ Document ${documentId} converted to buffer: ${fileBuffer.length} bytes`);
+        
+        // Validate buffer has content
+        if (fileBuffer.length === 0) {
+          console.error(`❌ Document ${documentId} converted to empty buffer`);
+          return res.status(410).json({ error: 'Document content is empty' });
+        }
+      } catch (error) {
+        console.error(`❌ Error converting document ${documentId} from base64:`, error);
+        return res.status(500).json({ error: 'Failed to process document content' });
       }
-      
-      const fileBuffer = Buffer.from(base64Data, 'base64');
       
       // Set appropriate headers for inline viewing
       res.setHeader('Content-Type', document.fileType);
