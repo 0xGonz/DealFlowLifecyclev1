@@ -15,6 +15,7 @@ import leaderboardRoutes from '../leaderboard';
 import notificationsRoutes from '../notifications';
 import documentsRoutes from '../documents-database';
 import aiAnalysisRoutes from '../ai-analysis';
+import documentAnalysisRoutes from './document-analysis';
 const v1Router = Router();
 
 // Register all route modules under the v1 router
@@ -29,5 +30,6 @@ v1Router.use('/leaderboard', leaderboardRoutes);
 v1Router.use('/notifications', notificationsRoutes);
 v1Router.use('/documents', documentsRoutes);
 v1Router.use('/ai-analysis', aiAnalysisRoutes);
+v1Router.use('/document-analysis', documentAnalysisRoutes);
 
 export default v1Router;
