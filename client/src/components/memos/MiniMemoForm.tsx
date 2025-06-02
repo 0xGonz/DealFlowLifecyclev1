@@ -157,6 +157,11 @@ export function MiniMemoForm({
     valuationScore: initialData.valuationScore || 5,
     competitiveAdvantageScore: initialData.competitiveAdvantageScore || 5,
     dueDiligenceChecklist: initialData.dueDiligenceChecklist || initialChecklist,
+    // GP-LP Alignment fields
+    raiseAmount: initialData.raiseAmount,
+    gpCommitment: initialData.gpCommitment,
+    gpAlignmentPercentage: initialData.gpAlignmentPercentage,
+    alignmentScore: initialData.alignmentScore,
   } : {
     dealId: dealId,
     thesis: "",
@@ -170,6 +175,11 @@ export function MiniMemoForm({
     valuationScore: 5 as number,
     competitiveAdvantageScore: 5 as number,
     dueDiligenceChecklist: initialChecklist,
+    // GP-LP Alignment fields
+    raiseAmount: undefined,
+    gpCommitment: undefined,
+    gpAlignmentPercentage: undefined,
+    alignmentScore: undefined,
   };
 
   // Initialize userId state if we're in edit mode
