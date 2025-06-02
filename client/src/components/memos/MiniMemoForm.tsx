@@ -226,9 +226,9 @@ export function MiniMemoForm({
         competitiveAdvantageScore: values.competitiveAdvantageScore,
         dueDiligenceChecklist: values.dueDiligenceChecklist,
         
-        // GP-LP Alignment fields
-        raiseAmount: values.raiseAmount,
-        gpCommitment: values.gpCommitment,
+        // GP-LP Alignment fields - convert numbers to strings for database
+        raiseAmount: values.raiseAmount ? values.raiseAmount.toString() : null,
+        gpCommitment: values.gpCommitment ? values.gpCommitment.toString() : null,
         gpAlignmentPercentage: values.gpAlignmentPercentage,
         alignmentScore: values.alignmentScore,
         
@@ -262,6 +262,7 @@ export function MiniMemoForm({
       });
 
       // Close form and redirect if needed
+      setDialogOpen(false);
       if (onOpenChange) {
         onOpenChange(false);
       }
