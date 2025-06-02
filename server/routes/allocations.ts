@@ -215,6 +215,8 @@ router.post('/', requireAuth, requirePermission('create', 'allocation'), async (
           
         const callCount = req.body.callCount || 1;
         const callPercentage = req.body.callPercentage || 100;
+        const callAmountType = req.body.callAmountType || 'percentage';
+        const callDollarAmount = req.body.callDollarAmount || 0;
         
         console.log('Creating capital calls with parameters:', {
           allocationId: newAllocation.id,
@@ -222,7 +224,9 @@ router.post('/', requireAuth, requirePermission('create', 'allocation'), async (
           callFrequency,
           firstCallDate,
           callCount,
-          callPercentage
+          callPercentage,
+          callAmountType,
+          callDollarAmount
         });
         
         // Use the enhanced service to create all capital calls in one transaction
@@ -232,7 +236,9 @@ router.post('/', requireAuth, requirePermission('create', 'allocation'), async (
           callFrequency,
           firstCallDate,
           callCount,
-          callPercentage
+          callPercentage,
+          callAmountType,
+          callDollarAmount
         );
         
         console.log(`Successfully created capital calls for allocation ID ${newAllocation.id}`);

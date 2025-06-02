@@ -41,6 +41,8 @@ interface AllocationFormData {
   capitalCallSchedule: string;
   callFrequency: string;
   callPercentage: number;
+  callAmountType: 'percentage' | 'dollar'; // New field for capital call amount type
+  callDollarAmount: number; // New field for dollar amount in capital calls
   firstCallDate: Date;
   callCount: number;
   customSchedule: string;
@@ -69,6 +71,8 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
     // Capital call details
     callFrequency: '',
     callPercentage: 0,
+    callAmountType: 'percentage', // Default to percentage for capital calls
+    callDollarAmount: 0, // Default dollar amount for capital calls
     firstCallDate: new Date(), // Use actual Date object instead of string
     callCount: 1,
     customSchedule: '', // JSON string for custom payment structure
@@ -163,6 +167,8 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
         // Reset capital call details
         callFrequency: '',
         callPercentage: 0,
+        callAmountType: 'percentage',
+        callDollarAmount: 0,
         firstCallDate: new Date(),
         callCount: 1,
         customSchedule: '',
@@ -309,14 +315,27 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
     
     // Validate capital call schedule if one is selected
     if (allocationData.capitalCallSchedule) {
-      // For regular schedules, validate the percentage
-      if (allocationData.capitalCallSchedule !== CAPITAL_CALL_SCHEDULES.CUSTOM && (!allocationData.callPercentage || allocationData.callPercentage <= 0)) {
-        toast({
-          title: "Error",
-          description: "Please enter a valid payment percentage greater than 0",
-          variant: "destructive"
-        });
-        return;
+      // For regular schedules, validate the amount based on type
+      if (allocationData.capitalCallSchedule !== CAPITAL_CALL_SCHEDULES.CUSTOM) {
+        if (allocationData.callAmountType === 'percentage') {
+          if (!allocationData.callPercentage || allocationData.callPercentage <= 0) {
+            toast({
+              title: "Error",
+              description: "Please enter a valid payment percentage greater than 0",
+              variant: "destructive"
+            });
+            return;
+          }
+        } else if (allocationData.callAmountType === 'dollar') {
+          if (!allocationData.callDollarAmount || allocationData.callDollarAmount <= 0) {
+            toast({
+              title: "Error", 
+              description: "Please enter a valid payment amount greater than 0",
+              variant: "destructive"
+            });
+            return;
+          }
+        }
       }
       
       // For custom schedule, validate entries
@@ -481,30 +500,73 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
             <div className="space-y-4 border rounded-lg p-4 bg-gray-50">
               <h4 className="font-medium text-sm">Capital Call Details</h4>
               
-              {/* Percentage field for all non-custom schedules */}
+              {/* Capital call amount type and value fields */}
               <div className="space-y-2">
-                <Label htmlFor="callPercentage">
-                  {PAYMENT_SCHEDULE_LABELS[allocationData.capitalCallSchedule as keyof typeof PAYMENT_SCHEDULE_LABELS]} Payment Percentage
-                </Label>
-                <div className="relative">
-                  <span className="absolute inset-y-0 right-3 flex items-center text-neutral-500">
-                    %
-                  </span>
-                  <Input
-                    id="callPercentage"
-                    type="number"
-                    min="0"
-                    max="100"
-                    step="1"
-                    className="pr-8"
-                    value={allocationData.callPercentage || ''}
-                    onChange={(e) => setAllocationData({
-                      ...allocationData,
-                      callPercentage: parseFloat(e.target.value)
-                    })}
-                    placeholder="0"
-                  />
+                <div className="flex justify-between items-center">
+                  <Label htmlFor="callAmount">
+                    {PAYMENT_SCHEDULE_LABELS[allocationData.capitalCallSchedule as keyof typeof PAYMENT_SCHEDULE_LABELS]} Payment Amount
+                  </Label>
+                  <div className="flex items-center space-x-2">
+                    <Label htmlFor="callAmountType" className="text-xs">Type:</Label>
+                    <Select
+                      value={allocationData.callAmountType}
+                      onValueChange={(value) => setAllocationData({
+                        ...allocationData,
+                        callAmountType: value as 'percentage' | 'dollar'
+                      })}
+                    >
+                      <SelectTrigger id="callAmountType" className="h-7 w-[90px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="percentage">Percentage</SelectItem>
+                        <SelectItem value="dollar">Dollar</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
+                
+                {/* Conditional input based on amount type */}
+                {allocationData.callAmountType === 'percentage' ? (
+                  <div className="relative">
+                    <span className="absolute inset-y-0 right-3 flex items-center text-neutral-500">
+                      %
+                    </span>
+                    <Input
+                      id="callPercentage"
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="1"
+                      className="pr-8"
+                      value={allocationData.callPercentage || ''}
+                      onChange={(e) => setAllocationData({
+                        ...allocationData,
+                        callPercentage: parseFloat(e.target.value) || 0
+                      })}
+                      placeholder="0"
+                    />
+                  </div>
+                ) : (
+                  <div className="relative">
+                    <span className="absolute inset-y-0 left-3 flex items-center text-neutral-500">
+                      $
+                    </span>
+                    <Input
+                      id="callDollarAmount"
+                      type="number"
+                      min="0"
+                      step="1000"
+                      className="pl-8"
+                      value={allocationData.callDollarAmount || ''}
+                      onChange={(e) => setAllocationData({
+                        ...allocationData,
+                        callDollarAmount: parseFloat(e.target.value) || 0
+                      })}
+                      placeholder="0"
+                    />
+                  </div>
+                )}
               </div>
               
               {/* First call date */}
