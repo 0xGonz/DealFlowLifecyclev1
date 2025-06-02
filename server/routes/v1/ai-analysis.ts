@@ -111,17 +111,10 @@ async function performAnalysis(dealId: number, documentContents: DocumentContent
   });
 
   // Add specific query or default analysis request
-  const analysisQuery = query || 
-    `Extract and analyze only the information explicitly stated in the uploaded documents:
-    1. Financial data, metrics, and projections as presented
-    2. Risk factors specifically mentioned in the documents
-    3. Market information and competitive data included
-    4. Management team details provided
-    5. Investment terms and conditions specified
-    6. Key facts and figures directly stated`;
+  const analysisQuery = query || `Analyze the content of this document`;
 
   analysisPrompt += `\nANALYSIS REQUEST: ${analysisQuery}\n`;
-  analysisPrompt += `\nCRITICAL REQUIREMENT: Base your analysis EXCLUSIVELY on content explicitly written in the uploaded documents. Never generate, assume, or infer information not directly stated. If information is missing from the documents, state "Not provided in the documents" rather than making assumptions.`;
+  analysisPrompt += `\nIMPORTANT: Only analyze what is explicitly written in the document content. Do not generate or assume any information not directly stated.`;
 
   try {
     const completion = await openai.chat.completions.create({
@@ -230,7 +223,7 @@ router.post('/documents/:documentId', requireAuth, async (req: Request, res: Res
     }
 
     // Perform analysis on the specific document
-    const result = await performAnalysis(document.dealId, [documentContent], deal, query || `Analyze the document "${document.fileName}" in detail`);
+    const result = await performAnalysis(document.dealId, [documentContent], deal, query || `Analyze this document`);
     
     console.log(`✅ Specific document analysis completed for ${document.fileName}`);
     res.json({ analysis: result });
