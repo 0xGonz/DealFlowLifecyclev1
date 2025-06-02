@@ -115,8 +115,8 @@ const FundSectorDistribution: React.FC<FundSectorDistributionProps> = ({
     const totalAmount = fundedAllocations.reduce((sum, alloc) => sum + (alloc.amount || 0), 0);
     
     fundedAllocations.forEach(allocation => {
-      // Use the allocation's security type as sector
-      const sector = allocation.securityType || "Other";
+      // Use the deal's sector through the relationship
+      const sector = allocation.dealSector || "Other";
       const currentTotal = sectorTotals.get(sector) || 0;
       
       sectorTotals.set(sector, currentTotal + (allocation.amount || 0));

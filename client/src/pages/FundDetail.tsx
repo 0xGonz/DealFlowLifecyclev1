@@ -449,15 +449,10 @@ export default function FundDetail() {
                     <label htmlFor="deal" className="text-sm font-medium">Investment (Deal) *</label>
                     <Select 
                       onValueChange={(value) => {
-                        // Find the selected deal
-                        const selectedDeal = deals?.find((d: Deal) => d.id === parseInt(value));
-                        
-                        // Update form with deal ID - keep security type as "equity", preserve deal's sector separately
+                        // Update form with deal ID - sector comes from deal relationship
                         setNewAllocationData({
                           ...newAllocationData, 
-                          dealId: parseInt(value),
-                          securityType: "equity", // Security type for investment classification
-                          dealSector: selectedDeal?.sector || "" // Preserve deal's actual sector
+                          dealId: parseInt(value)
                         });
                       }}
                     >

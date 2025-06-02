@@ -116,7 +116,6 @@ export interface FundAllocation {
   dealId: number;
   amount: number;
   amountType: "percentage" | "dollar";
-  securityType: string;
   allocationDate: string | Date;
   notes?: string | null;
   status: "committed" | "funded" | "unfunded" | "partially_paid";
@@ -127,6 +126,10 @@ export interface FundAllocation {
   marketValue: number;
   moic: number;
   irr: number;
+  paidAmount?: number; // Actually paid amount
+  // Fields from database joins
+  dealName?: string; // Deal name from join
+  dealSector?: string; // Deal sector from join
   deal?: Deal; // Related deal object
 }
 
