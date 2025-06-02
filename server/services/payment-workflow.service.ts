@@ -101,7 +101,15 @@ export class PaymentWorkflowService {
         };
       }
 
-      // 6. Log the payment for audit trail
+      // 6. Log the payment for audit trail and timeline
+      await PaymentWorkflowService.createPaymentTimelineEvent(
+        updatedAllocation.dealId,
+        allocationId,
+        amount,
+        statusResult,
+        userId || 0
+      );
+
       console.log(`Payment processed: Allocation ${allocationId} - $${amount.toLocaleString()} payment`);
       console.log(`  Previous: $${previousPaidAmount.toLocaleString()} (${previousStatus})`);
       console.log(`  New: $${newPaidAmount.toLocaleString()} (${statusResult.status})`);
@@ -285,6 +293,43 @@ export class PaymentWorkflowService {
     } catch (error) {
       console.error('Repair process error:', error);
       return { repairedCount: 0, errors: [] };
+    }
+  }
+
+  /**
+   * Create timeline event for payment activity
+   */
+  private static async createPaymentTimelineEvent(
+    dealId: number,
+    allocationId: number,
+    paymentAmount: number,
+    statusResult: any,
+    userId: number
+  ): Promise<void> {
+    try {
+      const allocation = await this.storage.getFundAllocation(allocationId);
+      const fund = allocation ? await this.storage.getFund(allocation.fundId) : null;
+      
+      const content = `Payment of $${paymentAmount.toLocaleString()} received for ${fund?.name || 'fund'} allocation. Status: ${statusResult.status} (${statusResult.paidPercentage.toFixed(1)}% paid)`;
+      
+      await this.storage.createTimelineEvent({
+        dealId,
+        eventType: 'capital_call_update',
+        content,
+        createdBy: userId,
+        metadata: [
+          allocationId,
+          paymentAmount,
+          allocation?.fundId || 0,
+          fund?.name || 'Unknown Fund',
+          statusResult.status,
+          statusResult.paidPercentage,
+          statusResult.remainingAmount
+        ] as any
+      });
+    } catch (error) {
+      console.error('Failed to create payment timeline event:', error);
+      // Don't throw - payment processing should continue even if timeline fails
     }
   }
 }
