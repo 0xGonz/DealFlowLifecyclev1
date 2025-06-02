@@ -127,8 +127,12 @@ router.post('/', requireAuth, requirePermission('create', 'allocation'), async (
     // Log the incoming data for debugging
     console.log('Allocation request body:', req.body);
     
-    // Parse and validate the allocation data
-    const allocationData = insertFundAllocationSchema.parse(req.body);
+    // Parse and validate the allocation data - remove amountType since allocations are always in dollars
+    const { amountType, ...cleanRequestBody } = req.body;
+    const allocationData = insertFundAllocationSchema.parse({
+      ...cleanRequestBody,
+      amountType: 'dollar' // Force all allocations to be in dollars
+    });
     
     // For single payment schedules, automatically mark as 'funded' instead of 'committed'
     if (req.body.capitalCallSchedule === 'single') {

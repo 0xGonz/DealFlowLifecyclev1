@@ -34,15 +34,14 @@ interface AllocateFundModalProps {
 interface AllocationFormData {
   fundId: number | null;
   dealId: number;
-  amount: number;
-  amountType: 'dollar' | 'percentage';
+  amount: number; // Always in dollars - no amountType needed
   securityType: string;
   allocationDate: Date;
   capitalCallSchedule: string;
   callFrequency: string;
   callPercentage: number;
-  callAmountType: 'percentage' | 'dollar'; // New field for capital call amount type
-  callDollarAmount: number; // New field for dollar amount in capital calls
+  callAmountType: 'percentage' | 'dollar'; // Capital call payment structure type
+  callDollarAmount: number; // Dollar amount for capital calls when using dollar structure
   firstCallDate: Date;
   callCount: number;
   customSchedule: string;
@@ -63,8 +62,7 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
   const [allocationData, setAllocationData] = useState<AllocationFormData>({
     fundId: null as number | null,
     dealId: dealId,
-    amount: 0,
-    amountType: 'dollar' as 'dollar' | 'percentage', // Add amountType field with default value
+    amount: 0, // Always in dollars
     securityType: '',
     allocationDate: new Date(), // Use actual Date object instead of string
     capitalCallSchedule: '',
@@ -160,7 +158,6 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
         fundId: null,
         dealId: dealId,
         amount: 0,
-        amountType: 'dollar',
         securityType: '',
         allocationDate: new Date(),
         capitalCallSchedule: '',
@@ -412,49 +409,24 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
           </div>
 
           <div className="space-y-2">
-            <div className="flex justify-between">
-              <Label htmlFor="amount">Amount Committed *</Label>
-              <div className="flex items-center space-x-2">
-                <Label htmlFor="amountType" className="text-xs">Type:</Label>
-                <Select
-                  value={allocationData.amountType}
-                  onValueChange={(value) => setAllocationData({
-                    ...allocationData,
-                    amountType: value as 'dollar' | 'percentage'
-                  })}
-                >
-                  <SelectTrigger id="amountType" className="h-7 w-[90px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="dollar">Dollar</SelectItem>
-                    <SelectItem value="percentage">Percentage</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+            <Label htmlFor="amount">Amount Committed (USD) *</Label>
             <div className="relative">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-neutral-500">
-                {allocationData.amountType === 'dollar' ? '$' : ''}
+                $
               </span>
               <Input
                 id="amount"
                 type="number"
                 min="0"
-                step={allocationData.amountType === 'dollar' ? '1000' : '1'}
+                step="1000"
                 className="pl-6"
                 value={allocationData.amount || ''}
                 onChange={(e) => setAllocationData({
                   ...allocationData,
-                  amount: parseFloat(e.target.value)
+                  amount: parseFloat(e.target.value) || 0
                 })}
                 placeholder="0.00"
               />
-              {allocationData.amountType === 'percentage' && (
-                <span className="absolute inset-y-0 right-3 flex items-center text-neutral-500">
-                  %
-                </span>
-              )}
             </div>
           </div>
 

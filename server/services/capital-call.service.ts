@@ -272,7 +272,12 @@ export class CapitalCallService {
       });
       
       calls.push(call);
-      remainingPercentage -= thisCallPercentage;
+      
+      // Only subtract from remaining percentage if using percentage-based calls
+      if (callAmountType === 'percentage') {
+        const thisCallPercentage = i === callCount - 1 ? remainingPercentage : callPercentage;
+        remainingPercentage -= thisCallPercentage;
+      }
     }
     
     return calls;
