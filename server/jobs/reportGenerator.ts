@@ -77,15 +77,51 @@ async function processReportGeneration(job: Job<ReportGenerationJob>) {
         
         job.progress(40);
         
-        // Simulate more complex calculations for portfolio performance
-        await new Promise(resolve => setTimeout(resolve, 5000));
+        // Calculate actual portfolio performance from real data
+        const { FundService } = await import('../services/fund.service');
+        const fundService = new FundService();
+        const funds = await fundService.getAllFundsWithAllocations();
+        
+        // Calculate real portfolio metrics from actual fund data
+        let totalInvested = 0;
+        let totalReturns = 0;
+        let performanceData = [];
+        
+        for (const fund of funds) {
+          const allocations = await storage.getAllocationsByFund(fund.id);
+          const fundInvested = allocations.reduce((sum, alloc) => sum + (Number(alloc.paidAmount) || 0), 0);
+          const fundReturns = allocations.reduce((sum, alloc) => sum + (Number(alloc.totalReturned) || 0), 0);
+          
+          totalInvested += fundInvested;
+          totalReturns += fundReturns;
+          
+          if (fundInvested > 0) {
+            performanceData.push({
+              fundName: fund.name,
+              invested: fundInvested,
+              returns: fundReturns,
+              irr: Number(fund.appreciationRate) || 0
+            });
+          }
+        }
+        
+        // Calculate weighted average IRR from actual fund data
+        const weightedIRRSum = performanceData.reduce((sum, fund) => 
+          sum + (fund.irr * fund.invested), 0
+        );
+        const averageIRR = totalInvested > 0 ? weightedIRRSum / totalInvested : 0;
+        
+        // Find top performer by IRR
+        const topPerformer = performanceData.length > 0 
+          ? performanceData.reduce((max, fund) => fund.irr > max.irr ? fund : max).fundName
+          : 'No investments yet';
         
         reportData = {
           portfolioSize: investedDeals.length,
           metrics: {
-            totalInvested: Math.floor(Math.random() * 10000000) / 100,
-            averageIRR: Math.floor(Math.random() * 3000) / 100,
-            topPerformer: investedDeals.length > 0 ? investedDeals[0].name : 'N/A'
+            totalInvested: totalInvested,
+            averageIRR: averageIRR,
+            topPerformer: topPerformer
           },
           generatedAt: new Date().toISOString()
         };
