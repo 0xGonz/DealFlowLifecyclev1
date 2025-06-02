@@ -8,6 +8,7 @@ import { AuditService } from '../services/audit.service';
 import { ValidationService } from '../services/validation.service';
 import { metricsCalculator } from '../services/metrics-calculator.service';
 import { ErrorHandlerService, ValidationRules } from '../services/error-handler.service';
+import { multiFundAllocationService } from '../services/multi-fund-allocation.service';
 import { z } from 'zod';
 import { requireAuth } from '../utils/auth';
 import { requirePermission } from '../utils/permissions';
@@ -24,6 +25,77 @@ async function updateAllocationStatusBasedOnCapitalCalls(allocationId: number): 
 async function recalculatePortfolioWeights(fundId: number): Promise<void> {
   await allocationService.recalculatePortfolioWeights(fundId);
 }
+
+// Multi-fund allocation endpoints
+
+// GET /api/allocations/deal/:dealId/summary - Get allocation summary for a deal across all funds
+router.get('/deal/:dealId/summary', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const dealId = parseInt(req.params.dealId);
+    
+    if (isNaN(dealId)) {
+      return res.status(400).json({ error: 'Invalid deal ID' });
+    }
+
+    const summary = await multiFundAllocationService.getDealAllocationSummary(dealId);
+    res.json(summary);
+  } catch (error) {
+    console.error('Error getting deal allocation summary:', error);
+    res.status(500).json({ 
+      error: 'Failed to get allocation summary',
+      message: error instanceof Error ? error.message : String(error)
+    });
+  }
+});
+
+// POST /api/allocations/multi-fund - Create allocations for a deal across multiple funds
+router.post('/multi-fund', requireAuth, requirePermission('create', 'allocation'), async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
+    const allocationRequest = req.body;
+    
+    // Validate the request structure
+    if (!allocationRequest.dealId || !Array.isArray(allocationRequest.allocations)) {
+      return res.status(400).json({ 
+        error: 'Invalid request format. Expected dealId and allocations array.' 
+      });
+    }
+
+    const createdAllocations = await multiFundAllocationService.createMultiFundAllocation(
+      allocationRequest,
+      userId,
+      req
+    );
+
+    res.status(201).json({
+      success: true,
+      message: `Created ${createdAllocations.length} allocations across multiple funds`,
+      data: createdAllocations
+    });
+  } catch (error) {
+    console.error('Error creating multi-fund allocation:', error);
+    const errorResponse = ErrorHandlerService.createErrorResponse(error);
+    res.status(errorResponse.error?.code === 'VALIDATION_ERROR' ? 400 : 500).json(errorResponse);
+  }
+});
+
+// GET /api/allocations/deals/multi-fund-status - Get all deals with their multi-fund allocation status
+router.get('/deals/multi-fund-status', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const dealsWithStatus = await multiFundAllocationService.getDealsWithMultiFundStatus();
+    res.json(dealsWithStatus);
+  } catch (error) {
+    console.error('Error getting deals with multi-fund status:', error);
+    res.status(500).json({ 
+      error: 'Failed to get deals with multi-fund status',
+      message: error instanceof Error ? error.message : String(error)
+    });
+  }
+});
 
 // PUT /api/allocations/:id - Update allocation with investment tracking
 router.put('/:id', requireAuth, async (req: Request, res: Response) => {
