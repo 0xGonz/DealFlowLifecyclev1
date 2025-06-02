@@ -345,6 +345,16 @@ export class DatabaseStorage implements IStorage {
   // Mini memos
   async createMiniMemo(memo: InsertMiniMemo): Promise<MiniMemo> {
     const [newMemo] = await db.insert(miniMemos).values(memo).returning();
+    
+    // Create timeline event for the memo creation
+    await this.createTimelineEvent({
+      dealId: memo.dealId,
+      eventType: 'memo_added',
+      content: `Mini-Memo added`,
+      createdBy: memo.userId,
+      metadata: { memoId: newMemo.id }
+    });
+    
     return newMemo;
   }
   
