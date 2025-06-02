@@ -17,6 +17,20 @@ export interface AuditLogEntry {
 
 export class AuditService {
   /**
+   * Custom JSON replacer to handle date objects properly
+   */
+  private static dateReplacer(key: string, value: any): any {
+    if (value instanceof Date) {
+      return value.toISOString();
+    }
+    if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(value)) {
+      // Already formatted date string
+      return value;
+    }
+    return value;
+  }
+
+  /**
    * Log an audit entry for tracking data changes
    */
   static async logAction(entry: AuditLogEntry): Promise<void> {
@@ -41,9 +55,9 @@ export class AuditService {
         entry.entityId,
         entry.action,
         entry.userId,
-        entry.oldValues ? JSON.stringify(entry.oldValues) : null,
-        entry.newValues ? JSON.stringify(entry.newValues) : null,
-        entry.metadata ? JSON.stringify(entry.metadata) : null,
+        entry.oldValues ? JSON.stringify(entry.oldValues, AuditService.dateReplacer) : null,
+        entry.newValues ? JSON.stringify(entry.newValues, AuditService.dateReplacer) : null,
+        entry.metadata ? JSON.stringify(entry.metadata, AuditService.dateReplacer) : null,
         entry.ipAddress,
         entry.userAgent
       ]);

@@ -112,6 +112,24 @@ router.put('/:id', requireAuth, async (req: Request, res: Response) => {
       // Don't fail the update if weight calculation fails
     }
 
+    // Update allocation metrics using the new service
+    try {
+      await metricsCalculator.updateAllocationMetrics(id);
+      console.log(`Allocation metrics updated for allocation ${id}`);
+    } catch (metricsError) {
+      console.error(`Error updating allocation metrics for allocation ${id}:`, metricsError);
+      // Don't fail the update if metrics calculation fails
+    }
+
+    // Recalculate fund-level metrics to ensure AUM and capital calls are updated
+    try {
+      await metricsCalculator.recalculateFundMetrics(result.fundId);
+      console.log(`Fund-level metrics recalculated for fund ${result.fundId}`);
+    } catch (fundMetricsError) {
+      console.error(`Error recalculating fund metrics for fund ${result.fundId}:`, fundMetricsError);
+      // Don't fail the update if fund metrics calculation fails
+    }
+
     // Return the updated allocation
     res.json(result);
   } catch (error) {
