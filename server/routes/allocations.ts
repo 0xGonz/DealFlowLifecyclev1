@@ -11,6 +11,7 @@ import { ErrorHandlerService, ValidationRules } from '../services/error-handler.
 import { multiFundAllocationService } from '../services/multi-fund-allocation.service';
 import { AllocationStatusService } from '../services/allocation-status.service';
 import { PaymentWorkflowService } from '../services/payment-workflow.service';
+import { AllocationSyncService } from '../services/allocation-sync.service';
 import { z } from 'zod';
 import { requireAuth } from '../utils/auth';
 import { requirePermission } from '../utils/permissions';

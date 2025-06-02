@@ -110,6 +110,15 @@ export class PaymentWorkflowService {
         userId || 0
       );
 
+      // 7. Create closing schedule event if this is a significant payment milestone
+      await this.createPaymentClosingEvent(
+        updatedAllocation.dealId,
+        allocationId,
+        amount,
+        statusResult,
+        userId || 0
+      );
+
       console.log(`Payment processed: Allocation ${allocationId} - $${amount.toLocaleString()} payment`);
       console.log(`  Previous: $${previousPaidAmount.toLocaleString()} (${previousStatus})`);
       console.log(`  New: $${newPaidAmount.toLocaleString()} (${statusResult.status})`);
@@ -332,6 +341,61 @@ export class PaymentWorkflowService {
     } catch (error) {
       console.error('Failed to create payment timeline event:', error);
       // Don't throw - payment processing should continue even if timeline fails
+    }
+  }
+
+  /**
+   * Create closing schedule event for significant payment milestones
+   */
+  private static async createPaymentClosingEvent(
+    dealId: number,
+    allocationId: number,
+    paymentAmount: number,
+    statusResult: any,
+    userId: number
+  ): Promise<void> {
+    try {
+      const allocation = await this.storage.getFundAllocation(allocationId);
+      const fund = allocation ? await this.storage.getFund(allocation.fundId) : null;
+      
+      // Only create closing events for significant milestones
+      const paidPercentage = statusResult.paidPercentage;
+      let shouldCreateEvent = false;
+      let eventName = '';
+      
+      if (statusResult.status === 'funded' && paidPercentage >= 100) {
+        shouldCreateEvent = true;
+        eventName = 'Payment Completed';
+      } else if (paidPercentage >= 50 && paidPercentage < 100) {
+        shouldCreateEvent = true;
+        eventName = 'Halfway Payment Milestone';
+      } else if (paidPercentage >= 25 && paidPercentage < 50) {
+        shouldCreateEvent = true;
+        eventName = 'Quarter Payment Milestone';
+      }
+      
+      if (shouldCreateEvent) {
+        // Schedule the closing event for 30 days from now
+        const scheduledDate = new Date();
+        scheduledDate.setDate(scheduledDate.getDate() + 30);
+        
+        await this.storage.createClosingScheduleEvent({
+          dealId,
+          eventType: 'custom',
+          eventName,
+          scheduledDate,
+          targetAmount: paymentAmount,
+          amountType: 'dollar',
+          status: 'scheduled',
+          notes: `Auto-created for ${fund?.name || 'fund'} payment milestone (${paidPercentage.toFixed(1)}% paid)`,
+          createdBy: userId
+        });
+        
+        console.log(`📅 Payment closing event created: ${eventName} for deal ${dealId}`);
+      }
+    } catch (error) {
+      console.error('Failed to create payment closing event:', error);
+      // Don't throw - payment processing should continue even if calendar fails
     }
   }
 }
