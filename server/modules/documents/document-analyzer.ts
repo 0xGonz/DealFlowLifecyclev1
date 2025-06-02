@@ -118,7 +118,7 @@ export class DocumentAnalyzer {
    */
   validateAnalysisData(documentContents: DocumentContent[], deal: any): void {
     if (documentContents.length === 0) {
-      throw new Error(`No authentic document content available for analysis of "${deal.name}". Please upload documents to enable AI analysis.`);
+      console.warn(`No document content available for ${deal.name}, proceeding with deal-level analysis only`);
     }
   }
 
@@ -144,12 +144,16 @@ export class DocumentAnalyzer {
     if (deal.valuation) analysisPrompt += `Valuation: ${deal.valuation}\n`;
     analysisPrompt += `\n`;
 
-    // Add document contents
-    analysisPrompt += `DOCUMENTS (${documentContents.length}):\n\n`;
-    documentContents.forEach((doc, index) => {
-      analysisPrompt += `Document ${index + 1}: ${doc.fileName} (${doc.documentType})\n`;
-      analysisPrompt += `Content:\n${doc.content}\n\n`;
-    });
+    // Add document contents if available
+    if (documentContents.length > 0) {
+      analysisPrompt += `DOCUMENTS (${documentContents.length}):\n\n`;
+      documentContents.forEach((doc, index) => {
+        analysisPrompt += `Document ${index + 1}: ${doc.fileName} (${doc.documentType})\n`;
+        analysisPrompt += `Content:\n${doc.content}\n\n`;
+      });
+    } else {
+      analysisPrompt += `NOTE: No document content available for detailed analysis. Analysis will be based on available deal information only.\n\n`;
+    }
 
     // Add specific query or default analysis request
     const analysisQuery = query || 
