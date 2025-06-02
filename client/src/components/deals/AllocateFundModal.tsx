@@ -34,14 +34,14 @@ interface AllocateFundModalProps {
 interface AllocationFormData {
   fundId: number | null;
   dealId: number;
-  amount: number; // Always in dollars - no amountType needed
+  amount: number;
   securityType: string;
   allocationDate: Date;
   capitalCallSchedule: string;
   callFrequency: string;
   callPercentage: number;
-  callAmountType: 'percentage' | 'dollar'; // Capital call payment structure type
-  callDollarAmount: number; // Dollar amount for capital calls when using dollar structure
+  callAmountType: 'percentage' | 'dollar';
+  callDollarAmount: number;
   firstCallDate: Date;
   callCount: number;
   customSchedule: string;
@@ -62,22 +62,19 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
   const [allocationData, setAllocationData] = useState<AllocationFormData>({
     fundId: null as number | null,
     dealId: dealId,
-    amount: 0, // Always in dollars
+    amount: 0,
     securityType: '',
-    allocationDate: new Date(), // Use actual Date object instead of string
+    allocationDate: new Date(),
     capitalCallSchedule: '',
-    // Capital call details
     callFrequency: '',
     callPercentage: 0,
-    callAmountType: 'percentage', // Default to percentage for capital calls
-    callDollarAmount: 0, // Default dollar amount for capital calls
-    firstCallDate: new Date(), // Use actual Date object instead of string
+    callAmountType: 'percentage',
+    callDollarAmount: 0,
+    firstCallDate: new Date(),
     callCount: 1,
-    customSchedule: '', // JSON string for custom payment structure
+    customSchedule: '',
     notes: '',
-    // Always committed for new allocations
     status: ALLOCATION_STATUS.COMMITTED,
-    // These fields are initialized but not shown in the form
     portfolioWeight: 0,
     interestPaid: 0,
     distributionPaid: 0,
@@ -95,65 +92,102 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
     queryKey: ['/api/funds'],
   });
 
+  // Helper function to create capital calls for an allocation
+  const createCapitalCallsForAllocation = async (allocationId: number, data: AllocationFormData) => {
+    try {
+      if (data.capitalCallSchedule === 'custom' && customCalls.length > 0) {
+        // Create custom capital calls
+        for (const call of customCalls) {
+          const capitalCallPayload = {
+            allocationId: allocationId,
+            callAmount: data.callAmountType === 'percentage' 
+              ? (call.percentage / 100) * data.amount 
+              : data.callDollarAmount,
+            amountType: data.callAmountType,
+            callDate: formatDateForAPI(new Date(call.date)),
+            dueDate: formatDateForAPI(new Date(call.date)),
+            status: 'scheduled',
+            notes: `Auto-generated from custom schedule`
+          };
+          
+          await apiRequest('POST', '/api/capital-calls', capitalCallPayload);
+        }
+      } else if (data.capitalCallSchedule !== 'none') {
+        // Create standard capital calls based on schedule
+        const callAmount = data.callAmountType === 'percentage' 
+          ? (data.callPercentage / 100) * data.amount 
+          : data.callDollarAmount;
+        
+        for (let i = 0; i < data.callCount; i++) {
+          const callDate = new Date(data.firstCallDate);
+          
+          // Adjust date based on frequency
+          if (data.callFrequency === 'monthly') {
+            callDate.setMonth(callDate.getMonth() + i);
+          } else if (data.callFrequency === 'quarterly') {
+            callDate.setMonth(callDate.getMonth() + (i * 3));
+          } else if (data.callFrequency === 'annually') {
+            callDate.setFullYear(callDate.getFullYear() + i);
+          }
+          
+          const capitalCallPayload = {
+            allocationId: allocationId,
+            callAmount: callAmount,
+            amountType: data.callAmountType,
+            callDate: formatDateForAPI(callDate),
+            dueDate: formatDateForAPI(new Date(callDate.getTime() + (30 * 24 * 60 * 60 * 1000))), // 30 days after call date
+            status: 'scheduled',
+            notes: `Auto-generated capital call ${i + 1} of ${data.callCount}`
+          };
+          
+          await apiRequest('POST', '/api/capital-calls', capitalCallPayload);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to create capital calls:', error);
+      throw error;
+    }
+  };
+
   // Create allocation mutation
   const createAllocation = useMutation({
     mutationFn: async (data: AllocationFormData) => {
-      // Use the formatDateForAPI utility for consistent date handling
-      const formattedData = {
-        ...data,
-        // Convert Date objects to strings with noon UTC
+      // Prepare allocation data for API
+      const allocationPayload = {
+        fundId: data.fundId,
+        dealId: data.dealId,
+        amount: data.amount,
+        securityType: data.securityType,
         allocationDate: formatDateForAPI(data.allocationDate),
-        firstCallDate: formatDateForAPI(data.firstCallDate)
+        status: data.status,
+        notes: data.notes,
+        portfolioWeight: data.portfolioWeight,
+        interestPaid: data.interestPaid,
+        distributionPaid: data.distributionPaid,
+        marketValue: data.marketValue,
+        moic: data.moic,
+        irr: data.irr
       };
+
+      console.log('Creating allocation with data:', allocationPayload);
       
-      console.log('Allocation dates:', {
-        originalAllocationDate: data.allocationDate,
-        originalFirstCallDate: data.firstCallDate,
-        formattedAllocationDate: formattedData.allocationDate,
-        formattedFirstCallDate: formattedData.firstCallDate
-      });
+      const response = await apiRequest('POST', '/api/allocations', allocationPayload);
+      const allocation = await response.json();
       
-      try {
-        console.log('Sending API request to POST /api/allocations');
-        const response = await apiRequest("POST", "/api/allocations", formattedData);
-        console.log('API response received:', response);
-        
-        // Check if response is not ok and handle the error
-        if (!response.ok) {
-          // Clone the response before reading its body
-          const errorClone = response.clone();
-          let errorMessage = 'Failed to allocate investment';
-          
-          try {
-            console.log('Parsing error response...');
-            const errorData = await errorClone.json();
-            console.log('Parsed error data:', errorData);
-            errorMessage = errorData.message || errorMessage;
-            if (errorData.errors && errorData.errors.length > 0) {
-              // Add specific validation error details
-              errorMessage += `: ${errorData.errors[0].message}`;
-            }
-          } catch (e) {
-            console.error('Error parsing error response:', e);
-          }
-          
-          throw new Error(errorMessage);
-        }
-        
-        console.log('Successful response, parsing JSON');
-        return await response.json();
-      } catch (error) {
-        console.error('Exception in mutation function:', error);
-        throw error;
+      // If capital call schedule is specified, create capital calls
+      if (data.capitalCallSchedule && data.capitalCallSchedule !== 'none') {
+        await createCapitalCallsForAllocation(allocation.id, data);
       }
+      
+      return allocation;
     },
     onSuccess: () => {
       toast({
-        title: "Success",
-        description: "Investment allocated successfully"
+        title: "Allocation created successfully",
+        description: `Fund allocation for ${dealName} has been created.`,
       });
-
-      // Reset form and close dialog
+      
+      // Reset form and close modal
       setAllocationData({
         fundId: null,
         dealId: dealId,
@@ -161,7 +195,6 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
         securityType: '',
         allocationDate: new Date(),
         capitalCallSchedule: '',
-        // Reset capital call details
         callFrequency: '',
         callPercentage: 0,
         callAmountType: 'percentage',
@@ -170,7 +203,6 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
         callCount: 1,
         customSchedule: '',
         notes: '',
-        // Reset investment tracking fields
         status: ALLOCATION_STATUS.COMMITTED,
         portfolioWeight: 0,
         interestPaid: 0,
@@ -180,579 +212,274 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
         irr: 0
       });
       
-      // Reset custom calls
-      setCustomCalls([]);
-      setShowCustomFields(false);
-
-      // Invalidate queries to refresh data
+      // Invalidate relevant queries to refresh data
       queryClient.invalidateQueries({ queryKey: [`/api/allocations/deal/${dealId}`] });
-      queryClient.invalidateQueries({ queryKey: ['/api/allocations'] }); // Invalidate all allocations for funds page
-      queryClient.invalidateQueries({ queryKey: ['/api/deals'] });
-      queryClient.invalidateQueries({ queryKey: [`/api/deals/${dealId}`] });
-      
-      // If there's a fundId, invalidate that fund's data too
-      if (allocationData.fundId) {
-        queryClient.invalidateQueries({ queryKey: [`/api/funds/${allocationData.fundId}`] });
-        queryClient.invalidateQueries({ queryKey: [`/api/allocations/fund/${allocationData.fundId}`] });
-      }
-      
-      // Invalidate funds query to refresh the AUM calculations
       queryClient.invalidateQueries({ queryKey: ['/api/funds'] });
       
-      // Close modal
       onClose();
     },
-    onError: (error) => {
-      console.error('Allocation error:', error);
+    onError: (error: any) => {
+      console.error('Allocation creation failed:', error);
       toast({
-        title: "Error",
-        description: `Failed to allocate investment: ${error.message || 'Unknown error'}`,
-        variant: "destructive"
+        title: "Failed to create allocation",
+        description: error.message || "An unexpected error occurred.",
+        variant: "destructive",
       });
-    }
+    },
   });
 
-  // Fetch the deal to get its sector
-  const { data: deal } = useQuery<any>({
-    queryKey: [`/api/deals/${dealId}`],
-    enabled: !!dealId
-  });
-  
-  // When deal data is loaded, set securityType
-  useEffect(() => {
-    if (deal?.sector && !allocationData.securityType) {
-      setAllocationData(prev => ({ 
-        ...prev, 
-        securityType: deal.sector 
-      }));
+  // Form submission handler
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validation
+    if (!allocationData.fundId) {
+      toast({
+        title: "Validation Error",
+        description: "Please select a fund.",
+        variant: "destructive",
+      });
+      return;
     }
-  }, [deal, allocationData.securityType]);
-  
-  // Show or hide additional fields based on capital call schedule selection
-  useEffect(() => {
-    if (allocationData.capitalCallSchedule === CAPITAL_CALL_SCHEDULES.CUSTOM) {
+    
+    if (!allocationData.amount || allocationData.amount <= 0) {
+      toast({
+        title: "Validation Error", 
+        description: "Please enter a valid allocation amount.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!allocationData.securityType) {
+      toast({
+        title: "Validation Error",
+        description: "Please enter a security type.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Submit the allocation
+    createAllocation.mutate(allocationData);
+  };
+
+  // Handle capital call schedule changes
+  const handleCapitalCallScheduleChange = (value: string) => {
+    setAllocationData(prev => ({ ...prev, capitalCallSchedule: value }));
+    
+    if (value === 'custom') {
       setShowCustomFields(true);
     } else {
       setShowCustomFields(false);
     }
-  }, [allocationData.capitalCallSchedule]);
-  
-  // Update defaults based on capital call schedule
-  useEffect(() => {
-    if (allocationData.capitalCallSchedule === CAPITAL_CALL_SCHEDULES.SINGLE) {
-      // For single payments, set 100% and update status to 'funded'
-      setAllocationData(prev => ({
-        ...prev,
-        callPercentage: 100,
-        callCount: 1,
-        status: ALLOCATION_STATUS.FUNDED // Single payments are automatically marked as funded
-      }));
-    } else if (allocationData.capitalCallSchedule === CAPITAL_CALL_SCHEDULES.QUARTERLY) {
-      setAllocationData(prev => ({
-        ...prev,
-        callPercentage: 25, // 25% per quarter
-        callCount: 4,
-        status: ALLOCATION_STATUS.COMMITTED
-      }));
-    } else if (allocationData.capitalCallSchedule === CAPITAL_CALL_SCHEDULES.MONTHLY) {
-      setAllocationData(prev => ({
-        ...prev,
-        callPercentage: 8.33, // ~8.33% per month
-        callCount: 12,
-        status: ALLOCATION_STATUS.COMMITTED
-      }));
-    } else if (allocationData.capitalCallSchedule === CAPITAL_CALL_SCHEDULES.BIANNUAL) {
-      setAllocationData(prev => ({
-        ...prev,
-        callPercentage: 50, // 50% twice a year
-        callCount: 2,
-        status: ALLOCATION_STATUS.COMMITTED
-      }));
-    } else if (allocationData.capitalCallSchedule === CAPITAL_CALL_SCHEDULES.ANNUAL) {
-      setAllocationData(prev => ({
-        ...prev,
-        callPercentage: 100, // 100% once a year
-        callCount: 1,
-        status: ALLOCATION_STATUS.COMMITTED
-      }));
-    }
-  }, [allocationData.capitalCallSchedule]);
-
-  const handleCreateAllocation = () => {
-    // Log the allocation data for debugging
-    console.log('Allocation data being sent:', allocationData);
     
-    if (!allocationData.fundId) {
-      toast({
-        title: "Error",
-        description: "Please select a fund",
-        variant: "destructive"
-      });
-      return;
+    if (value === 'none') {
+      // Reset capital call related fields
+      setAllocationData(prev => ({
+        ...prev,
+        callFrequency: '',
+        callPercentage: 0,
+        callDollarAmount: 0,
+        callCount: 1
+      }));
     }
-
-    if (!allocationData.amount || allocationData.amount <= 0) {
-      toast({
-        title: "Error",
-        description: "Amount must be greater than 0",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Use the securityType from the deal sector, but validate it exists
-    if (!allocationData.securityType) {
-      toast({
-        title: "Error",
-        description: "Invalid sector information",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    // Validate capital call schedule if one is selected
-    if (allocationData.capitalCallSchedule) {
-      // For regular schedules, validate the amount based on type
-      if (allocationData.capitalCallSchedule !== CAPITAL_CALL_SCHEDULES.CUSTOM) {
-        if (allocationData.callAmountType === 'percentage') {
-          if (!allocationData.callPercentage || allocationData.callPercentage <= 0) {
-            toast({
-              title: "Error",
-              description: "Please enter a valid payment percentage greater than 0",
-              variant: "destructive"
-            });
-            return;
-          }
-        } else if (allocationData.callAmountType === 'dollar') {
-          if (!allocationData.callDollarAmount || allocationData.callDollarAmount <= 0) {
-            toast({
-              title: "Error", 
-              description: "Please enter a valid payment amount greater than 0",
-              variant: "destructive"
-            });
-            return;
-          }
-        }
-      }
-      
-      // For custom schedule, validate entries
-      if (allocationData.capitalCallSchedule === CAPITAL_CALL_SCHEDULES.CUSTOM) {
-        if (customCalls.length === 0) {
-          toast({
-            title: "Error",
-            description: "Please add at least one payment to your custom schedule",
-            variant: "destructive"
-          });
-          return;
-        }
-        
-        const totalPercentage = customCalls.reduce((sum, call) => sum + (call.percentage || 0), 0);
-        if (totalPercentage <= 0) {
-          toast({
-            title: "Error",
-            description: "Total percentage must be greater than 0",
-            variant: "destructive"
-          });
-          return;
-        }
-        
-        // Check if any dates are missing
-        const invalidDates = customCalls.some(call => !call.date);
-        if (invalidDates) {
-          toast({
-            title: "Error",
-            description: "All payment dates must be set",
-            variant: "destructive"
-          });
-          return;
-        }
-      }
-    }
-
-    createAllocation.mutate(allocationData);
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Allocate Investment</DialogTitle>
+          <DialogTitle>Allocate Fund to Deal</DialogTitle>
           <DialogDescription>
-            Record an investment allocation for {dealName}
+            Allocate capital from a fund to {dealName}
           </DialogDescription>
         </DialogHeader>
-
-        <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="fund">Fund *</Label>
-            <Select
-              onValueChange={(value) => setAllocationData({
-                ...allocationData,
-                fundId: parseInt(value)
-              })}
-            >
-              <SelectTrigger id="fund">
-                <SelectValue placeholder="Select a fund" />
-              </SelectTrigger>
-              <SelectContent>
-                {isFundsLoading ? (
-                  <SelectItem value="loading" disabled>Loading funds...</SelectItem>
-                ) : (
-                  funds?.map((fund: any) => (
+        
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Basic Allocation Fields */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="fund">Fund</Label>
+              <Select
+                value={allocationData.fundId?.toString() || ''}
+                onValueChange={(value) => setAllocationData(prev => ({ ...prev, fundId: parseInt(value) }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a fund" />
+                </SelectTrigger>
+                <SelectContent>
+                  {funds.map(fund => (
                     <SelectItem key={fund.id} value={fund.id.toString()}>
                       {fund.name}
                     </SelectItem>
-                  ))
-                )}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="amount">Amount Committed (USD) *</Label>
-            <div className="relative">
-              <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-neutral-500">
-                $
-              </span>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="amount">Allocation Amount ($)</Label>
               <Input
                 id="amount"
                 type="number"
-                min="0"
-                step="1000"
-                className="pl-6"
+                step="0.01"
                 value={allocationData.amount || ''}
-                onChange={(e) => setAllocationData({
-                  ...allocationData,
-                  amount: parseFloat(e.target.value) || 0
-                })}
+                onChange={(e) => setAllocationData(prev => ({ ...prev, amount: parseFloat(e.target.value) || 0 }))}
                 placeholder="0.00"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="securityType">Security Type</Label>
+              <Input
+                id="securityType"
+                value={allocationData.securityType}
+                onChange={(e) => setAllocationData(prev => ({ ...prev, securityType: e.target.value }))}
+                placeholder="e.g., Preferred Stock, Common Stock, Convertible Note"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="allocationDate">Allocation Date</Label>
+              <Input
+                id="allocationDate"
+                type="date"
+                value={format(allocationData.allocationDate, 'yyyy-MM-dd')}
+                onChange={(e) => setAllocationData(prev => ({ ...prev, allocationDate: new Date(e.target.value) }))}
               />
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="allocationDate">Commitment Date *</Label>
-            <Input
-              id="allocationDate"
-              type="date"
-              value={allocationData.allocationDate instanceof Date 
-                ? allocationData.allocationDate.toISOString().split('T')[0] 
-                : ''}
-              onChange={(e) => setAllocationData({
-                ...allocationData,
-                allocationDate: e.target.value ? new Date(e.target.value) : new Date()
-              })}
-            />
-          </div>
+          {/* Capital Call Schedule */}
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="capitalCallSchedule">Capital Call Schedule</Label>
+              <Select
+                value={allocationData.capitalCallSchedule}
+                onValueChange={handleCapitalCallScheduleChange}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select capital call schedule" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No Capital Calls</SelectItem>
+                  <SelectItem value="standard">Standard Schedule</SelectItem>
+                  <SelectItem value="custom">Custom Schedule</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="capitalCallSchedule">Capital Call Schedule</Label>
-            <Select
-              onValueChange={(value) => setAllocationData({
-                ...allocationData,
-                capitalCallSchedule: value
-              })}
-            >
-              <SelectTrigger id="capitalCallSchedule">
-                <SelectValue placeholder="Select payment schedule" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={CAPITAL_CALL_SCHEDULES.SINGLE}>{PAYMENT_SCHEDULE_LABELS[CAPITAL_CALL_SCHEDULES.SINGLE]}</SelectItem>
-                <SelectItem value={CAPITAL_CALL_SCHEDULES.QUARTERLY}>{PAYMENT_SCHEDULE_LABELS[CAPITAL_CALL_SCHEDULES.QUARTERLY]}</SelectItem>
-                <SelectItem value={CAPITAL_CALL_SCHEDULES.MONTHLY}>{PAYMENT_SCHEDULE_LABELS[CAPITAL_CALL_SCHEDULES.MONTHLY]}</SelectItem>
-                <SelectItem value={CAPITAL_CALL_SCHEDULES.BIANNUAL}>{PAYMENT_SCHEDULE_LABELS[CAPITAL_CALL_SCHEDULES.BIANNUAL]}</SelectItem>
-                <SelectItem value={CAPITAL_CALL_SCHEDULES.ANNUAL}>{PAYMENT_SCHEDULE_LABELS[CAPITAL_CALL_SCHEDULES.ANNUAL]}</SelectItem>
-                <SelectItem value={CAPITAL_CALL_SCHEDULES.CUSTOM}>{PAYMENT_SCHEDULE_LABELS[CAPITAL_CALL_SCHEDULES.CUSTOM]}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Conditional fields based on capital call schedule */}
-          {allocationData.capitalCallSchedule && allocationData.capitalCallSchedule !== CAPITAL_CALL_SCHEDULES.CUSTOM && (
-            <div className="space-y-4 border rounded-lg p-4 bg-gray-50">
-              <h4 className="font-medium text-sm">Capital Call Details</h4>
-              
-              {/* Capital call amount type and value fields */}
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <Label htmlFor="callAmount">
-                    {PAYMENT_SCHEDULE_LABELS[allocationData.capitalCallSchedule as keyof typeof PAYMENT_SCHEDULE_LABELS]} Payment Amount
-                  </Label>
-                  <div className="flex items-center space-x-2">
-                    <Label htmlFor="callAmountType" className="text-xs">Type:</Label>
-                    <Select
-                      value={allocationData.callAmountType}
-                      onValueChange={(value) => setAllocationData({
-                        ...allocationData,
-                        callAmountType: value as 'percentage' | 'dollar'
-                      })}
-                    >
-                      <SelectTrigger id="callAmountType" className="h-7 w-[90px]">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="percentage">Percentage</SelectItem>
-                        <SelectItem value="dollar">Dollar</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+            {/* Standard Capital Call Fields */}
+            {allocationData.capitalCallSchedule === 'standard' && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border rounded-lg">
+                <div className="space-y-2">
+                  <Label htmlFor="callFrequency">Call Frequency</Label>
+                  <Select
+                    value={allocationData.callFrequency}
+                    onValueChange={(value) => setAllocationData(prev => ({ ...prev, callFrequency: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select frequency" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="monthly">Monthly</SelectItem>
+                      <SelectItem value="quarterly">Quarterly</SelectItem>
+                      <SelectItem value="annually">Annually</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 
-                {/* Conditional input based on amount type */}
-                {allocationData.callAmountType === 'percentage' ? (
-                  <div className="relative">
-                    <span className="absolute inset-y-0 right-3 flex items-center text-neutral-500">
-                      %
-                    </span>
+                <div className="space-y-2">
+                  <Label htmlFor="callAmountType">Call Amount Type</Label>
+                  <Select
+                    value={allocationData.callAmountType}
+                    onValueChange={(value) => setAllocationData(prev => ({ ...prev, callAmountType: value as 'percentage' | 'dollar' }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="percentage">Percentage</SelectItem>
+                      <SelectItem value="dollar">Dollar Amount</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                {allocationData.callAmountType === 'percentage' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="callPercentage">Call Percentage (%)</Label>
                     <Input
                       id="callPercentage"
                       type="number"
-                      min="0"
-                      max="100"
-                      step="1"
-                      className="pr-8"
+                      step="0.01"
                       value={allocationData.callPercentage || ''}
-                      onChange={(e) => setAllocationData({
-                        ...allocationData,
-                        callPercentage: parseFloat(e.target.value) || 0
-                      })}
-                      placeholder="0"
-                    />
-                  </div>
-                ) : (
-                  <div className="relative">
-                    <span className="absolute inset-y-0 left-3 flex items-center text-neutral-500">
-                      $
-                    </span>
-                    <Input
-                      id="callDollarAmount"
-                      type="number"
-                      min="0"
-                      step="1000"
-                      className="pl-8"
-                      value={allocationData.callDollarAmount || ''}
-                      onChange={(e) => setAllocationData({
-                        ...allocationData,
-                        callDollarAmount: parseFloat(e.target.value) || 0
-                      })}
-                      placeholder="0"
+                      onChange={(e) => setAllocationData(prev => ({ ...prev, callPercentage: parseFloat(e.target.value) || 0 }))}
+                      placeholder="0.00"
                     />
                   </div>
                 )}
-              </div>
-              
-              {/* First call date */}
-              <div className="space-y-2">
-                <Label htmlFor="firstCallDate">First Call Date</Label>
-                <Input
-                  id="firstCallDate"
-                  type="date"
-                  value={allocationData.firstCallDate instanceof Date 
-                    ? allocationData.firstCallDate.toISOString().split('T')[0] 
-                    : ''}
-                  onChange={(e) => setAllocationData({
-                    ...allocationData,
-                    firstCallDate: e.target.value ? new Date(e.target.value) : new Date()
-                  })}
-                />
-              </div>
-              
-              {/* Number of calls (not applicable for single payment) */}
-              {allocationData.capitalCallSchedule !== CAPITAL_CALL_SCHEDULES.SINGLE && (
+                
+                {allocationData.callAmountType === 'dollar' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="callDollarAmount">Call Amount ($)</Label>
+                    <Input
+                      id="callDollarAmount"
+                      type="number"
+                      step="0.01"
+                      value={allocationData.callDollarAmount || ''}
+                      onChange={(e) => setAllocationData(prev => ({ ...prev, callDollarAmount: parseFloat(e.target.value) || 0 }))}
+                      placeholder="0.00"
+                    />
+                  </div>
+                )}
+                
                 <div className="space-y-2">
-                  <Label htmlFor="callCount">Number of Payments</Label>
+                  <Label htmlFor="firstCallDate">First Call Date</Label>
+                  <Input
+                    id="firstCallDate"
+                    type="date"
+                    value={format(allocationData.firstCallDate, 'yyyy-MM-dd')}
+                    onChange={(e) => setAllocationData(prev => ({ ...prev, firstCallDate: new Date(e.target.value) }))}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="callCount">Number of Calls</Label>
                   <Input
                     id="callCount"
                     type="number"
                     min="1"
-                    max="36"
-                    step="1"
                     value={allocationData.callCount}
-                    onChange={(e) => setAllocationData({
-                      ...allocationData,
-                      callCount: parseInt(e.target.value)
-                    })}
-                    placeholder="1"
+                    onChange={(e) => setAllocationData(prev => ({ ...prev, callCount: parseInt(e.target.value) || 1 }))}
                   />
                 </div>
-              )}
-            </div>
-          )}
-          
-          {/* Custom schedule fields */}
-          {showCustomFields && (
-            <div className="space-y-4 border rounded-lg p-4 bg-gray-50">
-              <div className="flex items-center justify-between">
-                <h4 className="font-medium text-sm">Custom Payment Schedule</h4>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    // Add a new custom call entry
-                    const newCustomCalls = [...customCalls, {
-                      date: new Date().toISOString().split('T')[0],
-                      percentage: 0,
-                      amountType: 'percentage' // Default to percentage
-                    }];
-                    setCustomCalls(newCustomCalls);
-                    
-                    // Update the allocation data with JSON string of custom calls
-                    setAllocationData({
-                      ...allocationData,
-                      customSchedule: JSON.stringify(newCustomCalls)
-                    });
-                  }}
-                >
-                  Add Payment
-                </Button>
               </div>
-              
-              {customCalls.length === 0 ? (
-                <div className="text-sm text-gray-500 italic">
-                  No custom payments added. Click "Add Payment" to begin creating your schedule.
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {customCalls.map((call, index) => (
-                    <div key={index} className="flex space-x-2 items-end">
-                      <div className="flex-1">
-                        <Label htmlFor={`callDate-${index}`} className="text-xs">Date</Label>
-                        <Input
-                          id={`callDate-${index}`}
-                          type="date"
-                          value={call.date}
-                          onChange={(e) => {
-                            const updatedCalls = [...customCalls];
-                            updatedCalls[index].date = e.target.value;
-                            setCustomCalls(updatedCalls);
-                            setAllocationData({
-                              ...allocationData,
-                              customSchedule: JSON.stringify(updatedCalls)
-                            });
-                          }}
-                        />
-                      </div>
-                      <div className="flex flex-col w-36">
-                        <div className="flex justify-between items-center mb-1">
-                          <Label htmlFor={`callPercentage-${index}`} className="text-xs">
-                            {call.amountType === 'dollar' ? 'Amount' : 'Percentage'}
-                          </Label>
-                          <Select
-                            value={call.amountType || 'percentage'}
-                            onValueChange={(value) => {
-                              const updatedCalls = [...customCalls];
-                              updatedCalls[index].amountType = value;
-                              setCustomCalls(updatedCalls);
-                              setAllocationData({
-                                ...allocationData,
-                                customSchedule: JSON.stringify(updatedCalls)
-                              });
-                            }}
-                          >
-                            <SelectTrigger className="h-6 text-xs border-none bg-transparent px-0">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="percentage">Percentage</SelectItem>
-                              <SelectItem value="dollar">Dollar Amount</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="relative">
-                          <span className="absolute inset-y-0 right-3 flex items-center text-neutral-500">
-                            {call.amountType === 'dollar' ? '$' : '%'}
-                          </span>
-                          <Input
-                            id={`callPercentage-${index}`}
-                            type="number"
-                            min="0"
-                            max={call.amountType === 'percentage' ? 100 : undefined}
-                            step={call.amountType === 'dollar' ? 1000 : 1}
-                            className="pr-8"
-                            value={call.percentage}
-                            onChange={(e) => {
-                              const updatedCalls = [...customCalls];
-                              updatedCalls[index].percentage = parseFloat(e.target.value);
-                              setCustomCalls(updatedCalls);
-                              setAllocationData({
-                                ...allocationData,
-                                customSchedule: JSON.stringify(updatedCalls)
-                              });
-                            }}
-                          />
-                        </div>
-                      </div>
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="icon"
-                        className="h-10 w-10"
-                        onClick={() => {
-                          const updatedCalls = customCalls.filter((_, i) => i !== index);
-                          setCustomCalls(updatedCalls);
-                          setAllocationData({
-                            ...allocationData,
-                            customSchedule: JSON.stringify(updatedCalls)
-                          });
-                        }}
-                      >
-                        ×
-                      </Button>
-                    </div>
-                  ))}
-                  
-                  <div className="flex justify-between items-center text-sm font-medium pt-2">
-                    <span>Total:</span>
-                    <div className="space-y-1">
-                      {/* Show percentage total */}
-                      <div className="text-sm">
-                        {formatPercentage(
-                          customCalls
-                            .filter(call => call.amountType === 'percentage' || !call.amountType)
-                            .reduce((sum, call) => sum + (call.percentage || 0), 0), 
-                          FINANCIAL_CALCULATION.PRECISION.PERCENTAGE
-                        )}
-                      </div>
-                      {/* Show dollar amount total if any dollar amounts exist */}
-                      {customCalls.some(call => call.amountType === 'dollar') && (
-                        <div className="text-sm">
-                          ${customCalls
-                              .filter(call => call.amountType === 'dollar')
-                              .reduce((sum, call) => sum + (call.percentage || 0), 0)
-                              .toLocaleString()}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
+            )}
+          </div>
 
+          {/* Notes */}
           <div className="space-y-2">
-            <Label htmlFor="notes">Notes</Label>
+            <Label htmlFor="notes">Notes (Optional)</Label>
             <Textarea
               id="notes"
               value={allocationData.notes}
-              onChange={(e) => setAllocationData({
-                ...allocationData,
-                notes: e.target.value
-              })}
-              placeholder="Any additional details about this investment"
+              onChange={(e) => setAllocationData(prev => ({ ...prev, notes: e.target.value }))}
+              placeholder="Additional notes about this allocation..."
+              rows={3}
             />
           </div>
-        </div>
-
+        </form>
+        
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button
-            onClick={handleCreateAllocation}
+          <Button 
+            onClick={handleSubmit}
             disabled={createAllocation.isPending}
           >
-            {createAllocation.isPending ? "Allocating..." : "Allocate Investment"}
+            {createAllocation.isPending ? 'Creating...' : 'Create Allocation'}
           </Button>
         </DialogFooter>
       </DialogContent>
