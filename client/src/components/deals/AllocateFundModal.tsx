@@ -280,7 +280,10 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
               id="commitmentDate"
               type="date"
               value={format(allocationData.commitmentDate, 'yyyy-MM-dd')}
-              onChange={(e) => setAllocationData(prev => ({ ...prev, commitmentDate: new Date(e.target.value) }))}
+              onChange={(e) => {
+                const date = new Date(e.target.value + 'T12:00:00.000Z');
+                setAllocationData(prev => ({ ...prev, commitmentDate: date }));
+              }}
             />
           </div>
 
@@ -332,7 +335,10 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
                   id="fundingDate"
                   type="date"
                   value={format(allocationData.fundingDate, 'yyyy-MM-dd')}
-                  onChange={(e) => setAllocationData(prev => ({ ...prev, fundingDate: new Date(e.target.value) }))}
+                  onChange={(e) => {
+                    const date = new Date(e.target.value + 'T12:00:00.000Z');
+                    setAllocationData(prev => ({ ...prev, fundingDate: date }));
+                  }}
                 />
               </div>
             )}
