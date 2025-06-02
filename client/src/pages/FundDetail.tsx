@@ -110,7 +110,6 @@ export default function FundDetail() {
     amount: number;
     amountType?: "percentage" | "dollar";
     securityType: string;
-    dealSector?: string;
     allocationDate: string;
     notes: string;
     status: "committed" | "funded" | "unfunded" | "partially_paid";
@@ -177,19 +176,17 @@ export default function FundDetail() {
     }))
   });
 
-  // Get invested deals only (for allocation creation and reference)
+  // Get all deals (for allocation creation and reference)
   const { data: deals } = useQuery({
     queryKey: ["/api/deals"],
     // Avoid null or undefined deals which could cause type errors
-    select: (data: Deal[] | undefined) => (data || [])
-      .filter(deal => deal.stage === 'invested') // Only show invested deals
-      .map(deal => ({
-        ...deal,
-        // Ensure potentially undefined fields are set to null to match component expectations
-        notes: deal.notes || null,
-        description: deal.description || null,
-        sector: deal.sector || null
-      })) as Deal[]
+    select: (data: Deal[] | undefined) => (data || []).map(deal => ({
+      ...deal,
+      // Ensure potentially undefined fields are set to null to match component expectations
+      notes: deal.notes || null,
+      description: deal.description || null,
+      sector: deal.sector || null
+    })) as Deal[]
   });
 
   // Create allocation mutation
@@ -449,10 +446,14 @@ export default function FundDetail() {
                     <label htmlFor="deal" className="text-sm font-medium">Investment (Deal) *</label>
                     <Select 
                       onValueChange={(value) => {
-                        // Update form with deal ID - sector comes from deal relationship
+                        // Find the selected deal
+                        const selectedDeal = deals?.find((d: Deal) => d.id === parseInt(value));
+                        
+                        // Update form with deal ID and populate sector from deal
                         setNewAllocationData({
                           ...newAllocationData, 
-                          dealId: parseInt(value)
+                          dealId: parseInt(value),
+                          securityType: selectedDeal?.sector || ""
                         });
                       }}
                     >
@@ -470,10 +471,10 @@ export default function FundDetail() {
                   </div>
                   
                   <div className="space-y-2">
-                    <label htmlFor="dealSector" className="text-sm font-medium">Sector (from Deal)</label>
+                    <label htmlFor="securityType" className="text-sm font-medium">Sector (from Deal)</label>
                     <Input 
-                      id="dealSector"
-                      value={newAllocationData.dealSector || "Select a deal first"}
+                      id="securityType"
+                      value={newAllocationData.securityType}
                       readOnly
                       className="bg-neutral-50 cursor-not-allowed"
                     />

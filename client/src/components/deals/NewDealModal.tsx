@@ -37,8 +37,9 @@ import { useToast } from "@/hooks/use-toast";
 import { generateDealNotification } from "@/lib/utils/notification-utils";
 import { FileUp, File, Plus, X } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { DealStage, DealStageLabels } from "@/lib/constants/deal-stages";
-import { CompanyStage } from "@/lib/constants/company-stages";
+import { DEAL_SECTORS } from "@/lib/constants/sectors";
+import { DEAL_STAGES, DealStage, DealStageLabels } from "@/lib/constants/deal-stages";
+import { COMPANY_STAGES, CompanyStage } from "@/lib/constants/company-stages";
 import { Badge } from "@/components/ui/badge";
 
 // Form schema with validation rules

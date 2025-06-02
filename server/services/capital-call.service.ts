@@ -134,27 +134,14 @@ export class CapitalCallService {
     callFrequency: string,
     firstCallDate: Date,
     callCount: number,
-    callPercentage: number,
-    callAmountType: 'percentage' | 'dollar' = 'percentage',
-    callDollarAmount: number = 0
+    callPercentage: number
   ): Promise<CapitalCall[]> {
     const storage = StorageFactory.getStorage();
     const calls: CapitalCall[] = [];
     
     // If it's a single payment, create a paid capital call immediately
     if (capitalCallSchedule === 'single') {
-      // Calculate call amount based on type
-      let callAmount: number;
-      if (callAmountType === 'dollar') {
-        callAmount = callDollarAmount;
-      } else {
-        // For percentage, calculate based on allocation amount
-        if (allocation.amountType === 'dollar') {
-          callAmount = (allocation.amount * callPercentage) / 100;
-        } else {
-          callAmount = callPercentage;
-        }
-      }
+      const callAmount = allocation.amount;
       
       // Log the incoming date for debugging
       console.log('Creating single payment capital call with date:', {
@@ -176,7 +163,7 @@ export class CapitalCallService {
       const singleCall = await storage.createCapitalCall({
         allocationId: allocation.id,
         callAmount: callAmount,
-        amountType: callAmountType === 'dollar' ? 'dollar' : allocation.amountType,
+        amountType: allocation.amountType,
         callDate: normalizedDate, // Use the normalized date
         dueDate: normalizedDate, // Use the normalized date
         status: 'paid',
@@ -235,34 +222,23 @@ export class CapitalCallService {
       // Normalize to noon UTC to avoid timezone issues
       const normalizedDueDate = normalizeToNoonUTC(dueDate);
       
-      // Calculate call amount based on call amount type
-      let callAmount: number;
-      let callAmountTypeForCall: 'percentage' | 'dollar';
+      // For the last call, use remaining percentage to ensure we reach 100%
+      const isLastCall = i === callCount - 1;
+      const thisCallPercentage = isLastCall ? remainingPercentage : callPercentage;
       
-      if (callAmountType === 'dollar') {
-        // Use dollar amount divided by call count
-        callAmount = callDollarAmount / callCount;
-        callAmountTypeForCall = 'dollar';
+      // Calculate call amount based on percentage
+      let callAmount: number;
+      if (allocation.amountType === 'dollar') {
+        callAmount = (baseAmount * thisCallPercentage) / 100;
       } else {
-        // For the last call, use remaining percentage to ensure we reach 100%
-        const isLastCall = i === callCount - 1;
-        const thisCallPercentage = isLastCall ? remainingPercentage : callPercentage;
-        
-        // Calculate call amount based on percentage and allocation type
-        if (allocation.amountType === 'dollar') {
-          callAmount = (baseAmount * thisCallPercentage) / 100;
-          callAmountTypeForCall = 'dollar';
-        } else {
-          callAmount = thisCallPercentage; // For percentage allocations, use the percentage directly
-          callAmountTypeForCall = 'percentage';
-        }
+        callAmount = thisCallPercentage; // For percentage allocations, use the percentage directly
       }
       
       // Create capital call
       const call = await storage.createCapitalCall({
         allocationId: allocation.id,
         callAmount,
-        amountType: callAmountTypeForCall,
+        amountType: allocation.amountType,
         callDate,
         dueDate: normalizedDueDate, // Use normalized due date
         status: 'scheduled',
@@ -272,12 +248,7 @@ export class CapitalCallService {
       });
       
       calls.push(call);
-      
-      // Only subtract from remaining percentage if using percentage-based calls
-      if (callAmountType === 'percentage') {
-        const thisCallPercentage = i === callCount - 1 ? remainingPercentage : callPercentage;
-        remainingPercentage -= thisCallPercentage;
-      }
+      remainingPercentage -= thisCallPercentage;
     }
     
     return calls;

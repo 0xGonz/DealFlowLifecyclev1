@@ -28,32 +28,39 @@ function getStorage(): IStorage {
  */
 export class FundService {
   /**
-   * Calculate the called capital for a fund based on allocation status
-   * This properly recognizes 'funded' allocations as called capital
+   * Calculate the called capital for a fund based on actual payment records
+   * This is the sum of all payments made against capital calls for the fund's allocations
    */
   async calculateCalledCapital(fundId: number): Promise<number> {
     const storage = getStorage();
-    const allocations = await storage.getAllocationsByFund(fundId);
+    const db = storage.getDbClient();
     
-    let calledCapital = 0;
+    // Calculate called capital as the sum of all ACTUALLY PAID amounts
+    // This should be paid_amount for paid calls, and paid_amount for partial calls
+    const result = await db.execute(`
+      WITH funded_allocations AS (
+        SELECT 
+          id, amount
+        FROM fund_allocations
+        WHERE fund_id = ${fundId} AND status = 'funded'
+      ),
+      all_payments AS (
+        SELECT 
+          SUM(COALESCE(cc.paid_amount, 0)) as total_paid
+        FROM capital_calls cc
+        JOIN fund_allocations fa ON cc.allocation_id = fa.id
+        WHERE fa.fund_id = ${fundId} 
+          AND fa.status IN ('funded', 'partially_paid')
+          AND cc.status IN ('paid', 'partial', 'partially_paid')
+      )
+      SELECT 
+        COALESCE(ap.total_paid, 0) as called_capital
+      FROM all_payments ap
+    `);
     
-    for (const allocation of allocations) {
-      const amount = Number(allocation.amount) || 0;
-      
-      switch (allocation.status) {
-        case 'funded':
-          // Fully funded = fully called
-          calledCapital += amount;
-          break;
-        case 'partially_paid':
-          // Use paidAmount if available, otherwise treat as fully called
-          calledCapital += Number(allocation.paidAmount) || amount;
-          break;
-        // 'committed', 'unfunded', 'written_off' = not called
-      }
-    }
-    
-    return calledCapital;
+    // Extract and return the called capital, defaulting to 0 if null
+    const calledCapital = result.rows[0]?.called_capital || 0;
+    return Number(calledCapital);
   }
   
   /**

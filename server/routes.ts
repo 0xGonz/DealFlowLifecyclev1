@@ -16,7 +16,6 @@ import capitalCallsRoutes from './routes/capital-calls';
 import closingSchedulesRoutes from './routes/closing-schedules';
 import meetingsRoutes from './routes/meetings';
 import calendarRoutes from './routes/calendar.routes'; // New unified calendar API
-import sectorsRoutes from './routes/sectors'; // Dynamic sectors from database
 import { systemRouter } from './routes/system';
 import v1Router from './routes/v1/index'; // V1 API routes including AI analysis
 import aiAnalysisRoutes from './routes/ai-analysis';

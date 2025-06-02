@@ -158,8 +158,19 @@ export const insertMemoCommentSchema = createInsertSchema(memoComments).omit({
   createdAt: true,
 });
 
-// Due diligence checklist structure - no hardcoded defaults
-// Checklist items should be created dynamically based on user input
+// Default due diligence checklist items
+export const DEFAULT_DUE_DILIGENCE_CHECKLIST = {
+  "financialReview": false,
+  "legalReview": false,
+  "marketAnalysis": false,
+  "teamAssessment": false,
+  "customerInterviews": false,
+  "competitorAnalysis": false,
+  "technologyReview": false,
+  "businessModelValidation": false,
+  "regulatoryCompliance": false,
+  "esgAssessment": false
+};
 
 // Funds
 export const funds = pgTable("funds", {
@@ -184,9 +195,9 @@ export const fundAllocations = pgTable("fund_allocations", {
   id: serial("id").primaryKey(),
   fundId: integer("fund_id").notNull(),
   dealId: integer("deal_id").notNull(),
-  amount: real("amount").notNull(), // Committed amount
-  paidAmount: real("paid_amount").default(0), // Actually paid amount
+  amount: real("amount").notNull(), // Using real instead of integer to support larger numbers
   amountType: text("amount_type", { enum: ["percentage", "dollar"] }).default("dollar"),
+  securityType: text("security_type").notNull(),
   allocationDate: timestamp("allocation_date").notNull().defaultNow(),
   notes: text("notes"),
   // Investment tracking fields
@@ -436,29 +447,6 @@ export const DealStageColors: Record<Deal['stage'], string> = {
   invested: "success",
   rejected: "danger"
 };
-
-// Audit logs table for tracking all data changes
-export const auditLogs = pgTable("audit_logs", {
-  id: serial("id").primaryKey(),
-  entityType: text("entity_type").notNull(), // 'fund_allocation', 'capital_call', etc.
-  entityId: integer("entity_id").notNull(),
-  action: text("action").notNull(), // 'CREATE', 'UPDATE', 'DELETE'
-  userId: integer("user_id").notNull(),
-  oldValues: text("old_values"), // JSON string of previous values
-  newValues: text("new_values"), // JSON string of new values
-  metadata: text("metadata"), // Additional context as JSON
-  ipAddress: text("ip_address"),
-  userAgent: text("user_agent"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-});
-
-export const insertAuditLogSchema = createInsertSchema(auditLogs).omit({
-  id: true,
-  createdAt: true,
-});
-
-export type AuditLog = typeof auditLogs.$inferSelect;
-export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
 
 // Distributions table for tracking multiple distributions from investments
 export const distributions = pgTable("distributions", {
