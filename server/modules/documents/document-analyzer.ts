@@ -1,6 +1,9 @@
 import OpenAI from 'openai';
 import { StorageFactory } from '../../storage-factory';
 import * as path from 'path';
+import * as fs from 'fs';
+import { Document } from '@shared/schema';
+import { DataExtractor } from '../../services/data-extractor';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -69,9 +72,13 @@ export class DocumentAnalyzer {
     
     let actualFilePath = null;
     for (const testPath of possiblePaths) {
-      if (fs.existsSync(testPath)) {
-        actualFilePath = testPath;
-        break;
+      try {
+        if (fs.existsSync(testPath)) {
+          actualFilePath = testPath;
+          break;
+        }
+      } catch (error) {
+        console.error('Error checking file path:', error);
       }
     }
 
