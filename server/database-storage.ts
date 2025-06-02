@@ -768,17 +768,8 @@ export class DatabaseStorage implements IStorage {
       
       console.log(`Successfully updated allocation ${id}:`, updatedAllocation);
       
-      // Use the FundService to recalculate and update the fund's AUM
-      // This ensures consistent AUM calculation across the application
-      try {
-        const { FundService } = await import('../services/fund.service');
-        const fundService = new FundService();
-        await fundService.updateFundAUM(originalAllocation.fundId);
-        console.log(`Updated AUM for fund ${originalAllocation.fundId}`);
-      } catch (aumError) {
-        console.error('Error updating fund AUM:', aumError);
-        // Don't fail the allocation update if AUM update fails
-      }
+      // Note: AUM recalculation is handled separately to avoid circular dependencies
+      console.log(`Allocation update completed for fund ${originalAllocation.fundId}`)
       
       return updatedAllocation;
     } catch (error) {
