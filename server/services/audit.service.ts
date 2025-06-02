@@ -20,13 +20,32 @@ export class AuditService {
    * Custom JSON replacer to handle date objects properly
    */
   private static dateReplacer(key: string, value: any): any {
+    // Handle null or undefined values
+    if (value === null || value === undefined) {
+      return value;
+    }
+    
+    // Handle actual Date objects
     if (value instanceof Date) {
       return value.toISOString();
     }
+    
+    // Handle date strings that are already in ISO format
     if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(value)) {
-      // Already formatted date string
       return value;
     }
+    
+    // Handle PostgreSQL timestamp objects
+    if (value && typeof value === 'object' && typeof value.toISOString === 'function') {
+      try {
+        return value.toISOString();
+      } catch (error) {
+        console.warn('Failed to convert object to ISO string:', value, error);
+        return String(value);
+      }
+    }
+    
+    // Return primitive values as-is
     return value;
   }
 
