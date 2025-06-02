@@ -63,54 +63,14 @@ export default function AIAnalysisTab({ dealId, dealName }: AIAnalysisTabProps) 
   const handleDocumentAnalysis = async (document: Document) => {
     setLoadingDocumentId(document.id);
     
+    // Set the input value and trigger analysis through the hook
+    const analysisQuery = `Analyze the document "${document.fileName}" in detail. Provide key insights, financial metrics, risks, and strategic implications.`;
+    setInputValue(analysisQuery);
+    
     try {
-      // Use the specific document analysis endpoint
-      const response = await fetch(`/api/v1/document-analysis/deals/${dealId}/documents/${document.id}/analyze`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include',
-        body: JSON.stringify({ 
-          query: `Provide a comprehensive analysis of this document: ${document.fileName}. Include key insights, financial metrics, risks, and strategic implications.` 
-        })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Failed to analyze document');
-      }
-
-      const analysisResult = await response.json();
-      
-      // Add the analysis to messages
-      const analysisMessage = {
-        id: `doc-analysis-${Date.now()}`,
-        type: 'ai' as const,
-        content: analysisResult.analysis || analysisResult.response,
-        timestamp: new Date(),
-        role: 'assistant' as const,
-        context: {
-          ...analysisResult.context,
-          documentName: document.fileName,
-          documentType: document.documentType
-        }
-      };
-      
-      // Add to messages using the hook's state setter
-      setInputValue(`Analyze document: ${document.fileName}`);
-      await sendMessage(`Analyze document: ${document.fileName}`);
-      
+      await sendMessage(analysisQuery);
     } catch (error) {
       console.error('Document analysis error:', error);
-      // Still add an error message to the chat
-      const errorMessage = {
-        id: `error-${Date.now()}`,
-        type: 'ai' as const,
-        content: `Sorry, I couldn't analyze "${document.fileName}". ${error instanceof Error ? error.message : 'Please try again.'}`,
-        timestamp: new Date(),
-        role: 'assistant' as const
-      };
     } finally {
       setLoadingDocumentId(null);
     }
