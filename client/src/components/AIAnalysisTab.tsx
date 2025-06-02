@@ -93,15 +93,15 @@ export default function AIAnalysisTab({ dealId, dealName }: AIAnalysisTabProps) 
             size="sm"
           >
             {isGeneratingAnalysis ? (
-              <>
+              <React.Fragment>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                 Analyzing...
-              </>
+              </React.Fragment>
             ) : (
-              <>
+              <React.Fragment>
                 <Brain className="h-4 w-4 mr-2" />
                 Full Analysis
-              </>
+              </React.Fragment>
             )}
           </Button>
           <Button 
