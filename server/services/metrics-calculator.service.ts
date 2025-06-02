@@ -196,8 +196,7 @@ export class MetricsCalculatorService {
         .set({
           totalReturned: metrics.distributions,
           marketValue: metrics.currentValue,
-          moic: metrics.moic,
-          updatedAt: new Date()
+          moic: metrics.moic
         })
         .where(eq(fundAllocations.id, allocationId));
 

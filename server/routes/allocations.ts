@@ -6,6 +6,8 @@ import { capitalCallService } from '../services/capital-call.service';
 import { allocationService } from '../services/allocation.service';
 import { AuditService } from '../services/audit.service';
 import { ValidationService } from '../services/validation.service';
+import { metricsCalculator } from '../services/metrics-calculator.service';
+import { ErrorHandlerService, ValidationRules } from '../services/error-handler.service';
 import { z } from 'zod';
 import { requireAuth } from '../utils/auth';
 import { requirePermission } from '../utils/permissions';
