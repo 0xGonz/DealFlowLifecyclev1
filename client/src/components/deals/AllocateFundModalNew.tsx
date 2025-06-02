@@ -32,12 +32,11 @@ interface AllocationFormData {
   fundId: number | null;
   dealId: number;
   amount: number;
-  commitmentDate: Date;
+  allocationDate: Date;
   notes: string;
   status: string;
   paymentOption: 'commit_only' | 'pay_immediately' | 'partial_payment';
   immediatePaymentAmount: number;
-  fundingDate: Date;
 }
 
 export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }: AllocateFundModalProps) {
@@ -48,12 +47,11 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
     fundId: null,
     dealId: dealId,
     amount: 0,
-    commitmentDate: new Date(),
+    allocationDate: new Date(),
     notes: '',
     status: ALLOCATION_STATUS.COMMITTED,
     paymentOption: 'commit_only',
-    immediatePaymentAmount: 0,
-    fundingDate: new Date()
+    immediatePaymentAmount: 0
   });
 
   // Fetch funds for dropdown
@@ -73,8 +71,8 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
           allocationId: allocationId,
           callAmount: paymentAmount,
           amountType: 'dollar',
-          callDate: formatDateForAPI(data.fundingDate),
-          dueDate: formatDateForAPI(data.fundingDate),
+          callDate: formatDateForAPI(data.allocationDate),
+          dueDate: formatDateForAPI(data.allocationDate),
           status: 'paid',
           notes: `Immediate payment at commitment - ${data.paymentOption === 'pay_immediately' ? 'Full funding' : 'Partial funding'}`
         };
@@ -98,7 +96,7 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
         fundId: data.fundId,
         dealId: data.dealId,
         amount: data.amount,
-        allocationDate: formatDateForAPI(data.commitmentDate),
+        allocationDate: formatDateForAPI(data.allocationDate),
         status: data.paymentOption === 'pay_immediately' ? 'funded' : 
                 data.paymentOption === 'partial_payment' ? 'partially_paid' : 'committed',
         notes: data.notes,
@@ -133,12 +131,11 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
         fundId: null,
         dealId: dealId,
         amount: 0,
-        commitmentDate: new Date(),
+        allocationDate: new Date(),
         notes: '',
         status: ALLOCATION_STATUS.COMMITTED,
         paymentOption: 'commit_only',
-        immediatePaymentAmount: 0,
-        fundingDate: new Date()
+        immediatePaymentAmount: 0
       });
       
       onClose();
@@ -203,7 +200,7 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
         <DialogHeader>
           <DialogTitle>Allocate Deal to Fund</DialogTitle>
           <DialogDescription>
-            Create a capital commitment for {dealName}. Separate commitment and funding dates reflect real institutional workflow.
+            Create a capital commitment for {dealName}. You can commit capital only, or make an immediate payment.
           </DialogDescription>
         </DialogHeader>
 
@@ -244,14 +241,14 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
             />
           </div>
 
-          {/* Commitment Date */}
+          {/* Allocation Date */}
           <div className="space-y-2">
-            <Label htmlFor="commitmentDate">Commitment Date</Label>
+            <Label htmlFor="allocationDate">Commitment Date</Label>
             <Input
-              id="commitmentDate"
+              id="allocationDate"
               type="date"
-              value={format(allocationData.commitmentDate, 'yyyy-MM-dd')}
-              onChange={(e) => setAllocationData(prev => ({ ...prev, commitmentDate: new Date(e.target.value) }))}
+              value={format(allocationData.allocationDate, 'yyyy-MM-dd')}
+              onChange={(e) => setAllocationData(prev => ({ ...prev, allocationDate: new Date(e.target.value) }))}
             />
           </div>
 
@@ -294,19 +291,6 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
                 </Label>
               </div>
             </RadioGroup>
-
-            {/* Funding Date for Immediate Payments */}
-            {(allocationData.paymentOption === 'pay_immediately' || allocationData.paymentOption === 'partial_payment') && (
-              <div className="space-y-2 ml-6">
-                <Label htmlFor="fundingDate">Funding Date</Label>
-                <Input
-                  id="fundingDate"
-                  type="date"
-                  value={format(allocationData.fundingDate, 'yyyy-MM-dd')}
-                  onChange={(e) => setAllocationData(prev => ({ ...prev, fundingDate: new Date(e.target.value) }))}
-                />
-              </div>
-            )}
 
             {/* Immediate Payment Amount for Partial */}
             {allocationData.paymentOption === 'partial_payment' && (
