@@ -25,11 +25,10 @@ export function calculateAllocationCapitalMetrics(allocation: FundAllocation): C
       break;
       
     case 'partially_paid':
-      // For partially paid, we would query capital calls table
-      // For now, we calculate based on funding percentage stored in allocation
-      // This could be enhanced to query: SELECT SUM(amount) FROM capital_calls WHERE allocation_id = ?
-      const fundingPercentage = 0.4; // Default 40% funding - would come from actual capital call data
-      calledAmount = allocation.amount * fundingPercentage;
+      // Use actual paidAmount from allocation record
+      // This reflects real capital call payments made
+      const paidAmount = Number(allocation.paidAmount) || 0;
+      calledAmount = Math.min(paidAmount, allocation.amount); // Cannot exceed committed amount
       uncalledAmount = allocation.amount - calledAmount;
       break;
       

@@ -1,163 +1,77 @@
 /**
- * Allocation Status Service
+ * AllocationStatusService
  * 
- * Handles the logic for determining allocation status based on committed vs paid amounts
- * and provides methods for updating payment status consistently across the system.
+ * Ensures allocation status and paidAmount fields remain consistent.
+ * This is critical for accurate capital calculations.
  */
-
-export interface AllocationStatusData {
-  amount: number;           // Committed amount
-  paidAmount: number | null;      // Actually paid amount
-  status: string | null;          // Current status
-}
-
-export interface AllocationStatusResult {
-  status: 'committed' | 'funded' | 'unfunded' | 'partially_paid' | 'written_off';
-  paidPercentage: number;
-  remainingAmount: number;
-  isFullyPaid: boolean;
-  isPartiallyPaid: boolean;
-}
-
 export class AllocationStatusService {
   
   /**
-   * Calculate the correct status based on committed and paid amounts
+   * Calculate the correct status based on amount and paidAmount
+   * This ensures data consistency across the system
    */
-  static calculateStatus(allocation: AllocationStatusData): AllocationStatusResult {
-    const { amount: committed, paidAmount: paid, status } = allocation;
+  static calculateStatus(data: { amount: number; paidAmount: number | null; status?: string }) {
+    const amount = Number(data.amount) || 0;
+    const paidAmount = Number(data.paidAmount) || 0;
     
-    // Ensure non-negative values
-    const committedAmount = Math.max(0, committed || 0);
-    const paidAmountSafe = Math.max(0, paid || 0);
-    
-    // Calculate derived values
-    const paidPercentage = committedAmount > 0 ? (paidAmountSafe / committedAmount) * 100 : 0;
-    const remainingAmount = Math.max(0, committedAmount - paidAmountSafe);
-    const isFullyPaid = paidAmountSafe >= committedAmount && committedAmount > 0;
-    const isPartiallyPaid = paidAmountSafe > 0 && paidAmountSafe < committedAmount;
-    
-    // Determine status based on payment progress
-    let resultStatus: AllocationStatusResult['status'];
-    
-    if (status === 'written_off') {
-      // Preserve written_off status regardless of payment amounts
-      resultStatus = 'written_off';
-    } else if (status === 'unfunded') {
-      // Preserve unfunded status if explicitly set
-      resultStatus = 'unfunded';
-    } else if (isFullyPaid) {
-      // Fully paid
-      resultStatus = 'funded';
-    } else if (isPartiallyPaid) {
-      // Partially paid
-      resultStatus = 'partially_paid';
-    } else {
-      // No payments made yet
-      resultStatus = 'committed';
-    }
-    
-    return {
-      status: resultStatus,
-      paidPercentage,
-      remainingAmount,
-      isFullyPaid,
-      isPartiallyPaid
-    };
-  }
-  
-  /**
-   * Process a payment and return updated allocation data
-   */
-  static processPayment(
-    allocation: AllocationStatusData, 
-    paymentAmount: number
-  ): { updatedPaidAmount: number; newStatus: string } {
-    
-    const currentPaid = allocation.paidAmount || 0;
-    const updatedPaidAmount = currentPaid + Math.max(0, paymentAmount);
-    
-    // Calculate new status with updated paid amount
-    const result = this.calculateStatus({
-      ...allocation,
-      paidAmount: updatedPaidAmount
-    });
-    
-    return {
-      updatedPaidAmount,
-      newStatus: result.status
-    };
-  }
-  
-  /**
-   * Validate payment amount against allocation constraints
-   */
-  static validatePayment(
-    allocation: AllocationStatusData,
-    paymentAmount: number
-  ): { isValid: boolean; error?: string } {
-    
-    if (paymentAmount < 0) {
-      return { isValid: false, error: 'Payment amount cannot be negative' };
-    }
-    
-    const currentPaid = allocation.paidAmount || 0;
-    const committed = allocation.amount || 0;
-    const totalAfterPayment = currentPaid + paymentAmount;
-    
-    if (totalAfterPayment > committed * 1.1) { // Allow 10% buffer for rounding
-      return { 
-        isValid: false, 
-        error: `Payment would exceed committed amount. Remaining: $${(committed - currentPaid).toLocaleString()}` 
+    if (amount === 0) {
+      return {
+        status: 'unfunded' as const,
+        paidAmount: 0,
+        paidPercentage: 0
       };
     }
     
-    return { isValid: true };
-  }
-  
-  /**
-   * Get display information for allocation status
-   */
-  static getStatusDisplay(allocation: AllocationStatusData): {
-    statusLabel: string;
-    statusColor: string;
-    paymentInfo: string;
-  } {
+    const paidPercentage = (paidAmount / amount) * 100;
     
-    const result = this.calculateStatus(allocation);
+    // Determine status based on payment percentage
+    let status: 'committed' | 'partially_paid' | 'funded' | 'unfunded';
     
-    const statusLabels: Record<string, string> = {
-      committed: 'Committed',
-      funded: 'Funded',
-      unfunded: 'Unfunded',
-      partially_paid: 'Partially Paid',
-      written_off: 'Written Off'
-    };
-    
-    const statusColors: Record<string, string> = {
-      committed: 'blue',
-      funded: 'green',
-      unfunded: 'gray',
-      partially_paid: 'yellow',
-      written_off: 'red'
-    };
-    
-    const committed = allocation.amount || 0;
-    const paid = allocation.paidAmount || 0;
-    
-    let paymentInfo = '';
-    if (result.isPartiallyPaid) {
-      paymentInfo = `$${paid.toLocaleString()} of $${committed.toLocaleString()} (${result.paidPercentage.toFixed(1)}%)`;
-    } else if (result.isFullyPaid) {
-      paymentInfo = `$${committed.toLocaleString()} (100%)`;
+    if (paidPercentage >= 100) {
+      status = 'funded';
+    } else if (paidPercentage > 0) {
+      status = 'partially_paid';
     } else {
-      paymentInfo = `$0 of $${committed.toLocaleString()} (0%)`;
+      status = 'committed';
     }
     
     return {
-      statusLabel: statusLabels[result.status] || 'Unknown',
-      statusColor: statusColors[result.status] || 'gray',
-      paymentInfo
+      status,
+      paidAmount: Math.min(paidAmount, amount), // Cannot exceed committed amount
+      paidPercentage
+    };
+  }
+  
+  /**
+   * Sync paidAmount with status for data consistency
+   * When status is set to 'funded', paidAmount should equal amount
+   */
+  static syncPaidAmountWithStatus(data: { amount: number; status: string; paidAmount?: number }) {
+    const amount = Number(data.amount) || 0;
+    let paidAmount = Number(data.paidAmount) || 0;
+    
+    switch (data.status) {
+      case 'funded':
+        // Funded means 100% paid
+        paidAmount = amount;
+        break;
+        
+      case 'committed':
+      case 'unfunded':
+        // Not called/paid yet
+        paidAmount = 0;
+        break;
+        
+      case 'partially_paid':
+        // Keep existing paidAmount, but ensure it's within bounds
+        paidAmount = Math.min(Math.max(paidAmount, 0), amount);
+        break;
+    }
+    
+    return {
+      ...data,
+      paidAmount,
+      amount
     };
   }
 }
