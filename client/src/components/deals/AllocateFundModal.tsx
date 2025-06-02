@@ -31,12 +31,13 @@ interface AllocateFundModalProps {
 interface AllocationFormData {
   fundId: number | null;
   dealId: number;
-  amount: number;
+  amount: string;
   commitmentDate: Date;
   notes: string;
   status: string;
   paymentOption: 'commit_only' | 'pay_immediately' | 'partial_payment';
-  immediatePaymentAmount: number;
+  immediatePaymentAmount: string;
+  immediatePaymentType: 'dollar' | 'percentage';
   fundingDate: Date;
 }
 
@@ -47,12 +48,13 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
   const [allocationData, setAllocationData] = useState<AllocationFormData>({
     fundId: null,
     dealId: dealId,
-    amount: 0,
+    amount: '',
     commitmentDate: new Date(),
     notes: '',
     status: ALLOCATION_STATUS.COMMITTED,
     paymentOption: 'commit_only',
-    immediatePaymentAmount: 0,
+    immediatePaymentAmount: '',
+    immediatePaymentType: 'percentage',
     fundingDate: new Date()
   });
 
@@ -61,13 +63,23 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
     queryKey: ['/api/funds'],
   });
 
+  // Calculate payment amounts with percentage support
+  const calculatePaymentAmount = (totalAmount: number, paymentAmount: string, paymentType: 'dollar' | 'percentage'): number => {
+    if (paymentType === 'percentage') {
+      const percentage = parseFloat(paymentAmount) || 0;
+      return (percentage / 100) * totalAmount;
+    }
+    return parseFloat(paymentAmount) || 0;
+  };
+
   // Create immediate payment if needed
   const createImmediatePayment = async (allocationId: number, data: AllocationFormData) => {
     try {
       if (data.paymentOption === 'pay_immediately' || data.paymentOption === 'partial_payment') {
+        const totalAmount = parseFloat(data.amount) || 0;
         const paymentAmount = data.paymentOption === 'pay_immediately' 
-          ? data.amount 
-          : data.immediatePaymentAmount;
+          ? totalAmount 
+          : calculatePaymentAmount(totalAmount, data.immediatePaymentAmount, data.immediatePaymentType);
         
         const capitalCallPayload = {
           allocationId: allocationId,
@@ -132,12 +144,13 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
       setAllocationData({
         fundId: null,
         dealId: dealId,
-        amount: 0,
+        amount: '',
         commitmentDate: new Date(),
         notes: '',
         status: ALLOCATION_STATUS.COMMITTED,
         paymentOption: 'commit_only',
-        immediatePaymentAmount: 0,
+        immediatePaymentAmount: '',
+        immediatePaymentType: 'percentage',
         fundingDate: new Date()
       });
       
@@ -167,7 +180,8 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
       return;
     }
     
-    if (allocationData.amount <= 0) {
+    const totalAmount = parseFloat(allocationData.amount) || 0;
+    if (totalAmount <= 0) {
       toast({
         title: "Validation Error",
         description: "Please enter a valid allocation amount.",
@@ -176,22 +190,37 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
       return;
     }
 
-    if (allocationData.paymentOption === 'partial_payment' && allocationData.immediatePaymentAmount <= 0) {
-      toast({
-        title: "Validation Error",
-        description: "Please enter a valid immediate payment amount.",
-        variant: "destructive",
-      });
-      return;
-    }
+    if (allocationData.paymentOption === 'partial_payment') {
+      const immediateAmount = parseFloat(allocationData.immediatePaymentAmount) || 0;
+      if (immediateAmount <= 0) {
+        toast({
+          title: "Validation Error",
+          description: "Please enter a valid immediate payment amount.",
+          variant: "destructive",
+        });
+        return;
+      }
 
-    if (allocationData.paymentOption === 'partial_payment' && allocationData.immediatePaymentAmount >= allocationData.amount) {
-      toast({
-        title: "Validation Error",
-        description: "Immediate payment amount should be less than total commitment.",
-        variant: "destructive",
-      });
-      return;
+      // Validate percentage vs dollar amounts
+      if (allocationData.immediatePaymentType === 'percentage') {
+        if (immediateAmount >= 100) {
+          toast({
+            title: "Validation Error",
+            description: "Percentage should be less than 100%.",
+            variant: "destructive",
+          });
+          return;
+        }
+      } else {
+        if (immediateAmount >= totalAmount) {
+          toast({
+            title: "Validation Error",
+            description: "Immediate payment amount should be less than total commitment.",
+            variant: "destructive",
+          });
+          return;
+        }
+      }
     }
     
     createAllocation.mutate(allocationData);
@@ -239,7 +268,7 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
               id="amount"
               type="number"
               value={allocationData.amount}
-              onChange={(e) => setAllocationData(prev => ({ ...prev, amount: parseFloat(e.target.value) || 0 }))}
+              onChange={(e) => setAllocationData(prev => ({ ...prev, amount: e.target.value }))}
               placeholder="0.00"
             />
           </div>
@@ -261,7 +290,7 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
             <RadioGroup
               value={allocationData.paymentOption}
               onValueChange={(value: 'commit_only' | 'pay_immediately' | 'partial_payment') => 
-                setAllocationData(prev => ({ ...prev, paymentOption: value, immediatePaymentAmount: 0 }))
+                setAllocationData(prev => ({ ...prev, paymentOption: value, immediatePaymentAmount: '' }))
               }
             >
               <div className="flex items-center space-x-2">
@@ -310,16 +339,42 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
 
             {/* Immediate Payment Amount for Partial */}
             {allocationData.paymentOption === 'partial_payment' && (
-              <div className="space-y-2 ml-6">
-                <Label htmlFor="immediateAmount">Immediate Payment Amount</Label>
-                <Input
-                  id="immediateAmount"
-                  type="number"
-                  value={allocationData.immediatePaymentAmount}
-                  onChange={(e) => setAllocationData(prev => ({ ...prev, immediatePaymentAmount: parseFloat(e.target.value) || 0 }))}
-                  placeholder="0.00"
-                  max={allocationData.amount}
-                />
+              <div className="space-y-3 ml-6">
+                <div className="space-y-2">
+                  <Label>Payment Type</Label>
+                  <Select
+                    value={allocationData.immediatePaymentType}
+                    onValueChange={(value: 'dollar' | 'percentage') => 
+                      setAllocationData(prev => ({ ...prev, immediatePaymentType: value, immediatePaymentAmount: '' }))
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="percentage">Percentage (%)</SelectItem>
+                      <SelectItem value="dollar">Dollar Amount ($)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="immediateAmount">
+                    {allocationData.immediatePaymentType === 'percentage' ? 'Percentage to Pay' : 'Dollar Amount to Pay'}
+                  </Label>
+                  <Input
+                    id="immediateAmount"
+                    type="number"
+                    value={allocationData.immediatePaymentAmount}
+                    onChange={(e) => setAllocationData(prev => ({ ...prev, immediatePaymentAmount: e.target.value }))}
+                    placeholder={allocationData.immediatePaymentType === 'percentage' ? '40' : '400000.00'}
+                  />
+                  {allocationData.immediatePaymentType === 'percentage' && (
+                    <p className="text-sm text-gray-500">
+                      Enter percentage (e.g., 40 for 40%)
+                    </p>
+                  )}
+                </div>
               </div>
             )}
           </div>
