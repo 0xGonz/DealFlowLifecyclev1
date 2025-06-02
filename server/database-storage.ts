@@ -154,7 +154,7 @@ export class DatabaseStorage implements IStorage {
         projectedIrr: deal.projectedIrr || null,
         projectedMultiple: deal.projectedMultiple || null,
         score: deal.score || 0,
-        tags: deal.tags || [],
+        tags: (deal.tags as string[]) || [],
         round: deal.round || null,
         targetRaise: deal.targetRaise || null,
         valuation: deal.valuation || null,
@@ -352,7 +352,7 @@ export class DatabaseStorage implements IStorage {
       eventType: 'memo_added',
       content: `Mini-Memo added`,
       createdBy: memo.userId,
-      metadata: { memoId: newMemo.id }
+      metadata: { memoId: newMemo.id } as Record<string, any>
     });
     
     return newMemo;
@@ -434,7 +434,7 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           eq(documents.dealId, dealId),
-          eq(documents.documentType, documentType)
+          eq(documents.documentType, documentType as any)
         )
       );
   }
