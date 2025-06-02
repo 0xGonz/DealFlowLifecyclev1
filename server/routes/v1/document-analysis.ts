@@ -54,7 +54,7 @@ router.post('/deals/:dealId/analyze', requireAuth, async (req: Request, res: Res
       userId
     };
     
-    const result = await analyzer.performAnalysis(analysisRequest, deal, documentContents);
+    const result = await analyzer.performAnalysis(analysisRequest, documentContents, deal);
     
     console.log(`✅ AI analysis completed successfully for deal ${dealId}`);
     console.log(`📄 Analysis based on ${documentContents.length} authentic documents`);
@@ -129,7 +129,7 @@ router.post('/deals/:dealId/documents/:documentId/analyze', requireAuth, async (
         userId
       };
 
-      const result = await analyzer.performAnalysis(analysisRequest, deal, [specificDoc]);
+      const result = await analyzer.performAnalysis(analysisRequest, [specificDoc], deal);
       
       console.log(`✅ Specific document analysis completed for ${document.fileName}`);
       res.json(result);

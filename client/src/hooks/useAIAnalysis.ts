@@ -61,7 +61,7 @@ export function useAIAnalysis(options: AIAnalysisHookOptions = {}) {
         throw new Error('Please select a deal first');
       }
       
-      const response = await fetch(`/api/v1/document-analysis/deals/${activeDealId}/analyze`, {
+      const response = await fetch(`/api/v1/ai-analysis/deals/${activeDealId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
