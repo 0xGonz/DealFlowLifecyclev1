@@ -10,6 +10,7 @@ import { metricsCalculator } from '../services/metrics-calculator.service';
 import { ErrorHandlerService, ValidationRules } from '../services/error-handler.service';
 import { multiFundAllocationService } from '../services/multi-fund-allocation.service';
 import { AllocationStatusService } from '../services/allocation-status.service';
+import { PaymentWorkflowService } from '../services/payment-workflow.service';
 import { z } from 'zod';
 import { requireAuth } from '../utils/auth';
 import { requirePermission } from '../utils/permissions';
@@ -771,10 +772,10 @@ router.patch('/:id/date', async (req: Request, res: Response) => {
   }
 });
 
-// Add payment to allocation and update status
+// Process payment with modular workflow (prevents data loss)
 router.patch('/:id/payment', requireAuth, requirePermission('edit', 'allocation'), async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { amount: paymentAmount } = req.body;
+  const { amount: paymentAmount, description } = req.body;
 
   try {
     const allocationId = parseInt(id);
@@ -784,36 +785,77 @@ router.patch('/:id/payment', requireAuth, requirePermission('edit', 'allocation'
       return res.status(400).json({ error: 'Invalid payment amount' });
     }
 
-    // Get current allocation
-    const currentAllocation = await storage.getFundAllocation(allocationId);
-    if (!currentAllocation) {
-      return res.status(404).json({ error: 'Allocation not found' });
-    }
-
-    // Validate payment
-    const validation = AllocationStatusService.validatePayment(currentAllocation, payment);
-    if (!validation.isValid) {
-      return res.status(400).json({ error: validation.error });
-    }
-
-    // Process payment
-    const paymentResult = AllocationStatusService.processPayment(currentAllocation, payment);
-
-    // Update allocation with new paid amount and status
-    const updatedAllocation = await storage.updateFundAllocation(allocationId, {
-      paidAmount: paymentResult.updatedPaidAmount,
-      status: paymentResult.newStatus as any
+    // Use modular payment workflow service
+    const result = await PaymentWorkflowService.processPayment({
+      allocationId,
+      amount: payment,
+      description,
+      userId: (req as any).user?.id
     });
 
-    // Log the payment with audit service
-    console.log(`Payment audit: ${payment.toLocaleString()} added to allocation ${allocationId}`);
+    if (!result.success) {
+      return res.status(400).json({ error: result.error });
+    }
 
-    console.log(`Payment processed for allocation ${allocationId}: $${payment.toLocaleString()} → Status: ${paymentResult.newStatus}`);
+    // Get updated allocation for response
+    const updatedAllocation = await storage.getFundAllocation(allocationId);
 
-    res.json(updatedAllocation);
+    res.json({
+      allocation: updatedAllocation,
+      paymentResult: {
+        previousPaidAmount: result.previousPaidAmount,
+        newPaidAmount: result.newPaidAmount,
+        previousStatus: result.previousStatus,
+        newStatus: result.newStatus,
+        paymentPercentage: result.paymentPercentage,
+        remainingAmount: result.remainingAmount
+      }
+    });
+
   } catch (error) {
     console.error('Error processing payment:', error);
     res.status(500).json({ error: 'Failed to process payment' });
+  }
+});
+
+// Verify allocation data integrity
+router.get('/:id/verify', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const allocationId = parseInt(req.params.id);
+    const verification = await PaymentWorkflowService.verifyAllocationIntegrity(allocationId);
+    
+    res.json(verification);
+  } catch (error) {
+    console.error('Error verifying allocation:', error);
+    res.status(500).json({ error: 'Failed to verify allocation' });
+  }
+});
+
+// Repair allocation status inconsistencies
+router.post('/repair-statuses', requireAuth, requirePermission('edit', 'allocation'), async (req: Request, res: Response) => {
+  try {
+    const repairResult = await PaymentWorkflowService.repairAllocationStatuses();
+    
+    res.json({
+      message: 'Status repair completed',
+      repairedCount: repairResult.repairedCount,
+      errors: repairResult.errors
+    });
+  } catch (error) {
+    console.error('Error repairing allocation statuses:', error);
+    res.status(500).json({ error: 'Failed to repair allocation statuses' });
+  }
+});
+
+// Batch verify all allocations
+router.get('/verify-all', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const verification = await PaymentWorkflowService.verifyAllAllocationsIntegrity();
+    
+    res.json(verification);
+  } catch (error) {
+    console.error('Error verifying all allocations:', error);
+    res.status(500).json({ error: 'Failed to verify allocations' });
   }
 });
 
