@@ -195,6 +195,28 @@ router.put('/:id', requireAuth, async (req: Request, res: Response) => {
 
     console.log(`Successfully updated allocation ${id}:`, result);
 
+    // Sync related components if allocation amount changed
+    if ('amount' in sanitizedUpdates && sanitizedUpdates.amount !== currentAllocation.amount) {
+      try {
+        const userId = (req as any).session?.userId || 0;
+        const syncResult = await AllocationSyncService.syncAllocationUpdate(
+          id,
+          currentAllocation.amount,
+          sanitizedUpdates.amount,
+          userId
+        );
+        
+        if (syncResult.success) {
+          console.log(`🔄 Allocation sync completed: ${syncResult.updatedCapitalCalls.length} capital calls, ${syncResult.updatedClosingEvents.length} calendar events updated`);
+        } else {
+          console.error('Allocation sync had errors:', syncResult.errors);
+        }
+      } catch (syncError) {
+        console.error('Failed to sync allocation changes:', syncError);
+        // Don't fail the allocation update if sync fails
+      }
+    }
+
     // Skip audit logging temporarily to avoid date serialization issues
     console.log(`Allocation ${id} updated successfully - audit logging skipped`)
 
