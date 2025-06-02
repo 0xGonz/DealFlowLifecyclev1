@@ -9,6 +9,7 @@ import { ValidationService } from '../services/validation.service';
 import { metricsCalculator } from '../services/metrics-calculator.service';
 import { ErrorHandlerService, ValidationRules } from '../services/error-handler.service';
 import { multiFundAllocationService } from '../services/multi-fund-allocation.service';
+import { AllocationStatusService } from '../services/allocation-status.service';
 import { z } from 'zod';
 import { requireAuth } from '../utils/auth';
 import { requirePermission } from '../utils/permissions';
@@ -148,6 +149,27 @@ router.put('/:id', requireAuth, async (req: Request, res: Response) => {
       } else if (typeof updates[field] === 'string' || updates[field] === null) {
         sanitizedUpdates[field] = updates[field];
       }
+    }
+
+    // Get current allocation data to apply status logic
+    const currentAllocation = await storage.getFundAllocation(id);
+    if (!currentAllocation) {
+      console.error(`Allocation ${id} not found`);
+      return res.status(404).json({ error: 'Allocation not found' });
+    }
+
+    // If paidAmount is being updated, apply automatic status calculation
+    if ('paidAmount' in sanitizedUpdates) {
+      const updatedData = {
+        amount: sanitizedUpdates.amount !== undefined ? sanitizedUpdates.amount : currentAllocation.amount,
+        paidAmount: sanitizedUpdates.paidAmount,
+        status: currentAllocation.status || 'committed'
+      };
+      
+      const statusResult = AllocationStatusService.calculateStatus(updatedData);
+      sanitizedUpdates.status = statusResult.status;
+      
+      console.log(`Auto-calculated status for allocation ${id}: ${statusResult.status} (${statusResult.paidPercentage.toFixed(1)}% paid)`);
     }
 
     // Auto-calculate MOIC if market value and amount are provided
@@ -746,6 +768,63 @@ router.patch('/:id/date', async (req: Request, res: Response) => {
       message: 'Failed to update allocation date', 
       error: error instanceof Error ? error.message : String(error) 
     });
+  }
+});
+
+// Add payment to allocation and update status
+router.patch('/:id/payment', requireAuth, requirePermission('edit', 'allocation'), async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { amount: paymentAmount } = req.body;
+
+  try {
+    const allocationId = parseInt(id);
+    const payment = Number(paymentAmount);
+
+    if (isNaN(payment) || payment < 0) {
+      return res.status(400).json({ error: 'Invalid payment amount' });
+    }
+
+    // Get current allocation
+    const currentAllocation = await storage.getFundAllocation(allocationId);
+    if (!currentAllocation) {
+      return res.status(404).json({ error: 'Allocation not found' });
+    }
+
+    // Validate payment
+    const validation = AllocationStatusService.validatePayment(currentAllocation, payment);
+    if (!validation.isValid) {
+      return res.status(400).json({ error: validation.error });
+    }
+
+    // Process payment
+    const paymentResult = AllocationStatusService.processPayment(currentAllocation, payment);
+
+    // Update allocation with new paid amount and status
+    const updatedAllocation = await storage.updateFundAllocation(allocationId, {
+      paidAmount: paymentResult.updatedPaidAmount,
+      status: paymentResult.newStatus
+    });
+
+    // Log the payment
+    await AuditService.logActivity(
+      req.user?.id || 0,
+      'allocation_payment',
+      `Added payment of $${payment.toLocaleString()} to allocation ${allocationId}`,
+      { 
+        allocationId,
+        paymentAmount: payment,
+        previousPaidAmount: currentAllocation.paidAmount || 0,
+        newPaidAmount: paymentResult.updatedPaidAmount,
+        newStatus: paymentResult.newStatus
+      }
+    );
+
+    console.log(`Payment processed for allocation ${allocationId}: $${payment.toLocaleString()} → Status: ${paymentResult.newStatus}`);
+
+    res.json(updatedAllocation);
+  } catch (error) {
+    console.error('Error processing payment:', error);
+    res.status(500).json({ error: 'Failed to process payment' });
   }
 });
 

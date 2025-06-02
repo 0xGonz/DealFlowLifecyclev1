@@ -195,7 +195,8 @@ export const fundAllocations = pgTable("fund_allocations", {
   id: serial("id").primaryKey(),
   fundId: integer("fund_id").notNull(),
   dealId: integer("deal_id").notNull(),
-  amount: real("amount").notNull(), // Using real instead of integer to support larger numbers
+  amount: real("amount").notNull(), // Committed amount
+  paidAmount: real("paid_amount").default(0), // Actually paid amount
   amountType: text("amount_type", { enum: ["percentage", "dollar"] }).default("dollar"),
   securityType: text("security_type").notNull(),
   allocationDate: timestamp("allocation_date").notNull().defaultNow(),
