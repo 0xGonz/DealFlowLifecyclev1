@@ -29,18 +29,20 @@ router.put('/:id', requireAuth, async (req: Request, res: Response) => {
     const id = parseInt(req.params.id);
     const updates = req.body;
     
+    console.log(`PUT /api/allocations/${id} - Received update request:`, updates);
+    
     if (!id || isNaN(id)) {
       return res.status(400).json({ error: 'Invalid allocation ID' });
     }
 
-    // Auto-calculate MOIC if market value and amount are provided
-    if (updates.marketValue !== undefined && updates.amount !== undefined) {
-      const marketValue = Number(updates.marketValue) || 0;
-      const amount = Number(updates.amount) || 0;
-      if (amount > 0) {
-        updates.moic = marketValue / amount;
-      }
+    // Get the existing allocation before updating
+    const existingAllocation = await storage.getFundAllocation(id);
+    if (!existingAllocation) {
+      console.error(`Allocation ${id} not found`);
+      return res.status(404).json({ error: 'Allocation not found' });
     }
+
+    console.log(`Found existing allocation ${id}:`, existingAllocation);
 
     // Validate and convert numeric fields safely
     const allowedNumericFields = {
@@ -53,46 +55,69 @@ router.put('/:id', requireAuth, async (req: Request, res: Response) => {
       irr: true
     } as const;
     
+    const sanitizedUpdates: any = {};
+    
     for (const field in updates) {
       if (field in allowedNumericFields && updates[field] !== undefined && updates[field] !== null) {
-        updates[field] = Number(updates[field]) || 0;
+        sanitizedUpdates[field] = Number(updates[field]) || 0;
+      } else if (typeof updates[field] === 'string' || updates[field] === null) {
+        sanitizedUpdates[field] = updates[field];
       }
     }
 
-    // Get the existing allocation before updating for audit trail
-    const existingAllocation = await storage.getFundAllocation(id);
-    if (!existingAllocation) {
-      return res.status(404).json({ error: 'Allocation not found' });
+    // Auto-calculate MOIC if market value and amount are provided
+    if (sanitizedUpdates.marketValue !== undefined && sanitizedUpdates.amount !== undefined) {
+      const marketValue = Number(sanitizedUpdates.marketValue) || 0;
+      const amount = Number(sanitizedUpdates.amount) || 0;
+      if (amount > 0) {
+        sanitizedUpdates.moic = marketValue / amount;
+      }
     }
 
-    const result = await storage.updateFundAllocation(id, updates);
+    console.log(`Sanitized updates for allocation ${id}:`, sanitizedUpdates);
+
+    // Update the allocation in the database
+    const result = await storage.updateFundAllocation(id, sanitizedUpdates);
     
     if (!result) {
-      return res.status(404).json({ error: 'Allocation not found' });
+      console.error(`Failed to update allocation ${id}`);
+      return res.status(500).json({ error: 'Failed to update allocation' });
     }
 
-    // Log allocation update for audit trail
-    await AuditService.logAllocationUpdate(
-      id,
-      existingAllocation,
-      updates,
-      (req as any).user.id,
-      req
-    );
-    
-    console.log(`Allocation ${id} updated by user ${(req as any).user.id}: ${JSON.stringify(updates)}`);
+    console.log(`Successfully updated allocation ${id}:`, result);
 
-    // Trigger portfolio weight recalculation
+    // Log allocation update for audit trail (with error handling)
+    try {
+      await AuditService.logAllocationUpdate(
+        id,
+        existingAllocation,
+        sanitizedUpdates,
+        (req as any).user.id,
+        req
+      );
+      console.log(`Audit log created for allocation ${id} update`);
+    } catch (auditError) {
+      console.error(`Error creating audit log for allocation ${id}:`, auditError);
+      // Don't fail the update if audit logging fails
+    }
+
+    // Trigger portfolio weight recalculation (with error handling)
     try {
       await recalculatePortfolioWeights(result.fundId);
-    } catch (error) {
-      console.error(`Error updating allocation status for allocation ${id}:`, error);
+      console.log(`Portfolio weights recalculated for fund ${result.fundId}`);
+    } catch (weightError) {
+      console.error(`Error recalculating portfolio weights for fund ${result.fundId}:`, weightError);
+      // Don't fail the update if weight calculation fails
     }
 
+    // Return the updated allocation
     res.json(result);
   } catch (error) {
-    console.error('Error updating allocation:', error);
-    res.status(500).json({ error: 'Failed to update allocation' });
+    console.error(`Error in PUT /api/allocations/${req.params.id}:`, error);
+    res.status(500).json({ 
+      error: 'Failed to update allocation',
+      message: error instanceof Error ? error.message : String(error)
+    });
   }
 });
 
