@@ -106,18 +106,20 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
   const createAllocation = useMutation({
     mutationFn: async (data: AllocationFormData) => {
       // Create allocation first
+      const totalAmount = parseFloat(data.amount) || 0;
       const allocationPayload = {
         fundId: data.fundId,
         dealId: data.dealId,
-        amount: data.amount,
+        amount: totalAmount,
         allocationDate: formatDateForAPI(data.commitmentDate),
         status: data.paymentOption === 'pay_immediately' ? 'funded' : 
                 data.paymentOption === 'partial_payment' ? 'partially_paid' : 'committed',
         notes: data.notes,
+        securityType: 'equity', // Default security type
         portfolioWeight: 0,
         interestPaid: 0,
         distributionPaid: 0,
-        marketValue: data.amount,
+        marketValue: totalAmount,
         moic: 1,
         irr: 0
       };
