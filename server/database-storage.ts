@@ -1130,7 +1130,8 @@ export class DatabaseStorage implements IStorage {
       // Calculate MOIC if we have investment amount
       let moic = 1;
       if (totalPaid > 0) {
-        moic = (allocation.marketValue + totalDistributions) / totalPaid;
+        const marketValue = allocation.marketValue || 0;
+        moic = (marketValue + totalDistributions) / totalPaid;
       }
       
       // Update allocation with calculated metrics
