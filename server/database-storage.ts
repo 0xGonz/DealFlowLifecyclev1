@@ -395,16 +395,6 @@ export class DatabaseStorage implements IStorage {
   // Documents
   async createDocument(document: InsertDocument): Promise<Document> {
     const [newDocument] = await db.insert(documents).values(document).returning();
-    
-    // Create a timeline event for document upload
-    await this.createTimelineEvent({
-      dealId: document.dealId,
-      eventType: 'document_upload',
-      content: `New document uploaded: ${document.fileName}`,
-      createdBy: document.uploadedBy,
-      metadata: { documentId: newDocument.id, documentType: document.documentType }
-    });
-    
     return newDocument;
   }
   

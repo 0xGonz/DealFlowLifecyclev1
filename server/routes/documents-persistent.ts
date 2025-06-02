@@ -3,7 +3,6 @@ import multer from 'multer';
 import path from 'path';
 import { DocumentBlobStorage } from '../services/document-blob-storage.js';
 import { requireAuth } from '../utils/auth';
-import { StorageFactory } from '../storage-factory';
 
 const router = express.Router();
 
@@ -65,21 +64,6 @@ router.post('/upload', requireAuth, upload.single('file'), async (req, res) => {
 
     if (!result.success) {
       return res.status(500).json({ error: result.error || 'Failed to store document' });
-    }
-
-    // Create timeline event for document upload
-    const storage = StorageFactory.getStorage();
-    try {
-      await storage.createTimelineEvent({
-        dealId: parseInt(dealId),
-        eventType: 'document_upload',
-        content: `New document uploaded: ${fileName}`,
-        createdBy: userId,
-        metadata: { documentId: result.id, documentType }
-      });
-    } catch (timelineError) {
-      console.error('Failed to create timeline event for document upload:', timelineError);
-      // Don't fail the upload if timeline creation fails
     }
 
     console.log(`✓ Document uploaded successfully: ID ${result.id}`);
