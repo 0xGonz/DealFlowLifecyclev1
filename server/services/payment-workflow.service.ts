@@ -317,16 +317,18 @@ export class PaymentWorkflowService {
         eventType: 'capital_call_update',
         content,
         createdBy: userId,
-        metadata: [
-          allocationId,
-          paymentAmount,
-          allocation?.fundId || 0,
-          fund?.name || 'Unknown Fund',
-          statusResult.status,
-          statusResult.paidPercentage,
-          statusResult.remainingAmount
-        ] as any
+        metadata: {
+          allocationId: allocationId,
+          paymentAmount: paymentAmount,
+          fundId: allocation?.fundId || 0,
+          fundName: fund?.name || 'Unknown Fund',
+          newStatus: statusResult.status,
+          paidPercentage: statusResult.paidPercentage,
+          remainingAmount: statusResult.remainingAmount
+        }
       });
+      
+      console.log(`✅ Payment timeline event created for deal ${dealId}: ${content}`);
     } catch (error) {
       console.error('Failed to create payment timeline event:', error);
       // Don't throw - payment processing should continue even if timeline fails
