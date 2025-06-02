@@ -35,7 +35,6 @@ interface AllocationFormData {
   fundId: number | null;
   dealId: number;
   amount: number;
-  securityType: string;
   allocationDate: Date;
   capitalCallSchedule: string;
   callFrequency: string;
@@ -63,7 +62,6 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
     fundId: null as number | null,
     dealId: dealId,
     amount: 0,
-    securityType: '',
     allocationDate: new Date(),
     capitalCallSchedule: '',
     callFrequency: '',
@@ -157,7 +155,6 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
         fundId: data.fundId,
         dealId: data.dealId,
         amount: data.amount,
-        securityType: data.securityType,
         allocationDate: formatDateForAPI(data.allocationDate),
         status: data.status,
         notes: data.notes,
@@ -192,7 +189,6 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
         fundId: null,
         dealId: dealId,
         amount: 0,
-        securityType: '',
         allocationDate: new Date(),
         capitalCallSchedule: '',
         callFrequency: '',
@@ -251,14 +247,7 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
       return;
     }
     
-    if (!allocationData.securityType) {
-      toast({
-        title: "Validation Error",
-        description: "Please enter a security type.",
-        variant: "destructive",
-      });
-      return;
-    }
+
     
     // Submit the allocation
     createAllocation.mutate(allocationData);
@@ -290,9 +279,9 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Allocate Fund to Deal</DialogTitle>
+          <DialogTitle>Allocate Deal to Fund</DialogTitle>
           <DialogDescription>
-            Allocate capital from a fund to {dealName}
+            Allocate {dealName} to a fund with committed capital
           </DialogDescription>
         </DialogHeader>
         
@@ -330,15 +319,7 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
               />
             </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="securityType">Security Type</Label>
-              <Input
-                id="securityType"
-                value={allocationData.securityType}
-                onChange={(e) => setAllocationData(prev => ({ ...prev, securityType: e.target.value }))}
-                placeholder="e.g., Preferred Stock, Common Stock, Convertible Note"
-              />
-            </div>
+
             
             <div className="space-y-2">
               <Label htmlFor="allocationDate">Allocation Date</Label>
