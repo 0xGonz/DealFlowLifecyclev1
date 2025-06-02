@@ -176,17 +176,19 @@ export default function FundDetail() {
     }))
   });
 
-  // Get all deals (for allocation creation and reference)
+  // Get invested deals only (for allocation creation and reference)
   const { data: deals } = useQuery({
     queryKey: ["/api/deals"],
     // Avoid null or undefined deals which could cause type errors
-    select: (data: Deal[] | undefined) => (data || []).map(deal => ({
-      ...deal,
-      // Ensure potentially undefined fields are set to null to match component expectations
-      notes: deal.notes || null,
-      description: deal.description || null,
-      sector: deal.sector || null
-    })) as Deal[]
+    select: (data: Deal[] | undefined) => (data || [])
+      .filter(deal => deal.stage === 'invested') // Only show invested deals
+      .map(deal => ({
+        ...deal,
+        // Ensure potentially undefined fields are set to null to match component expectations
+        notes: deal.notes || null,
+        description: deal.description || null,
+        sector: deal.sector || null
+      })) as Deal[]
   });
 
   // Create allocation mutation
