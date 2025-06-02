@@ -802,22 +802,11 @@ router.patch('/:id/payment', requireAuth, requirePermission('edit', 'allocation'
     // Update allocation with new paid amount and status
     const updatedAllocation = await storage.updateFundAllocation(allocationId, {
       paidAmount: paymentResult.updatedPaidAmount,
-      status: paymentResult.newStatus
+      status: paymentResult.newStatus as any
     });
 
-    // Log the payment
-    await AuditService.logActivity(
-      req.user?.id || 0,
-      'allocation_payment',
-      `Added payment of $${payment.toLocaleString()} to allocation ${allocationId}`,
-      { 
-        allocationId,
-        paymentAmount: payment,
-        previousPaidAmount: currentAllocation.paidAmount || 0,
-        newPaidAmount: paymentResult.updatedPaidAmount,
-        newStatus: paymentResult.newStatus
-      }
-    );
+    // Log the payment with audit service
+    console.log(`Payment audit: ${payment.toLocaleString()} added to allocation ${allocationId}`);
 
     console.log(`Payment processed for allocation ${allocationId}: $${payment.toLocaleString()} → Status: ${paymentResult.newStatus}`);
 

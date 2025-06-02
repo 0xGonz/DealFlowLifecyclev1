@@ -7,8 +7,8 @@
 
 export interface AllocationStatusData {
   amount: number;           // Committed amount
-  paidAmount: number;      // Actually paid amount
-  status: string;          // Current status
+  paidAmount: number | null;      // Actually paid amount
+  status: string | null;          // Current status
 }
 
 export interface AllocationStatusResult {
@@ -25,7 +25,7 @@ export class AllocationStatusService {
    * Calculate the correct status based on committed and paid amounts
    */
   static calculateStatus(allocation: AllocationStatusData): AllocationStatusResult {
-    const { amount: committed, paidAmount: paid } = allocation;
+    const { amount: committed, paidAmount: paid, status } = allocation;
     
     // Ensure non-negative values
     const committedAmount = Math.max(0, committed || 0);
@@ -38,27 +38,27 @@ export class AllocationStatusService {
     const isPartiallyPaid = paidAmountSafe > 0 && paidAmountSafe < committedAmount;
     
     // Determine status based on payment progress
-    let status: AllocationStatusResult['status'];
+    let resultStatus: AllocationStatusResult['status'];
     
-    if (allocation.status === 'written_off') {
+    if (status === 'written_off') {
       // Preserve written_off status regardless of payment amounts
-      status = 'written_off';
-    } else if (allocation.status === 'unfunded') {
+      resultStatus = 'written_off';
+    } else if (status === 'unfunded') {
       // Preserve unfunded status if explicitly set
-      status = 'unfunded';
+      resultStatus = 'unfunded';
     } else if (isFullyPaid) {
       // Fully paid
-      status = 'funded';
+      resultStatus = 'funded';
     } else if (isPartiallyPaid) {
       // Partially paid
-      status = 'partially_paid';
+      resultStatus = 'partially_paid';
     } else {
       // No payments made yet
-      status = 'committed';
+      resultStatus = 'committed';
     }
     
     return {
-      status,
+      status: resultStatus,
       paidPercentage,
       remainingAmount,
       isFullyPaid,
