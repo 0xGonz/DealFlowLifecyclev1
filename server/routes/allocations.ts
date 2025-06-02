@@ -134,6 +134,17 @@ router.put('/:id', requireAuth, async (req: Request, res: Response) => {
     for (const field in updates) {
       if (field in allowedNumericFields && updates[field] !== undefined && updates[field] !== null) {
         sanitizedUpdates[field] = Number(updates[field]) || 0;
+      } else if (field === 'allocationDate' && updates[field]) {
+        // Handle date fields properly
+        const dateValue = updates[field];
+        if (typeof dateValue === 'string') {
+          sanitizedUpdates[field] = new Date(dateValue);
+        } else if (dateValue instanceof Date) {
+          sanitizedUpdates[field] = dateValue;
+        } else {
+          // If it's already a proper date object, use it as is
+          sanitizedUpdates[field] = dateValue;
+        }
       } else if (typeof updates[field] === 'string' || updates[field] === null) {
         sanitizedUpdates[field] = updates[field];
       }
