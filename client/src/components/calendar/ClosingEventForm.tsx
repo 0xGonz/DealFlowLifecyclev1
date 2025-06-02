@@ -327,7 +327,7 @@ const ClosingEventForm: React.FC<ClosingEventFormProps> = ({ isOpen, onClose, se
                           const value = e.target.value;
                           field.onChange(value === '' ? undefined : parseFloat(value));
                         }}
-                        value={field.value === undefined ? '' : field.value}
+                        value={field.value ?? ''}
                         className="pr-8"
                         min="0"
                         max={amountType === 'percentage' ? 100 : undefined}

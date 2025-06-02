@@ -161,7 +161,7 @@ export class DatabaseStorage implements IStorage {
         leadInvestor: deal.leadInvestor || null
       };
       
-      const [newDeal] = await db.insert(deals).values(dealData).returning();
+      const [newDeal] = await db.insert(deals).values([dealData]).returning();
       return newDeal;
     } catch (error) {
       console.error('Error creating deal:', error);
@@ -352,7 +352,7 @@ export class DatabaseStorage implements IStorage {
       eventType: 'memo_added',
       content: `Mini-Memo added`,
       createdBy: memo.userId,
-      metadata: { memoId: newMemo.id }
+      metadata: [{ memoId: newMemo.id }]
     });
     
     return newMemo;
