@@ -110,6 +110,7 @@ export default function FundDetail() {
     amount: number;
     amountType?: "percentage" | "dollar";
     securityType: string;
+    dealSector?: string;
     allocationDate: string;
     notes: string;
     status: "committed" | "funded" | "unfunded" | "partially_paid";
@@ -474,10 +475,10 @@ export default function FundDetail() {
                   </div>
                   
                   <div className="space-y-2">
-                    <label htmlFor="securityType" className="text-sm font-medium">Sector (from Deal)</label>
+                    <label htmlFor="dealSector" className="text-sm font-medium">Sector (from Deal)</label>
                     <Input 
-                      id="securityType"
-                      value={newAllocationData.securityType}
+                      id="dealSector"
+                      value={newAllocationData.dealSector || "Select a deal first"}
                       readOnly
                       className="bg-neutral-50 cursor-not-allowed"
                     />
