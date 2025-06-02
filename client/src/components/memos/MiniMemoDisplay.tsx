@@ -20,7 +20,7 @@ export const DUE_DILIGENCE_CHECKLIST = {
   technologyReview: 'Technology Review',
   businessModelValidation: 'Business Model Validation',
   regulatoryCompliance: 'Regulatory Compliance',
-  esgAssessment: 'ESG Assessment'
+  esgAssessment: 'Background Check'
 };
 
 interface MemoUser {
