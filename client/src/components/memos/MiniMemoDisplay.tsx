@@ -51,6 +51,9 @@ export function MiniMemoDisplay({
                        !!memo.teamStrengthScore || !!memo.productFitScore || 
                        !!memo.valuationScore || !!memo.competitiveAdvantageScore;
 
+  // Check if alignment data exists
+  const hasAlignment = !!memo.raiseAmount || !!memo.gpCommitment || !!memo.gpAlignmentPercentage || !!memo.alignmentScore;
+
   // Calculate assessment average directly from memo fields
   const assessmentAverage = useMemo(() => {
     if (!hasAssessment) return null;
@@ -131,12 +134,13 @@ export function MiniMemoDisplay({
         </div>
       </div>
 
-      {hasAssessment ? (
+      {(hasAssessment || hasAlignment) ? (
         <Tabs defaultValue="thesis" className="w-full mt-3">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className={`grid w-full ${hasAssessment && hasAlignment ? 'grid-cols-4' : hasAssessment ? 'grid-cols-3' : 'grid-cols-2'}`}>
             <TabsTrigger value="thesis" onClick={(e) => e.stopPropagation()}>Thesis</TabsTrigger>
-            <TabsTrigger value="assessment" onClick={(e) => e.stopPropagation()}>Assessment</TabsTrigger>
+            {hasAssessment && <TabsTrigger value="assessment" onClick={(e) => e.stopPropagation()}>Assessment</TabsTrigger>}
             <TabsTrigger value="diligence" onClick={(e) => e.stopPropagation()}>Due Diligence</TabsTrigger>
+            {hasAlignment && <TabsTrigger value="alignment" onClick={(e) => e.stopPropagation()}>Alignment</TabsTrigger>}
           </TabsList>
           
           <TabsContent value="thesis" className="space-y-3 mt-3" onClick={(e) => e.stopPropagation()}>
@@ -272,6 +276,58 @@ export function MiniMemoDisplay({
               </div>
             </div>
           </TabsContent>
+          
+          {hasAlignment && (
+            <TabsContent value="alignment" className="space-y-3 mt-3" onClick={(e) => e.stopPropagation()}>
+              <div className="p-3 border rounded-md bg-blue-50">
+                <h4 className="text-xs sm:text-sm font-medium text-blue-900 mb-3">GP-LP Alignment Tracking</h4>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  {memo.raiseAmount && (
+                    <div>
+                      <Label className="text-xs font-medium text-blue-800">Total Raise Amount</Label>
+                      <p className="text-sm text-blue-900">${memo.raiseAmount.toLocaleString()}</p>
+                    </div>
+                  )}
+                  {memo.gpCommitment && (
+                    <div>
+                      <Label className="text-xs font-medium text-blue-800">GP Commitment</Label>
+                      <p className="text-sm text-blue-900">${memo.gpCommitment.toLocaleString()}</p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-3">
+                  {memo.gpAlignmentPercentage && (
+                    <div>
+                      <Label className="text-xs font-medium text-blue-800">Alignment Percentage</Label>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Progress value={memo.gpAlignmentPercentage} className="flex-1 h-2" />
+                        <span className="text-sm font-medium text-blue-900">{memo.gpAlignmentPercentage.toFixed(2)}%</span>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {memo.alignmentScore && (
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs font-medium text-blue-800">Alignment Score</Label>
+                      <Badge variant="outline" className={`
+                        ${memo.alignmentScore >= 8 ? 'bg-green-100 text-green-800' : 
+                          memo.alignmentScore >= 6 ? 'bg-blue-100 text-blue-800' :
+                          memo.alignmentScore >= 4 ? 'bg-yellow-100 text-yellow-800' : 
+                          'bg-red-100 text-red-800'}
+                      `}>
+                        {memo.alignmentScore}/10
+                        {memo.alignmentScore >= 8 ? ' (Excellent)' : 
+                         memo.alignmentScore >= 6 ? ' (Good)' :
+                         memo.alignmentScore >= 4 ? ' (Moderate)' : ' (Low)'}
+                      </Badge>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </TabsContent>
+          )}
         </Tabs>
       ) : (
         <div className="space-y-3">
