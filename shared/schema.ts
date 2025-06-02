@@ -128,6 +128,11 @@ export const miniMemos = pgTable("mini_memos", {
   valuationScore: integer("valuation_score"), // 1-10 score for valuation attractiveness
   competitiveAdvantageScore: integer("competitive_advantage_score"), // 1-10 score for competitive advantage
   dueDiligenceChecklist: jsonb("due_diligence_checklist").$type<Record<string, boolean>>().default({}), // Checklist for due diligence items
+  // GP-LP Alignment tracking fields
+  raiseAmount: numeric("raise_amount", { precision: 14, scale: 2 }), // Total raise amount
+  gpCommitment: numeric("gp_commitment", { precision: 14, scale: 2 }), // GP's financial commitment
+  gpAlignmentPercentage: real("gp_alignment_percentage"), // 0-100% calculated alignment
+  alignmentScore: integer("alignment_score"), // 1-10 alignment score derived from percentage
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

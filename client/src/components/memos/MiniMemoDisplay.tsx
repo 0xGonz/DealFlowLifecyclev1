@@ -123,6 +123,11 @@ export function MiniMemoDisplay({
               Assessment Avg: {assessmentAverage}
             </Badge>
           )}
+          {memo.alignmentScore && (
+            <Badge variant="outline" className="mt-1 sm:mt-0 text-xs px-2 py-0.5 bg-green-50">
+              Alignment: {memo.alignmentScore}/10
+            </Badge>
+          )}
         </div>
       </div>
 

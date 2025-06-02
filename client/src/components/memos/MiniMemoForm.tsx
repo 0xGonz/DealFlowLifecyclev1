@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -62,6 +63,11 @@ const miniMemoSchema = z.object({
   valuationScore: z.number().min(1).max(10).optional(),
   competitiveAdvantageScore: z.number().min(1).max(10).optional(),
   dueDiligenceChecklist: z.record(z.boolean()).optional(),
+  // GP-LP Alignment tracking
+  raiseAmount: z.number().positive().optional(),
+  gpCommitment: z.number().positive().optional(),
+  gpAlignmentPercentage: z.number().min(0).max(100).optional(),
+  alignmentScore: z.number().min(1).max(10).optional(),
 });
 
 type MiniMemoFormValues = z.infer<typeof miniMemoSchema>;
@@ -376,9 +382,10 @@ export function MiniMemoForm({
               onValueChange={setActiveTab}
               className="w-full"
             >
-              <TabsList className="grid grid-cols-3 w-full mb-2">
+              <TabsList className="grid grid-cols-4 w-full mb-2">
                 <TabsTrigger value="thesis">Thesis & Detail</TabsTrigger>
                 <TabsTrigger value="assessment">Assessment</TabsTrigger>
+                <TabsTrigger value="alignment">Alignment</TabsTrigger>
                 <TabsTrigger value="diligence">Due Diligence</TabsTrigger>
               </TabsList>
 
@@ -583,6 +590,147 @@ export function MiniMemoForm({
                           onValueChange={(vals) => field.onChange(vals[0])}
                           className="mt-2"
                         />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </TabsContent>
+
+              <TabsContent value="alignment" className="space-y-4">
+                <div className="bg-blue-50 p-4 rounded-lg border">
+                  <h3 className="font-medium text-blue-900 mb-2">GP-LP Alignment Tracking</h3>
+                  <p className="text-sm text-blue-700 mb-4">
+                    Track the General Partner's financial commitment relative to the total raise to assess alignment with Limited Partners.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="raiseAmount"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Total Raise Amount ($)</FormLabel>
+                        <FormDescription className="text-xs">The total fundraising target</FormDescription>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="e.g., 50000000"
+                            {...field}
+                            onChange={(e) => {
+                              const value = parseFloat(e.target.value) || 0;
+                              field.onChange(value);
+                              // Auto-calculate alignment percentage
+                              const gpCommitment = form.getValues('gpCommitment') || 0;
+                              if (value > 0 && gpCommitment > 0) {
+                                const percentage = (gpCommitment / value) * 100;
+                                const alignmentScore = Math.min(Math.max(Math.round(percentage / 10), 1), 10);
+                                form.setValue('gpAlignmentPercentage', percentage);
+                                form.setValue('alignmentScore', alignmentScore);
+                              }
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="gpCommitment"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>GP Commitment ($)</FormLabel>
+                        <FormDescription className="text-xs">General Partner's financial commitment</FormDescription>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="e.g., 2500000"
+                            {...field}
+                            onChange={(e) => {
+                              const value = parseFloat(e.target.value) || 0;
+                              field.onChange(value);
+                              // Auto-calculate alignment percentage
+                              const raiseAmount = form.getValues('raiseAmount') || 0;
+                              if (value > 0 && raiseAmount > 0) {
+                                const percentage = (value / raiseAmount) * 100;
+                                const alignmentScore = Math.min(Math.max(Math.round(percentage / 10), 1), 10);
+                                form.setValue('gpAlignmentPercentage', percentage);
+                                form.setValue('alignmentScore', alignmentScore);
+                              }
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <FormField
+                  control={form.control}
+                  name="gpAlignmentPercentage"
+                  render={({ field }) => (
+                    <FormItem className="pt-4">
+                      <FormLabel className="text-base font-medium">
+                        Alignment Percentage: {field.value ? `${field.value.toFixed(2)}%` : '0%'}
+                      </FormLabel>
+                      <FormDescription>
+                        Interactive slider to set GP alignment (0-100%). Auto-calculated based on amounts above.
+                      </FormDescription>
+                      <FormControl>
+                        <Slider
+                          min={0}
+                          max={100}
+                          step={0.5}
+                          value={[field.value || 0]}
+                          onValueChange={(vals) => {
+                            const percentage = vals[0];
+                            field.onChange(percentage);
+                            // Calculate alignment score from percentage
+                            const alignmentScore = Math.min(Math.max(Math.round(percentage / 10), 1), 10);
+                            form.setValue('alignmentScore', alignmentScore);
+                          }}
+                          className="mt-2"
+                        />
+                      </FormControl>
+                      <div className="flex justify-between text-xs text-gray-500 mt-1">
+                        <span>0%</span>
+                        <span>25%</span>
+                        <span>50%</span>
+                        <span>75%</span>
+                        <span>100%</span>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="alignmentScore"
+                  render={({ field }) => (
+                    <FormItem className="pt-4 border-t border-gray-200">
+                      <FormLabel className="text-base font-medium">Alignment Score: {field.value || 1}</FormLabel>
+                      <FormDescription>
+                        1-10 score derived from alignment percentage (auto-calculated)
+                      </FormDescription>
+                      <FormControl>
+                        <div className="mt-2 p-3 bg-gray-50 rounded-md">
+                          <div className="text-sm font-medium text-gray-700">
+                            Alignment Level: {
+                              (field.value || 0) >= 8 ? 'Excellent' :
+                              (field.value || 0) >= 6 ? 'Good' :
+                              (field.value || 0) >= 4 ? 'Moderate' :
+                              (field.value || 0) >= 2 ? 'Low' : 'Very Low'
+                            }
+                          </div>
+                          <div className="text-xs text-gray-600 mt-1">
+                            Score: {field.value || 1}/10
+                          </div>
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
