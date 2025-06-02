@@ -158,18 +158,18 @@ router.put('/:id', requireAuth, async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Allocation not found' });
     }
 
-    // If paidAmount is being updated, apply automatic status calculation
-    if ('paidAmount' in sanitizedUpdates) {
+    // Always recalculate status when any amount fields are updated
+    if ('paidAmount' in sanitizedUpdates || 'amount' in sanitizedUpdates) {
       const updatedData = {
         amount: sanitizedUpdates.amount !== undefined ? sanitizedUpdates.amount : currentAllocation.amount,
-        paidAmount: sanitizedUpdates.paidAmount,
+        paidAmount: sanitizedUpdates.paidAmount !== undefined ? sanitizedUpdates.paidAmount : currentAllocation.paidAmount,
         status: currentAllocation.status || 'committed'
       };
       
       const statusResult = AllocationStatusService.calculateStatus(updatedData);
       sanitizedUpdates.status = statusResult.status;
       
-      console.log(`Auto-calculated status for allocation ${id}: ${statusResult.status} (${statusResult.paidPercentage.toFixed(1)}% paid)`);
+      console.log(`Auto-calculated status for allocation ${id}: ${statusResult.status} (${statusResult.paidPercentage.toFixed(1)}% paid, $${(updatedData.paidAmount || 0).toLocaleString()} of $${updatedData.amount.toLocaleString()})`);
     }
 
     // Auto-calculate MOIC if market value and amount are provided
