@@ -739,6 +739,8 @@ export class DatabaseStorage implements IStorage {
       throw new Error('Database not initialized');
     }
     try {
+      console.log(`Updating allocation ${id} with data:`, allocationUpdate);
+      
       // Get the original allocation
       const [originalAllocation] = await db
         .select()
@@ -746,8 +748,11 @@ export class DatabaseStorage implements IStorage {
         .where(eq(fundAllocations.id, id));
       
       if (!originalAllocation) {
+        console.error(`Allocation ${id} not found in database`);
         return undefined;
       }
+      
+      console.log(`Found original allocation:`, originalAllocation);
       
       // Update the allocation
       const [updatedAllocation] = await db
@@ -756,15 +761,29 @@ export class DatabaseStorage implements IStorage {
         .where(eq(fundAllocations.id, id))
         .returning();
       
+      if (!updatedAllocation) {
+        console.error(`Failed to update allocation ${id}`);
+        return undefined;
+      }
+      
+      console.log(`Successfully updated allocation ${id}:`, updatedAllocation);
+      
       // Use the FundService to recalculate and update the fund's AUM
       // This ensures consistent AUM calculation across the application
-      const fundService = new FundService();
-      await fundService.updateFundAUM(originalAllocation.fundId);
+      try {
+        const { FundService } = await import('../services/fund.service');
+        const fundService = new FundService();
+        await fundService.updateFundAUM(originalAllocation.fundId);
+        console.log(`Updated AUM for fund ${originalAllocation.fundId}`);
+      } catch (aumError) {
+        console.error('Error updating fund AUM:', aumError);
+        // Don't fail the allocation update if AUM update fails
+      }
       
-      return updatedAllocation || undefined;
+      return updatedAllocation;
     } catch (error) {
       console.error('Error updating fund allocation:', error);
-      return undefined;
+      throw error; // Re-throw so the route can handle it properly
     }
   }
   
