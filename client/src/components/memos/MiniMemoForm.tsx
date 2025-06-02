@@ -226,6 +226,12 @@ export function MiniMemoForm({
         competitiveAdvantageScore: values.competitiveAdvantageScore,
         dueDiligenceChecklist: values.dueDiligenceChecklist,
         
+        // GP-LP Alignment fields
+        raiseAmount: values.raiseAmount,
+        gpCommitment: values.gpCommitment,
+        gpAlignmentPercentage: values.gpAlignmentPercentage,
+        alignmentScore: values.alignmentScore,
+        
         // User details - for edit mode, we'll use the original user ID
         userId: finalUserId
       };
