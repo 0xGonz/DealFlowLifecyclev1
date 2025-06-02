@@ -1106,8 +1106,47 @@ export class DatabaseStorage implements IStorage {
       throw new Error('Database not initialized');
     }
     
-    // This would typically recalculate returns and other metrics
-    // For now, we'll implement a basic version
-    console.log(`Recalculating metrics for allocation ${allocationId}`);
+    try {
+      // Get the allocation
+      const [allocation] = await db.select().from(fundAllocations).where(eq(fundAllocations.id, allocationId));
+      if (!allocation) return;
+      
+      // Get all distributions for this allocation
+      const allocationDistributions = await db
+        .select()
+        .from(distributions)
+        .where(eq(distributions.allocationId, allocationId));
+      
+      // Calculate total distributions received
+      const totalDistributions = allocationDistributions.reduce((sum, dist) => {
+        return sum + Number(dist.amount || 0);
+      }, 0);
+      
+      // Get all capital calls for this allocation to calculate total called/paid
+      const capitalCalls = await this.getCapitalCallsByAllocation(allocationId);
+      const totalCalled = capitalCalls.reduce((sum, call) => sum + call.callAmount, 0);
+      const totalPaid = capitalCalls.reduce((sum, call) => sum + (call.paidAmount || 0), 0);
+      
+      // Calculate MOIC if we have investment amount
+      let moic = 1;
+      if (totalPaid > 0) {
+        moic = (allocation.marketValue + totalDistributions) / totalPaid;
+      }
+      
+      // Update allocation with calculated metrics
+      await db
+        .update(fundAllocations)
+        .set({
+          totalReturned: totalDistributions,
+          distributionPaid: totalDistributions,
+          moic: moic
+        })
+        .where(eq(fundAllocations.id, allocationId));
+        
+      console.log(`Updated metrics for allocation ${allocationId}: MOIC=${moic.toFixed(2)}, Distributions=$${totalDistributions.toLocaleString()}`);
+    } catch (error) {
+      console.error(`Error recalculating metrics for allocation ${allocationId}:`, error);
+      throw error;
+    }
   }
 }
