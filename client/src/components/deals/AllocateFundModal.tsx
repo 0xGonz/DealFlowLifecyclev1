@@ -105,6 +105,7 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
 
   // Create allocation mutation
   const createAllocation = useMutation({
+    retry: false, // Disable retries to prevent duplicates
     mutationFn: async (data: AllocationFormData) => {
       // Create allocation first
       const totalAmount = parseFloat(data.amount) || 0;
