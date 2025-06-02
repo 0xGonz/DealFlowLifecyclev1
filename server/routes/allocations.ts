@@ -59,11 +59,28 @@ router.put('/:id', requireAuth, async (req: Request, res: Response) => {
       }
     }
 
+    // Get the existing allocation before updating for audit trail
+    const existingAllocation = await storage.getFundAllocation(id);
+    if (!existingAllocation) {
+      return res.status(404).json({ error: 'Allocation not found' });
+    }
+
     const result = await storage.updateFundAllocation(id, updates);
     
     if (!result) {
       return res.status(404).json({ error: 'Allocation not found' });
     }
+
+    // Log allocation update for audit trail
+    await AuditService.logAllocationUpdate(
+      id,
+      existingAllocation,
+      updates,
+      (req as any).user.id,
+      req
+    );
+    
+    console.log(`Allocation ${id} updated by user ${(req as any).user.id}: ${JSON.stringify(updates)}`);
 
     // Trigger portfolio weight recalculation
     try {
