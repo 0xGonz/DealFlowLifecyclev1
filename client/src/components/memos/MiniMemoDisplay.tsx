@@ -139,8 +139,8 @@ export function MiniMemoDisplay({
           <TabsList className={`grid w-full ${hasAssessment && hasAlignment ? 'grid-cols-4' : hasAssessment ? 'grid-cols-3' : 'grid-cols-2'}`}>
             <TabsTrigger value="thesis" onClick={(e) => e.stopPropagation()}>Thesis</TabsTrigger>
             {hasAssessment && <TabsTrigger value="assessment" onClick={(e) => e.stopPropagation()}>Assessment</TabsTrigger>}
-            <TabsTrigger value="diligence" onClick={(e) => e.stopPropagation()}>Due Diligence</TabsTrigger>
             {hasAlignment && <TabsTrigger value="alignment" onClick={(e) => e.stopPropagation()}>Alignment</TabsTrigger>}
+            <TabsTrigger value="diligence" onClick={(e) => e.stopPropagation()}>Due Diligence</TabsTrigger>
           </TabsList>
           
           <TabsContent value="thesis" className="space-y-3 mt-3" onClick={(e) => e.stopPropagation()}>
