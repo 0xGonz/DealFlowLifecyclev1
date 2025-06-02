@@ -1,6 +1,5 @@
 import OpenAI from 'openai';
 import { StorageFactory } from '../../storage-factory';
-import * as path from 'path';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -27,88 +26,70 @@ export class DocumentAnalyzer {
   async extractDealDocuments(dealId: number): Promise<DocumentContent[]> {
     const storage = StorageFactory.getStorage();
     const documents = await storage.getDocumentsByDeal(dealId);
+    
     const documentContents: DocumentContent[] = [];
+    
+    for (const document of documents) {
+      // Only process documents that have actual file data
+      if (!document.fileData) {
+        console.warn(`Skipping document ${document.fileName} - no file data available`);
+        continue;
+      }
 
-    console.log(`📄 Extracting content from ${documents.length} documents for deal ${dealId}`);
-
-    for (const doc of documents) {
-      try {
-        const content = await this.extractDocumentContent(doc);
-        if (content) {
-          documentContents.push({
-            documentId: doc.id,
-            fileName: doc.fileName,
-            documentType: doc.documentType,
-            content: content.content,
-            extractedData: content.extractedData
-          });
-        }
-      } catch (error) {
-        console.error(`Failed to extract content from ${doc.fileName}:`, error);
+      const extractedContent = await this.extractDocumentContent(document);
+      if (extractedContent) {
+        documentContents.push({
+          documentId: document.id,
+          fileName: document.fileName,
+          documentType: document.documentType || 'unknown',
+          content: extractedContent.content,
+          extractedData: extractedContent.extractedData
+        });
       }
     }
-
-    console.log(`✅ Successfully extracted content from ${documentContents.length} documents`);
+    
     return documentContents;
   }
 
   /**
-   * Extract content from a single document
+   * Extract content from a single document stored in database
    */
   private async extractDocumentContent(document: any): Promise<{ content: string; extractedData?: any } | null> {
-    const extension = path.extname(document.fileName).toLowerCase();
-    
-    // Find the actual file path
-    const UPLOAD_PATH = process.env.UPLOAD_PATH || './uploads';
-    const possiblePaths = [
-      path.resolve(UPLOAD_PATH, 'deals', document.dealId?.toString() || '', document.fileName),
-      path.resolve(UPLOAD_PATH, document.dealId?.toString() || '', document.fileName),
-      path.resolve(UPLOAD_PATH, document.fileName),
-      path.resolve(document.filePath || '')
-    ];
-    
-    let actualFilePath = null;
-    for (const testPath of possiblePaths) {
-      if (fs.existsSync(testPath)) {
-        actualFilePath = testPath;
-        break;
+    try {
+      // Check if document has fileData (base64 content stored in database)
+      if (!document.fileData) {
+        console.warn(`Document ${document.fileName} has no fileData content in database`);
+        return null;
       }
-    }
 
-    if (!actualFilePath) {
-      console.warn(`File not found for document: ${document.fileName}`);
+      // Convert base64 to buffer
+      const fileBuffer = Buffer.from(document.fileData, 'base64');
+      const extension = document.fileName.toLowerCase().split('.').pop();
+
+      if (extension === 'pdf') {
+        // Extract text content from PDF
+        const pdfParse = await import('pdf-parse');
+        const pdfData = await pdfParse.default(fileBuffer);
+        
+        return {
+          content: pdfData.text,
+          extractedData: {
+            pages: pdfData.numpages,
+            info: pdfData.info
+          }
+        };
+      } else if (['txt', 'md'].includes(extension || '')) {
+        // Read text files directly
+        const content = fileBuffer.toString('utf-8');
+        return { content };
+      } else {
+        console.warn(`Unsupported file type for analysis: ${extension}`);
+        return null;
+      }
+    } catch (error) {
+      console.error(`Error extracting content from document ${document.fileName}:`, error);
       return null;
     }
-
-    if (extension === '.pdf') {
-      // Extract text content from PDF
-      const pdfParse = await import('pdf-parse');
-      const pdfBuffer = fs.readFileSync(actualFilePath);
-      const pdfData = await pdfParse.default(pdfBuffer);
-      
-      return {
-        content: pdfData.text,
-        extractedData: {
-          pages: pdfData.numpages,
-          info: pdfData.info
-        }
-      };
-    } else if (['.xlsx', '.xls', '.xlsm', '.csv'].includes(extension)) {
-      // Extract structured data from Excel/CSV
-      const data = await DataExtractor.extractData(actualFilePath, document.fileName);
-      const summary = DataExtractor.formatForAI(data);
-      
-      return {
-        content: summary,
-        extractedData: data
-      };
-    } else if (['.txt', '.md'].includes(extension)) {
-      // Read text files directly
-      const content = fs.readFileSync(actualFilePath, 'utf-8');
-      return { content };
-    }
-
-    return null;
   }
 
   /**
@@ -125,19 +106,15 @@ export class DocumentAnalyzer {
    */
   async performAnalysis(
     request: AnalysisRequest, 
-    deal: any, 
-    documentContents: DocumentContent[]
-  ): Promise<any> {
-    const { query, dealId } = request;
-
-    // Build the context for AI analysis
-    let analysisPrompt = `You are an expert investment analyst. Analyze the following deal and documents:\n\n`;
-    
-    // Add deal information
-    analysisPrompt += `DEAL: ${deal.name}\n`;
+    documentContents: DocumentContent[], 
+    deal: any
+  ): Promise<string> {
+    // Build analysis prompt with deal information
+    let analysisPrompt = `DEAL INFORMATION:\n`;
+    analysisPrompt += `Name: ${deal.name}\n`;
     analysisPrompt += `Sector: ${deal.sector}\n`;
     analysisPrompt += `Stage: ${deal.stage}\n`;
-    analysisPrompt += `Description: ${deal.description || 'No description'}\n`;
+    if (deal.amount) analysisPrompt += `Amount: ${deal.amount}\n`;
     if (deal.targetReturn) analysisPrompt += `Target Return: ${deal.targetReturn}\n`;
     if (deal.valuation) analysisPrompt += `Valuation: ${deal.valuation}\n`;
     analysisPrompt += `\n`;
@@ -150,7 +127,7 @@ export class DocumentAnalyzer {
     });
 
     // Add specific query or default analysis request
-    const analysisQuery = query || 
+    const analysisQuery = request.query || 
       `Extract and analyze only the information explicitly stated in the uploaded documents:
       1. Financial data, metrics, and projections as presented
       2. Risk factors specifically mentioned in the documents
@@ -176,26 +153,13 @@ export class DocumentAnalyzer {
           }
         ],
         max_tokens: 3000,
-        temperature: 0.3
+        temperature: 0.1
       });
 
-      const analysis = completion.choices[0]?.message?.content || 'No analysis generated';
-      
-      return {
-        analysis,
-        response: analysis,
-        context: {
-          dealId,
-          dealName: deal.name,
-          documentsAnalyzed: documentContents.length,
-          dataSourcesUsed: documentContents.map(doc => doc.fileName),
-          timestamp: new Date()
-        }
-      };
-
+      return completion.choices[0]?.message?.content || 'No analysis generated';
     } catch (error) {
-      console.error('OpenAI API error:', error);
-      throw new Error(`AI analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error('Error performing AI analysis:', error);
+      throw new Error('Failed to perform AI analysis');
     }
   }
 }
