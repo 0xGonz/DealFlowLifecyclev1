@@ -118,7 +118,7 @@ export class DocumentAnalyzer {
    */
   validateAnalysisData(documentContents: DocumentContent[], deal: any): void {
     if (documentContents.length === 0) {
-      console.warn(`No document content available for ${deal.name}, proceeding with deal-level analysis only`);
+      throw new Error(`No authentic document content available for analysis of "${deal.name}". Please upload the actual document files to enable AI analysis. Only authentic uploaded documents can be analyzed.`);
     }
   }
 
@@ -144,29 +144,25 @@ export class DocumentAnalyzer {
     if (deal.valuation) analysisPrompt += `Valuation: ${deal.valuation}\n`;
     analysisPrompt += `\n`;
 
-    // Add document contents if available
-    if (documentContents.length > 0) {
-      analysisPrompt += `DOCUMENTS (${documentContents.length}):\n\n`;
-      documentContents.forEach((doc, index) => {
-        analysisPrompt += `Document ${index + 1}: ${doc.fileName} (${doc.documentType})\n`;
-        analysisPrompt += `Content:\n${doc.content}\n\n`;
-      });
-    } else {
-      analysisPrompt += `NOTE: No document content available for detailed analysis. Analysis will be based on available deal information only.\n\n`;
-    }
+    // Add authentic document contents
+    analysisPrompt += `DOCUMENTS (${documentContents.length}):\n\n`;
+    documentContents.forEach((doc, index) => {
+      analysisPrompt += `Document ${index + 1}: ${doc.fileName} (${doc.documentType})\n`;
+      analysisPrompt += `Content:\n${doc.content}\n\n`;
+    });
 
     // Add specific query or default analysis request
     const analysisQuery = query || 
-      `Provide a comprehensive investment analysis including:
-      1. Investment thesis and opportunity
-      2. Key financial metrics and projections
-      3. Risk assessment and mitigation strategies
-      4. Market opportunity and competitive positioning
-      5. Management team evaluation
-      6. Overall recommendation with rationale`;
+      `Extract and analyze only the information explicitly stated in the uploaded documents:
+      1. Financial data, metrics, and projections as presented
+      2. Risk factors specifically mentioned in the documents
+      3. Market information and competitive data included
+      4. Management team details provided
+      5. Investment terms and conditions specified
+      6. Key facts and figures directly stated`;
 
     analysisPrompt += `\nANALYSIS REQUEST: ${analysisQuery}\n`;
-    analysisPrompt += `\nProvide a detailed, professional analysis based solely on the authentic documents provided.`;
+    analysisPrompt += `\nCRITICAL REQUIREMENT: Base your analysis EXCLUSIVELY on content explicitly written in the uploaded documents. Never generate, assume, or infer information not directly stated. If information is missing from the documents, state "Not provided in the documents" rather than making assumptions.`;
 
     try {
       const completion = await openai.chat.completions.create({
@@ -174,7 +170,7 @@ export class DocumentAnalyzer {
         messages: [
           {
             role: "system",
-            content: "You are an expert investment analyst. Provide detailed, professional analysis based on the provided documents. Focus on actionable insights and data-driven conclusions."
+            content: "You are an expert investment analyst. CRITICAL: You must analyze ONLY the authentic content from uploaded documents. Never generate, assume, or create any information not explicitly stated in the provided document text. If specific information is not found in the documents, clearly state 'Not specified in the provided documents' rather than making assumptions or generating content."
           },
           {
             role: "user",
