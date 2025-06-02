@@ -46,7 +46,7 @@ export default function AIAnalysisTab({ dealId, dealName }: AIAnalysisTabProps) 
   });
 
   // Fetch documents for this deal
-  const { data: documents = [], isLoading: documentsLoading } = useQuery({
+  const { data: documents = [], isLoading: documentsLoading } = useQuery<Document[]>({
     queryKey: [`/api/documents/deal/${dealId}`],
     enabled: !!dealId
   });
@@ -63,10 +63,57 @@ export default function AIAnalysisTab({ dealId, dealName }: AIAnalysisTabProps) 
   const handleDocumentAnalysis = async (document: Document) => {
     setLoadingDocumentId(document.id);
     
-    const analysisQuery = `Please analyze the document "${document.fileName}" in detail.`;
-    await sendMessage(analysisQuery);
-    
-    setLoadingDocumentId(null);
+    try {
+      // Use the specific document analysis endpoint
+      const response = await fetch(`/api/v1/document-analysis/deals/${dealId}/documents/${document.id}/analyze`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({ 
+          query: `Provide a comprehensive analysis of this document: ${document.fileName}. Include key insights, financial metrics, risks, and strategic implications.` 
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to analyze document');
+      }
+
+      const analysisResult = await response.json();
+      
+      // Add the analysis to messages
+      const analysisMessage = {
+        id: `doc-analysis-${Date.now()}`,
+        type: 'ai' as const,
+        content: analysisResult.analysis || analysisResult.response,
+        timestamp: new Date(),
+        role: 'assistant' as const,
+        context: {
+          ...analysisResult.context,
+          documentName: document.fileName,
+          documentType: document.documentType
+        }
+      };
+      
+      // Add to messages using the hook's state setter
+      setInputValue(`Analyze document: ${document.fileName}`);
+      await sendMessage(`Analyze document: ${document.fileName}`);
+      
+    } catch (error) {
+      console.error('Document analysis error:', error);
+      // Still add an error message to the chat
+      const errorMessage = {
+        id: `error-${Date.now()}`,
+        type: 'ai' as const,
+        content: `Sorry, I couldn't analyze "${document.fileName}". ${error instanceof Error ? error.message : 'Please try again.'}`,
+        timestamp: new Date(),
+        role: 'assistant' as const
+      };
+    } finally {
+      setLoadingDocumentId(null);
+    }
   };
 
   return (
@@ -93,9 +140,18 @@ export default function AIAnalysisTab({ dealId, dealName }: AIAnalysisTabProps) 
             ) : (
               <>
                 <Brain className="h-4 w-4 mr-2" />
-                Investment Thesis
+                Full Analysis
               </>
             )}
+          </Button>
+          <Button 
+            onClick={() => sendMessage("Provide a comprehensive investment thesis for this deal including market opportunity, competitive advantages, risks, and recommendation.")}
+            disabled={isGeneratingAnalysis}
+            variant="outline"
+            size="sm"
+          >
+            <TrendingUp className="h-4 w-4 mr-2" />
+            Investment Thesis
           </Button>
         </div>
       </div>
@@ -108,7 +164,7 @@ export default function AIAnalysisTab({ dealId, dealName }: AIAnalysisTabProps) 
             <span className="text-sm font-medium">Available Data Sources</span>
           </div>
           <div className="flex flex-wrap gap-1">
-            {contextData.dataTypes?.map((type: string) => (
+            {Array.isArray((contextData as any).dataTypes) && (contextData as any).dataTypes?.map((type: string) => (
               <Badge key={type} variant="outline" className="text-xs">
                 {type}
               </Badge>
@@ -117,10 +173,57 @@ export default function AIAnalysisTab({ dealId, dealName }: AIAnalysisTabProps) 
         </div>
       )}
 
+      {/* Quick Analysis Actions */}
+      <div className="p-4 border-b">
+        <h4 className="text-sm font-medium text-gray-700 mb-3">Quick Analysis:</h4>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => sendMessage("Analyze the financial metrics and projections for this deal.")}
+            disabled={isGeneratingAnalysis}
+            className="flex items-center gap-2"
+          >
+            <TrendingUp className="h-3 w-3" />
+            Financials
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => sendMessage("What are the key risks and mitigation strategies for this investment?")}
+            disabled={isGeneratingAnalysis}
+            className="flex items-center gap-2"
+          >
+            <Eye className="h-3 w-3" />
+            Risk Analysis
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => sendMessage("Analyze the market opportunity and competitive landscape.")}
+            disabled={isGeneratingAnalysis}
+            className="flex items-center gap-2"
+          >
+            <Database className="h-3 w-3" />
+            Market
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => sendMessage("Summarize all legal documents and highlight key terms.")}
+            disabled={isGeneratingAnalysis}
+            className="flex items-center gap-2"
+          >
+            <FileText className="h-3 w-3" />
+            Legal
+          </Button>
+        </div>
+      </div>
+
       {/* Documents Section */}
       {documents && documents.length > 0 && (
         <div className="p-4 border-b">
-          <h4 className="text-sm font-medium text-gray-700 mb-2">Analyze Documents:</h4>
+          <h4 className="text-sm font-medium text-gray-700 mb-2">Analyze Individual Documents:</h4>
           <div className="flex flex-wrap gap-2">
             {documents.map((document: Document) => (
               <Button
