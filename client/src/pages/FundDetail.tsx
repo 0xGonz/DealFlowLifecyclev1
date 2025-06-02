@@ -451,11 +451,12 @@ export default function FundDetail() {
                         // Find the selected deal
                         const selectedDeal = deals?.find((d: Deal) => d.id === parseInt(value));
                         
-                        // Update form with deal ID and populate sector from deal
+                        // Update form with deal ID - keep security type as "equity", preserve deal's sector separately
                         setNewAllocationData({
                           ...newAllocationData, 
                           dealId: parseInt(value),
-                          securityType: selectedDeal?.sector || ""
+                          securityType: "equity", // Security type for investment classification
+                          dealSector: selectedDeal?.sector || "" // Preserve deal's actual sector
                         });
                       }}
                     >
