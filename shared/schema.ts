@@ -448,6 +448,29 @@ export const DealStageColors: Record<Deal['stage'], string> = {
   rejected: "danger"
 };
 
+// Audit logs table for tracking all data changes
+export const auditLogs = pgTable("audit_logs", {
+  id: serial("id").primaryKey(),
+  entityType: text("entity_type").notNull(), // 'fund_allocation', 'capital_call', etc.
+  entityId: integer("entity_id").notNull(),
+  action: text("action").notNull(), // 'CREATE', 'UPDATE', 'DELETE'
+  userId: integer("user_id").notNull(),
+  oldValues: text("old_values"), // JSON string of previous values
+  newValues: text("new_values"), // JSON string of new values
+  metadata: text("metadata"), // Additional context as JSON
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertAuditLogSchema = createInsertSchema(auditLogs).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type AuditLog = typeof auditLogs.$inferSelect;
+export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
+
 // Distributions table for tracking multiple distributions from investments
 export const distributions = pgTable("distributions", {
   id: serial("id").primaryKey(),

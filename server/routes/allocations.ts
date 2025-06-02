@@ -4,6 +4,8 @@ import { StorageFactory } from '../storage-factory';
 import { synchronizeAllocationDates } from '../utils/date-integration';
 import { capitalCallService } from '../services/capital-call.service';
 import { allocationService } from '../services/allocation.service';
+import { AuditService } from '../services/audit.service';
+import { ValidationService } from '../services/validation.service';
 import { z } from 'zod';
 import { requireAuth } from '../utils/auth';
 import { requirePermission } from '../utils/permissions';
@@ -153,8 +155,71 @@ router.post('/', requireAuth, requirePermission('create', 'allocation'), async (
     if (!deal) {
       return res.status(404).json({ message: 'Deal not found' });
     }
+
+    // Get existing allocations for validation context
+    const existingAllocations = await storage.getAllocationsByFund(fund.id);
+    const totalExistingAmount = existingAllocations.reduce((sum, alloc) => sum + alloc.amount, 0);
+
+    // Comprehensive validation with business context
+    const validationContext = {
+      fundId: fund.id,
+      dealId: deal.id,
+      amount: allocationData.amount,
+      fundName: fund.name,
+      dealName: deal.name,
+      existingAllocations: totalExistingAmount,
+      fundTotalSize: fund.aum
+    };
+
+    const validationResult = await ValidationService.validateAllocation(allocationData, validationContext);
+    
+    // Log validation results
+    ValidationService.logValidationResult(validationResult, validationContext, (req as any).user.id);
+    
+    if (!validationResult.isValid) {
+      console.error('Allocation validation failed:', validationResult.errors);
+      return res.status(400).json({ 
+        message: 'Allocation validation failed', 
+        errors: validationResult.errors,
+        warnings: validationResult.warnings
+      });
+    }
+
+    // Log warnings but continue processing
+    if (validationResult.warnings.length > 0) {
+      console.warn('Allocation validation warnings:', validationResult.warnings);
+    }
+
+    // Validate capital call parameters if provided
+    if (req.body.capitalCallSchedule && req.body.capitalCallSchedule !== 'none') {
+      const capitalCallValidation = ValidationService.validateCapitalCallParams({
+        callAmountType: req.body.callAmountType || 'percentage',
+        callPercentage: req.body.callPercentage,
+        callDollarAmount: req.body.callDollarAmount,
+        allocationAmount: allocationData.amount,
+        callCount: req.body.callCount || 1
+      });
+
+      if (!capitalCallValidation.isValid) {
+        console.error('Capital call validation failed:', capitalCallValidation.errors);
+        return res.status(400).json({ 
+          message: 'Capital call validation failed', 
+          errors: capitalCallValidation.errors 
+        });
+      }
+    }
     
     const newAllocation = await storage.createFundAllocation(allocationData);
+    
+    // Log allocation creation for audit trail
+    await AuditService.logAllocationCreation(
+      newAllocation.id,
+      allocationData,
+      (req as any).user.id,
+      req
+    );
+    
+    console.log(`Allocation created successfully: ID ${newAllocation.id}, Amount: $${allocationData.amount.toLocaleString()}, Deal: ${deal.name}, Fund: ${fund.name}`);
     
     // Update deal stage to "invested" regardless of how many funds it's allocated to
     // This ensures the deal stays in the invested pipeline stage
