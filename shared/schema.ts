@@ -158,19 +158,8 @@ export const insertMemoCommentSchema = createInsertSchema(memoComments).omit({
   createdAt: true,
 });
 
-// Default due diligence checklist items
-export const DEFAULT_DUE_DILIGENCE_CHECKLIST = {
-  "financialReview": false,
-  "legalReview": false,
-  "marketAnalysis": false,
-  "teamAssessment": false,
-  "customerInterviews": false,
-  "competitorAnalysis": false,
-  "technologyReview": false,
-  "businessModelValidation": false,
-  "regulatoryCompliance": false,
-  "esgAssessment": false
-};
+// Due diligence checklist structure - no hardcoded defaults
+// Checklist items should be created dynamically based on user input
 
 // Funds
 export const funds = pgTable("funds", {
