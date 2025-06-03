@@ -130,7 +130,7 @@ export class RateLimiter {
  */
 function getRateLimitKey(req: Request): string {
   // Use IP address as the default key
-  let key = req.ip || req.socket.remoteAddress || '127.0.0.1';
+  let key = req.ip || req.socket.remoteAddress || 'unknown-ip';
   
   // If the user is logged in, use their ID as part of the key
   if (req.session?.userId) {
