@@ -311,114 +311,128 @@ export class CapitalCallService {
 
   /**
    * Add a payment to a capital call
+   * Eliminates redundant payment recording and uses configurable payment handling
    */
   async addPaymentToCapitalCall(
     capitalCallId: number, 
     paymentAmount: number, 
     paymentDate: Date,
-    paymentType: 'wire' | 'check' | 'ach' | 'other' | null = 'wire',
+    paymentType: 'wire' | 'check' | 'ach' | 'other' | null = null,
     notes: string | null = null,
     createdBy: number
   ): Promise<CapitalCall | null> {
     const storage = StorageFactory.getStorage();
+    const config = capitalCallsConfig.getConfig();
     
-    // Get current capital call
+    // Get current capital call with error handling
     const currentCall = await storage.getCapitalCall(capitalCallId);
     if (!currentCall) {
-      throw new Error('Capital call not found');
+      throw new Error(`Capital call with ID ${capitalCallId} not found`);
     }
     
-    // Get total payments already made for this capital call from the payments table
+    // Use configuration default if payment type not specified
+    const effectivePaymentType = paymentType || config.payments.defaultPaymentType;
+    
+    // Validate payment amount
+    if (paymentAmount <= 0) {
+      throw new Error('Payment amount must be greater than zero');
+    }
+    
+    // Get total payments already made for this capital call
     const existingPayments = await this.getPaymentsForCapitalCall(capitalCallId);
-    // Calculate total payments from database records
     const totalPaidSoFar = existingPayments.reduce((sum, payment: any) => {
-      // Cast to any to handle both snake_case and camelCase field names
-      const amount = payment.amount_usd || 0;
+      const amount = payment.amount_usd || payment.paymentAmount || 0;
       return sum + Number(amount);
     }, 0);
     
-    // Calculate potential new paid amount to check for over-payment
+    // Calculate potential new paid amount
     const potentialPaidAmount = totalPaidSoFar + paymentAmount;
     
-    // Check for over-payment
-    if (potentialPaidAmount > currentCall.callAmount) {
-      throw new Error(`Payment amount of ${paymentAmount} would exceed the call amount. The maximum allowed payment is ${currentCall.callAmount - totalPaidSoFar}`);
+    // Check for over-payment based on configuration
+    if (!config.payments.allowOverpayments && potentialPaidAmount > currentCall.callAmount) {
+      const maxAllowed = currentCall.callAmount - totalPaidSoFar;
+      throw new Error(
+        `Payment amount of ${paymentAmount} would exceed the call amount of ${currentCall.callAmount}. ` +
+        `Maximum allowed payment is ${maxAllowed}`
+      );
     }
     
-    // Create payment record in the payments table using SQL template literals
-    const formattedDate = new Date(paymentDate).toISOString().split('T')[0];
-    await db.execute(sql`
-      INSERT INTO payments (capital_call_id, paid_date, amount_usd) 
-      VALUES (${capitalCallId}, ${formattedDate}, ${paymentAmount})
-    `);
+    // Validate payment notes requirement
+    if (config.payments.requirePaymentNotes && !notes) {
+      throw new Error('Payment notes are required by configuration');
+    }
     
-    // Also create a payment record in the capital_call_payments table for backwards compatibility
+    // Create single payment record (eliminate redundancy)
+    const normalizedPaymentDate = createNormalizedDate(paymentDate);
     await storage.createCapitalCallPayment({
       capitalCallId,
       paymentAmount,
-      paymentDate,
-      paymentType,
+      paymentDate: normalizedPaymentDate,
+      paymentType: effectivePaymentType,
       notes,
       createdBy
     });
     
-    // Calculate new outstanding amount
-    const newPaidAmount = potentialPaidAmount;
+    // Calculate new amounts
+    const newPaidAmount = Math.min(potentialPaidAmount, currentCall.callAmount);
     const newOutstanding = Math.max(0, currentCall.callAmount - newPaidAmount);
     
     // Determine new status based on payment amount
     let newStatus: CapitalCall['status'];
-    
     if (newOutstanding === 0) {
       newStatus = 'paid';
     } else if (newPaidAmount > 0 && newOutstanding > 0) {
-      // Use the new partially_paid status instead of partial
       newStatus = 'partially_paid';
     } else {
       newStatus = currentCall.status;
     }
     
-    // Create a proper normalized Date object for the payment date
-    const normalizedPaymentDate = new Date(paymentDate);
-    normalizedPaymentDate.setUTCHours(12, 0, 0, 0);
-    
-    // Update capital call with new paid amount and status
+    // Update capital call with new amounts and status
     const updatedCall = await storage.updateCapitalCall(capitalCallId, {
       ...currentCall,
       paidAmount: newPaidAmount,
-      outstanding_amount: newOutstanding, // Match the DB column name
+      outstanding_amount: newOutstanding,
       status: newStatus,
-      paidDate: normalizedPaymentDate // Use normalized Date object
+      paidDate: normalizedPaymentDate
     });
     
-    // If call is now fully paid, check if all calls for this allocation are paid
-    if (newStatus === 'paid') {
-      // Get the allocation to update its status if needed
-      const allocation = await storage.getFundAllocation(currentCall.allocationId);
-      
-      if (allocation) {
-        // Check if this is the last unpaid call for this allocation
-        const allCalls = await storage.getCapitalCallsByAllocation(allocation.id);
-        const hasUnpaidCalls = allCalls.some(call => 
-          call.id !== capitalCallId && 
-          call.status !== 'paid' && 
-          call.status !== 'defaulted'
-        );
-        
-        // If all calls are now paid or defaulted, update allocation status to funded
-        if (!hasUnpaidCalls && allocation.status !== 'funded') {
-          await storage.updateFundAllocation(allocation.id, {
-            ...allocation,
-            status: 'funded' as const
-          });
-        }
-      }
+    // Update allocation status if needed (only if auto-update is enabled)
+    if (config.statusTransitions.autoStatusUpdate && newStatus === 'paid') {
+      await this.updateAllocationStatusIfComplete(currentCall.allocationId, capitalCallId);
     }
     
-    // Invalidate any cached data for this capital call
-    // This ensures the UI will fetch the latest data
-    
     return updatedCall || null;
+  }
+  
+  /**
+   * Helper method to update allocation status when all capital calls are complete
+   */
+  private async updateAllocationStatusIfComplete(allocationId: number, excludeCallId?: number): Promise<void> {
+    const storage = StorageFactory.getStorage();
+    
+    try {
+      const allocation = await storage.getFundAllocation(allocationId);
+      if (!allocation || allocation.status === 'funded') {
+        return;
+      }
+      
+      const allCalls = await storage.getCapitalCallsByAllocation(allocationId);
+      const hasUnpaidCalls = allCalls.some(call => 
+        call.id !== excludeCallId && 
+        call.status !== 'paid' && 
+        call.status !== 'defaulted'
+      );
+      
+      if (!hasUnpaidCalls) {
+        await storage.updateFundAllocation(allocationId, {
+          ...allocation,
+          status: 'funded' as const
+        });
+      }
+    } catch (error) {
+      console.error(`Failed to update allocation status for allocation ${allocationId}:`, error);
+      // Don't throw - this is a side effect, main payment should still succeed
+    }
   }
   
   /**
@@ -466,10 +480,7 @@ export class CapitalCallService {
     if (newStatus === 'paid' && paidAmount) {
       newPaidAmount = paidAmount;
       newOutstanding = 0;
-      // Create a proper Date object with time set to noon UTC
-      const today = new Date();
-      today.setUTCHours(12, 0, 0, 0);
-      paidDate = today;
+      paidDate = createNormalizedDate();
     } else if (newStatus === 'partial' && paidAmount) {
       // Additional validations for partial payments
       if (!paidAmount || paidAmount >= currentCall.callAmount) {
@@ -478,10 +489,7 @@ export class CapitalCallService {
       
       newPaidAmount = paidAmount;
       newOutstanding = currentCall.callAmount - paidAmount;
-      // Create a proper Date object with time set to noon UTC
-      const today = new Date();
-      today.setUTCHours(12, 0, 0, 0);
-      paidDate = today;
+      paidDate = createNormalizedDate();
     } else if (newStatus === 'defaulted') {
       // Defaulted calls have their outstanding amount written off
       newOutstanding = 0;
@@ -562,6 +570,7 @@ export class CapitalCallService {
   /**
    * Get capital calls for the calendar view
    * Including additional information about the fund and allocation
+   * Uses optimized batch queries to eliminate N+1 query performance issues
    */
   async getCapitalCallsForCalendar(startDate: Date, endDate: Date): Promise<CapitalCallWithFundAllocation[]> {
     const storage = StorageFactory.getStorage();
@@ -584,93 +593,41 @@ export class CapitalCallService {
     // Get all allocation IDs from capital calls
     const allocationIds = [...new Set(filteredCalls.map(call => call.allocationId))];
     
-    // Fetch all allocations in a single batch
-    const allocations = await Promise.all(
-      allocationIds.map(id => storage.getFundAllocation(id))
-    );
-    
-    // Create a lookup map for allocations
-    const allocationMap = allocations.reduce((map, allocation) => {
-      if (allocation) {
-        map[allocation.id] = allocation;
-      }
-      return map;
-    }, {} as Record<number, any>);
-    
-    // Get all deal IDs from allocations
-    const dealIds = [...new Set(
-      allocations
-        .filter(a => a !== null)
-        .map(a => a!.dealId)
-    )];
-    
-    // Fetch all deals in a single batch
-    const deals = await Promise.all(
-      dealIds.map(id => storage.getDeal(id))
-    );
-    
-    // Create a lookup map for deals
-    const dealMap = deals.reduce((map, deal) => {
-      if (deal) {
-        map[deal.id] = deal;
-      }
-      return map;
-    }, {} as Record<number, any>);
-    
-    // Get all fund IDs from allocations
-    const fundIds = [...new Set(
-      allocations
-        .filter(a => a !== null)
-        .map(a => a!.fundId)
-    )];
-    
-    // Fetch all funds in a single batch
-    const funds = await Promise.all(
-      fundIds.map(id => storage.getFund(id))
-    );
-    
-    // Create a lookup map for funds
-    const fundMap = funds.reduce((map, fund) => {
-      if (fund) {
-        map[fund.id] = fund;
-      }
-      return map;
-    }, {} as Record<number, any>);
+    // Use batch query service to fetch all related data efficiently
+    const batchResults = await batchQueryService.batchFetchForCapitalCalls(allocationIds);
     
     // Now enhance each capital call with fund and deal information
     const result = filteredCalls.map(call => {
-      const allocation = allocationMap[call.allocationId];
+      const allocation = batchResults.allocations.get(call.allocationId);
       
       if (!allocation) {
-        return {
-          ...call,
-          fund_name: 'Unknown Fund',
-          deal_name: 'Unknown Deal',
-          allocation_amount: 0,
-          // Allow for client-side calculation by including both fields
-          outstanding_amount: call.outstanding_amount || Math.max(0, call.callAmount - (call.paidAmount || 0)),
-          dealId: 0,
-          fundId: 0
-        };
+        // Log missing allocation for debugging instead of returning fallback data
+        console.warn(`Capital call ${call.id} references missing allocation ${call.allocationId}`);
+        return null; // Return null instead of corrupt fallback data
       }
       
-      const deal = dealMap[allocation.dealId] || { name: 'Unknown Deal' };
-      const fund = fundMap[allocation.fundId] || { name: 'Unknown Fund' };
+      const deal = batchResults.deals.get(allocation.dealId);
+      const fund = batchResults.funds.get(allocation.fundId);
+      
+      if (!deal || !fund) {
+        console.warn(`Missing related data for allocation ${allocation.id}: deal=${!!deal}, fund=${!!fund}`);
+        return null; // Return null instead of corrupt fallback data
+      }
       
       return {
         ...call,
-        fund_name: fund.name || 'Unknown Fund',
-        deal_name: deal.name || 'Unknown Deal',
-        allocation_amount: allocation.amount || 0,
+        fund_name: fund.name,
+        deal_name: deal.name,
+        allocation_amount: allocation.amount,
         // For client compatibility
         dealId: allocation.dealId,
         fundId: allocation.fundId,
         dealName: deal.name,
         fundName: fund.name,
-        // Ensure outstanding amount is calculated if not available
-        outstanding_amount: call.outstanding_amount || Math.max(0, call.callAmount - (call.paidAmount || 0))
+        // Ensure outstanding amount is calculated correctly
+        outstanding_amount: call.outstanding_amount ?? Math.max(0, call.callAmount - (call.paidAmount || 0))
       };
-    });
+    }).filter(call => call !== null); // Remove null entries
     
     return result;
   }
