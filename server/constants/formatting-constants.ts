@@ -49,16 +49,18 @@ export const PERCENTAGE_FORMAT = {
   },
 };
 
-// NA/Empty text placeholders
-export const NA_PLACEHOLDERS = {
-  DEFAULT: 'N/A' as const,
+// Status text constants
+export const STATUS_TEXT = {
+  NOT_APPLICABLE: 'N/A' as const,
   EMPTY: '-' as const,
   NOT_AVAILABLE: 'Not available' as const,
   PENDING: 'Pending' as const,
+  LOADING: 'Loading...' as const,
+  ERROR: 'Error' as const,
 };
 
 // Type definitions
 export type CurrencyFormatOption = typeof CURRENCY_FORMAT[keyof typeof CURRENCY_FORMAT];
 export type NumberFormatOption = typeof NUMBER_FORMAT[keyof typeof NUMBER_FORMAT];
 export type PercentageFormatOption = typeof PERCENTAGE_FORMAT[keyof typeof PERCENTAGE_FORMAT];
-export type NaPlaceholder = typeof NA_PLACEHOLDERS[keyof typeof NA_PLACEHOLDERS];
+export type StatusText = typeof STATUS_TEXT[keyof typeof STATUS_TEXT];

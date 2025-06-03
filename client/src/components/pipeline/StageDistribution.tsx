@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Deal, TimelineEvent } from "@/lib/types";
 import { DealStageLabels } from "@shared/schema";
 import { getDealStageBadgeClass, formatPercentage } from "@/lib/utils/format";
-import { PIPELINE_METRICS } from "@/lib/constants/calculation-constants";
+import { TIME_CALCULATION } from "@/lib/constants/calculation-constants";
 
 type StageDistributionProps = {
   deals: Deal[] | undefined;
@@ -77,7 +77,7 @@ export default function StageDistribution({ deals, stage }: StageDistributionPro
     };
     
     // Calculate distribution categories using configured constants
-    const { RECENT, SHORT, MEDIUM, LONG } = PIPELINE_METRICS.DAY_CATEGORIES;
+    const { RECENT, SHORT, MEDIUM, LONG } = TIME_CALCULATION.DAY_CATEGORIES;
     const categories: CategoryStat[] = [
       { label: `< ${RECENT} days`, count: dealDays.filter(d => d.days < RECENT).length },
       { label: `${RECENT}-${SHORT} days`, count: dealDays.filter(d => d.days >= RECENT && d.days < SHORT).length },
