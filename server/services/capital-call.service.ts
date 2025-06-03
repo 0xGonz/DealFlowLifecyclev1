@@ -11,7 +11,9 @@ import {
 } from '@shared/schema';
 import { addMonths, addQuarters, addYears, addDays } from 'date-fns';
 import { normalizeToNoonUTC, formatToNoonUTC } from '@shared/utils/date-utils';
-import { CAPITAL_CALL_TIMING, ALLOCATION_DEFAULTS, PAYMENT_DEFAULTS } from '@shared/constants';
+import { capitalCallsConfig } from '../config/capital-calls-config';
+import { createNormalizedDate, calculateDueDate, formatForDatabase } from '../utils/date-utils';
+import { batchQueryService } from './batch-query.service';
 
 // Define allocation statuses for use in the service
 const ALLOCATION_STATUS = {
@@ -30,22 +32,12 @@ interface CapitalCallWithFundAllocation extends CapitalCall {
   allocation_amount: number;
 }
 
-// Define valid status transitions for capital calls
-const VALID_STATUS_TRANSITIONS: Record<CapitalCall['status'], CapitalCall['status'][]> = {
-  'scheduled': ['called', 'overdue', 'defaulted', 'partially_paid', 'paid'],
-  'called': ['partial', 'paid', 'overdue', 'defaulted', 'partially_paid'],
-  'partial': ['paid', 'overdue', 'defaulted', 'partially_paid'],
-  'partially_paid': ['paid', 'overdue', 'defaulted'],
-  'overdue': ['paid', 'defaulted', 'partial', 'partially_paid'],
-  'paid': [], // Terminal state
-  'defaulted': [] // Terminal state
-};
-
 /**
  * Validate if a status transition is allowed
  */
 function validateStatusTransition(currentStatus: CapitalCall['status'], newStatus: CapitalCall['status']): boolean {
-  const allowedTransitions = VALID_STATUS_TRANSITIONS[currentStatus];
+  const validTransitions = capitalCallsConfig.getValidStatusTransitions();
+  const allowedTransitions = validTransitions[currentStatus] || [];
   return allowedTransitions.includes(newStatus);
 }
 
@@ -231,8 +223,8 @@ export class CapitalCallService {
         }
       }
       
-      // Calculate due date using constant instead of hardcoded value
-      const dueDate = addDays(callDate, CAPITAL_CALL_TIMING.DEFAULT_DUE_DAYS);
+      // Calculate due date using configuration instead of hardcoded value
+      const dueDate = calculateDueDate(callDate);
       // Normalize to noon UTC to avoid timezone issues
       const normalizedDueDate = normalizeToNoonUTC(dueDate);
       
@@ -267,7 +259,7 @@ export class CapitalCallService {
         callDate,
         dueDate: normalizedDueDate, // Use normalized due date
         status: 'scheduled',
-        paidAmount: PAYMENT_DEFAULTS.INITIAL_PAID_AMOUNT,
+        paidAmount: capitalCallsConfig.getInitialPaidAmount(),
         outstanding_amount: callAmount, // Full amount outstanding - match DB column name
         notes: `Scheduled payment ${i + 1} of ${callCount}`
       });
@@ -455,7 +447,8 @@ export class CapitalCallService {
     
     // Validate status transition
     const currentStatus = currentCall.status;
-    const allowedTransitions = VALID_STATUS_TRANSITIONS[currentStatus];
+    const validTransitions = capitalCallsConfig.getValidStatusTransitions();
+    const allowedTransitions = validTransitions[currentStatus] || [];
     
     if (!allowedTransitions.includes(newStatus)) {
       throw new Error(
