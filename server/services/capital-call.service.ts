@@ -134,14 +134,27 @@ export class CapitalCallService {
     callFrequency: string,
     firstCallDate: Date,
     callCount: number,
-    callPercentage: number
+    callPercentage: number,
+    callAmountType: 'percentage' | 'dollar' = 'percentage',
+    callDollarAmount: number = 0
   ): Promise<CapitalCall[]> {
     const storage = StorageFactory.getStorage();
     const calls: CapitalCall[] = [];
     
     // If it's a single payment, create a paid capital call immediately
     if (capitalCallSchedule === 'single') {
-      const callAmount = allocation.amount;
+      // Calculate call amount based on type
+      let callAmount: number;
+      if (callAmountType === 'dollar') {
+        callAmount = callDollarAmount;
+      } else {
+        // For percentage, calculate based on allocation amount
+        if (allocation.amountType === 'dollar') {
+          callAmount = (allocation.amount * callPercentage) / 100;
+        } else {
+          callAmount = callPercentage;
+        }
+      }
       
       // Log the incoming date for debugging
       console.log('Creating single payment capital call with date:', {
@@ -163,7 +176,7 @@ export class CapitalCallService {
       const singleCall = await storage.createCapitalCall({
         allocationId: allocation.id,
         callAmount: callAmount,
-        amountType: allocation.amountType,
+        amountType: callAmountType === 'dollar' ? 'dollar' : allocation.amountType,
         callDate: normalizedDate, // Use the normalized date
         dueDate: normalizedDate, // Use the normalized date
         status: 'paid',
@@ -222,23 +235,34 @@ export class CapitalCallService {
       // Normalize to noon UTC to avoid timezone issues
       const normalizedDueDate = normalizeToNoonUTC(dueDate);
       
-      // For the last call, use remaining percentage to ensure we reach 100%
-      const isLastCall = i === callCount - 1;
-      const thisCallPercentage = isLastCall ? remainingPercentage : callPercentage;
-      
-      // Calculate call amount based on percentage
+      // Calculate call amount based on call amount type
       let callAmount: number;
-      if (allocation.amountType === 'dollar') {
-        callAmount = (baseAmount * thisCallPercentage) / 100;
+      let callAmountTypeForCall: 'percentage' | 'dollar';
+      
+      if (callAmountType === 'dollar') {
+        // Use dollar amount divided by call count
+        callAmount = callDollarAmount / callCount;
+        callAmountTypeForCall = 'dollar';
       } else {
-        callAmount = thisCallPercentage; // For percentage allocations, use the percentage directly
+        // For the last call, use remaining percentage to ensure we reach 100%
+        const isLastCall = i === callCount - 1;
+        const thisCallPercentage = isLastCall ? remainingPercentage : callPercentage;
+        
+        // Calculate call amount based on percentage and allocation type
+        if (allocation.amountType === 'dollar') {
+          callAmount = (baseAmount * thisCallPercentage) / 100;
+          callAmountTypeForCall = 'dollar';
+        } else {
+          callAmount = thisCallPercentage; // For percentage allocations, use the percentage directly
+          callAmountTypeForCall = 'percentage';
+        }
       }
       
       // Create capital call
       const call = await storage.createCapitalCall({
         allocationId: allocation.id,
         callAmount,
-        amountType: allocation.amountType,
+        amountType: callAmountTypeForCall,
         callDate,
         dueDate: normalizedDueDate, // Use normalized due date
         status: 'scheduled',
@@ -248,7 +272,12 @@ export class CapitalCallService {
       });
       
       calls.push(call);
-      remainingPercentage -= thisCallPercentage;
+      
+      // Only subtract from remaining percentage if using percentage-based calls
+      if (callAmountType === 'percentage') {
+        const thisCallPercentage = i === callCount - 1 ? remainingPercentage : callPercentage;
+        remainingPercentage -= thisCallPercentage;
+      }
     }
     
     return calls;

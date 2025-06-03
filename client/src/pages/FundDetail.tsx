@@ -110,6 +110,7 @@ export default function FundDetail() {
     amount: number;
     amountType?: "percentage" | "dollar";
     securityType: string;
+    dealSector?: string;
     allocationDate: string;
     notes: string;
     status: "committed" | "funded" | "unfunded" | "partially_paid";
@@ -176,17 +177,19 @@ export default function FundDetail() {
     }))
   });
 
-  // Get all deals (for allocation creation and reference)
+  // Get invested deals only (for allocation creation and reference)
   const { data: deals } = useQuery({
     queryKey: ["/api/deals"],
     // Avoid null or undefined deals which could cause type errors
-    select: (data: Deal[] | undefined) => (data || []).map(deal => ({
-      ...deal,
-      // Ensure potentially undefined fields are set to null to match component expectations
-      notes: deal.notes || null,
-      description: deal.description || null,
-      sector: deal.sector || null
-    })) as Deal[]
+    select: (data: Deal[] | undefined) => (data || [])
+      .filter(deal => deal.stage === 'invested') // Only show invested deals
+      .map(deal => ({
+        ...deal,
+        // Ensure potentially undefined fields are set to null to match component expectations
+        notes: deal.notes || null,
+        description: deal.description || null,
+        sector: deal.sector || null
+      })) as Deal[]
   });
 
   // Create allocation mutation
@@ -449,11 +452,12 @@ export default function FundDetail() {
                         // Find the selected deal
                         const selectedDeal = deals?.find((d: Deal) => d.id === parseInt(value));
                         
-                        // Update form with deal ID and populate sector from deal
+                        // Update form with deal ID - keep security type as "equity", preserve deal's sector separately
                         setNewAllocationData({
                           ...newAllocationData, 
                           dealId: parseInt(value),
-                          securityType: selectedDeal?.sector || ""
+                          securityType: "equity", // Security type for investment classification
+                          dealSector: selectedDeal?.sector || "" // Preserve deal's actual sector
                         });
                       }}
                     >
@@ -471,10 +475,10 @@ export default function FundDetail() {
                   </div>
                   
                   <div className="space-y-2">
-                    <label htmlFor="securityType" className="text-sm font-medium">Sector (from Deal)</label>
+                    <label htmlFor="dealSector" className="text-sm font-medium">Sector (from Deal)</label>
                     <Input 
-                      id="securityType"
-                      value={newAllocationData.securityType}
+                      id="dealSector"
+                      value={newAllocationData.dealSector || "Select a deal first"}
                       readOnly
                       className="bg-neutral-50 cursor-not-allowed"
                     />

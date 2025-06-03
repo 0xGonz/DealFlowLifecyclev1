@@ -739,6 +739,8 @@ export class DatabaseStorage implements IStorage {
       throw new Error('Database not initialized');
     }
     try {
+      console.log(`Updating allocation ${id} with data:`, allocationUpdate);
+      
       // Get the original allocation
       const [originalAllocation] = await db
         .select()
@@ -746,8 +748,11 @@ export class DatabaseStorage implements IStorage {
         .where(eq(fundAllocations.id, id));
       
       if (!originalAllocation) {
+        console.error(`Allocation ${id} not found in database`);
         return undefined;
       }
+      
+      console.log(`Found original allocation:`, originalAllocation);
       
       // Update the allocation
       const [updatedAllocation] = await db
@@ -756,15 +761,20 @@ export class DatabaseStorage implements IStorage {
         .where(eq(fundAllocations.id, id))
         .returning();
       
-      // Use the FundService to recalculate and update the fund's AUM
-      // This ensures consistent AUM calculation across the application
-      const fundService = new FundService();
-      await fundService.updateFundAUM(originalAllocation.fundId);
+      if (!updatedAllocation) {
+        console.error(`Failed to update allocation ${id}`);
+        return undefined;
+      }
       
-      return updatedAllocation || undefined;
+      console.log(`Successfully updated allocation ${id}:`, updatedAllocation);
+      
+      // Note: AUM recalculation is handled separately to avoid circular dependencies
+      console.log(`Allocation update completed for fund ${originalAllocation.fundId}`)
+      
+      return updatedAllocation;
     } catch (error) {
       console.error('Error updating fund allocation:', error);
-      return undefined;
+      throw error; // Re-throw so the route can handle it properly
     }
   }
   
@@ -1130,7 +1140,7 @@ export class DatabaseStorage implements IStorage {
       // Calculate MOIC if we have investment amount
       let moic = 1;
       if (totalPaid > 0) {
-        moic = (allocation.marketValue + totalDistributions) / totalPaid;
+        moic = ((allocation.marketValue ?? 0) + totalDistributions) / totalPaid;
       }
       
       // Update allocation with calculated metrics
