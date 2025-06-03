@@ -4,7 +4,8 @@ import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { formatDateForAPI } from '@/lib/dateUtils';
-import { ALLOCATION_STATUS } from '@/lib/constants/allocation-constants';
+import { ALLOCATION_STATUS, ALLOCATION_DEFAULTS } from '@/lib/constants/allocation-constants';
+import { DEFAULT_SECURITY_TYPE, SECURITY_TYPES, SECURITY_TYPE_LABELS } from '@/lib/constants/security-types';
 
 import {
   Dialog,
@@ -32,6 +33,7 @@ interface AllocationFormData {
   fundId: number | null;
   dealId: number;
   amount: string;
+  securityType: string;
   commitmentDate: Date;
   notes: string;
   status: string;
@@ -49,6 +51,7 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
     fundId: null,
     dealId: dealId,
     amount: '',
+    securityType: DEFAULT_SECURITY_TYPE,
     commitmentDate: new Date(),
     notes: '',
     status: ALLOCATION_STATUS.COMMITTED,
@@ -117,13 +120,13 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
         status: data.paymentOption === 'pay_immediately' ? 'funded' : 
                 data.paymentOption === 'partial_payment' ? 'partially_paid' : 'committed',
         notes: data.notes,
-        securityType: 'equity', // Default security type
-        portfolioWeight: 0,
-        interestPaid: 0,
-        distributionPaid: 0,
-        marketValue: totalAmount,
-        moic: 1,
-        irr: 0
+        securityType: data.securityType,
+        portfolioWeight: ALLOCATION_DEFAULTS.PORTFOLIO_WEIGHT,
+        interestPaid: ALLOCATION_DEFAULTS.INTEREST_PAID,
+        distributionPaid: ALLOCATION_DEFAULTS.DISTRIBUTION_PAID,
+        marketValue: ALLOCATION_DEFAULTS.INITIAL_MARKET_VALUE,
+        moic: ALLOCATION_DEFAULTS.INITIAL_MOIC,
+        irr: ALLOCATION_DEFAULTS.INITIAL_IRR
       };
 
       const response = await apiRequest('POST', '/api/allocations', allocationPayload);
@@ -149,6 +152,7 @@ export default function AllocateFundModal({ isOpen, onClose, dealId, dealName }:
         fundId: null,
         dealId: dealId,
         amount: '',
+        securityType: DEFAULT_SECURITY_TYPE,
         commitmentDate: new Date(),
         notes: '',
         status: ALLOCATION_STATUS.COMMITTED,

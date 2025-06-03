@@ -45,3 +45,21 @@ export const CAPITAL_CALL_STATUS_LABELS = {
   [CAPITAL_CALL_STATUS.PAID]: 'Paid',
   [CAPITAL_CALL_STATUS.DEFAULTED]: 'Defaulted'
 };
+
+// Capital call timing constants
+export const CAPITAL_CALL_TIMING = {
+  DEFAULT_DUE_DAYS: 30, // Default days between call date and due date
+  PAYMENT_GRACE_DAYS: 7, // Grace period for late payments
+  REMINDER_DAYS_BEFORE: 7 // Days before due date to send reminders
+};
+
+// Default allocation values
+export const ALLOCATION_DEFAULTS = {
+  PORTFOLIO_WEIGHT: 0,
+  INTEREST_PAID: 0,
+  DISTRIBUTION_PAID: 0,
+  INITIAL_MARKET_VALUE: 0, // Market value starts at 0, updated based on performance
+  INITIAL_MOIC: 1, // Multiple of Invested Capital starts at 1x
+  INITIAL_IRR: 0, // Internal Rate of Return starts at 0%
+  PAID_AMOUNT: 0 // Initially no amount paid
+};
