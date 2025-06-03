@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { useFundSettings } from '@/hooks/use-settings';
 import { format } from 'date-fns';
 import { formatDateForAPI } from '@/lib/dateUtils';
 import { ALLOCATION_STATUS, ALLOCATION_DEFAULTS } from '@/lib/constants/allocation-constants';

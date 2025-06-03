@@ -39,10 +39,9 @@ export interface AppSettings {
  * This replaces all hardcoded configuration values in the frontend
  */
 export function useSettings() {
-  return useQuery<AppSettings>({
+  return useQuery({
     queryKey: ['/api/settings'],
     staleTime: 5 * 60 * 1000, // 5 minutes - settings don't change often
-    cacheTime: 10 * 60 * 1000, // 10 minutes
   });
 }
 
@@ -53,7 +52,7 @@ export function useFundSettings() {
   const { data: settings, isLoading, error } = useSettings();
   
   // Provide sensible fallbacks while settings are loading
-  const fundSettings = settings?.fund || {
+  const fundSettings = (settings as AppSettings)?.fund || {
     maxCommitment: 10000000000,
     minCommitment: 1000,
     currencyStep: 1000,
@@ -80,7 +79,7 @@ export function useFundSettings() {
 export function useUISettings() {
   const { data: settings, isLoading, error } = useSettings();
   
-  const uiSettings = settings?.ui || {
+  const uiSettings = (settings as AppSettings)?.ui || {
     pageSize: 25,
     maxFileSize: 10485760, // 10MB
     allowedFileTypes: ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'csv'],
