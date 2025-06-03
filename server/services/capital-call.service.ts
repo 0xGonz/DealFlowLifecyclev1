@@ -9,8 +9,9 @@ import {
   Payment,
   payments
 } from '@shared/schema';
-import { addMonths, addQuarters, addYears } from 'date-fns';
+import { addMonths, addQuarters, addYears, addDays } from 'date-fns';
 import { normalizeToNoonUTC, formatToNoonUTC } from '@shared/utils/date-utils';
+import { CAPITAL_CALL_TIMING, ALLOCATION_DEFAULTS, PAYMENT_DEFAULTS } from '@shared/constants';
 
 // Define allocation statuses for use in the service
 const ALLOCATION_STATUS = {
@@ -230,8 +231,8 @@ export class CapitalCallService {
         }
       }
       
-      // Calculate due date (30 days after call date)
-      const dueDate = addMonths(callDate, 1);
+      // Calculate due date using constant instead of hardcoded value
+      const dueDate = addDays(callDate, CAPITAL_CALL_TIMING.DEFAULT_DUE_DAYS);
       // Normalize to noon UTC to avoid timezone issues
       const normalizedDueDate = normalizeToNoonUTC(dueDate);
       
@@ -266,7 +267,7 @@ export class CapitalCallService {
         callDate,
         dueDate: normalizedDueDate, // Use normalized due date
         status: 'scheduled',
-        paidAmount: 0, // Initially nothing paid
+        paidAmount: PAYMENT_DEFAULTS.INITIAL_PAID_AMOUNT,
         outstanding_amount: callAmount, // Full amount outstanding - match DB column name
         notes: `Scheduled payment ${i + 1} of ${callCount}`
       });
