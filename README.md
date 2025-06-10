@@ -109,7 +109,7 @@ pnpm run dev
 - Workflow service enforces state transitions
 
 ### Document System
-- Uploads stored on disk or Postgres BLOB (`unified-document-storage`)  
+- Uploads stored in Postgres via `database-document-storage`  
 - PDF rendered via `react-pdf` with correctly versioned pdfjs worker
 
 ### Calendar Module
